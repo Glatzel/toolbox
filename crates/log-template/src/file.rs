@@ -28,7 +28,7 @@ where
     for<'a> S: LookupSpan<'a>,
 {
     let layer = tracing_subscriber::fmt::layer()
-        .event_format(TerminalFormatter)
+        .event_format(FileFormatter)
         .with_writer(std::io::stderr)
         .with_filter(
             EnvFilter::builder()
@@ -91,7 +91,7 @@ mod tests {
     #[test]
     fn test_log() {
         tracing_subscriber::registry()
-            .with(terminal_layer(LevelFilter::TRACE))
+            .with(file_layer(LevelFilter::TRACE))
             .init();
         trace!("Trace message");
         debug!("Debug message");

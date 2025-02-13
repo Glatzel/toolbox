@@ -7,7 +7,22 @@ use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{format, FmtContext};
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
-
+/// # Example
+///
+/// ```
+/// use tracing::{debug, error, info, trace, warn};
+/// use tracing_subscriber::layer::SubscriberExt;
+/// use tracing_subscriber::util::SubscriberInitExt;
+/// use tracing_subscriber::filter::LevelFilter;
+/// tracing_subscriber::registry()
+///     .with(log_template::terminal_layer(LevelFilter::TRACE))
+///     .init();
+/// trace!("Trace message");
+/// debug!("Debug message");
+/// info!("Informational message");
+/// warn!("Warning message");
+/// error!("Error message");
+/// ```
 pub fn terminal_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,

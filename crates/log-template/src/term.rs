@@ -1,4 +1,5 @@
 use std::fmt;
+use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
@@ -41,14 +42,19 @@ where
 }
 
 struct TerminalFormatter;
-
-fn color_level(level: &tracing::Level) -> Styled<&&str> {
+impl TerminalFormatter {}
+static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
+static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));
+static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate::INFO_STYLE));
+static WARN_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "WARN".style(*crate::WARN_STYLE));
+static ERROR_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "ERROR".style(*crate::ERROR_STYLE));
+fn color_level(level: &tracing::Level) -> &Styled<&&str> {
     match *level {
-        tracing::Level::TRACE => "TRACE".style(*crate::TRACE_STYLE),
-        tracing::Level::DEBUG => "DEBUG".style(*crate::DEBUG_STYLE),
-        tracing::Level::INFO => "INFO".style(*crate::INFO_STYLE),
-        tracing::Level::WARN => "WARN".style(*crate::WARN_STYLE),
-        tracing::Level::ERROR => "ERROR".style(*crate::ERROR_STYLE),
+        tracing::Level::TRACE => &TRACE_TEXT,
+        tracing::Level::DEBUG => &DEBUG_TEXT,
+        tracing::Level::INFO => &INFO_TEXT,
+        tracing::Level::WARN => &WARN_TEXT,
+        tracing::Level::ERROR => &ERROR_TEXT,
     }
 }
 

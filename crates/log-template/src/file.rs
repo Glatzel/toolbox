@@ -14,8 +14,13 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
+/// let f = format!(
+///            "./temp/{}.log",
+///            chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
+///        );
+/// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(log_template::terminal_layer(LevelFilter::TRACE))
+///     .with(log_template::file_layer(LevelFilter::TRACE, f))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

@@ -1,7 +1,5 @@
 use std::fmt;
-use std::sync::LazyLock;
 
-use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
@@ -24,7 +22,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn file_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -41,7 +39,7 @@ where
     Box::new(layer)
 }
 
-struct TerminalFormatter;
+struct FileFormatter;
 
 const TRACE_TEXT: &str = "TRACE";
 const DEBUG_TEXT: &str = "DEBUG";
@@ -58,7 +56,7 @@ fn color_level(level: &tracing::Level) -> &str {
     }
 }
 
-impl<S, N> FormatEvent<S, N> for TerminalFormatter
+impl<S, N> FormatEvent<S, N> for FileFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,

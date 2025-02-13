@@ -51,10 +51,10 @@ const ERROR_TEXT: &str = "ERROR";
 fn color_level(level: &tracing::Level) -> &str {
     match *level {
         tracing::Level::TRACE => TRACE_TEXT,
-        tracing::Level::DEBUG => &DEBUG_TEXT,
-        tracing::Level::INFO => &INFO_TEXT,
-        tracing::Level::WARN => &WARN_TEXT,
-        tracing::Level::ERROR => &ERROR_TEXT,
+        tracing::Level::DEBUG => DEBUG_TEXT,
+        tracing::Level::INFO => INFO_TEXT,
+        tracing::Level::WARN => WARN_TEXT,
+        tracing::Level::ERROR => ERROR_TEXT,
     }
 }
 

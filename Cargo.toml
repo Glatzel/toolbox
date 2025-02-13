@@ -11,3 +11,4 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"]}
 owo-colors = "4.1.0"
 chrono = "0.4.30"
+tracing-core = "0.1.33"

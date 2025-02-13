@@ -1,2 +1,4 @@
+mod constants;
 mod term;
-pub use term::init_terminal_logger;
+pub(crate) use constants::*;
+pub use term::terminal_layer;

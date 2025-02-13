@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      build-dist:
+        type: boolean
+        default: false
+  push:
+    branches: main
+    paths-ignore:
+      - "*.md"
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - ready_for_review
+    paths-ignore:
+      - "*.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # region global
+  ruff-lint:
+    uses: Glatzel/template/.github/workflows/ruff.yml@main
+
+  cargo-clippy:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: cargo-clippy
+        run: ./scripts/cargo-clippy.ps1
+        shell: pwsh
+
+  cargo-doc:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: cargo-doc
+        run: ./scripts/cargo-doc.ps1
+        shell: pwsh
+
+      - name: upload doc
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-doc
+          path: dist/*.zip
+          if-no-files-found: error
+
+  cargo-fmt:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: cargo-fmt
+        run: ./scripts/cargo-fmt.ps1
+        shell: pwsh
+
+  cargo-machete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Machete
+        uses: bnjbvr/cargo-machete@main
+
+  cargo-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: cargo-test
+        run: ./scripts/cargo-test.ps1
+
+      - name: Upload results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN  }}
+          slug: Glatzel/rs-geotool
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}

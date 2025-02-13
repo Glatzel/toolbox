@@ -1,12 +1,12 @@
-use owo_colors::{OwoColorize, Styled};
 use std::fmt;
+
+use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{format, FmtContext};
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::EnvFilter;
-use tracing_subscriber::Layer;
+use tracing_subscriber::{EnvFilter, Layer};
 
 pub fn terminal_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
@@ -65,7 +65,8 @@ where
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
     #[test]

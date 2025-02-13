@@ -1,6 +1,5 @@
 Set-Location $PSScriptRoot
 Set-Location ..
-& $PSScriptRoot/set-env.ps1
 
 write-output "::group::nextest"
 cargo +nightly llvm-cov --all-features --workspace nextest

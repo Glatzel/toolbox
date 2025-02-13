@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::PathBuf;
 
 use tracing::{Event, Subscriber};
 use tracing_subscriber::filter::LevelFilter;
@@ -22,37 +23,38 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn file_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn file_layer<S>(
+    level: LevelFilter,
+    filepath: PathBuf,
+) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
-    let layer = tracing_subscriber::fmt::layer()
+    if !filepath.parent().unwrap().exists() {
+        std::fs::create_dir_all(filepath.parent().unwrap()).unwrap();
+    }
+    let a = std::fs::File::create(filepath).unwrap();
+    tracing_subscriber::fmt::layer()
         .event_format(FileFormatter)
-        .with_writer(std::io::stderr)
+        .with_writer(a)
         .with_filter(
             EnvFilter::builder()
                 .with_default_directive(level.into())
                 .from_env_lossy(),
-        );
-
-    Box::new(layer)
+        )
+        .boxed()
 }
 
 struct FileFormatter;
 
-const TRACE_TEXT: &str = "TRACE";
-const DEBUG_TEXT: &str = "DEBUG";
-const INFO_TEXT: &str = "INFO";
-const WARN_TEXT: &str = "WARN";
-const ERROR_TEXT: &str = "ERROR";
 fn color_level(level: &tracing::Level) -> &str {
     match *level {
-        tracing::Level::TRACE => TRACE_TEXT,
-        tracing::Level::DEBUG => DEBUG_TEXT,
-        tracing::Level::INFO => INFO_TEXT,
-        tracing::Level::WARN => WARN_TEXT,
-        tracing::Level::ERROR => ERROR_TEXT,
+        tracing::Level::TRACE => "TRACE",
+        tracing::Level::DEBUG => "DEBUG",
+        tracing::Level::INFO => "INFO",
+        tracing::Level::WARN => "WARN",
+        tracing::Level::ERROR => "ERROR",
     }
 }
 
@@ -90,8 +92,14 @@ mod tests {
     use super::*;
     #[test]
     fn test_log() {
+        let f = format!(
+            "./temp/{}.log",
+            chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
+        );
+
+        let f = std::path::PathBuf::from(f);
         tracing_subscriber::registry()
-            .with(file_layer(LevelFilter::TRACE))
+            .with(file_layer(LevelFilter::TRACE, f))
             .init();
         trace!("Trace message");
         debug!("Debug message");

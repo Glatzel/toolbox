@@ -49,12 +49,12 @@ static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate
 static WARN_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "WARN".style(*crate::WARN_STYLE));
 static ERROR_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "ERROR".style(*crate::ERROR_STYLE));
 fn color_level(level: &tracing::Level) -> &Styled<&&str> {
-    match level {
-        &tracing::Level::TRACE => &*TRACE_TEXT,
-        &tracing::Level::DEBUG => &*DEBUG_TEXT,
-        &tracing::Level::INFO => &*INFO_TEXT,
-        &tracing::Level::WARN => &*WARN_TEXT,
-        &tracing::Level::ERROR => &*ERROR_TEXT,
+    match *level {
+        tracing::Level::TRACE => &TRACE_TEXT,
+        tracing::Level::DEBUG => &DEBUG_TEXT,
+        tracing::Level::INFO => &INFO_TEXT,
+        tracing::Level::WARN => &WARN_TEXT,
+        tracing::Level::ERROR => &ERROR_TEXT,
     }
 }
 

@@ -16,7 +16,6 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// - `overwrite`: whether to Overwrite log file if it is existed.
 ///
 /// # Example
-/// # Example
 ///
 /// ```
 /// use tracing::{debug, error, info, trace, warn};

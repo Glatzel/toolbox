@@ -35,16 +35,15 @@ where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
-    let layer = tracing_subscriber::fmt::layer()
+    tracing_subscriber::fmt::layer()
         .event_format(TerminalFormatter)
         .with_writer(std::io::stderr)
         .with_filter(
             EnvFilter::builder()
                 .with_default_directive(level.into())
                 .from_env_lossy(),
-        );
-
-    Box::new(layer)
+        )
+        .boxed()
 }
 
 struct TerminalFormatter;

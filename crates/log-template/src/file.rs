@@ -7,6 +7,15 @@ use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{format, FmtContext};
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
+/// Generate a file log layer for tracing.
+///
+/// # Arguments
+///
+/// - `level`: The desired log level filter to set.
+/// - `filepath`: The Path of log file.
+/// - `overwrite`: whether to Overwrite log file if it is existed.
+///
+/// # Example
 /// # Example
 ///
 /// ```
@@ -20,7 +29,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 ///        );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(log_template::file_layer(LevelFilter::TRACE, f))
+///     .with(log_template::file_layer(LevelFilter::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

@@ -8,6 +8,12 @@ use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{format, FmtContext};
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
+/// Generate a terminal log layer for tracing.
+/// 
+/// # Arguments
+/// 
+/// - `level`: The desired log level filter to set.
+/// 
 /// # Example
 ///
 /// ```

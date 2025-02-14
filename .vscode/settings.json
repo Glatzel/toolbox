@@ -8,5 +8,5 @@
         "**/vcpkg",
         "**/changelog.md"
     ],
-    "rust-analyzer.testExplorer": true,
+    "rust-analyzer.testExplorer": true
 }

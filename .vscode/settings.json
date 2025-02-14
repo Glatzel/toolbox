@@ -1,0 +1,12 @@
+{
+    "VSCodeCounter.exclude": [
+        "**/.gitignore",
+        "**/.vscode/**",
+        "**/node_modules/**",
+        "tests_report",
+        "**/*.lock",
+        "**/vcpkg",
+        "**/changelog.md"
+    ],
+    "rust-analyzer.testExplorer": true,
+}

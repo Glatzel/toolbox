@@ -11,7 +11,8 @@ pub use file::file_layer;
 #[cfg(feature = "log")]
 pub use term::terminal_layer;
 
-
+#[cfg(feature = "log")]
+pub use tracing;
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! trace {

@@ -1,18 +1,19 @@
 use std::fmt;
-use std::sync::LazyLock;
+use std::path::PathBuf;
 
-use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{format, FmtContext};
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
-/// Generate a terminal log layer for tracing.
+/// Generate a file log layer for tracing.
 ///
 /// # Arguments
 ///
 /// - `level`: The desired log level filter to set.
+/// - `filepath`: The Path of log file.
+/// - `overwrite`: whether to Overwrite log file if it is existed.
 ///
 /// # Example
 ///
@@ -21,8 +22,13 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
+/// let f = format!(
+///            "./temp/{}.log",
+///            chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
+///        );
+/// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(log_template::terminal_layer(LevelFilter::TRACE))
+///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -30,14 +36,28 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(level: LevelFilter) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn file_layer<S>(
+    level: LevelFilter,
+    filepath: PathBuf,
+    overwrite: bool,
+) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
+    if !filepath.parent().unwrap().exists() {
+        std::fs::create_dir_all(filepath.parent().unwrap()).unwrap();
+    }
+    let a = std::fs::File::options()
+        .write(!filepath.exists() || overwrite)
+        .append(filepath.exists() && !overwrite)
+        .create(true)
+        .open(filepath)
+        .unwrap();
+
     tracing_subscriber::fmt::layer()
-        .event_format(TerminalFormatter)
-        .with_writer(std::io::stderr)
+        .event_format(FileFormatter)
+        .with_writer(a)
         .with_filter(
             EnvFilter::builder()
                 .with_default_directive(level.into())
@@ -46,24 +66,19 @@ where
         .boxed()
 }
 
-struct TerminalFormatter;
-impl TerminalFormatter {}
-static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
-static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));
-static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate::INFO_STYLE));
-static WARN_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "WARN".style(*crate::WARN_STYLE));
-static ERROR_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "ERROR".style(*crate::ERROR_STYLE));
-fn color_level(level: &tracing::Level) -> &Styled<&&str> {
+struct FileFormatter;
+
+fn color_level(level: &tracing::Level) -> &str {
     match *level {
-        tracing::Level::TRACE => &TRACE_TEXT,
-        tracing::Level::DEBUG => &DEBUG_TEXT,
-        tracing::Level::INFO => &INFO_TEXT,
-        tracing::Level::WARN => &WARN_TEXT,
-        tracing::Level::ERROR => &ERROR_TEXT,
+        tracing::Level::TRACE => "TRACE",
+        tracing::Level::DEBUG => "DEBUG",
+        tracing::Level::INFO => "INFO",
+        tracing::Level::WARN => "WARN",
+        tracing::Level::ERROR => "ERROR",
     }
 }
 
-impl<S, N> FormatEvent<S, N> for TerminalFormatter
+impl<S, N> FormatEvent<S, N> for FileFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
@@ -97,8 +112,11 @@ mod tests {
     use super::*;
     #[test]
     fn test_log() {
+        let f1 = std::path::PathBuf::from("./temp/a.log");
+        let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(terminal_layer(LevelFilter::TRACE))
+            .with(file_layer(LevelFilter::TRACE, f1, true))
+            .with(file_layer(LevelFilter::TRACE, f2, false))
             .init();
         trace!("Trace message");
         debug!("Debug message");

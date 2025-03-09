@@ -1,5 +1,5 @@
 [package]
-name = "log-template"
+name = "clerk"
 version.workspace = true
 edition.workspace = true
 

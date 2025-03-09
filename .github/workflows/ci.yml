@@ -80,7 +80,11 @@ jobs:
         uses: bnjbvr/cargo-machete@main
 
   cargo-test:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest,ubuntu-latest]
+    runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
@@ -93,6 +97,7 @@ jobs:
 
       - name: cargo-test
         run: ./scripts/cargo-test.ps1
+        shell: pwsh
 
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}

@@ -28,7 +28,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 ///        );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(log_template::file_layer(LevelFilter::TRACE, f, true))
+///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

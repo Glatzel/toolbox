@@ -22,7 +22,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
 /// tracing_subscriber::registry()
-///     .with(log_template::terminal_layer(LevelFilter::TRACE))
+///     .with(clerk::terminal_layer(LevelFilter::TRACE))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

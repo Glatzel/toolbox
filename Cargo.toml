@@ -1,14 +1,22 @@
-[workspace]
-members = ["crates/*"]
-resolver = "2"
-
-[workspace.package]
+[package]
+name = "clerk"
 version = "0.0.4"
-edition = "2021"
+edition = "2024"
 
-[workspace.dependencies]
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"]}
-owo-colors = "4.2.0"
-chrono = "0.4.40"
-tracing-core = "0.1.33"
+[dependencies]
+tracing-subscriber = { version = "0.3.19", features = [
+    "env-filter",
+], optional = true }
+tracing = { version = "0.1.41", optional = true }
+owo-colors = { version = "4.2.0", optional = true }
+chrono = { version = "0.4.40", optional = true }
+tracing-core = { version = "0.1.33", optional = true }
+
+[features]
+log = [
+    "dep:tracing",
+    "dep:tracing-subscriber",
+    "dep:owo-colors",
+    "dep:chrono",
+    "dep:tracing-core",
+]

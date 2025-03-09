@@ -68,6 +68,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "clerk"
+version = "0.0.4"
+dependencies = [
+ "chrono",
+ "owo-colors",
+ "tracing",
+ "tracing-core",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -123,17 +134,6 @@ name = "log"
 version = "0.4.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
-
-[[package]]
-name = "log-template"
-version = "0.0.4"
-dependencies = [
- "chrono",
- "owo-colors",
- "tracing",
- "tracing-core",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "matchers"

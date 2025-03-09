@@ -11,39 +11,40 @@ pub use file::file_layer;
 #[cfg(feature = "log")]
 pub use term::terminal_layer;
 
+
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
-        tracing::trace!($($arg)*);
+        $crate::tracing::trace!($($arg)*);
     };
 }
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
-        tracing::debug!($($arg)*);
+       $crate::tracing::debug!($($arg)*);
     };
 }
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
-        tracing::info!($($arg)*);
+       $crate:: tracing::info!($($arg)*);
     };
 }
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
-        tracing::warn!($($arg)*);
+        $crate::tracing::warn!($($arg)*);
     };
 }
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
-        tracing::error!($($arg)*);
+       $crate:: tracing::error!($($arg)*);
     };
 }
 

@@ -1,6 +1,4 @@
 #[cfg(feature = "log")]
-pub use tracing;
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {

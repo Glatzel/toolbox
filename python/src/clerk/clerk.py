@@ -1,13 +1,9 @@
-from __future__ import annotations
-
 import datetime
 import logging
 from logging import INFO, FileHandler
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
-    from rich.logging import RichHandler
+from rich.logging import RichHandler
 
 
 def rich_handler(level: int = INFO) -> RichHandler:

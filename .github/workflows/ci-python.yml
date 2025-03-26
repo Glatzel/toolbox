@@ -7,6 +7,7 @@ on:
       release:
         type: boolean
         default: false
+
 permissions: read-all
 env:
   PYTHON_ROOT: ${{github.workspace}}/python
@@ -45,7 +46,7 @@ jobs:
           run-install: false
 
       - name: build
-        run: ${{env.PYTHON_ROOT}}/rattler/ci-clerk-py.ps1 ${{ inputs.release && '-config  release' || null }}
+        run: ${{env.PYTHON_ROOT}}/rattler/ci-clerk-py.ps1
         shell: pwsh
 
       - name: upload

@@ -32,14 +32,12 @@ reportShadowedImports = false
 channels = ["conda-forge"]
 platforms = ["win-64"]
 
-[tool.pixi.feature.dev.dependencies]
+[dependencies]
+ruff="*"
 # test
 pytest = "*"
 pytest-cov = "*"
 
-[tool.pixi.feature.dev.pypi-dependencies]
+[pypi-dependencies]
 hatch = "*"
 build = "*"
-
-[tool.pixi.environments]
-dev=["dev"]

@@ -1,17 +1,9 @@
-# [build-system]
-# requires = ["hatchling"]
-# build-backend = "hatchling.build"
-# [tool.hatch.version]
-# path = "glatzel/__init__.py"
-# [tool.hatch.build.hooks.custom]
-# path = "hatch_build.py"
-
 [project]
-name = "clerk"
-requires-python = ">=3.11"
-dynamic = ["version"]
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
 dependencies = ["lazy-loader", "rich"]
+dynamic = ["version"]
+name = "clerk"
+requires-python = ">=3.11"
 
 [tool.numpydoc_validation]
 checks = [
@@ -30,16 +22,12 @@ reportShadowedImports = false
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["win-64","linux-64"]
+platforms = ["win-64", "linux-64"]
 
 [tool.pixi.dependencies]
-python="3.11.*"
+python = "3.11.*"
 rattler-build = "*"
 ruff = "*"
 # test
 pytest = "*"
 pytest-cov = "*"
-
-# [tool.pixi.pypi-dependencies]
-# hatch = "*"
-# build = "*"

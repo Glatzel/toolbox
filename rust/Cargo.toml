@@ -1,16 +1,16 @@
 [package]
+edition = "2024"
 name = "clerk"
 version = "0.0.5"
-edition = "2024"
 
 [dependencies]
+chrono = { version = "0.4.40", optional = true }
+owo-colors = { version = "4.2.0", optional = true }
+tracing = { version = "0.1.41", optional = true }
+tracing-core = { version = "0.1.33", optional = true }
 tracing-subscriber = { version = "0.3.19", features = [
     "env-filter",
 ], optional = true }
-tracing = { version = "0.1.41", optional = true }
-owo-colors = { version = "4.2.0", optional = true }
-chrono = { version = "0.4.40", optional = true }
-tracing-core = { version = "0.1.33", optional = true }
 
 [features]
 log = [

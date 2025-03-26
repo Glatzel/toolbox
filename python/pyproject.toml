@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.version]
+path = "glatzel/__init__.py"
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[project]
+name = "Glatzel"
+requires-python = ">=3.11"
+dynamic = ["version"]
+authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
+dependencies = ["lazy-loader","rich"]
+
+[tool.numpydoc_validation]
+checks = [
+    "all",  # report on all checks, except the below
+    "ES01", # No extended summary found
+    "EX01", # No examples section found
+    "GL08", # The object does not have a docstring
+    "PR04", # Parameter "{param_name}" has no type
+    "RT03", # Return value has no description
+    "SA01", # See Also section not found
+    "SA04", # Missing description for See Also "{reference_name}" reference
+]
+
+[tool.pyright]
+reportShadowedImports = false
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.target.win-64.activation.env]
+PYTHONPATH = "./;./tests"
+
+[tool.pixi.feature.dev.dependencies]
+# test
+pytest = "*"
+pytest-cov = "*"
+
+[tool.pixi.feature.dev.pypi-dependencies]
+hatch = "*"
+build = "*"
+
+[tool.pixi.environments]
+dev=["dev"]

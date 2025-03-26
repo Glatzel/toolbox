@@ -5,39 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2025-03-26
+
+### Changed
+
+- Python by @Glatzel in [#19](https://github.com/Glatzel/rs-log-template/pull/19)
+
 ## [0.0.4] - 2025-03-09
 
 ### Added
 
-- Add macro to wrap tracing macro
+- Add macro to wrap tracing macro by @Glatzel in [#16](https://github.com/Glatzel/rs-log-template/pull/16)
 
 ## [0.0.2] - 2025-02-14
 
 ### Added
 
-- Add changelog
-- Add vscode setting and markdown lint config
+- Add changelog by @Glatzel in [#8](https://github.com/Glatzel/rs-log-template/pull/8)
+- Add vscode setting and markdown lint config by @Glatzel in [#9](https://github.com/Glatzel/rs-log-template/pull/9)
 
 ### Changed
 
-- File layer
-- Deal with some writting cases in file layer
-- Simplify terminal layer fn
+- File layer by @Glatzel in [#7](https://github.com/Glatzel/rs-log-template/pull/7)
+- Deal with some writting cases in file layer by @Glatzel in [#10](https://github.com/Glatzel/rs-log-template/pull/10)
+- Simplify terminal layer fn by @Glatzel in [#11](https://github.com/Glatzel/rs-log-template/pull/11)
 
 ### Documentation
 
-- Add sample to `terminal_layer`
+- Add sample to `terminal_layer` by @Glatzel in [#2](https://github.com/Glatzel/rs-log-template/pull/2)
 
 ### Performance
 
-- Use static styled string
+- Use static styled string by @Glatzel in [#6](https://github.com/Glatzel/rs-log-template/pull/6)
 
 ## [0.0.1] - 2025-02-13
 
 ### Added
 
-- Add terminal layer
+- Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/rs-log-template/pull/1)
 
+[0.0.5]: https://github.com/Glatzel/rs-log-template/compare/v0.0.4..v0.0.5
 [0.0.4]: https://github.com/Glatzel/rs-log-template/compare/v0.0.3..v0.0.4
 [0.0.2]: https://github.com/Glatzel/rs-log-template/compare/v0.0.1..v0.0.2
 

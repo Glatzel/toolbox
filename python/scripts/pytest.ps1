@@ -4,7 +4,7 @@ Set-Location $PSScriptRoot/..
 # only run cuda test in local machine
 $python_root = Resolve-Path $PSScriptRoot/../src
 $env:PYTHONPATH = "$env:PYTHONPATH;$python_root"
-
+Write-Output $env:PYTHONPATH
 # run test
 pixi run pytest `
     ./tests `

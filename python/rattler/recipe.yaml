@@ -1,5 +1,5 @@
 package:
-  version: 0.0.16
+  version: 0.0.5
   name: clerk-py
 build:
   number: 0

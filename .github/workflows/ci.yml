@@ -53,6 +53,8 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
     uses: ./.github/workflows/ci-python.yml
+    with:
+      release: ${{inputs.release&& inputs.release || false}}
 
   rust-ci:
     needs: changed

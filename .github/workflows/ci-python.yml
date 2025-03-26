@@ -7,6 +7,7 @@ on:
       release:
         type: boolean
         default: false
+
 permissions: read-all
 env:
   PYTHON_ROOT: ${{github.workspace}}/python

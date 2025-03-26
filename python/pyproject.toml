@@ -32,9 +32,6 @@ reportShadowedImports = false
 channels = ["conda-forge"]
 platforms = ["win-64"]
 
-[tool.pixi.target.win-64.activation.env]
-PYTHONPATH = "./;./tests"
-
 [tool.pixi.feature.dev.dependencies]
 # test
 pytest = "*"

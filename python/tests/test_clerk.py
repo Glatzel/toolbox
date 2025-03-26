@@ -2,11 +2,11 @@ import logging
 
 import path_macro
 
-import python.clerk.clerk as clerk
+import clerk
 
 
 def test_rich_handler():
-    rich_handle = logtool.rich_handler()
+    rich_handle = clerk.rich_handler()
     logging.basicConfig(handlers=[rich_handle])
     log = logging.getLogger()
     log.debug("This is a debug-level message")
@@ -17,7 +17,7 @@ def test_rich_handler():
 
 
 def test_file_handler():
-    rich_handle = logtool.file_handler(logfile_dir=path_macro.TEMP_DIR / "tests/logtool")
+    rich_handle = clerk.file_handler(logfile_dir=path_macro.TEMP_DIR / "tests/logtool")
     logging.basicConfig(handlers=[rich_handle])
     log = logging.getLogger()
     log.debug("This is a debug-level message")

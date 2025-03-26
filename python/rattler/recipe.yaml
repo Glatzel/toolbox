@@ -1,0 +1,25 @@
+package:
+  version: 0.0.5
+  name: clerk-py
+build:
+  script:
+    - if: win
+      then:
+        - pwsh -f %RECIPE_DIR%/build-clerk-py.ps1
+    - if: linux
+      then:
+        - pwsh -f $RECIPE_DIR/build-clerk-py.ps1
+
+requirements:
+  host:
+    - python 3.11.*
+    - pip
+  run:
+    - python >= 3.11
+    - lazy-loader
+    - rich
+
+tests:
+  - python:
+      imports:
+        - clerk

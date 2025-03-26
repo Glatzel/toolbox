@@ -1,5 +1,5 @@
-Set-Location $PSScriptRoot
-Set-Location ..
+$ROOT = git rev-parse --show-toplevel
+Set-Location $PSScriptRoot/..
 
 if ($env:CI) {
     cargo +nightly fmt --all -- --check
@@ -7,3 +7,4 @@ if ($env:CI) {
 else {
     cargo +nightly fmt --all
 }
+Set-Location $ROOT

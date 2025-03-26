@@ -1,5 +1,5 @@
-Set-Location $PSScriptRoot
-Set-Location ..
+$ROOT = git rev-parse --show-toplevel
+Set-Location $PSScriptRoot/..
 
 cargo +nightly llvm-cov --no-report --all-features --workspace nextest
 $code = $LASTEXITCODE
@@ -14,3 +14,4 @@ if ( $env:CI ) {
 $code = $code + $LASTEXITCODE
 Write-Output $code
 exit $code
+Set-Location $ROOT

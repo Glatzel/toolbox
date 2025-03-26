@@ -1,0 +1,67 @@
+name: python-CI
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        default: false
+permissions: read-all
+env:
+  PYTHON_ROOT: ${{github.workspace}}/python
+jobs:
+  ruff-lint:
+    if: ${{!inputs.release}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          run-install: false
+      - name: lint
+        run: ${{env.PYTHON_ROOT}}/scripts/ruff.ps1
+        shell: pwsh
+
+  rattler:
+    env:
+      PYTEST_ADDOPTS: "--color=yes"
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest, ubuntu-latest]
+        include:
+          - machine: windows-latest
+            os: win-64
+          - machine: ubuntu-latest
+            os: linux-64
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          run-install: false
+
+      - name: build
+        run: ${{env.PYTHON_ROOT}}/rattler/ci-clerk-py.ps1 ${{ inputs.release && '-config  release' || null }}
+        shell: pwsh
+
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: clerk-python-${{matrix.machine}}
+          path: |
+            ${{env.PYTHON_ROOT}}/rattler/output/${{matrix.os}}/*.conda
+          if-no-files-found: error
+
+      - name: Upload results to Codecov
+        if: ${{ !cancelled() && !inputs.release}}
+        uses: codecov/codecov-action@v5
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && !inputs.release}}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}

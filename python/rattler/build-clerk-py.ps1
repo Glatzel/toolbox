@@ -1,4 +1,2 @@
-foreach ($whl in Get-ChildItem "$env:RECIPE_DIR/../dist/*.whl")
-{
-    pip install "$whl" -v
-}
+$p=Resolve-Path $env:RECIPE_DIR/..
+pip install $p -v

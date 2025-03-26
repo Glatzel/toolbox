@@ -1,17 +1,17 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-[tool.hatch.version]
-path = "glatzel/__init__.py"
-[tool.hatch.build.hooks.custom]
-path = "hatch_build.py"
+# [build-system]
+# requires = ["hatchling"]
+# build-backend = "hatchling.build"
+# [tool.hatch.version]
+# path = "glatzel/__init__.py"
+# [tool.hatch.build.hooks.custom]
+# path = "hatch_build.py"
 
 [project]
-name = "Glatzel"
+name = "clerk"
 requires-python = ">=3.11"
 dynamic = ["version"]
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
-dependencies = ["lazy-loader","rich"]
+dependencies = ["lazy-loader", "rich"]
 
 [tool.numpydoc_validation]
 checks = [
@@ -33,11 +33,12 @@ channels = ["conda-forge"]
 platforms = ["win-64"]
 
 [tool.pixi.dependencies]
-ruff="*"
+rattler-build = "*"
+ruff = "*"
 # test
 pytest = "*"
 pytest-cov = "*"
 
-[tool.pixi.pypi-dependencies]
-hatch = "*"
-build = "*"
+# [tool.pixi.pypi-dependencies]
+# hatch = "*"
+# build = "*"

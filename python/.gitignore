@@ -2,3 +2,6 @@ tests_report
 __pycache__
 temp
 .coverage
+build
+rattler/output
+*.egg-info

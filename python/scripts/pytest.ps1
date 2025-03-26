@@ -2,7 +2,7 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
 # only run cuda test in local machine
-$python_root = Resolve-Path $PSScriptRoot/..
+$python_root = Resolve-Path $PSScriptRoot/../src
 $env:PYTHONPATH = "$env:PYTHONPATH;$python_root"
 
 # run test

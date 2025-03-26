@@ -25,4 +25,4 @@ jobs:
       override: true
       tag: ${{inputs.tag}}
       have-changelog: true
-      assets: false
+      assets: true

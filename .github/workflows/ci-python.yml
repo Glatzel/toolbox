@@ -24,29 +24,7 @@ jobs:
         run: ${{env.PYTHON_ROOT}}/scripts/ruff.ps1
         shell: pwsh
 
-  sphinx:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: sphinx build
-        run: ${{env.PYTHON_ROOT}}/scripts/sphinx.ps1
-        shell: pwsh
-
-      - name: upload doc
-        if: ${{inputs.release}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-doc
-          path: ${{env.PYTHON_ROOT}}/dist/*.7z
-          if-no-files-found: error
-
-  rattler-pyxis-py:
+  rattler:
     env:
       PYTEST_ADDOPTS: "--color=yes"
     strategy:
@@ -56,37 +34,26 @@ jobs:
         include:
           - machine: windows-latest
             os: win-64
-            sub-packages: '["nvcc","cudart"]'
           - machine: ubuntu-latest
             os: linux-64
-            sub-packages: '["nvcc"]'
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@v0.8.3
         with:
           run-install: false
-      - run: choco install pkgconfiglite
-        if: ${{runner.os == 'Windows'}}
-      - uses: Jimver/cuda-toolkit@v0.2.22
-        with:
-          cuda: "12.8.0"
-          sub-packages: ${{matrix.sub-packages}}
-          method: network
 
       - name: build
-        run: ${{env.PYTHON_ROOT}}/rattler/ci-pyxis-py.ps1 ${{ inputs.release && '-config  release' || null }}
+        run: ${{env.PYTHON_ROOT}}/rattler/ci-clerk-py.ps1 ${{ inputs.release && '-config  release' || null }}
         shell: pwsh
 
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: pyxis-python-${{matrix.machine}}
+          name: clerk-python-${{matrix.machine}}
           path: |
             ${{env.PYTHON_ROOT}}/rattler/output/${{matrix.os}}/*.conda
-            ${{env.PYTHON_ROOT}}/dist/*.whl
           if-no-files-found: error
 
       - name: Upload results to Codecov
@@ -98,61 +65,3 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  cargo-clippy:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
-      - name: cargo-clippy
-        run: |
-          ${{env.PYTHON_ROOT}}/scripts/cargo-clippy.ps1
-        shell: pwsh
-
-  cargo-fmt:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
-      - name: cargo-fmt
-        run: |
-          ${{env.PYTHON_ROOT}}/scripts/cargo-fmt.ps1
-        shell: pwsh
-
-  bench:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
-
-      - run: ${{env.PYTHON_ROOT}}/scripts/maturin-develop.ps1 -config release
-        shell: pwsh
-
-      - name: Run benchmarks
-        uses: CodSpeedHQ/action@v3
-        env:
-          PYTHONPATH: ${{env.PYTHON_ROOT}}
-        with:
-          token: ${{ secrets.CODSPEED_TOKEN }}
-          run: pixi run -e bench pytest ./benches --codspeed -m "not cuda"
-          working-directory: ${{env.PYTHON_ROOT}}

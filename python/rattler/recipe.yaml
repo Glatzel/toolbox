@@ -19,11 +19,9 @@ requirements:
   run:
     - python >= 3.11
     - lazy-loader
-    - numpy
-    - scipy
-    - ${{ cuda_variant }}
+    - rich
 
 tests:
   - python:
       imports:
-        - pyxis
+        - clerk

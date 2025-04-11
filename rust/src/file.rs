@@ -1,12 +1,7 @@
-use std::fmt;
 use std::path::PathBuf;
 
-use tracing::{Event, Subscriber};
-use tracing_subscriber::filter::LevelFilter;
-use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
-use tracing_subscriber::fmt::{FmtContext, format};
+use tracing_subscriber::Layer;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::{EnvFilter, Layer};
 /// Generate a file log layer for tracing.
 ///
 /// # Arguments
@@ -22,13 +17,19 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
+/// use tracing_subscriber::EnvFilter;
 /// let f = format!(
 ///            "./temp/{}.log",
 ///            chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
 ///        );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
+///         .with(
+///             EnvFilter::builder()
+///                 .with_default_directive(LevelFilter::TRACE.into())
+///                 .from_env_lossy(),
+///         )
+///     .with(clerk::file_layer( f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -37,7 +38,6 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// error!("Error message");
 /// ```
 pub fn file_layer<S>(
-    level: LevelFilter,
     filepath: PathBuf,
     overwrite: bool,
 ) -> Box<dyn Layer<S> + Send + Sync + 'static>
@@ -56,56 +56,16 @@ where
         .unwrap();
 
     tracing_subscriber::fmt::layer()
-        .event_format(FileFormatter)
+        .event_format(crate::ClerkFormatter { color: false })
         .with_writer(a)
-        .with_filter(
-            EnvFilter::builder()
-                .with_default_directive(level.into())
-                .from_env_lossy(),
-        )
         .boxed()
 }
 
-struct FileFormatter;
-
-fn color_level(level: &tracing::Level) -> &str {
-    match *level {
-        tracing::Level::TRACE => "TRACE",
-        tracing::Level::DEBUG => "DEBUG",
-        tracing::Level::INFO => "INFO",
-        tracing::Level::WARN => "WARN",
-        tracing::Level::ERROR => "ERROR",
-    }
-}
-
-impl<S, N> FormatEvent<S, N> for FileFormatter
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-    N: for<'a> FormatFields<'a> + 'static,
-{
-    fn format_event(
-        &self,
-        ctx: &FmtContext<'_, S, N>,
-        mut writer: format::Writer<'_>,
-        event: &Event<'_>,
-    ) -> fmt::Result {
-        write!(
-            writer,
-            "[{}] [{:}] [{}] [{}:{}] ",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"), // Custom timestamp format
-            color_level(event.metadata().level()),
-            event.metadata().target(),
-            event.metadata().file().unwrap_or("<file>"),
-            event.metadata().line().unwrap_or(0),
-        )?;
-
-        ctx.field_format().format_fields(writer.by_ref(), event)?;
-        writeln!(writer)
-    }
-}
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};
+    use tracing_core::LevelFilter;
+    use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 
@@ -115,8 +75,13 @@ mod tests {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(LevelFilter::TRACE, f1, true))
-            .with(file_layer(LevelFilter::TRACE, f2, false))
+            .with(
+                EnvFilter::builder()
+                    .with_default_directive(LevelFilter::TRACE.into())
+                    .from_env_lossy(),
+            )
+            .with(file_layer(f1, true))
+            .with(file_layer(f2, false))
             .init();
         trace!("Trace message");
         debug!("Debug message");

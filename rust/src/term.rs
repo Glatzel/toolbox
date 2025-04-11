@@ -3,7 +3,6 @@ use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
-
 use tracing_subscriber::Layer;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};

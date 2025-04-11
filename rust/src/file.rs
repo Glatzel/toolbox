@@ -63,12 +63,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tracing::{debug, error, info, trace, warn};
     use tracing_core::LevelFilter;
     use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
+
+    use super::*;
     #[test]
     fn test_log() {
         let f1 = std::path::PathBuf::from("./temp/a.log");

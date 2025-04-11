@@ -43,7 +43,7 @@ where
             if self.color {
                 event.metadata().level().to_string()
             } else {
-                color_level(&event.metadata().level()).to_string()
+                color_level(event.metadata().level()).to_string()
             },
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),

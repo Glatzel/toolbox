@@ -65,6 +65,7 @@ where
 mod tests {
     use super::*;
     use tracing::{debug, error, info, trace, warn};
+    use tracing_core::LevelFilter;
     use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;

@@ -18,7 +18,6 @@ use tracing_subscriber::registry::LookupSpan;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::EnvFilter;
-/// use tracing_subscriber::util::SubscriberInitExt;
 /// let f = format!(
 ///            "./temp/{}.log",
 ///            chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")

@@ -41,9 +41,9 @@ where
             "[{}] [{:}] [{}] [{}:{}] ",
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"), // Custom timestamp format
             if self.color {
-                event.metadata().level().to_string()
-            } else {
                 color_level(event.metadata().level()).to_string()
+            } else {
+                event.metadata().level().to_string()
             },
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),

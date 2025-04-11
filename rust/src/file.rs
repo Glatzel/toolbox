@@ -24,7 +24,12 @@ use tracing_subscriber::{EnvFilter, Layer};
 ///        );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
+///         .with(
+///             EnvFilter::builder()
+///                 .with_default_directive(LevelFilter::TRACE.into())
+///                 .from_env_lossy(),
+///         )
+///     .with(clerk::file_layer( f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -33,7 +38,6 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// error!("Error message");
 /// ```
 pub fn file_layer<S>(
-    level: LevelFilter,
     filepath: PathBuf,
     overwrite: bool,
 ) -> Box<dyn Layer<S> + Send + Sync + 'static>
@@ -54,11 +58,6 @@ where
     tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color: false })
         .with_writer(a)
-        .with_filter(
-            EnvFilter::builder()
-                .with_default_directive(level.into())
-                .from_env_lossy(),
-        )
         .boxed()
 }
 
@@ -74,8 +73,13 @@ mod tests {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(LevelFilter::TRACE, f1, true))
-            .with(file_layer(LevelFilter::TRACE, f2, false))
+            .with(
+                EnvFilter::builder()
+                    .with_default_directive(LevelFilter::TRACE.into())
+                    .from_env_lossy(),
+            )
+            .with(file_layer(f1, true))
+            .with(file_layer(f2, false))
             .init();
         trace!("Trace message");
         debug!("Debug message");

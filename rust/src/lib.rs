@@ -3,11 +3,15 @@ mod constants;
 #[cfg(feature = "log")]
 mod file;
 #[cfg(feature = "log")]
+mod formatter;
+#[cfg(feature = "log")]
 mod term;
 #[cfg(feature = "log")]
-pub(crate) use constants::*;
+use constants::*;
 #[cfg(feature = "log")]
 pub use file::file_layer;
+#[cfg(feature = "log")]
+use formatter::TerminalFormatter;
 #[cfg(feature = "log")]
 pub use term::terminal_layer;
 #[cfg(feature = "log")]

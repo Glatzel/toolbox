@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
-use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::{EnvFilter, Layer};
+use tracing_subscriber::Layer;
 /// Generate a file log layer for tracing.
 ///
 /// # Arguments

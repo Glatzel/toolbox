@@ -20,7 +20,7 @@ use tracing_subscriber::registry::LookupSpan;
 ///                 .with_default_directive(LevelFilter::TRACE.into())
 ///                 .from_env_lossy(),
 ///         )
-///         .with(clerk::terminal_layer())
+///         .with(clerk::terminal_layer(true))
 ///         .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -28,13 +28,13 @@ use tracing_subscriber::registry::LookupSpan;
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>() -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn terminal_layer<S>(color: bool) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
     tracing_subscriber::fmt::layer()
-        .event_format(crate::ClerkFormatter { color: true })
+        .event_format(crate::ClerkFormatter { color })
         .with_writer(std::io::stderr)
         .boxed()
 }
@@ -56,7 +56,7 @@ mod tests {
                     .with_default_directive(LevelFilter::TRACE.into())
                     .from_env_lossy(),
             )
-            .with(terminal_layer())
+            .with(terminal_layer(true))
             .init();
         trace!("Trace message");
         debug!("Debug message");

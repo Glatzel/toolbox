@@ -1,5 +1,6 @@
-use tracing_subscriber::Layer;
+use tracing_core::LevelFilter;
 use tracing_subscriber::registry::LookupSpan;
+use tracing_subscriber::{EnvFilter, Layer};
 /// Generate a terminal log layer for tracing.
 ///
 /// # Arguments
@@ -15,12 +16,7 @@ use tracing_subscriber::registry::LookupSpan;
 /// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::EnvFilter;
 /// tracing_subscriber::registry()
-///         .with(
-///             EnvFilter::builder()
-///                 .with_default_directive(LevelFilter::TRACE.into())
-///                 .from_env_lossy(),
-///         )
-///         .with(clerk::terminal_layer(true))
+///         .with(clerk::terminal_layer(LevelFilter::TRACE,true))
 ///         .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -28,7 +24,10 @@ use tracing_subscriber::registry::LookupSpan;
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(color: bool) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn terminal_layer<S>(
+    level: LevelFilter,
+    color: bool,
+) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -36,6 +35,11 @@ where
     tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color })
         .with_writer(std::io::stderr)
+        .with_filter(
+            EnvFilter::builder()
+                .with_default_directive(level.into())
+                .from_env_lossy(),
+        )
         .boxed()
 }
 
@@ -43,7 +47,7 @@ where
 mod tests {
     use tracing::{debug, error, info, trace, warn};
     use tracing_core::LevelFilter;
-    use tracing_subscriber::EnvFilter;
+
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 
@@ -51,12 +55,7 @@ mod tests {
     #[test]
     fn test_log() {
         tracing_subscriber::registry()
-            .with(
-                EnvFilter::builder()
-                    .with_default_directive(LevelFilter::TRACE.into())
-                    .from_env_lossy(),
-            )
-            .with(terminal_layer(true))
+            .with(terminal_layer(LevelFilter::TRACE, true))
             .init();
         trace!("Trace message");
         debug!("Debug message");

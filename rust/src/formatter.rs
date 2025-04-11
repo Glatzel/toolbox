@@ -6,8 +6,10 @@ use tracing::{Event, Subscriber};
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};
 use tracing_subscriber::registry::LookupSpan;
-pub(crate) struct TerminalFormatter;
-impl TerminalFormatter {}
+pub(crate) struct ClerkFormatter {
+    pub(crate) color: bool,
+}
+
 static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
 static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));
 static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate::INFO_STYLE));
@@ -23,7 +25,7 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
     }
 }
 
-impl<S, N> FormatEvent<S, N> for TerminalFormatter
+impl<S, N> FormatEvent<S, N> for ClerkFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
@@ -38,7 +40,11 @@ where
             writer,
             "[{}] [{:}] [{}] [{}:{}] ",
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"), // Custom timestamp format
-            color_level(event.metadata().level()),
+            if self.color {
+                event.metadata().level().to_string()
+            } else {
+                color_level(&event.metadata().level()).to_string()
+            },
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),

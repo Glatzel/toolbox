@@ -56,7 +56,7 @@ where
         .unwrap();
 
     tracing_subscriber::fmt::layer()
-        .event_format(FileFormatter)
+        .event_format(crate::ClerkFormatter { color: false })
         .with_writer(a)
         .with_filter(
             EnvFilter::builder()
@@ -66,43 +66,6 @@ where
         .boxed()
 }
 
-struct FileFormatter;
-
-fn color_level(level: &tracing::Level) -> &str {
-    match *level {
-        tracing::Level::TRACE => "TRACE",
-        tracing::Level::DEBUG => "DEBUG",
-        tracing::Level::INFO => "INFO",
-        tracing::Level::WARN => "WARN",
-        tracing::Level::ERROR => "ERROR",
-    }
-}
-
-impl<S, N> FormatEvent<S, N> for FileFormatter
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-    N: for<'a> FormatFields<'a> + 'static,
-{
-    fn format_event(
-        &self,
-        ctx: &FmtContext<'_, S, N>,
-        mut writer: format::Writer<'_>,
-        event: &Event<'_>,
-    ) -> fmt::Result {
-        write!(
-            writer,
-            "[{}] [{:}] [{}] [{}:{}] ",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"), // Custom timestamp format
-            color_level(event.metadata().level()),
-            event.metadata().target(),
-            event.metadata().file().unwrap_or("<file>"),
-            event.metadata().line().unwrap_or(0),
-        )?;
-
-        ctx.field_format().format_fields(writer.by_ref(), event)?;
-        writeln!(writer)
-    }
-}
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};

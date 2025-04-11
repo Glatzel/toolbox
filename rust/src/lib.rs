@@ -11,7 +11,7 @@ use constants::*;
 #[cfg(feature = "log")]
 pub use file::file_layer;
 #[cfg(feature = "log")]
-use formatter::TerminalFormatter;
+use formatter::ClerkFormatter;
 #[cfg(feature = "log")]
 pub use term::terminal_layer;
 #[cfg(feature = "log")]

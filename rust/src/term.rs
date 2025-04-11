@@ -1,11 +1,4 @@
-use std::fmt;
-use std::sync::LazyLock;
-
-use owo_colors::{OwoColorize, Styled};
-use tracing::{Event, Subscriber};
 use tracing_subscriber::Layer;
-use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
-use tracing_subscriber::fmt::{FmtContext, format};
 use tracing_subscriber::registry::LookupSpan;
 /// Generate a terminal log layer for tracing.
 ///
@@ -21,8 +14,13 @@ use tracing_subscriber::registry::LookupSpan;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::filter::LevelFilter;
 /// tracing_subscriber::registry()
-///     .with(clerk::terminal_layer(LevelFilter::TRACE))
-///     .init();
+///         .with(
+///             EnvFilter::builder()
+///                 .with_default_directive(LevelFilter::TRACE.into())
+///                 .from_env_lossy(),
+///         )
+///         .with(clerk::terminal_layer())
+///         .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
 /// info!("Informational message");
@@ -35,7 +33,7 @@ where
     for<'a> S: LookupSpan<'a>,
 {
     tracing_subscriber::fmt::layer()
-        .event_format(crate::TerminalFormatter)
+        .event_format(crate::ClerkFormatter { color: true })
         .with_writer(std::io::stderr)
         .boxed()
 }

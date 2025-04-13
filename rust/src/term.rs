@@ -47,7 +47,6 @@ where
 mod tests {
     use tracing::{debug, error, info, trace, warn};
     use tracing_core::LevelFilter;
-
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 

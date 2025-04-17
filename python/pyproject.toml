@@ -25,7 +25,7 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [tool.pixi.dependencies]
-python = "3.11.*"
+python = "3.13.*"
 rattler-build = "*"
 ruff = "*"
 # test

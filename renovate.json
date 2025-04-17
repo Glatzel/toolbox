@@ -13,7 +13,7 @@
         "groupName": "Pixi",
         "matchManagers": ["pixi"]
       },
-      { 
+      {
         "description":"Disable update python",
         "matchManagers": ["pixi"],
         "matchPackageNames": ["python"],

@@ -26,8 +26,8 @@ platforms = ["win-64", "linux-64"]
 
 [tool.pixi.dependencies]
 python = "3.11.*"
-rattler-build = "0.39.*"
-ruff = "0.10.*"
+rattler-build = "0.40.*"
+ruff = "0.11.*"
 # test
-pytest = "8.2.*"
-pytest-cov = "6.0.*"
+pytest = "8.3.*"
+pytest-cov = "6.1.*"

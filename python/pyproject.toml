@@ -29,5 +29,5 @@ python = "3.11.*"
 rattler-build = "0.39.*"
 ruff = "0.10.*"
 # test
-pytest = "0.*"
-pytest-cov = "0.*"
+pytest = "0.11.*"
+pytest-cov = "0.1.*"

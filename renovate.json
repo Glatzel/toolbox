@@ -16,7 +16,7 @@
       { 
         "description":"Disable update python",
         "matchManagers": ["pixi"],
-        "packageNames": ["python"],
+        "matchPackageNames": ["python"],
         "enabled": false
       },
       {

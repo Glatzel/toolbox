@@ -2,7 +2,7 @@ package:
   version: 0.0.8
   name: clerk-py
 build:
-  noarch: generic
+  noarch: python
   script:
     - if: linux
       then:

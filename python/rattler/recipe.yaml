@@ -2,10 +2,8 @@ package:
   version: 0.0.8
   name: clerk-py
 build:
+  noarch: generic
   script:
-    - if: win
-      then:
-        - pwsh -f %RECIPE_DIR%/build-clerk-py.ps1
     - if: linux
       then:
         - pwsh -f $RECIPE_DIR/build-clerk-py.ps1

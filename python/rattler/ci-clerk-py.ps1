@@ -4,5 +4,7 @@ Set-Location $PSScriptRoot
 & "$PSScriptRoot/../scripts/pytest.ps1"
 
 Set-Location $PSScriptRoot
-pixi run rattler-build build
+if ($IsLinux) {
+    pixi run rattler-build build
+}
 Set-Location $ROOT

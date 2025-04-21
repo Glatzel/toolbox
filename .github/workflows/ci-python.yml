@@ -50,11 +50,12 @@ jobs:
         shell: pwsh
 
       - name: upload
+        if: ${{runner.os=='Linux'}}
         uses: actions/upload-artifact@v4
         with:
           name: clerk-python-${{matrix.machine}}
           path: |
-            ${{env.PYTHON_ROOT}}/rattler/output/${{matrix.os}}/*.conda
+            ${{env.PYTHON_ROOT}}/rattler/output/*/*.conda
           if-no-files-found: error
 
       - name: Upload results to Codecov

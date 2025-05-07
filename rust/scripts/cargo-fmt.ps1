@@ -4,7 +4,7 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 $result = cargo +nightly fmt --all  -- --check
 if ($result) {
-    cargo +nightly fmt --all  -- --check --files-with-diff
+    cargo +nightly fmt --all
     exit 1
 }
 

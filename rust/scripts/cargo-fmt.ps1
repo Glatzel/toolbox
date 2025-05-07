@@ -4,7 +4,7 @@ $result = cargo +nightly fmt --all  -- --check
 
 if ($result) {
     cargo +nightly fmt --all
-    exit 1
+    throw
 }
 
 Set-Location $ROOT

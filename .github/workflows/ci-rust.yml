@@ -60,7 +60,7 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  cargo-clippy:
+  check:
     if: ${{!inputs.release}}
     runs-on: ubuntu-latest
     env:

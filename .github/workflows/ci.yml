@@ -32,7 +32,7 @@ jobs:
   changed:
     outputs:
       changed-python: ${{steps.main.outputs.python_any_changed}}
-      changed-rust: ${{steps.main.outputs.rust_any_changed}}
+      changed-rust: ${{ steps.main.outputs.rust_any_changed }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

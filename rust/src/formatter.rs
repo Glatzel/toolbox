@@ -1,4 +1,4 @@
-use std::;
+use std ::fmt;
 use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};
@@ -24,6 +24,8 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
         tracing::Level::ERROR => &ERROR_TEXT,
     }
 }
+
+
 
 
 

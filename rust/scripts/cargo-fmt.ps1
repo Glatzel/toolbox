@@ -1,10 +1,11 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot/..
-$result = cargo +nightly fmt --all  -- --check
 
-if ($result) {
+if ($env:CI) {
+    cargo +nightly fmt --all -- --check
+}
+else {
     cargo +nightly fmt --all
-    throw
 }
 
 Set-Location $ROOT

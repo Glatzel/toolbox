@@ -14,14 +14,6 @@ env:
   RUST_ROOT: ./rust
 
 jobs:
-  cargo-machete:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Machete
-        uses: bnjbvr/cargo-machete@main
-
   cargo-test:
     if: ${{!inputs.release}}
     strategy:
@@ -76,36 +68,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.8
-        with:
-          run-install: false
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./rust/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./rust/vcpkg/vcpkg.json') }}
-      - name: cargo-clippy
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
-        shell: pwsh
-
-  cargo-fmt:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.8
-        with:
-          run-install: false
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
+          
       - name: cargo-fmt
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
+        if: ! skipped ()
+        run: ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
+        
+      - name: cargo-clippy
+        if: ! skipped ()
+        run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
+        shell: pwsh
+        
+      - name: cargo-machete
+        uses: bnjbvr/cargo-machete@main

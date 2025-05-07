@@ -63,9 +63,9 @@ where
     N: for<'a> FormatFields<'a> + 'static,
 {
     fn format_event(
-        &self,
+        &lf,
         ctx: &FmtContext<'_, S, N>,
-        mut writer: format::Writer<'_>,
+        mut writer: format::Writer <'_>,
         event: &Event<'_>,
     ) -> fmt::Result {
         write!(

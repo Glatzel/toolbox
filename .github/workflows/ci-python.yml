@@ -12,6 +12,19 @@ permissions: read-all
 env:
   PYTHON_ROOT: ${{github.workspace}}/python
 jobs:
+  ruff-lint:
+    if: ${{!inputs.release}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          run-install: false
+      - name: lint
+        run: ${{env.PYTHON_ROOT}}/scripts/ruff.ps1
+        shell: pwsh
+
   rattler:
     env:
       PYTEST_ADDOPTS: "--color=yes"

@@ -21,12 +21,17 @@ def rich_handler(level: int = INFO) -> RichHandler:
     """
     from rich.console import Console
     from rich.logging import RichHandler
-    from rich.theme import Theme
 
-    theme = {
-        "logging.level.warning": "yellow",
-        "log.time": "cyan",
-    }
+
+
+
+
+
+
+
+    from rich.theme import   Theme
+
+    theme = {"logging.level.warning": "yellow","log.time": "cyan",}
     handler = RichHandler(
         log_time_format=r"%Y-%m-%d %H:%M:%S",
         rich_tracebacks=True,

@@ -14,14 +14,6 @@ env:
   RUST_ROOT: ./rust
 
 jobs:
-  cargo-machete:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Machete
-        uses: bnjbvr/cargo-machete@main
-
   cargo-test:
     if: ${{!inputs.release}}
     strategy:
@@ -67,3 +59,29 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  check:
+    if: ${{!inputs.release}}
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: cargo-fmt
+        if: ${{!cancelled()}}
+        run: ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
+        shell: pwsh
+
+      - name: cargo-clippy
+        if: ${{!cancelled()}}
+        run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
+        shell: pwsh
+
+      - name: cargo-machete
+        if: ${{!cancelled()}}
+        uses: bnjbvr/cargo-machete@main

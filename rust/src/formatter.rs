@@ -6,7 +6,6 @@ use tracing::{Event, Subscriber};
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};
 use tracing_subscriber::registry::LookupSpan;
-
 pub(crate) struct ClerkFormatter {
     pub(crate) color: bool,
 }

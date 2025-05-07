@@ -83,4 +83,5 @@ jobs:
         shell: pwsh
         
       - name: cargo-machete
+        if: ! skipped ()
         uses: bnjbvr/cargo-machete@main

@@ -8,4 +8,3 @@ if ($result) {
 }
 
 Set-Location $ROOT
-

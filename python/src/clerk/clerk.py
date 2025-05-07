@@ -6,15 +6,6 @@ from pathlib import Path
 from rich.logging import RichHandler
 
 
-
-
-
-
-
-
-
-
-
 def rich_handler(level: int = INFO) -> RichHandler:
     r"""
     Initialize a RichHandler.

@@ -50,7 +50,7 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
         tracing::Level::INFO => &INFO_TEXT,
         tracing::Level::WARN => &WARN_TEXT,
         tracing::Level::ERROR => &ERROR_TEXT,
-        
+
     }
 }
 

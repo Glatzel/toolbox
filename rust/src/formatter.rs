@@ -1,4 +1,4 @@
-use std::f;
+use std::;
 use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};

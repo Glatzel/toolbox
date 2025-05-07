@@ -32,6 +32,15 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
 
 
 
+
+
+
+
+
+
+
+
+
 impl<S, N> FormatEvent<S, N> for ClerkFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,

@@ -50,7 +50,7 @@ jobs:
               - ./.github/workflows/ci-rust.yml
 
   pre-commit:
-    if: ${{ !inputs.release }}
+    if: ${{!inputs.release}}
     uses: Glatzel/template/.github/workflows/pre-commit.yml@main
 
   python-ci:

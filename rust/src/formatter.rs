@@ -1,4 +1,4 @@
-use std ::fmt;
+use std::fmt;
 use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};
@@ -24,10 +24,6 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
         tracing::Level::ERROR => &ERROR_TEXT,
     }
 }
-
-
-
-
 
 impl<S, N> FormatEvent<S, N> for ClerkFormatter
 where

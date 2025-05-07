@@ -1,4 +1,4 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-cargo clippy --fix --all-targets --all-features
+cargo clippy --fix --all-targets --all-features -Dwarning
 Set-Location $ROOT

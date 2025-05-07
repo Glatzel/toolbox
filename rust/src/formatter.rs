@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fm;
 use std::sync::LazyLock;
 
 use owo_colors::{OwoColorize, Styled};
@@ -9,39 +9,6 @@ use tracing_subscriber::registry::LookupSpan;
 pub(crate) struct ClerkFormatter {
     pub(crate) color: bool,
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
 static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));

@@ -36,8 +36,8 @@ pub(crate) struct ClerkFormatter {
 
 static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
 static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));
-static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate::INFO_STYLE));
-static WARN_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "WARN".style(*crate::WARN_STYLE));
+static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(||  "INFO".style(*crate::INFO_STYLE));
+static WARN_TEXT: LazyLock<Styled<  &&str  >> = LazyLock::new(||      "WARN".style(*crate::WARN_STYLE));
 static ERROR_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "ERROR".style(*crate::ERROR_STYLE));
 fn color_level(level: &tracing::Level) -> &Styled<&&str> {
     match *level {

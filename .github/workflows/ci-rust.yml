@@ -73,15 +73,15 @@ jobs:
           components: rustfmt
           
       - name: cargo-fmt
-        if: ! skipped ()
+        if: ! cancelled()
         run: ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
         
       - name: cargo-clippy
-        if: ! skipped ()
+        if: ! cancelled()
         run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
         shell: pwsh
         
       - name: cargo-machete
-        if: ! skipped ()
+        if: ! cancelled()
         uses: bnjbvr/cargo-machete@main

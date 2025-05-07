@@ -71,17 +71,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-          
+
       - name: cargo-fmt
         if: ! cancelled()
         run: ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
-        
+
       - name: cargo-clippy
         if: ! cancelled()
         run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
         shell: pwsh
-        
+
       - name: cargo-machete
         if: ! cancelled()
         uses: bnjbvr/cargo-machete@main

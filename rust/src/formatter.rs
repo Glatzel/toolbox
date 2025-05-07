@@ -1,10 +1,11 @@
-use std::  fmt;
+use std::fmt;
 use std::sync::LazyLock;
-use tracing_subscriber::registry::LookupSpan;
+
 use owo_colors::{OwoColorize, Styled};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};
+use tracing_subscriber::registry::LookupSpan;
 
 pub(crate) struct ClerkFormatter {
     pub(crate) color: bool,
@@ -24,9 +25,6 @@ fn color_level(level: &tracing::Level) -> &Styled<&&str> {
         tracing::Level::ERROR => &ERROR_TEXT,
     }
 }
-
-
-
 
 impl<S, N> FormatEvent<S, N> for ClerkFormatter
 where

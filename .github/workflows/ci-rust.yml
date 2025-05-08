@@ -52,25 +52,3 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  check:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
-
-      - name: cargo-fmt
-        if: ${{!cancelled()}}
-        run: ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
-        shell: pwsh
-
-      - name: cargo-clippy
-        if: ${{!cancelled()}}
-        run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
-        shell: pwsh

@@ -1,8 +1,7 @@
 import logging
 
-import path_macro
-
 import clerk
+import path_macro
 
 
 def test_rich_handler():

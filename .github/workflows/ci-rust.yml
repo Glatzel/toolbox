@@ -30,13 +30,6 @@ jobs:
         with:
           run-install: false
 
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows'}}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./rust/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./rust/vcpkg/vcpkg.json') }}
-
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: Install nextest
@@ -81,7 +74,3 @@ jobs:
         if: ${{!cancelled()}}
         run: ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
         shell: pwsh
-
-      - name: cargo-machete
-        if: ${{!cancelled()}}
-        uses: bnjbvr/cargo-machete@main

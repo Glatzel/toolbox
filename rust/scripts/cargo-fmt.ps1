@@ -1,4 +1,4 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-cargo +nightly fmt --all --check
+cargo fmt --all
 Set-Location $ROOT

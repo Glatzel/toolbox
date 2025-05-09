@@ -11,13 +11,13 @@ use tracing_subscriber::{EnvFilter, Layer};
 ///
 /// ```
 /// use tracing::{debug, error, info, trace, warn};
+/// use tracing_subscriber::EnvFilter;
+/// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
-/// use tracing_subscriber::filter::LevelFilter;
-/// use tracing_subscriber::EnvFilter;
 /// tracing_subscriber::registry()
-///         .with(clerk::terminal_layer(LevelFilter::TRACE,true))
-///         .init();
+///     .with(clerk::terminal_layer(LevelFilter::TRACE, true))
+///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
 /// info!("Informational message");

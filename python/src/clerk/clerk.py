@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import datetime
 import logging
 from logging import INFO, FileHandler
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from rich.logging import RichHandler
+if TYPE_CHECKING:
+    from rich.logging import RichHandler
 
 
 def rich_handler(level: int = INFO) -> RichHandler:

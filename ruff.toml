@@ -15,7 +15,6 @@ select = [
   "E",      # pycodestyle
   "EM",     # flake8-errmsg
   "F",      # Pyflakes
-  "FA",     # flake8-future-annotations
   "FURB",   # refurb
   "I",      # isort
   "ICN",    # flake8-import-conventions

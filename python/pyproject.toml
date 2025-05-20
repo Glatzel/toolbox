@@ -10,11 +10,11 @@ reportShadowedImports = false
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["win-64", "linux-64"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
 
 [tool.pixi.dependencies]
 python = "3.11.*"
-rattler-build = "==0.41.0"
+rattler-build = "==0.42.1"
 # test
 pytest = "==8.3.5"
 pytest-cov = "==6.1.1"

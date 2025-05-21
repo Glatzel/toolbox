@@ -9,14 +9,14 @@ owo-colors = { version = "4.2.0", optional = true }
 tracing = { version = "0.1.41", optional = true }
 tracing-core = { version = "0.1.33", optional = true }
 tracing-subscriber = { version = "0.3.19", features = [
-    "env-filter",
+  "env-filter",
 ], optional = true }
 
 [features]
 log = [
-    "dep:tracing",
-    "dep:tracing-subscriber",
-    "dep:owo-colors",
-    "dep:chrono",
-    "dep:tracing-core",
+  "dep:tracing",
+  "dep:tracing-subscriber",
+  "dep:owo-colors",
+  "dep:chrono",
+  "dep:tracing-core",
 ]

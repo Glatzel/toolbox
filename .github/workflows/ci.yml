@@ -49,10 +49,6 @@ jobs:
               - ./rust/**
               - ./.github/workflows/ci-rust.yml
 
-  pre-commit:
-    if: ${{ !inputs.release }}
-    uses: Glatzel/template/.github/workflows/pre-commit.yml@main
-
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}

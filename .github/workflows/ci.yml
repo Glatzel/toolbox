@@ -8,7 +8,7 @@ on:
         type: boolean
         default: false
   push:
-    branches: main
+    branches: [main]
     paths-ignore:
       - "*.md"
   pull_request:
@@ -53,12 +53,8 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
     uses: ./.github/workflows/ci-python.yml
-    with:
-      release: ${{inputs.release&& inputs.release || false}}
 
   rust-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
     uses: ./.github/workflows/ci-rust.yml
-    with:
-      release: ${{inputs.release&& inputs.release || false}}

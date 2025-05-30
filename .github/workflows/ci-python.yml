@@ -3,10 +3,6 @@ name: python-CI
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      release:
-        type: boolean
-        default: false
 
 permissions: read-all
 env:
@@ -27,24 +23,15 @@ jobs:
         with:
           run-install: false
 
-      - name: build
-        run: ${{env.PYTHON_ROOT}}/rattler/ci-clerk-py.ps1
+      - name: test
+        run: ${{env.PYTHON_ROOT}}/scripts/pytest.ps1
         shell: pwsh
 
-      - name: upload
-        if: ${{runner.os=='Linux'}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: clerk-python-${{matrix.machine}}
-          path: |
-            ${{env.PYTHON_ROOT}}/rattler/output/*/*.conda
-          if-no-files-found: error
-
       - name: Upload results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v5
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled()}}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true

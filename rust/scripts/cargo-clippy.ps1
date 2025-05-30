@@ -2,6 +2,8 @@ $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-cargo +stable clippy --fix --no-deps
+if (-not $env:CI) {
+    cargo +stable clippy --fix
+}
 cargo +stable clippy -- -Dwarnings
 Set-Location $ROOT

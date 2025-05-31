@@ -1,6 +1,6 @@
 package:
-  version: 0.0.11
-  name: clerk-py
+  version: 0.0.12
+  name: toolbox-py
 build:
   noarch: python
   script:

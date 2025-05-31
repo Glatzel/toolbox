@@ -1,10 +1,16 @@
 use std::ffi::{CStr, CString};
 
 use miette::IntoDiagnostic;
+/// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CstrToString {
+    /// Converts the C string to a Rust `String`.
+    /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String>;
 }
+
 impl CstrToString for *const i8 {
+    /// Converts a raw C string pointer to a Rust `String`.
+    /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String> {
         if self.is_null() {
             return None;
@@ -16,7 +22,9 @@ impl CstrToString for *const i8 {
         )
     }
 }
+
 impl CstrToString for [i8] {
+    /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
         Some(
             unsafe { CStr::from_ptr(self.as_ptr()) }
@@ -26,10 +34,17 @@ impl CstrToString for [i8] {
     }
 }
 
+/// Trait for converting a null-terminated list of C string pointers to a
+/// `Vec<String>`.
 pub trait CstrListToVecString {
+    /// Converts the list to a vector of Rust `String`.
+    /// Returns `None` if the pointer is null.
     fn to_vec_string(&self) -> Option<Vec<String>>;
 }
+
 impl CstrListToVecString for *mut *mut i8 {
+    /// Converts a null-terminated array of C string pointers to a vector of
+    /// Rust `String`.
     fn to_vec_string(&self) -> Option<Vec<String>> {
         if self.is_null() {
             return None;
@@ -49,12 +64,17 @@ impl CstrListToVecString for *mut *mut i8 {
     }
 }
 
+/// Trait for converting Rust strings to `CString`.
 pub trait ToCString {
+    /// Converts the Rust string to a `CString`.
+    /// Returns an error if the string contains interior null bytes.
     fn to_cstring(&self) -> miette::Result<CString>;
 }
+
 impl ToCString for &str {
     fn to_cstring(&self) -> miette::Result<CString> { CString::new(*self).into_diagnostic() }
 }
+
 impl ToCString for String {
     fn to_cstring(&self) -> miette::Result<CString> {
         CString::new(self.as_str()).into_diagnostic()

@@ -1,0 +1,7 @@
+[package]
+edition.workspace = true
+name = "envoy"
+version.workspace = true
+
+[dependencies]
+miette = { workspace = true }

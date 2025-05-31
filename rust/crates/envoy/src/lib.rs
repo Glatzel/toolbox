@@ -113,7 +113,7 @@ mod tests {
         let s1 = CString::new("foo").unwrap();
         let s2 = CString::new("bar").unwrap();
         let s3 = CString::new("baz").unwrap();
-        let arr = vec![
+        let arr = [
             s1.as_ptr() as *mut i8,
             s2.as_ptr() as *mut i8,
             s3.as_ptr() as *mut i8,

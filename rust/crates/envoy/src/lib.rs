@@ -25,6 +25,9 @@ impl CStrToString for *const i8 {
 impl CStrToString for *mut i8 {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
+        if self.is_null() {
+            return None;
+        }
         Some(
             unsafe { CStr::from_ptr(*self) }
                 .to_string_lossy()
@@ -35,6 +38,9 @@ impl CStrToString for *mut i8 {
 impl CStrToString for [i8] {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
+        if self.is_empty() {
+            return None;
+        }
         Some(
             unsafe { CStr::from_ptr(self.as_ptr()) }
                 .to_string_lossy()
@@ -130,7 +136,7 @@ mod tests {
         }
         //*mut i8
         {
-            let ptr: *const i8 = s.as_ptr();
+            let ptr: *mut i8 = s.as_ptr().cast_mut();
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
         //[i8]
@@ -145,6 +151,10 @@ mod tests {
         //null
         {
             let ptr: *const i8 = ptr::null();
+            assert!(ptr.to_string().is_none());
+            let ptr: *mut i8 = ptr.cast_mut();
+            assert!(ptr.to_string().is_none());
+            let ptr = [];
             assert!(ptr.to_string().is_none());
         }
     }

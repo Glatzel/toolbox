@@ -1,6 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::ptr;
-const CSTRING_NEW_EXPECTION: &str = "Failed to create CString";
+const CSTRING_NEW_EXCEPTION: &str = "Failed to create CString";
 /// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CStrToString {
     /// Converts the C string to a Rust `String`.
@@ -80,18 +80,18 @@ pub trait ToCStr {
 }
 
 impl ToCStr for &str {
-    fn to_cstring(&self) -> CString { CString::new(*self).expect(CSTRING_NEW_EXPECTION) }
+    fn to_cstring(&self) -> CString { CString::new(*self).expect(CSTRING_NEW_EXCEPTION) }
     fn to_cstr(&self) -> *const i8 { self.to_cstring().into_raw() }
 }
 
 impl ToCStr for String {
-    fn to_cstring(&self) -> CString { CString::new(self.as_str()).expect(CSTRING_NEW_EXPECTION) }
+    fn to_cstring(&self) -> CString { CString::new(self.as_str()).expect(CSTRING_NEW_EXCEPTION) }
     fn to_cstr(&self) -> *const i8 { self.to_cstring().into_raw() }
 }
 
 impl ToCStr for Option<&str> {
     fn to_cstring(&self) -> CString {
-        CString::new(self.unwrap_or_default()).expect(CSTRING_NEW_EXPECTION)
+        CString::new(self.unwrap_or_default()).expect(CSTRING_NEW_EXCEPTION)
     }
     fn to_cstr(&self) -> *const i8 {
         match self {
@@ -104,7 +104,7 @@ impl ToCStr for Option<&str> {
 impl ToCStr for Option<String> {
     fn to_cstring(&self) -> CString {
         match self {
-            Some(s) => CString::new(s.as_str()).expect(CSTRING_NEW_EXPECTION),
+            Some(s) => CString::new(s.as_str()).expect(CSTRING_NEW_EXCEPTION),
             None => CString::default(),
         }
     }

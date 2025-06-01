@@ -1,7 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::ptr;
-
-use miette::IntoDiagnostic;
+const CSTRING_NEW_EXPECTION: &str = "Failed to create CString";
 /// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CStrToString {
     /// Converts the C string to a Rust `String`.
@@ -76,71 +75,53 @@ impl CStrListToVecString for *mut *mut i8 {
 
 /// Trait for converting Rust strings to `CString`.
 pub trait ToCStr {
-    /// Converts the Rust string to a `CString`.
-    /// Returns an error if the string contains interior null bytes.
-    fn to_cstr(&self) -> miette::Result<*const i8>;
+    fn to_cstring(&self) -> CString;
+    fn to_cstr(&self) -> *const i8;
 }
 
 impl ToCStr for &str {
-    fn to_cstr(&self) -> miette::Result<*const i8> {
-        Ok(CString::new(*self).into_diagnostic()?.into_raw())
-    }
+    fn to_cstring(&self) -> CString { CString::new(*self).expect(CSTRING_NEW_EXPECTION) }
+    fn to_cstr(&self) -> *const i8 { self.to_cstring().into_raw() }
 }
 
 impl ToCStr for String {
-    fn to_cstr(&self) -> miette::Result<*const i8> {
-        Ok(CString::new(self.as_str()).into_diagnostic()?.into_raw())
+    fn to_cstring(&self) -> CString { CString::new(self.as_str()).expect(CSTRING_NEW_EXPECTION) }
+    fn to_cstr(&self) -> *const i8 {
+        CString::new(self.as_str())
+            .expect(CSTRING_NEW_EXPECTION)
+            .into_raw()
     }
 }
 
 impl ToCStr for Option<&str> {
-    fn to_cstr(&self) -> miette::Result<*const i8> {
+    fn to_cstring(&self) -> CString {
+        CString::new(self.unwrap_or_default()).expect(CSTRING_NEW_EXPECTION)
+    }
+    fn to_cstr(&self) -> *const i8 {
         match self {
-            Some(s) => Ok(CString::new(*s).into_diagnostic()?.into_raw()),
-            None => Ok(ptr::null()),
+            Some(s) => CString::new(*s).expect(CSTRING_NEW_EXPECTION).into_raw(),
+            None => ptr::null(),
         }
     }
 }
 
 impl ToCStr for Option<String> {
-    fn to_cstr(&self) -> miette::Result<*const i8> {
+    fn to_cstring(&self) -> CString {
         match self {
-            Some(s) => Ok(CString::new(s.as_str()).into_diagnostic()?.into_raw()),
-            None => Ok(ptr::null()),
+            Some(s) => CString::new(s.as_str()).expect(CSTRING_NEW_EXPECTION),
+            None => CString::default(),
+        }
+    }
+    fn to_cstr(&self) -> *const i8 {
+        match self {
+            Some(s) => CString::new(s.as_str())
+                .expect(CSTRING_NEW_EXPECTION)
+                .into_raw(),
+            None => ptr::null(),
         }
     }
 }
-/// Trait for converting Rust strings to `CString`.
-pub trait ToCString {
-    /// Converts the Rust string to a `CString`.
-    /// Returns an error if the string contains interior null bytes.
-    fn to_cstring(&self) -> miette::Result<CString>;
-}
 
-impl ToCString for &str {
-    fn to_cstring(&self) -> miette::Result<CString> { CString::new(*self).into_diagnostic() }
-}
-
-impl ToCString for String {
-    fn to_cstring(&self) -> miette::Result<CString> {
-        CString::new(self.as_str()).into_diagnostic()
-    }
-}
-
-impl ToCString for Option<&str> {
-    fn to_cstring(&self) -> miette::Result<CString> {
-        CString::new(self.unwrap_or_default()).into_diagnostic()
-    }
-}
-
-impl ToCString for Option<String> {
-    fn to_cstring(&self) -> miette::Result<CString> {
-        match self {
-            Some(s) => CString::new(s.as_str()).into_diagnostic(),
-            None => Ok(CString::default()),
-        }
-    }
-}
 #[cfg(test)]
 mod tests {
     // use super::*;

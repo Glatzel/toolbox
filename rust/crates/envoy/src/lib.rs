@@ -3,13 +3,13 @@ use std::ptr;
 
 use miette::IntoDiagnostic;
 /// Trait for converting C string pointers and slices to Rust `String`.
-pub trait PtrToString {
+pub trait CstrToString {
     /// Converts the C string to a Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String>;
 }
 
-impl PtrToString for *const i8 {
+impl CstrToString for *const i8 {
     /// Converts a raw C string pointer to a Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String> {
@@ -24,7 +24,7 @@ impl PtrToString for *const i8 {
     }
 }
 
-impl PtrToString for [i8] {
+impl CstrToString for [i8] {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
         Some(
@@ -37,13 +37,13 @@ impl PtrToString for [i8] {
 
 /// Trait for converting a null-terminated list of C string pointers to a
 /// `Vec<String>`.
-pub trait PtrListToVecString {
+pub trait CstrListToVecString {
     /// Converts the list to a vector of Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_vec_string(&self) -> Option<Vec<String>>;
 }
 
-impl PtrListToVecString for *mut *mut i8 {
+impl CstrListToVecString for *mut *mut i8 {
     /// Converts a null-terminated array of C string pointers to a vector of
     /// Rust `String`.
     fn to_vec_string(&self) -> Option<Vec<String>> {

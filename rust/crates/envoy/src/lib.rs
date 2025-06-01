@@ -23,7 +23,16 @@ impl CStrToString for *const i8 {
         )
     }
 }
-
+impl CStrToString for *mut i8 {
+    /// Converts a slice of C string bytes to a Rust `String`.
+    fn to_string(&self) -> Option<String> {
+        Some(
+            unsafe { CStr::from_ptr(*self) }
+                .to_string_lossy()
+                .to_string(),
+        )
+    }
+}
 impl CStrToString for [i8] {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
@@ -113,7 +122,9 @@ impl ToCString for &str {
 }
 
 impl ToCString for String {
-    fn to_cstring(&self) -> miette::Result<CString> { CString::new(self.as_str()).into_diagnostic() }
+    fn to_cstring(&self) -> miette::Result<CString> {
+        CString::new(self.as_str()).into_diagnostic()
+    }
 }
 
 impl ToCString for Option<&str> {

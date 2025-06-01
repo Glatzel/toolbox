@@ -16,9 +16,9 @@
 
 ### to_cstring()
 
-| `&str / String` | `Some(&str) / Some(String)` | `None` |
-| --------------- | --------------------------- | ------ |
-| `CString`       | `CString`                   | `null` |
+| `&str / String` | `Some(&str) / Some(String)` | `None`               |
+| --------------- | --------------------------- | -------------------- |
+| `CString`       | `CString`                   | `CString::default()` |
 
 ### to_cstr()
 

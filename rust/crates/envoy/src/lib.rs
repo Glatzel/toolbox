@@ -66,31 +66,31 @@ impl CstrListToVecString for *mut *mut i8 {
 }
 
 /// Trait for converting Rust strings to `CString`.
-pub trait ToCString {
+pub trait ToCstr {
     /// Converts the Rust string to a `CString`.
     /// Returns an error if the string contains interior null bytes.
     fn to_cstr(&self) -> miette::Result<*const i8>;
 }
 
-impl ToCString for &str {
+impl ToCstr for &str {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         Ok(CString::new(*self).into_diagnostic()?.into_raw())
     }
 }
 
-impl ToCString for String {
+impl ToCstr for String {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         Ok(CString::new(self.as_str()).into_diagnostic()?.into_raw())
     }
 }
 /// Trait for converting Rust strings to `CString`.
-pub trait OptionToCString {
+pub trait OptionToCstr {
     /// Converts the Rust string to a `CString`.
     /// Returns an error if the string contains interior null bytes.
     fn to_cstr(&self) -> miette::Result<*const i8>;
 }
 
-impl OptionToCString for Option<&str> {
+impl OptionToCstr for Option<&str> {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         match self {
             Some(s) => Ok(CString::new(*s).into_diagnostic()?.into_raw()),
@@ -99,7 +99,7 @@ impl OptionToCString for Option<&str> {
     }
 }
 
-impl OptionToCString for Option<String> {
+impl OptionToCstr for Option<String> {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         match self {
             Some(s) => Ok(CString::new(s.as_str()).into_diagnostic()?.into_raw()),

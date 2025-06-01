@@ -66,31 +66,25 @@ impl CstrListToVecString for *mut *mut i8 {
 }
 
 /// Trait for converting Rust strings to `CString`.
-pub trait ToCstr {
+pub trait ToCStr {
     /// Converts the Rust string to a `CString`.
     /// Returns an error if the string contains interior null bytes.
     fn to_cstr(&self) -> miette::Result<*const i8>;
 }
 
-impl ToCstr for &str {
+impl ToCStr for &str {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         Ok(CString::new(*self).into_diagnostic()?.into_raw())
     }
 }
 
-impl ToCstr for String {
+impl ToCStr for String {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         Ok(CString::new(self.as_str()).into_diagnostic()?.into_raw())
     }
 }
-/// Trait for converting Rust strings to `CString`.
-pub trait OptionToCstr {
-    /// Converts the Rust string to a `CString`.
-    /// Returns an error if the string contains interior null bytes.
-    fn to_cstr(&self) -> miette::Result<*const i8>;
-}
 
-impl OptionToCstr for Option<&str> {
+impl ToCStr for Option<&str> {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         match self {
             Some(s) => Ok(CString::new(*s).into_diagnostic()?.into_raw()),
@@ -99,11 +93,40 @@ impl OptionToCstr for Option<&str> {
     }
 }
 
-impl OptionToCstr for Option<String> {
+impl ToCStr for Option<String> {
     fn to_cstr(&self) -> miette::Result<*const i8> {
         match self {
             Some(s) => Ok(CString::new(s.as_str()).into_diagnostic()?.into_raw()),
             None => Ok(ptr::null()),
+        }
+    }
+}
+/// Trait for converting Rust strings to `CString`.
+pub trait ToCstring {
+    /// Converts the Rust string to a `CString`.
+    /// Returns an error if the string contains interior null bytes.
+    fn to_cstring(&self) -> miette::Result<CString>;
+}
+
+impl ToCstring for &str {
+    fn to_cstring(&self) -> miette::Result<CString> { CString::new(*self).into_diagnostic() }
+}
+
+impl ToCstring for String {
+    fn to_cstring(&self) -> miette::Result<CString> { CString::new(self.as_str()).into_diagnostic() }
+}
+
+impl ToCstring for Option<&str> {
+    fn to_cstring(&self) -> miette::Result<CString> {
+        CString::new(self.unwrap_or_default()).into_diagnostic()
+    }
+}
+
+impl ToCstring for Option<String> {
+    fn to_cstring(&self) -> miette::Result<CString> {
+        match self {
+            Some(s) => CString::new(s.as_str()).into_diagnostic(),
+            None => Ok(CString::default()),
         }
     }
 }

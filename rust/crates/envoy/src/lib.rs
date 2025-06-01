@@ -25,6 +25,9 @@ impl CStrToString for *const i8 {
 impl CStrToString for *mut i8 {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
+        if self.is_null() {
+            return None;
+        }
         Some(
             unsafe { CStr::from_ptr(*self) }
                 .to_string_lossy()
@@ -35,6 +38,9 @@ impl CStrToString for *mut i8 {
 impl CStrToString for [i8] {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
+        if self.is_empty() {
+            return None;
+        }
         Some(
             unsafe { CStr::from_ptr(self.as_ptr()) }
                 .to_string_lossy()
@@ -130,7 +136,7 @@ mod tests {
         }
         //*mut i8
         {
-            let ptr: *const i8 = s.as_ptr();
+            let ptr: *mut i8 = s.as_ptr().cast_mut();
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
         //[i8]
@@ -146,29 +152,42 @@ mod tests {
         {
             let ptr: *const i8 = ptr::null();
             assert!(ptr.to_string().is_none());
+            let ptr: *mut i8 = ptr.cast_mut();
+            assert!(ptr.to_string().is_none());
+            let ptr = [];
+            assert!(ptr.to_string().is_none());
         }
     }
     #[test]
     fn test_cstr_list_to_string() {
-        let s1 = CString::new("foo").unwrap();
-        let s2 = CString::new("bar").unwrap();
-        let s3 = CString::new("baz").unwrap();
-        let arr = [
-            s1.as_ptr() as *mut i8,
-            s2.as_ptr() as *mut i8,
-            s3.as_ptr() as *mut i8,
-            std::ptr::null_mut(),
-        ];
-        let ptr = arr.as_ptr();
-        let result = ptr.cast_mut().to_vec_string();
-        assert_eq!(
-            result,
-            Some(vec![
-                "foo".to_string(),
-                "bar".to_string(),
-                "baz".to_string()
-            ])
-        );
+        // not null
+        {
+            let s1 = CString::new("foo").unwrap();
+            let s2 = CString::new("bar").unwrap();
+            let s3 = CString::new("baz").unwrap();
+            let arr = [
+                s1.as_ptr() as *mut i8,
+                s2.as_ptr() as *mut i8,
+                s3.as_ptr() as *mut i8,
+                std::ptr::null_mut(),
+            ];
+            let ptr = arr.as_ptr();
+            let result = ptr.cast_mut().to_vec_string();
+            assert_eq!(
+                result,
+                Some(vec![
+                    "foo".to_string(),
+                    "bar".to_string(),
+                    "baz".to_string()
+                ])
+            );
+        }
+        // null
+        {
+            let ptr: *mut *mut i8 = ptr::null_mut();
+            assert!(ptr.is_null());
+            assert!(ptr.to_vec_string().is_none());
+        }
     }
     #[test]
     fn test_to_cstring() {

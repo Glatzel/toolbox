@@ -3,13 +3,13 @@ use std::ptr;
 
 use miette::IntoDiagnostic;
 /// Trait for converting C string pointers and slices to Rust `String`.
-pub trait CstrToString {
+pub trait CStrToString {
     /// Converts the C string to a Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String>;
 }
 
-impl CstrToString for *const i8 {
+impl CStrToString for *const i8 {
     /// Converts a raw C string pointer to a Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_string(&self) -> Option<String> {
@@ -24,7 +24,7 @@ impl CstrToString for *const i8 {
     }
 }
 
-impl CstrToString for [i8] {
+impl CStrToString for [i8] {
     /// Converts a slice of C string bytes to a Rust `String`.
     fn to_string(&self) -> Option<String> {
         Some(
@@ -37,13 +37,13 @@ impl CstrToString for [i8] {
 
 /// Trait for converting a null-terminated list of C string pointers to a
 /// `Vec<String>`.
-pub trait CstrListToVecString {
+pub trait CStrListToVecString {
     /// Converts the list to a vector of Rust `String`.
     /// Returns `None` if the pointer is null.
     fn to_vec_string(&self) -> Option<Vec<String>>;
 }
 
-impl CstrListToVecString for *mut *mut i8 {
+impl CStrListToVecString for *mut *mut i8 {
     /// Converts a null-terminated array of C string pointers to a vector of
     /// Rust `String`.
     fn to_vec_string(&self) -> Option<Vec<String>> {
@@ -102,27 +102,27 @@ impl ToCStr for Option<String> {
     }
 }
 /// Trait for converting Rust strings to `CString`.
-pub trait ToCstring {
+pub trait ToCString {
     /// Converts the Rust string to a `CString`.
     /// Returns an error if the string contains interior null bytes.
     fn to_cstring(&self) -> miette::Result<CString>;
 }
 
-impl ToCstring for &str {
+impl ToCString for &str {
     fn to_cstring(&self) -> miette::Result<CString> { CString::new(*self).into_diagnostic() }
 }
 
-impl ToCstring for String {
+impl ToCString for String {
     fn to_cstring(&self) -> miette::Result<CString> { CString::new(self.as_str()).into_diagnostic() }
 }
 
-impl ToCstring for Option<&str> {
+impl ToCString for Option<&str> {
     fn to_cstring(&self) -> miette::Result<CString> {
         CString::new(self.unwrap_or_default()).into_diagnostic()
     }
 }
 
-impl ToCstring for Option<String> {
+impl ToCString for Option<String> {
     fn to_cstring(&self) -> miette::Result<CString> {
         match self {
             Some(s) => CString::new(s.as_str()).into_diagnostic(),

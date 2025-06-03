@@ -78,7 +78,27 @@ impl CStrListToVecString for *mut *mut i8 {
         Some(vec_str)
     }
 }
+impl CStrListToVecString for *const *const i8 {
+    /// Converts a null-terminated array of C string pointers to a vector of
+    /// Rust `String`.
+    fn to_vec_string(&self) -> Option<Vec<String>> {
+        if self.is_null() {
+            return None;
+        }
+        let mut vec_str = Vec::new();
+        let mut offset = 0;
 
+        loop {
+            let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
+            if current_ptr.is_null() {
+                break;
+            }
+            vec_str.push(current_ptr.to_string().unwrap());
+            offset += 1;
+        }
+        Some(vec_str)
+    }
+}
 /// Trait for converting Rust strings to `CString`.
 pub trait ToCStr {
     fn to_cstring(&self) -> CString;

@@ -8,7 +8,7 @@
 
 ## CStrListToVecString
 
-| `*mut *mut i8` | `null` |
+| `*mut *mut i8 / *const *const i8` | `null` |
 | -------------- | ------ |
 | `Vec<String>`  | `None` |
 

@@ -134,56 +134,86 @@ impl ToCStr for Option<String> {
 }
 pub trait ToCStrList {
     fn to_cstring_list(&self) -> Vec<CString>;
-    fn to_cstr_list(&self) -> *const *const i8;
+    fn to_cstr_list(&self) -> Vec<*const i8>;
 }
 
-// impl ToCStrList for [&str] {
-//     fn to_cstring_list(&self) -> Vec<CString> {
-//         if self.is_empty() {
-//             return Vec::new();
-//         }
-//         self.iter()
-//             .map(|s| CString::new(*s).expect(CSTRING_NEW_EXCEPTION))
-//             .collect()
-//     }
-//     fn to_cstr_list(&self) -> *const *const i8 {
-//         self.iter()
-//             .map(|s| s.to_cstr())
-//             .collect::<Vec<*const i8>>()
-//             .as_ptr()
-//     }
-// }
+impl ToCStrList for [&str] {
+    fn to_cstring_list(&self) -> Vec<CString> {
+        if self.is_empty() {
+            return Vec::new();
+        }
+        self.iter().map(|s| s.to_cstring()).collect()
+    }
+    /// Returns a Vec of pointers, caller must ensure the Vec lives long enough.
+    fn to_cstr_list(&self) -> Vec<*const i8> {
+        self.iter().map(|s| s.to_cstr()).collect::<Vec<*const i8>>()
+    }
+}
 
-// impl ToCStrList for String {
-//     fn to_cstring(&self) -> CString {
-// CString::new(self.as_str()).expect(CSTRING_NEW_EXCEPTION) }     fn to_cstr(&
-// self) -> *const i8 { self.to_cstring().into_raw() } }
+impl ToCStrList for Vec<String> {
+    fn to_cstring_list(&self) -> Vec<CString> {
+        if self.is_empty() {
+            return Vec::new();
+        }
+        self.iter().map(|s| s.to_cstring()).collect()
+    }
+    /// Returns a Vec of pointers, caller must ensure the Vec lives long enough.
+    fn to_cstr_list(&self) -> Vec<*const i8> {
+        self.iter().map(|s| s.to_cstr()).collect::<Vec<*const i8>>()
+    }
+}
 
-// impl ToCStrList for Option<&str> {
-//     fn to_cstring(&self) -> CString {
-//         CString::new(self.unwrap_or_default()).expect(CSTRING_NEW_EXCEPTION)
-//     }
-//     fn to_cstr(&self) -> *const i8 {
-//         match self {
-//             Some(_) => self.to_cstring().into_raw(),
-//             None => ptr::null(),
-//         }
-//     }
-// }
-// impl ToCStrList for Option<String> {
-//     fn to_cstring(&self) -> CString {
-//         match self {
-//             Some(s) =>
-// CString::new(s.as_str()).expect(CSTRING_NEW_EXCEPTION),             None =>
-// CString::default(),         }
-//     }
-//     fn to_cstr(&self) -> *const i8 {
-//         match self {
-//             Some(_) => self.to_cstring().into_raw(),
-//             None => ptr::null(),
-//         }
-//     }
-// }
+impl ToCStrList for Option<Vec<&str>> {
+    fn to_cstring_list(&self) -> Vec<CString> {
+        match self {
+            Some(s) => {
+                if s.is_empty() {
+                    return Vec::new();
+                }
+                s.iter().map(|l| l.to_cstring()).collect()
+            }
+            None => Vec::new(),
+        }
+    }
+    /// Returns a Vec of pointers, caller must ensure the Vec lives long enough.
+    fn to_cstr_list(&self) -> Vec<*const i8> {
+        match self {
+            Some(s) => {
+                if s.is_empty() {
+                    return Vec::new();
+                }
+                s.iter().map(|l| l.to_cstr()).collect()
+            }
+            None => Vec::new(),
+        }
+    }
+}
+impl ToCStrList for Option<Vec<String>> {
+    fn to_cstring_list(&self) -> Vec<CString> {
+        match self {
+            Some(s) => {
+                if s.is_empty() {
+                    return Vec::new();
+                }
+                s.iter().map(|l| l.to_cstring()).collect()
+            }
+            None => Vec::new(),
+        }
+    }
+    /// Returns a Vec of pointers, caller must ensure the Vec lives long enough.
+    fn to_cstr_list(&self) -> Vec<*const i8> {
+        match self {
+            Some(s) => {
+                if s.is_empty() {
+                    return Vec::new();
+                }
+                s.iter().map(|l| l.to_cstr()).collect()
+            }
+            None => Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

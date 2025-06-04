@@ -103,7 +103,7 @@ def strfsize(size: int, digits: int = 3) -> str:
     unit_dict = {0: "B", 1: "KB", 2: "MB", 3: "GB", 4: "TB"}
     bu = 1024
     exp: int = math.floor(math.log(size, bu))
-    size_str = f"{round(size / bu**exp,digits)} {unit_dict[exp]}"
+    size_str = f"{round(size / bu**exp, digits)} {unit_dict[exp]}"
 
     return size_str
 

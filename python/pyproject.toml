@@ -16,6 +16,6 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 python = "3.11.*"
 rattler-build = "==0.42.1"
 # test
+pyfakefs = "==5.7.4"
 pytest = "==8.4.0"
 pytest-cov = "==6.1.1"
-pyfakefs = "==5.7.4"

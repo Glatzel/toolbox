@@ -34,7 +34,7 @@ jobs:
       - name: cargo-test
         run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
         shell: pwsh
-      
+
       - name: cargo-miri
         run: ${{env.RUST_ROOT}}/scripts/cargo-miri.ps1
         shell: pwsh

@@ -8,7 +8,7 @@ _log = logging.getLogger(__name__)
 
 def reload_modules(pattern: str) -> None:
     """
-    Reload moudules by name pattern.
+    Reload modules by name pattern.
 
     Parameters
     ----------

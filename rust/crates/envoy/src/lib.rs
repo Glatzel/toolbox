@@ -49,20 +49,14 @@ impl CStrToString for [i8] {
     }
 }
 
-/// Trait for converting a null-terminated list of C string pointers to a
-/// `Vec<String>`.
 pub trait CStrListToVecString {
-    /// Converts the list to a vector of Rust `String`.
-    /// Returns `None` if the pointer is null.
-    fn to_vec_string(&self) -> Option<Vec<String>>;
+    fn to_vec_string(&self) -> Vec<String>;
 }
 
 impl CStrListToVecString for *mut *mut i8 {
-    /// Converts a null-terminated array of C string pointers to a vector of
-    /// Rust `String`.
-    fn to_vec_string(&self) -> Option<Vec<String>> {
+    fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
-            return None;
+            return Vec::new();
         }
         let mut vec_str = Vec::new();
         let mut offset = 0;
@@ -75,15 +69,13 @@ impl CStrListToVecString for *mut *mut i8 {
             vec_str.push(current_ptr.cast_const().to_string().unwrap());
             offset += 1;
         }
-        Some(vec_str)
+        vec_str
     }
 }
 impl CStrListToVecString for *const *const i8 {
-    /// Converts a null-terminated array of C string pointers to a vector of
-    /// Rust `String`.
-    fn to_vec_string(&self) -> Option<Vec<String>> {
+    fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
-            return None;
+            return Vec::new();
         }
         let mut vec_str = Vec::new();
         let mut offset = 0;
@@ -96,10 +88,10 @@ impl CStrListToVecString for *const *const i8 {
             vec_str.push(current_ptr.to_string().unwrap());
             offset += 1;
         }
-        Some(vec_str)
+        vec_str
     }
 }
-/// Trait for converting Rust strings to `CString`.
+
 pub trait ToCStr {
     fn to_cstring(&self) -> CString;
     fn to_cstr(&self) -> *const i8;
@@ -111,7 +103,7 @@ impl ToCStr for &str {
 }
 
 impl ToCStr for String {
-    fn to_cstring(&self) -> CString { CString::new(self.as_str()).expect(CSTRING_NEW_EXCEPTION) }
+    fn to_cstring(&self) -> CString { CString::new(self as &str).expect(CSTRING_NEW_EXCEPTION) }
     fn to_cstr(&self) -> *const i8 { self.to_cstring().into_raw() }
 }
 
@@ -126,11 +118,10 @@ impl ToCStr for Option<&str> {
         }
     }
 }
-
 impl ToCStr for Option<String> {
     fn to_cstring(&self) -> CString {
         match self {
-            Some(s) => CString::new(s.as_str()).expect(CSTRING_NEW_EXCEPTION),
+            Some(s) => CString::new(s.to_owned()).expect(CSTRING_NEW_EXCEPTION),
             None => CString::default(),
         }
     }
@@ -141,7 +132,58 @@ impl ToCStr for Option<String> {
         }
     }
 }
+pub trait ToCStrList {
+    fn to_cstring_list(&self) -> Vec<CString>;
+    fn to_cstr_list(&self) -> *const *const i8;
+}
 
+// impl ToCStrList for [&str] {
+//     fn to_cstring_list(&self) -> Vec<CString> {
+//         if self.is_empty() {
+//             return Vec::new();
+//         }
+//         self.iter()
+//             .map(|s| CString::new(*s).expect(CSTRING_NEW_EXCEPTION))
+//             .collect()
+//     }
+//     fn to_cstr_list(&self) -> *const *const i8 {
+//         self.iter()
+//             .map(|s| s.to_cstr())
+//             .collect::<Vec<*const i8>>()
+//             .as_ptr()
+//     }
+// }
+
+// impl ToCStrList for String {
+//     fn to_cstring(&self) -> CString {
+// CString::new(self.as_str()).expect(CSTRING_NEW_EXCEPTION) }     fn to_cstr(&
+// self) -> *const i8 { self.to_cstring().into_raw() } }
+
+// impl ToCStrList for Option<&str> {
+//     fn to_cstring(&self) -> CString {
+//         CString::new(self.unwrap_or_default()).expect(CSTRING_NEW_EXCEPTION)
+//     }
+//     fn to_cstr(&self) -> *const i8 {
+//         match self {
+//             Some(_) => self.to_cstring().into_raw(),
+//             None => ptr::null(),
+//         }
+//     }
+// }
+// impl ToCStrList for Option<String> {
+//     fn to_cstring(&self) -> CString {
+//         match self {
+//             Some(s) =>
+// CString::new(s.as_str()).expect(CSTRING_NEW_EXCEPTION),             None =>
+// CString::default(),         }
+//     }
+//     fn to_cstr(&self) -> *const i8 {
+//         match self {
+//             Some(_) => self.to_cstring().into_raw(),
+//             None => ptr::null(),
+//         }
+//     }
+// }
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -197,18 +239,14 @@ mod tests {
                 let result = ptr.cast_mut().to_vec_string();
                 assert_eq!(
                     result,
-                    Some(vec![
-                        "foo".to_string(),
-                        "bar".to_string(),
-                        "baz".to_string()
-                    ])
+                    vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]
                 );
             }
             // null
             {
                 let ptr: *mut *mut i8 = ptr::null_mut();
                 assert!(ptr.is_null());
-                assert!(ptr.to_vec_string().is_none());
+                assert!(ptr.to_vec_string().is_empty());
             }
         }
         //*const *const i8
@@ -228,18 +266,14 @@ mod tests {
                 let result = ptr.to_vec_string();
                 assert_eq!(
                     result,
-                    Some(vec![
-                        "foo".to_string(),
-                        "bar".to_string(),
-                        "baz".to_string()
-                    ])
+                    vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]
                 );
             }
             // null
             {
                 let ptr: *const *const i8 = ptr::null();
                 assert!(ptr.is_null());
-                assert!(ptr.to_vec_string().is_none());
+                assert!(ptr.to_vec_string().is_empty());
             }
         }
     }
@@ -248,7 +282,7 @@ mod tests {
         let s = String::from("foo");
         //&str
         {
-            let cs = s.as_str().to_cstring();
+            let cs = (&s).to_cstring();
             assert_eq!(cs, CString::new("foo").unwrap());
         }
         //String
@@ -258,7 +292,7 @@ mod tests {
         }
         //Option<&str>
         {
-            let cs = Some(s.as_str()).to_cstring();
+            let cs = Some("foo").to_cstring();
             assert_eq!(cs, CString::new("foo").unwrap());
         }
         //Option<String>
@@ -274,27 +308,28 @@ mod tests {
     }
     #[test]
     fn test_to_cstr() {
-        let s = String::from("foo");
         //&str
         {
-            let ptr: *const i8 = s.as_str().to_cstr();
+            let ptr: *const i8 = "foo".to_cstr();
             assert_eq!(ptr.to_string().unwrap(), "foo");
             assert!(!ptr.is_null())
         }
         //String
         {
+            let s = String::from("foo");
             let ptr: *const i8 = s.to_cstr();
             assert_eq!(ptr.to_string().unwrap(), "foo");
             assert!(!ptr.is_null());
         }
         //Option<&str>
         {
-            let ptr: *const i8 = Some(s.as_str()).to_cstr();
+            let ptr: *const i8 = Some("foo").to_cstr();
             assert!(!ptr.is_null());
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
         //Option<String>
         {
+            let s = String::from("foo");
             let ptr: *const i8 = Some(s).to_cstr();
             assert!(!ptr.is_null());
             assert_eq!(ptr.to_string().unwrap(), "foo");

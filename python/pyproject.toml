@@ -2,7 +2,7 @@
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
 dependencies = ["lazy-loader", "rich"]
 dynamic = ["version"]
-name = "clerk"
+name = "toolbox"
 requires-python = ">=3.11"
 
 [tool.pyright]

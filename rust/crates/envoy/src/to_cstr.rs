@@ -43,3 +43,57 @@ impl ToCStr for Option<String> {
         }
     }
 }
+#[cfg(test)]
+mod tests {
+    use crate::CStrToString;
+
+    use super::*;
+
+    #[test]
+    fn test_to_cstr() {
+        //&str	
+        {
+            let ptr: *const i8 = "foo".to_cstr();
+            assert_eq!(ptr.to_string().unwrap(), "foo");
+            assert!(!ptr.is_null());
+            // SAFETY: ptr was allocated by CString::into_raw, so we must reclaim it
+            unsafe {
+                let _ = CString::from_raw(ptr as *mut i8);
+            }
+        }
+        //String
+        {
+            let s = String::from("foo");
+            let ptr: *const i8 = s.to_cstr();
+            assert_eq!(ptr.to_string().unwrap(), "foo");
+            assert!(!ptr.is_null());
+            unsafe {
+                let _ = CString::from_raw(ptr as *mut i8);
+            }
+        }
+        //Option<&str>
+        {
+            let ptr: *const i8 = Some("foo").to_cstr();
+            assert!(!ptr.is_null());
+            assert_eq!(ptr.to_string().unwrap(), "foo");
+            unsafe {
+                let _ = CString::from_raw(ptr as *mut i8);
+            }
+        }
+        //Option<String>
+        {
+            let s = String::from("foo");
+            let ptr: *const i8 = Some(s).to_cstr();
+            assert!(!ptr.is_null());
+            assert_eq!(ptr.to_string().unwrap(), "foo");
+            unsafe {
+                let _ = CString::from_raw(ptr as *mut i8);
+            }
+        }
+        //None
+        {
+            assert_eq!(Option::<&str>::None.to_cstr(), ptr::null());
+            assert_eq!(Option::<String>::None.to_cstr(), ptr::null());
+        }
+    }
+}

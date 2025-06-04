@@ -45,13 +45,12 @@ impl ToCStr for Option<String> {
 }
 #[cfg(test)]
 mod tests {
-    use crate::CStrToString;
-
     use super::*;
+    use crate::CStrToString;
 
     #[test]
     fn test_to_cstr() {
-        //&str	
+        //&str
         {
             let ptr: *const i8 = "foo".to_cstr();
             assert_eq!(ptr.to_string().unwrap(), "foo");

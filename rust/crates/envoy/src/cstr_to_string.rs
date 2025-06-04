@@ -63,7 +63,7 @@ mod tests {
             let ptr: *mut i8 = s.as_ptr().cast_mut();
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
-        //[i8]	
+        //[i8]
         {
             let bytes: &[u8] = s.as_bytes_with_nul();
             let mut arr: [i8; 6] = [0i8; 6];

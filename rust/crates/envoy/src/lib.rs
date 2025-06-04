@@ -161,8 +161,8 @@ mod tests {
         }
         //[i8]
         {
-            let bytes = s.as_bytes_with_nul();
-            let mut arr = [0i8; 6];
+            let bytes: &[u8] = s.as_bytes_with_nul();
+            let mut arr: [i8; 6] = [0i8; 6];
             for (i, b) in bytes.iter().enumerate() {
                 arr[i] = *b as i8;
             }
@@ -174,39 +174,73 @@ mod tests {
             assert!(ptr.to_string().is_none());
             let ptr: *mut i8 = ptr.cast_mut();
             assert!(ptr.to_string().is_none());
-            let ptr = [];
+            let ptr: [i8; 0] = [];
             assert!(ptr.to_string().is_none());
         }
     }
     #[test]
     fn test_cstr_list_to_string() {
-        // not null
+        //*mut *mut i8
         {
-            let s1 = CString::new("foo").unwrap();
-            let s2 = CString::new("bar").unwrap();
-            let s3 = CString::new("baz").unwrap();
-            let arr = [
-                s1.as_ptr() as *mut i8,
-                s2.as_ptr() as *mut i8,
-                s3.as_ptr() as *mut i8,
-                std::ptr::null_mut(),
-            ];
-            let ptr = arr.as_ptr();
-            let result = ptr.cast_mut().to_vec_string();
-            assert_eq!(
-                result,
-                Some(vec![
-                    "foo".to_string(),
-                    "bar".to_string(),
-                    "baz".to_string()
-                ])
-            );
+            // not null
+            {
+                let s1 = CString::new("foo").unwrap();
+                let s2 = CString::new("bar").unwrap();
+                let s3 = CString::new("baz").unwrap();
+                let arr: [*mut i8; 4] = [
+                    s1.as_ptr() as *mut i8,
+                    s2.as_ptr() as *mut i8,
+                    s3.as_ptr() as *mut i8,
+                    std::ptr::null_mut(),
+                ];
+                let ptr: *const *mut i8 = arr.as_ptr();
+                let result = ptr.cast_mut().to_vec_string();
+                assert_eq!(
+                    result,
+                    Some(vec![
+                        "foo".to_string(),
+                        "bar".to_string(),
+                        "baz".to_string()
+                    ])
+                );
+            }
+            // null
+            {
+                let ptr: *mut *mut i8 = ptr::null_mut();
+                assert!(ptr.is_null());
+                assert!(ptr.to_vec_string().is_none());
+            }
         }
-        // null
+        //*const *const i8
         {
-            let ptr: *mut *mut i8 = ptr::null_mut();
-            assert!(ptr.is_null());
-            assert!(ptr.to_vec_string().is_none());
+            // not null
+            {
+                let s1 = CString::new("foo").unwrap();
+                let s2 = CString::new("bar").unwrap();
+                let s3 = CString::new("baz").unwrap();
+                let arr: [*const i8; 4] = [
+                    s1.as_ptr() as *const i8,
+                    s2.as_ptr() as *const i8,
+                    s3.as_ptr() as *const i8,
+                    std::ptr::null_mut(),
+                ];
+                let ptr: *const *const i8 = arr.as_ptr();
+                let result = ptr.to_vec_string();
+                assert_eq!(
+                    result,
+                    Some(vec![
+                        "foo".to_string(),
+                        "bar".to_string(),
+                        "baz".to_string()
+                    ])
+                );
+            }
+            // null
+            {
+                let ptr: *const *const i8 = ptr::null();
+                assert!(ptr.is_null());
+                assert!(ptr.to_vec_string().is_none());
+            }
         }
     }
     #[test]
@@ -243,25 +277,25 @@ mod tests {
         let s = String::from("foo");
         //&str
         {
-            let ptr = s.as_str().to_cstr();
+            let ptr: *const i8 = s.as_str().to_cstr();
             assert_eq!(ptr.to_string().unwrap(), "foo");
             assert!(!ptr.is_null())
         }
         //String
         {
-            let ptr = s.to_cstr();
+            let ptr: *const i8 = s.to_cstr();
             assert_eq!(ptr.to_string().unwrap(), "foo");
             assert!(!ptr.is_null());
         }
         //Option<&str>
         {
-            let ptr = Some(s.as_str()).to_cstr();
+            let ptr: *const i8 = Some(s.as_str()).to_cstr();
             assert!(!ptr.is_null());
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
         //Option<String>
         {
-            let ptr = Some(s).to_cstr();
+            let ptr: *const i8 = Some(s).to_cstr();
             assert!(!ptr.is_null());
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }

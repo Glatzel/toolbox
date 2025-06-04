@@ -24,14 +24,14 @@ jobs:
           run-install: false
 
       - name: build
-        run: ./python/rattler/ci-clerk-py.ps1
+        run: ./python/rattler/ci-toolbox-py.ps1
         shell: pwsh
 
       - name: upload
         if: ${{runner.os=='Linux'}}
         uses: actions/upload-artifact@v4
         with:
-          name: clerk-python
+          name: toolbox-python
           path: |
             ./python/rattler/output/*/*.conda
           if-no-files-found: error

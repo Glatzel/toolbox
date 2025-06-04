@@ -61,5 +61,23 @@ def test_strfsize(size, expected_v):
 
 
 def test_file_checksum():
-    test_v = trail.file_checksum(file=path_macro.PROJECT_ROOT / ".gitignore", algorithm="md5")
-    assert test_v == "5f1af9b17396ae20f8fb3991476079ec"
+    # Create a test file
+    file_path = path_macro.TEMP_DIR / "test.txt"
+    content = b"hello world"
+    file_path.write_bytes(content)
+
+    # Known checksums for "hello world"
+    expected_md5 = "5eb63bbbe01eeed093cb22bb8f5acdc3"
+    expected_sha256 = "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+
+    # Test md5
+    result_md5 = trail.file_checksum(file_path, algorithm="md5")
+    assert result_md5 == expected_md5
+
+    # Test sha256
+    result_sha256 = trail.file_checksum(file_path, algorithm="sha256")
+    assert result_sha256 == expected_sha256
+
+    # Test file not exists
+    with pytest.raises(AssertionError):
+        trail.file_checksum(path_macro.TEMP_DIR / "not_exists.txt")

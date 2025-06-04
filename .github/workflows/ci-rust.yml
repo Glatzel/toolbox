@@ -24,6 +24,8 @@ jobs:
           run-install: false
 
       - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: "miri"
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest

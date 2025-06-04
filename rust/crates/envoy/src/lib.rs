@@ -312,7 +312,7 @@ mod tests {
         let s = String::from("foo");
         //&str
         {
-            let cs = (&s).to_cstring();
+            let cs = s.to_cstring();
             assert_eq!(cs, CString::new("foo").unwrap());
         }
         //String

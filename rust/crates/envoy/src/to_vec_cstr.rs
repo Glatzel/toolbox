@@ -44,8 +44,21 @@ impl<T: ToCStr> ToVecCStr for Option<&[T]> {
 
 #[cfg(test)]
 mod tests {
+    use std::ffi::CString;
+
     use super::*;
     use crate::{CStrListToVecString, CStrToString};
+
+    fn free_cstr_list(list: &[*const i8]) {
+        for &ptr in list {
+            if !ptr.is_null() {
+                // SAFETY: ptr was allocated by CString::into_raw
+                unsafe {
+                    let _ = CString::from_raw(ptr as *mut i8);
+                }
+            }
+        }
+    }
 
     #[test]
     fn test_str() {
@@ -57,6 +70,7 @@ mod tests {
             assert!(!cstr_list[i].is_null());
         }
         let _ = cstr_list.as_ptr().to_vec_string();
+        free_cstr_list(&cstr_list[..cstr_list.len() - 1]);
     }
     #[test]
     fn test_vec_str() {
@@ -68,6 +82,7 @@ mod tests {
             assert!(!cstr_list[i].is_null());
         }
         let _ = cstr_list.as_ptr().to_vec_string();
+        free_cstr_list(&cstr_list[..cstr_list.len() - 1]);
     }
     #[test]
     fn test_option_vec_str() {
@@ -76,14 +91,15 @@ mod tests {
         assert_eq!(cstr_list.len(), 3);
         assert_eq!(cstr_list[0].to_string().unwrap(), "foo");
         assert_eq!(cstr_list[1].to_string().unwrap(), "bar");
-        for (i, s) in arr.unwrap().iter().enumerate() {
+        for (i, s) in arr.clone().unwrap().iter().enumerate() {
             assert_eq!(cstr_list[i].to_string().unwrap(), s.to_string());
             assert!(!cstr_list[i].is_null());
         }
         let none: Option<Vec<&str>> = None;
-        let cstr_list = none.to_vec_cstr();
-        assert_eq!(cstr_list, vec![ptr::null()]);
+        let cstr_list_none = none.to_vec_cstr();
+        assert_eq!(cstr_list_none, vec![ptr::null()]);
         let _ = cstr_list.as_ptr().to_vec_string();
+        free_cstr_list(&cstr_list[..cstr_list.len() - 1]);
     }
     #[test]
     fn test_option_vec_string() {
@@ -92,14 +108,15 @@ mod tests {
         assert_eq!(cstr_list.len(), 3);
         assert_eq!(cstr_list[0].to_string().unwrap(), "foo");
         assert_eq!(cstr_list[1].to_string().unwrap(), "bar");
-        for (i, s) in arr.unwrap().iter().enumerate() {
+        for (i, s) in arr.clone().unwrap().iter().enumerate() {
             assert_eq!(cstr_list[i].to_string().unwrap(), s.to_string());
             assert!(!cstr_list[i].is_null());
         }
         let none: Option<Vec<String>> = None;
-        let cstr_list = none.to_vec_cstr();
-        assert_eq!(cstr_list, vec![ptr::null()]);
+        let cstr_list_none = none.to_vec_cstr();
+        assert_eq!(cstr_list_none, vec![ptr::null()]);
         let _ = cstr_list.as_ptr().to_vec_string();
+        free_cstr_list(&cstr_list[..cstr_list.len() - 1]);
     }
     #[test]
     fn test_option_slice_string() {
@@ -114,9 +131,10 @@ mod tests {
             assert!(!cstr_list[i].is_null());
         }
         let none: Option<Vec<String>> = None;
-        let cstr_list = none.to_vec_cstr();
-        assert_eq!(cstr_list, vec![ptr::null()]);
+        let cstr_list_none = none.to_vec_cstr();
+        assert_eq!(cstr_list_none, vec![ptr::null()]);
         let _ = cstr_list.as_ptr().to_vec_string();
+        free_cstr_list(&cstr_list[..cstr_list.len() - 1]);
     }
     #[test]
     fn test_none() {

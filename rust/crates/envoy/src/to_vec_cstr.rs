@@ -61,7 +61,7 @@ mod tests {
         }
         // Vec<String>
         {
-            let arr = vec!["foo".to_string(), "bar".to_string()];
+            let arr = ["foo".to_string(), "bar".to_string()];
             let cstr_list = arr.to_vec_cstr();
             assert_eq!(cstr_list.len(), 3);
             for (i, s) in arr.iter().enumerate() {

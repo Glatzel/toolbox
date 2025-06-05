@@ -99,6 +99,22 @@ mod tests {
             let cstr_list = none.to_vec_cstr();
             assert_eq!(cstr_list, vec![ptr::null()]);
         }
+        // Option<[String]>
+        {
+            let src = vec!["foo".to_string(), "bar".to_string()];
+            let arr = Some(src.as_slice());
+            let cstr_list = arr.to_vec_cstr();
+            assert_eq!(cstr_list.len(), 3);
+            assert_eq!(cstr_list[0].to_string().unwrap(), "foo");
+            assert_eq!(cstr_list[1].to_string().unwrap(), "bar");
+            for (i, s) in arr.unwrap().iter().enumerate() {
+                assert_eq!(cstr_list[i].to_string().unwrap(), s.to_string());
+                assert!(!cstr_list[i].is_null());
+            }
+            let none: Option<Vec<String>> = None;
+            let cstr_list = none.to_vec_cstr();
+            assert_eq!(cstr_list, vec![ptr::null()]);
+        }
         // Empty slices/vectors
         {
             let arr: [&str; 0] = [];

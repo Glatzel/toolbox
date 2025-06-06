@@ -27,3 +27,50 @@ impl ToCString for Option<String> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_to_cstring_str() {
+        let s = "hello";
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "hello");
+    }
+
+    #[test]
+    fn test_to_cstring_string() {
+        let s = String::from("world");
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "world");
+    }
+
+    #[test]
+    fn test_to_cstring_option_str_some() {
+        let s = Some("foo");
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "foo");
+    }
+
+    #[test]
+    fn test_to_cstring_option_str_none() {
+        let s: Option<&str> = None;
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "");
+    }
+
+    #[test]
+    fn test_to_cstring_option_string_some() {
+        let s = Some(String::from("bar"));
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "bar");
+    }
+
+    #[test]
+    fn test_to_cstring_option_string_none() {
+        let s: Option<String> = None;
+        let cstr = s.to_cstring();
+        assert_eq!(cstr.to_str().unwrap(), "");
+    }
+}

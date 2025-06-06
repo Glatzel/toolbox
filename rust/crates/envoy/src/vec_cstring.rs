@@ -17,6 +17,10 @@ pub struct VecCString {
     pub content: Vec<CString>,
 }
 
+impl Default for VecCString {
+    fn default() -> Self { Self::new() }
+}
+
 impl VecCString {
     /// Creates a new, empty `VecCString`.
     pub fn new() -> Self {
@@ -66,17 +70,13 @@ impl<T: ToCString> From<Vec<T>> for VecCString {
 impl<T: ToCString> From<Option<Vec<T>>> for VecCString {
     /// Converts an `Option<Vec<T>>` into a `VecCString`.
     /// Returns an empty `VecCString` if `None`.
-    fn from(value: Option<Vec<T>>) -> Self {
-        value.as_deref().map_or_else(Self::new, |s| Self::from(s))
-    }
+    fn from(value: Option<Vec<T>>) -> Self { value.as_deref().map_or_else(Self::new, Self::from) }
 }
 
 impl<T: ToCString> From<Option<&[T]>> for VecCString {
     /// Converts an `Option<&[T]>` into a `VecCString`.
     /// Returns an empty `VecCString` if `None`.
-    fn from(value: Option<&[T]>) -> Self {
-        value.as_deref().map_or_else(Self::new, |s| Self::from(s))
-    }
+    fn from(value: Option<&[T]>) -> Self { value.map_or_else(Self::new, Self::from) }
 }
 
 #[cfg(test)]

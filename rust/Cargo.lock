@@ -34,9 +34,9 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "bumpalo"
-version = "3.17.0"
+version = "3.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1628fb46dfa0b37568d12e5edd512553eccf6a22a78e8bde00bb4aed84d5bdbf"
+checksum = "793db76d6187cd04dff33004d8e6c9cc4e05cd330500379d2394209271b4aeee"
 
 [[package]]
 name = "cc"
@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -86,7 +86,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "envoy"
-version = "0.0.19"
+version = "0.0.20"
 
 [[package]]
 name = "iana-time-zone"

@@ -1,5 +1,5 @@
 Set-Location $PSScriptRoot/..
-$version= "0.0.19"
+$version= "0.0.20"
 
 # Update the version in Cargo.toml
 $cargoTomlPath = "./rust/Cargo.toml"

@@ -17,5 +17,5 @@ python = "3.11.*"
 rattler-build = "==0.43.1"
 # test
 pyfakefs = "==5.7.4"
-pytest = "==8.4.0"
+pytest = "==8.4.1"
 pytest-cov = "==6.2.1"

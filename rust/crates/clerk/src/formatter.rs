@@ -38,13 +38,17 @@ where
     ) -> fmt::Result {
         write!(
             writer,
-            "[{}] [{:}] [{}] [{}:{}] ",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"), // Custom timestamp format
-            if self.color {
-                color_level(event.metadata().level()).to_string()
-            } else {
-                event.metadata().level().to_string()
-            },
+            "[{}] [",
+            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        )?;
+        if self.color {
+            write!(writer, "{}", color_level(event.metadata().level()))?;
+        } else {
+            write!(writer, "{}", event.metadata().level())?;
+        }
+        write!(
+            writer,
+            "] [{}] [{}:{}] ",
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),

@@ -16,5 +16,8 @@ use formatter::ClerkFormatter;
 pub use term::terminal_layer;
 #[cfg(feature = "log")]
 pub use tracing;
-
+#[cfg(feature = "log")]
+mod fast_setup;
+#[cfg(feature = "log")]
+pub use fast_setup::init_log_with_level;
 mod macros;

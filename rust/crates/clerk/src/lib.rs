@@ -11,7 +11,6 @@ mod term;
 
 #[cfg(feature = "log")]
 use constants::*;
-#[cfg(feature = "log")]
 pub use fast_setup::init_log_with_level;
 #[cfg(feature = "log")]
 pub use file::file_layer;

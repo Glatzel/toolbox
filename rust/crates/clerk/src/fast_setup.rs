@@ -18,4 +18,4 @@ pub fn init_log_with_level(level: LevelFilter) {
     });
 }
 #[cfg(not(feature = "log"))]
-pub fn init_log_with_level(_level: LevelFilter) {}
+pub fn init_log_with_level<T>(_level: T) {}

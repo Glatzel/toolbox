@@ -1,6 +1,8 @@
 use tracing_core::LevelFilter;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
+
+use crate::LogLevel;
 /// Generate a terminal log layer for tracing.
 ///
 /// # Arguments
@@ -24,10 +26,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(
-    level: LevelFilter,
-    color: bool,
-) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn terminal_layer<S>(level: LogLevel, color: bool) -> Box<dyn Layer<S> + Send + Sync + 'static>
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -37,7 +36,7 @@ where
         .with_writer(std::io::stderr)
         .with_filter(
             EnvFilter::builder()
-                .with_default_directive(level.into())
+                .with_default_directive(Into::<LevelFilter>::into(level).into())
                 .from_env_lossy(),
         )
         .boxed()
@@ -46,7 +45,6 @@ where
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};
-    use tracing_core::LevelFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 
@@ -54,7 +52,7 @@ mod tests {
     #[test]
     fn test_log() {
         tracing_subscriber::registry()
-            .with(terminal_layer(LevelFilter::TRACE, true))
+            .with(terminal_layer(LogLevel::TRACE, true))
             .init();
         trace!("Trace message");
         debug!("Debug message");

@@ -18,7 +18,6 @@ use crate::LogLevel;
 /// ```
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::EnvFilter;
-/// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// let f = format!(
@@ -27,7 +26,7 @@ use crate::LogLevel;
 /// );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
+///     .with(clerk::file_layer(clerk::LogLevel::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

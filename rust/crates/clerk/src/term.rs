@@ -14,11 +14,10 @@ use crate::LogLevel;
 /// ```
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::EnvFilter;
-/// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// tracing_subscriber::registry()
-///     .with(clerk::terminal_layer(LevelFilter::TRACE, true))
+///     .with(clerk::terminal_layer(clerk::LogLevel::TRACE, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

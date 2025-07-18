@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use tracing_core::LevelFilter;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
+
+use crate::LogLevel;
 /// Generate a file log layer for tracing.
 ///
 /// # Arguments
@@ -16,7 +18,6 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// ```
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::EnvFilter;
-/// use tracing_subscriber::filter::LevelFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// let f = format!(
@@ -25,7 +26,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(LevelFilter::TRACE, f, true))
+///     .with(clerk::file_layer(clerk::LogLevel::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -34,7 +35,7 @@ use tracing_subscriber::{EnvFilter, Layer};
 /// error!("Error message");
 /// ```
 pub fn file_layer<S>(
-    level: LevelFilter,
+    level: LogLevel,
     filepath: PathBuf,
     overwrite: bool,
 ) -> Box<dyn Layer<S> + Send + Sync + 'static>
@@ -57,7 +58,7 @@ where
         .with_writer(a)
         .with_filter(
             EnvFilter::builder()
-                .with_default_directive(level.into())
+                .with_default_directive(Into::<LevelFilter>::into(level).into())
                 .from_env_lossy(),
         )
         .boxed()
@@ -66,7 +67,6 @@ where
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};
-    use tracing_core::LevelFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 
@@ -76,8 +76,8 @@ mod tests {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(LevelFilter::TRACE, f1, true))
-            .with(file_layer(LevelFilter::TRACE, f2, false))
+            .with(file_layer(LogLevel::TRACE, f1, true))
+            .with(file_layer(LogLevel::TRACE, f2, false))
             .init();
         trace!("Trace message");
         debug!("Debug message");

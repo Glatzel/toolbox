@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23] - 2025-07-18
+
+### Added
+
+- Add serde for loglevel by @Glatzel in [#162](https://github.com/Glatzel/toolbox/pull/162)
+
+### Removed
+
+- Remove re-export by @Glatzel in [#154](https://github.com/Glatzel/toolbox/pull/154)
+
+### Revert
+
+- "feat: remove re-export" by @Glatzel in [#156](https://github.com/Glatzel/toolbox/pull/156)
+
 ## [0.0.22] - 2025-07-09
 
 ### Fixed
@@ -141,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.23]: https://github.com/Glatzel/toolbox/compare/v0.0.22..v0.0.23
 [0.0.22]: https://github.com/Glatzel/toolbox/compare/v0.0.21..v0.0.22
 [0.0.21]: https://github.com/Glatzel/toolbox/compare/v0.0.20..v0.0.21
 [0.0.20]: https://github.com/Glatzel/toolbox/compare/v0.0.19..v0.0.20

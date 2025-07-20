@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{c_char, CStr};
 
 /// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CStrToString {
@@ -7,7 +7,7 @@ pub trait CStrToString {
     fn to_string(&self) -> Option<String>;
 }
 
-impl CStrToString for *const i8 {
+impl CStrToString for *const c_char {
     fn to_string(&self) -> Option<String> {
         if self.is_null() {
             return None;
@@ -19,7 +19,7 @@ impl CStrToString for *const i8 {
         )
     }
 }
-impl CStrToString for *mut i8 {
+impl CStrToString for *mut c_char {
     fn to_string(&self) -> Option<String> {
         if self.is_null() {
             return None;
@@ -31,7 +31,7 @@ impl CStrToString for *mut i8 {
         )
     }
 }
-impl CStrToString for [i8] {
+impl CStrToString for [c_char] {
     fn to_string(&self) -> Option<String> {
         if self.is_empty() {
             return None;

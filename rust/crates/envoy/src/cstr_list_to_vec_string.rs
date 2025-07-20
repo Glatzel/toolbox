@@ -1,10 +1,12 @@
+use std::ffi::c_char;
+
 use crate::CStrToString;
 
 pub trait CStrListToVecString {
     fn to_vec_string(&self) -> Vec<String>;
 }
 
-impl CStrListToVecString for *mut *mut i8 {
+impl CStrListToVecString for *mut *mut c_char {
     fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
             return Vec::new();
@@ -23,7 +25,7 @@ impl CStrListToVecString for *mut *mut i8 {
         vec_str
     }
 }
-impl CStrListToVecString for *const *const i8 {
+impl CStrListToVecString for *const *const c_char {
     fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
             return Vec::new();

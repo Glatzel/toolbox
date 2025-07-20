@@ -1,4 +1,4 @@
-use std::ffi::{c_char, CStr};
+use std::ffi::{CStr, c_char};
 
 /// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CStrToString {

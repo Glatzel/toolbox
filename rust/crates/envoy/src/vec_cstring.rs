@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{CString, c_char};
 use std::ptr;
 
 use crate::ToCString;
@@ -7,7 +7,7 @@ use crate::ToCString;
 pub trait AsVecPtr {
     /// Returns a null-terminated vector of `*const i8` pointers to the inner C
     /// strings.
-    fn as_vec_ptr(&self) -> Vec<*const i8>;
+    fn as_vec_ptr(&self) -> Vec<*const c_char>;
 }
 
 /// A wrapper for a vector of `CString` with ergonomic conversions from Rust
@@ -32,12 +32,12 @@ impl VecCString {
 
 impl AsVecPtr for VecCString {
     /// Returns a null-terminated vector of pointers to the C strings.
-    fn as_vec_ptr(&self) -> Vec<*const i8> {
+    fn as_vec_ptr(&self) -> Vec<*const c_char> {
         let mut vec_ptr = self
             .content
             .iter()
             .map(|s| s.as_ptr())
-            .collect::<Vec<*const i8>>();
+            .collect::<Vec<*const c_char>>();
         vec_ptr.push(ptr::null());
         vec_ptr
     }

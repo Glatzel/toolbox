@@ -18,10 +18,6 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.12
-        with:
-          run-install: false
 
       - uses: dtolnay/rust-toolchain@nightly
         with:

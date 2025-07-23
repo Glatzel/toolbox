@@ -60,13 +60,13 @@ mod tests {
                 let s1 = CString::new("foo").unwrap();
                 let s2 = CString::new("bar").unwrap();
                 let s3 = CString::new("baz").unwrap();
-                let arr: [*mut i8; 4] = [
-                    s1.as_ptr() as *mut i8,
-                    s2.as_ptr() as *mut i8,
-                    s3.as_ptr() as *mut i8,
+                let arr: [*mut c_char; 4] = [
+                    s1.as_ptr() as *mut c_char,
+                    s2.as_ptr() as *mut c_char,
+                    s3.as_ptr() as *mut c_char,
                     std::ptr::null_mut(),
                 ];
-                let ptr: *const *mut i8 = arr.as_ptr();
+                let ptr: *const *mut c_char = arr.as_ptr();
                 let result = ptr.cast_mut().to_vec_string();
                 assert_eq!(
                     result,
@@ -75,7 +75,7 @@ mod tests {
             }
             // null
             {
-                let ptr: *mut *mut i8 = ptr::null_mut();
+                let ptr: *mut *mut c_char = ptr::null_mut();
                 assert!(ptr.is_null());
                 assert!(ptr.to_vec_string().is_empty());
             }
@@ -87,13 +87,13 @@ mod tests {
                 let s1 = CString::new("foo").unwrap();
                 let s2 = CString::new("bar").unwrap();
                 let s3 = CString::new("baz").unwrap();
-                let arr: [*const i8; 4] = [
-                    s1.as_ptr() as *const i8,
-                    s2.as_ptr() as *const i8,
-                    s3.as_ptr() as *const i8,
+                let arr: [*const c_char; 4] = [
+                    s1.as_ptr() as *const c_char,
+                    s2.as_ptr() as *const c_char,
+                    s3.as_ptr() as *const c_char,
                     std::ptr::null_mut(),
                 ];
-                let ptr: *const *const i8 = arr.as_ptr();
+                let ptr: *const *const c_char = arr.as_ptr();
                 let result = ptr.to_vec_string();
                 assert_eq!(
                     result,
@@ -102,7 +102,7 @@ mod tests {
             }
             // null
             {
-                let ptr: *const *const i8 = ptr::null();
+                let ptr: *const *const c_char = ptr::null();
                 assert!(ptr.is_null());
                 assert!(ptr.to_vec_string().is_empty());
             }

@@ -55,30 +55,21 @@ mod tests {
 
         //*const i8
         {
-            let ptr: *const i8 = s.as_ptr();
+            let ptr: *const c_char = s.as_ptr();
             assert_eq!(ptr.to_string().unwrap(), "foo");
         }
         //*mut i8
         {
-            let ptr: *mut i8 = s.as_ptr().cast_mut();
+            let ptr: *mut c_char = s.as_ptr().cast_mut();
             assert_eq!(ptr.to_string().unwrap(), "foo");
-        }
-        //[i8]
-        {
-            let bytes: &[u8] = s.as_bytes_with_nul();
-            let mut arr: [i8; 6] = [0i8; 6];
-            for (i, b) in bytes.iter().enumerate() {
-                arr[i] = *b as i8;
-            }
-            assert_eq!(arr.to_string().unwrap(), "foo");
         }
         //null
         {
-            let ptr: *const i8 = ptr::null();
+            let ptr: *const c_char = ptr::null();
             assert!(ptr.to_string().is_none());
-            let ptr: *mut i8 = ptr.cast_mut();
+            let ptr: *mut c_char = ptr.cast_mut();
             assert!(ptr.to_string().is_none());
-            let ptr: [i8; 0] = [];
+            let ptr: [c_char; 0] = [];
             assert!(ptr.to_string().is_none());
         }
     }

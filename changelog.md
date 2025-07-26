@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25] - 2025-07-26
+
+### Added
+
+- Add arm64 test by @Glatzel in [#169](https://github.com/Glatzel/toolbox/pull/169)
+- Add rax by @Glatzel in [#171](https://github.com/Glatzel/toolbox/pull/171)
+
 ## [0.0.24] - 2025-07-20
 
 ### Changed
@@ -161,6 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.25]: https://github.com/Glatzel/toolbox/compare/v0.0.24..v0.0.25
 [0.0.24]: https://github.com/Glatzel/toolbox/compare/v0.0.23..v0.0.24
 [0.0.23]: https://github.com/Glatzel/toolbox/compare/v0.0.22..v0.0.23
 [0.0.22]: https://github.com/Glatzel/toolbox/compare/v0.0.21..v0.0.22

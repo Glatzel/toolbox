@@ -1,0 +1,34 @@
+name: benchmark
+
+on:
+  pull_request:
+    types:
+      - edited
+      - synchronize
+      - labeled
+
+  push:
+    branches: [main]
+
+permissions: read-all
+
+jobs:
+  cargo-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-codspeed --locked
+      - run: ./rust/scripts/setup.ps1
+        shell: pwsh
+
+      - name: Build the benchmark target(s)
+        run: cargo codspeed build
+        working-directory: ./rust
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@v3
+        with:
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}
+          working-directory: ./rust

@@ -1,2 +1,2 @@
 Set-Location $PSScriptRoot/..
-cargo +nightly miri test
+cargo +nightly miri test -p envoy

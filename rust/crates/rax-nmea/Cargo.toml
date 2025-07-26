@@ -1,0 +1,29 @@
+[package]
+edition.workspace = true
+name = "rax-nmea"
+version.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+clerk = { workspace = true }
+miette = { workspace = true }
+rax = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+float-cmp = { workspace = true }
+serialport = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[features]
+log = ["clerk/log"]
+
+[[bench]]
+harness = false
+name = "nmea"
+
+[[bench]]
+harness = false
+name = "rules"

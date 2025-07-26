@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LogLevel {
     ERROR,

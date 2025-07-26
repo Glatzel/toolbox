@@ -1,5 +1,5 @@
 files.extend-exclude = ["changelog.md"]
 [default.extend-identifiers]
 THS = "THS"
-ths = "ths"
 Ths = "Ths"
+ths = "ths"

@@ -4,7 +4,7 @@ name = "rax-nmea"
 version.workspace = true
 
 [dependencies]
-chrono = { workspace = true }
+chrono = { workspace = true ,features = ["serde"]}
 clerk = { workspace = true }
 miette = { workspace = true }
 rax = { workspace = true }

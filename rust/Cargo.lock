@@ -205,7 +205,7 @@ checksum = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
 
 [[package]]
 name = "clerk"
-version = "0.0.24"
+version = "0.0.25"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -341,7 +341,7 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "0.0.24"
+version = "0.0.25"
 
 [[package]]
 name = "float-cmp"
@@ -821,7 +821,7 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rax"
-version = "0.0.24"
+version = "0.0.25"
 dependencies = [
  "async-trait",
  "clerk",
@@ -836,7 +836,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "0.0.24"
+version = "0.0.25"
 dependencies = [
  "chrono",
  "clerk",

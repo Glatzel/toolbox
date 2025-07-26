@@ -21,7 +21,7 @@ jobs:
       - run: cargo install cargo-codspeed --locked
 
       - name: Build the benchmark target(s)
-        run: cargo codspeed build -p pyxis
+        run: cargo codspeed build
         working-directory: ./rust
 
       - name: Run the benchmarks

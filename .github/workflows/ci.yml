@@ -35,7 +35,7 @@ jobs:
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: ${{github.event_name == 'pull_request'}}
       - id: main
         uses: tj-actions/changed-files@v46

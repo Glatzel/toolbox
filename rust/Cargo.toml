@@ -10,7 +10,7 @@ version = "0.0.25"
 clerk = { path = "./crates/clerk/" }
 rax = { path = "./crates/rax/" }
 
-async-trait = "0.1.88"
+async-trait = "0.1.89"
 chrono = "0.4.41"
 criterion = { package = "codspeed-criterion-compat", version = "2.10.1" }
 float-cmp = "0.10.0"

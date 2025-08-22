@@ -3,7 +3,7 @@
 lefthook: pixi run --no-progress --manifest-path ./lefthook/pixi.toml lefthook
 
 templates:
-  run: run --quiet --no-progress --manifest-path ./lefthook/pixi.toml
+  run: run --no-progress --manifest-path ./lefthook/pixi.toml
 
 colors: true
 
@@ -25,7 +25,7 @@ pre-commit:
     - name: csharpier
       stage_fixed: true
       glob: "*.csproj"
-      run: pixi {run} hook-csharpier
+      run: pixi {run} hook-csharpier {staged_files}
 
     # region python
     - name: ruff
@@ -44,25 +44,29 @@ pre-commit:
       run: pixi {run} hook-numpydoc {staged_files}
 
     # rust
-    - name: cargo-clippy
+    - name: rust
       stage_fixed: true
-      glob: "*.rs"
-      run: pixi {run} hook-cargo-clippy
+      exclude:
+        - "**/target/**"
+        - "**/crates/**"
+      glob: "**/Cargo.toml"
+      group:
+        piped: true
+        jobs:
+          - name: cargo-machete
+            run: pixi {run} cargo-machete {staged_files}
 
-    - name: cargo-fmt
-      stage_fixed: true
-      glob: "*.rs"
-      run: pixi {run} hook-cargo-fmt
+          - name: cargo-clippy
+            run: pixi {run} hook-cargo-clippy {staged_files}
 
-    - name: cargo-machete
-      glob: "*.rs"
-      run: pixi {run} cargo-machete
+          - name: cargo-fmt
+            run: pixi {run} hook-cargo-fmt {staged_files}
 
     # region misc
     - name: taplo
       stage_fixed: true
       glob: "*.toml"
-      run: pixi {run} hook-taplo {staged_files}
+      run: pixi {run} hook-taplo {all_files}
 
     - name: typos
       run: pixi {run} actionlint
@@ -77,4 +81,4 @@ pre-commit:
         - changelog.md
         - CHANGELOG.md
       glob: "*.md"
-      run: pixi {run} hook-markdown {staged_files}
+      run: pixi {run} hook-markdown {all_files}

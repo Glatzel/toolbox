@@ -4,16 +4,13 @@ $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
 Set-Location $ROOT
-foreach ($f in Get-ChildItem "Cargo.lock" -Recurse) {
-    # skip target and package folder
-    if ($f -contains "target") { continue }
-    if ($f -contains "crate") { continue }
-
-    Set-Location $f.Directory.ToString()
+foreach ($file in $args) {
+    $dir = (Split-Path (Resolve-Path $file) -Parent)
+    Set-Location $dir
     Write-Output "Cargo fmt in: $pwd"
     if (Test-Path ./scripts/setup.ps1) {
         &./scripts/setup.ps1
-        Set-Location $f.Directory.ToString()
+        Set-Location $dir
     }
     cargo +stable clippy --fix --all-features
     cargo +stable clippy --all-features -- -Dwarnings

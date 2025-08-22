@@ -2,4 +2,4 @@
 
 Set-Location $PSScriptRoot/..
 
-pixi run --manifest-path ./lefthook/pixi.toml lefthook-run
+pixi run --manifest-path ./lefthook/pixi.toml --no-progress lefthook-run

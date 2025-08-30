@@ -1,3 +1,6 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+extern crate alloc;
+
 mod cstr_list_to_vec_string;
 mod cstr_to_string;
 mod to_cstring;

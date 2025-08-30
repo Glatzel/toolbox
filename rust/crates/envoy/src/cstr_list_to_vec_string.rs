@@ -1,4 +1,6 @@
-use std::ffi::c_char;
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::ffi::c_char;
 
 use crate::CStrToString;
 
@@ -46,8 +48,9 @@ impl CStrListToVecString for *const *const c_char {
 }
 #[cfg(test)]
 mod tests {
-    use std::ffi::CString;
-    use std::ptr;
+    use alloc::ffi::CString;
+    use alloc::vec;
+    use core::ptr;
 
     use super::*;
 
@@ -64,13 +67,17 @@ mod tests {
                     s1.as_ptr() as *mut c_char,
                     s2.as_ptr() as *mut c_char,
                     s3.as_ptr() as *mut c_char,
-                    std::ptr::null_mut(),
+                    core::ptr::null_mut(),
                 ];
                 let ptr: *const *mut c_char = arr.as_ptr();
                 let result = ptr.cast_mut().to_vec_string();
                 assert_eq!(
                     result,
-                    vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]
+                    vec![
+                        String::from("foo"),
+                        String::from("bar"),
+                        String::from("baz")
+                    ]
                 );
             }
             // null
@@ -91,13 +98,17 @@ mod tests {
                     s1.as_ptr() as *const c_char,
                     s2.as_ptr() as *const c_char,
                     s3.as_ptr() as *const c_char,
-                    std::ptr::null_mut(),
+                    core::ptr::null_mut(),
                 ];
                 let ptr: *const *const c_char = arr.as_ptr();
                 let result = ptr.to_vec_string();
                 assert_eq!(
                     result,
-                    vec!["foo".to_string(), "bar".to_string(), "baz".to_string()]
+                    vec![
+                        String::from("foo"),
+                        String::from("bar"),
+                        String::from("baz")
+                    ]
                 );
             }
             // null

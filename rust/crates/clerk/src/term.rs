@@ -48,5 +48,5 @@ mod tests {
     use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
-   
+
 }

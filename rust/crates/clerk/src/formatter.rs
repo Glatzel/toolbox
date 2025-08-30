@@ -16,12 +16,12 @@ impl ClerkFormatter {
             return format!("{}", level);
         }
 
-        match level {
-            &Level::TRACE => "TRACE".purple().to_string(),
-            &Level::DEBUG => "DEBUG".blue().to_string(),
-            &Level::INFO => "INFO".green().to_string(),
-            &Level::WARN => "WARN".yellow().bold().to_string(),
-            &Level::ERROR => "ERROR".red().bold().to_string(),
+        match *level {
+            Level::TRACE => "TRACE".purple().to_string(),
+            Level::DEBUG => "DEBUG".blue().to_string(),
+            Level::INFO => "INFO".green().to_string(),
+            Level::WARN => "WARN".yellow().bold().to_string(),
+            Level::ERROR => "ERROR".red().bold().to_string(),
         }
     }
 }

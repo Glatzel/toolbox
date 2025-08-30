@@ -1,7 +1,7 @@
 #[cfg(feature = "log")]
-pub mod layer;
-#[cfg(feature = "log")]
 mod formatter;
+#[cfg(feature = "log")]
+pub mod layer;
 #[cfg(feature = "log")]
 pub use formatter::ClerkFormatter;
 #[cfg(feature = "log")]

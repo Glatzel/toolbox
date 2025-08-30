@@ -1,27 +1,28 @@
 use std::fmt;
-use std::sync::LazyLock;
 
-use owo_colors::{OwoColorize, Styled};
-use tracing::{Event, Subscriber};
+use owo_colors::OwoColorize;
+use tracing::{Event, Level, Subscriber};
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};
 use tracing_subscriber::registry::LookupSpan;
-pub(crate) struct ClerkFormatter {
+
+pub struct ClerkFormatter {
     pub(crate) color: bool,
 }
 
-static TRACE_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "TRACE".style(*crate::TRACE_STYLE));
-static DEBUG_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "DEBUG".style(*crate::DEBUG_STYLE));
-static INFO_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "INFO".style(*crate::INFO_STYLE));
-static WARN_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "WARN".style(*crate::WARN_STYLE));
-static ERROR_TEXT: LazyLock<Styled<&&str>> = LazyLock::new(|| "ERROR".style(*crate::ERROR_STYLE));
-fn color_level(level: &tracing::Level) -> &Styled<&&str> {
-    match *level {
-        tracing::Level::TRACE => &TRACE_TEXT,
-        tracing::Level::DEBUG => &DEBUG_TEXT,
-        tracing::Level::INFO => &INFO_TEXT,
-        tracing::Level::WARN => &WARN_TEXT,
-        tracing::Level::ERROR => &ERROR_TEXT,
+impl ClerkFormatter {
+    fn color_level(&self, level: &tracing::Level) -> String {
+        if !self.color {
+            return format!("{}", level);
+        }
+
+        match level {
+            &Level::TRACE => "TRACE".purple().to_string(),
+            &Level::DEBUG => "DEBUG".blue().to_string(),
+            &Level::INFO => "INFO".green().to_string(),
+            &Level::WARN => "WARN".yellow().bold().to_string(),
+            &Level::ERROR => "ERROR".red().bold().to_string(),
+        }
     }
 }
 
@@ -41,14 +42,13 @@ where
             "[{}] [",
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
         )?;
-        if self.color {
-            write!(writer, "{}", color_level(event.metadata().level()))?;
-        } else {
-            write!(writer, "{}", event.metadata().level())?;
-        }
+
+        write!(writer, "{}]", self.color_level(event.metadata().level()))?;
+
+        #[cfg(debug_assertions)]
         write!(
             writer,
-            "] [{}] [{}:{}] ",
+            "[{}] [{}:{}] ",
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),

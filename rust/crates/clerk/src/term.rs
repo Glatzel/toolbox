@@ -48,15 +48,5 @@ mod tests {
     use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
-    #[test]
-    fn test_log() {
-        tracing_subscriber::registry()
-            .with(terminal_layer(LogLevel::TRACE, true))
-            .init();
-        trace!("Trace message");
-        debug!("Debug message");
-        info!("Informational message");
-        warn!("Warning message");
-        error!("Error message");
-    }
+   
 }

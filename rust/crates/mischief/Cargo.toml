@@ -1,0 +1,10 @@
+[package]
+edition.workspace = true
+name = "mischief"
+version.workspace = true
+
+
+
+[features]
+default=["std"]
+std=[]

@@ -8,7 +8,6 @@ pub enum LogLevel {
     TRACE,
     OFF,
 }
-#[cfg(feature = "log")]
 impl From<LogLevel> for tracing_core::LevelFilter {
     fn from(value: LogLevel) -> Self {
         use tracing_core::LevelFilter;

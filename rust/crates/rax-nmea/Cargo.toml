@@ -11,11 +11,10 @@ rax = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]
+clerk = { workspace = true , features = ["log"]}
 criterion = { workspace = true }
 float-cmp = { workspace = true }
 serialport = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 
 [features]
 log = ["clerk/log"]

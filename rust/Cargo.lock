@@ -830,8 +830,6 @@ dependencies = [
  "serialport",
  "tokio",
  "tokio-serial",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -846,8 +844,6 @@ dependencies = [
  "rax",
  "serde",
  "serialport",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

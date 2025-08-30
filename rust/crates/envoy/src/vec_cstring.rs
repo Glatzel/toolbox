@@ -1,5 +1,7 @@
-use std::ffi::{CString, c_char};
-use std::ptr;
+use alloc::ffi::CString;
+use alloc::vec::Vec;
+use core::ffi::c_char;
+use core::ptr;
 
 use crate::ToCString;
 
@@ -81,6 +83,9 @@ impl<T: ToCString> From<Option<&[T]>> for VecCString {
 
 #[cfg(test)]
 mod tests {
+    use alloc::string::String;
+    use alloc::vec;
+
     use super::*;
 
     #[test]
@@ -94,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_vec_cstring_from_vec() {
-        let arr = vec!["foo".to_string(), "bar".to_string()];
+        let arr = vec![String::from("foo"), String::from("bar")];
         let vec_cstring = VecCString::from(arr.clone());
         assert_eq!(vec_cstring.content.len(), 2);
         assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");

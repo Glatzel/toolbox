@@ -1,5 +1,5 @@
-use std::ffi::{CStr, c_char};
-
+use alloc::string::String;
+use core::ffi::{CStr, c_char};
 /// Trait for converting C string pointers and slices to Rust `String`.
 pub trait CStrToString {
     /// Converts the C string to a Rust `String`.
@@ -12,11 +12,9 @@ impl CStrToString for *const c_char {
         if self.is_null() {
             return None;
         }
-        Some(
-            unsafe { CStr::from_ptr(*self) }
-                .to_string_lossy()
-                .to_string(),
-        )
+        Some(String::from(
+            unsafe { CStr::from_ptr(*self) }.to_string_lossy(),
+        ))
     }
 }
 impl CStrToString for *mut c_char {
@@ -24,11 +22,9 @@ impl CStrToString for *mut c_char {
         if self.is_null() {
             return None;
         }
-        Some(
-            unsafe { CStr::from_ptr(*self) }
-                .to_string_lossy()
-                .to_string(),
-        )
+        Some(String::from(
+            unsafe { CStr::from_ptr(*self) }.to_string_lossy(),
+        ))
     }
 }
 impl CStrToString for [c_char] {
@@ -36,17 +32,15 @@ impl CStrToString for [c_char] {
         if self.is_empty() {
             return None;
         }
-        Some(
-            unsafe { CStr::from_ptr(self.as_ptr()) }
-                .to_string_lossy()
-                .to_string(),
-        )
+        Some(String::from(
+            unsafe { CStr::from_ptr(self.as_ptr()) }.to_string_lossy(),
+        ))
     }
 }
 #[cfg(test)]
 mod tests {
-    use std::ffi::CString;
-    use std::ptr;
+    use alloc::ffi::CString;
+    use core::ptr;
 
     use super::*;
     #[test]

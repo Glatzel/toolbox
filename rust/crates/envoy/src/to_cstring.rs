@@ -1,4 +1,5 @@
-use std::ffi::CString;
+use alloc::ffi::CString;
+use alloc::string::String;
 
 const CSTRING_NEW_EXCEPTION: &str = "Failed to create CString";
 

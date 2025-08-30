@@ -139,9 +139,9 @@ mod tests {
             .wrap_err("second wrap")
             .wrap_err_with(|| "third wrap");
 
-        match result {
+        match result { 
             Ok(_) => panic!("Expected an error, but got Ok"),
-            Err(report) => {
+            Err(report) =>  {
                 println!("{report:?}")
             }
         }

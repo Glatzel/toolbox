@@ -37,7 +37,7 @@ impl Debug for Report {
 
         // Iterate over the messages in the LinkedList and apply color
         for (i, msg) in self.msgs.iter().enumerate() {
-            output.push_str("\n"); // Add a newline between messages
+            output.push('\n'); // Add a newline between messages
             if i == 0 {
                 #[cfg(feature = "fancy")]
                 output.push_str("x ".red().to_string().as_str());

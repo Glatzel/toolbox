@@ -677,6 +677,9 @@ dependencies = [
 [[package]]
 name = "mischief"
 version = "0.0.26"
+dependencies = [
+ "owo-colors",
+]
 
 [[package]]
 name = "nix"

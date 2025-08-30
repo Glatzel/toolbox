@@ -1,11 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "fancy")]
+use core::fmt::Debug;
 use core::fmt::Write;
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
 
-#[derive(Debug)]
+#[cfg(feature = "fancy")]
+use owo_colors::OwoColorize;
+#[cfg_attr(not(feature = "fancy"), derive(Debug))]
 pub struct Report {
     msgs: LinkedList<String>,
 }
@@ -27,7 +31,35 @@ impl Report {
 impl From<&str> for Report {
     fn from(msg: &str) -> Self { Report::new(String::from(msg)) }
 }
+#[cfg(feature = "fancy")]
+impl Debug for Report {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut output = String::new();
+        let msgs_len = self.msgs.len();
 
+        // Iterate over the messages in the LinkedList and apply color
+        for (i, msg) in self.msgs.iter().enumerate() {
+            if i > 0 {
+                output.push_str("\n"); // Add a newline between messages
+            }
+
+            // Apply different colors for first, last, and intermediate messages
+            if i == 0 {
+                output.push_str("x ".red().to_string().as_str());
+                output.push_str(msg.as_str()); // First message 
+            } else if i == msgs_len - 1 {
+                output.push_str("╰─▶ ".red().to_string().as_str());
+                output.push_str(msg.as_str()); // Last message 
+            } else {
+                output.push_str("├─▶ ".red().to_string().as_str());
+                output.push_str(msg.as_str()); // Intermediate messages 
+            }
+        }
+
+        // Print the final styled output
+        write!(f, "{}", output)
+    }
+}
 pub trait IntoMischief<T> {
     fn into_mischief(self) -> Result<T>;
 }
@@ -75,12 +107,14 @@ mod tests {
         let initial_err: Result<i32> = Err(Report::from("Initial error"));
 
         // Wrap the error with a custom message
-        let result = initial_err.wrap_err("First wrap").wrap_err("second wrap");
+        let result = initial_err
+            .wrap_err("First wrap")
+            .wrap_err("second wrap")
+            .wrap_err("third wrap");
 
         match result {
             Ok(_) => panic!("Expected an error, but got Ok"),
             Err(report) => {
-                // Test that the error chain contains the expected messages
                 println!("{report:?}")
             }
         }

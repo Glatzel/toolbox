@@ -19,7 +19,7 @@ use crate::LogLevel;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// tracing_subscriber::registry()
-///     .with(clerk::terminal_layer(clerk::LogLevel::TRACE, true))
+///     .with(clerk::layer::terminal_layer(clerk::LogLevel::TRACE, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");
@@ -64,7 +64,7 @@ where
 /// );
 /// let f = std::path::PathBuf::from(f);
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(clerk::LogLevel::TRACE, f, true))
+///     .with(clerk::layer::file_layer(clerk::LogLevel::TRACE, f, true))
 ///     .init();
 /// trace!("Trace message");
 /// debug!("Debug message");

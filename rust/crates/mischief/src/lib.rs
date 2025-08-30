@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use core::fmt::{Debug, Write};
+use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
@@ -81,18 +81,44 @@ impl<T, E: core::fmt::Debug> IntoMischief<T> for core::result::Result<T, E> {
 }
 
 pub trait WrapErr<T> {
-    fn wrap_err(self, msg: &'static str) -> Result<T, Report>;
+    fn wrap_err<D>(self, msg: D) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static;
+    fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static,
+        F: FnOnce() -> D;
 }
 
 impl<T> WrapErr<T> for Result<T, Report> {
     /// Wraps the error with a custom message and returns a `Result`.
-    fn wrap_err(self, msg: &'static str) -> Result<T, Report> {
+    fn wrap_err<D>(self, msg: D) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static,
+    {
         match self {
             Ok(v) => Ok(v),
             Err(mut e) => {
                 let mut final_msg = String::new();
                 // Add custom message + formatted error
                 write!(final_msg, "{}", msg).ok();
+                e.append_error(final_msg); // Append the new message to the Report
+                Err(e)
+            }
+        }
+    }
+
+    fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static,
+        F: FnOnce() -> D,
+    {
+        match self {
+            Ok(v) => Ok(v),
+            Err(mut e) => {
+                let mut final_msg = String::new();
+                // Add custom message + formatted error
+                write!(final_msg, "{}", msg()).ok();
                 e.append_error(final_msg); // Append the new message to the Report
                 Err(e)
             }
@@ -111,7 +137,7 @@ mod tests {
         let result = initial_err
             .wrap_err("First wrap")
             .wrap_err("second wrap")
-            .wrap_err("third wrap");
+            .wrap_err_with(|| "third wrap");
 
         match result {
             Ok(_) => panic!("Expected an error, but got Ok"),

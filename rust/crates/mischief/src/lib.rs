@@ -40,19 +40,19 @@ impl Debug for Report {
             output.push('\n'); // Add a newline between messages
             if i == 0 {
                 #[cfg(feature = "fancy")]
-                output.push_str("x ".red().to_string().as_str());
+                write!(output, "{} ", "x".red())?;
                 #[cfg(not(feature = "fancy"))]
                 output.push_str("x ");
             } else if i == msgs_len - 1 {
                 #[cfg(feature = "fancy")]
-                output.push_str("╰─▶ ".red().to_string().as_str());
+                write!(output, "{} ", "╰─▶".red())?;
                 #[cfg(not(feature = "fancy"))]
-                output.push_str("|-> ");
+                output.push_str("╰─▶ ");
             } else {
                 #[cfg(feature = "fancy")]
-                output.push_str("├─▶ ".red().to_string().as_str());
+                write!(output, "{}", "├─▶".red())?;
                 #[cfg(not(feature = "fancy"))]
-                output.push_str("|-> ");
+                output.push_str("├─▶ ");
             }
             output.push_str(msg);
         }

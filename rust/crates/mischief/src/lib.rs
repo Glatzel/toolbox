@@ -1,15 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "fancy")]
-use core::fmt::Debug;
-use core::fmt::Write;
+use core::fmt::{Debug, Write};
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
 
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
-#[cfg_attr(not(feature = "fancy"), derive(Debug))]
+
 pub struct Report {
     msgs: LinkedList<String>,
 }
@@ -31,7 +29,7 @@ impl Report {
 impl From<&str> for Report {
     fn from(msg: &str) -> Self { Report::new(String::from(msg)) }
 }
-#[cfg(feature = "fancy")]
+
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut output = String::new();
@@ -39,21 +37,24 @@ impl Debug for Report {
 
         // Iterate over the messages in the LinkedList and apply color
         for (i, msg) in self.msgs.iter().enumerate() {
-            if i > 0 {
-                output.push_str("\n"); // Add a newline between messages
-            }
-
-            // Apply different colors for first, last, and intermediate messages
+            output.push_str("\n"); // Add a newline between messages
             if i == 0 {
+                #[cfg(feature = "fancy")]
                 output.push_str("x ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // First message 
+                #[cfg(not(feature = "fancy"))]
+                output.push_str("x ");
             } else if i == msgs_len - 1 {
+                #[cfg(feature = "fancy")]
                 output.push_str("╰─▶ ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // Last message 
+                #[cfg(not(feature = "fancy"))]
+                output.push_str("|-> ");
             } else {
+                #[cfg(feature = "fancy")]
                 output.push_str("├─▶ ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // Intermediate messages 
+                #[cfg(not(feature = "fancy"))]
+                output.push_str("|-> ");
             }
+            output.push_str(msg);
         }
 
         // Print the final styled output

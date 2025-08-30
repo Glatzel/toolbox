@@ -50,7 +50,7 @@ impl Debug for Report {
                 output.push_str("╰─▶ ");
             } else {
                 #[cfg(feature = "fancy")]
-                write!(output, "{}", "├─▶".red())?;
+                write!(output, "{} ", "├─▶".red())?;
                 #[cfg(not(feature = "fancy"))]
                 output.push_str("├─▶ ");
             }

@@ -46,13 +46,13 @@ impl Debug for Report {
             // Apply different colors for first, last, and intermediate messages
             if i == 0 {
                 output.push_str("x ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // First message 
+                output.push_str(msg.as_str()); // First message
             } else if i == msgs_len - 1 {
                 output.push_str("╰─▶ ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // Last message 
+                output.push_str(msg.as_str()); // Last message
             } else {
                 output.push_str("├─▶ ".red().to_string().as_str());
-                output.push_str(msg.as_str()); // Intermediate messages 
+                output.push_str(msg.as_str()); // Intermediate messages
             }
         }
 

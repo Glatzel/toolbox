@@ -1,5 +1,5 @@
 #[cfg(feature = "log")]
-mod layer;
+pub mod layer;
 #[cfg(feature = "log")]
 mod formatter;
 #[cfg(feature = "log")]

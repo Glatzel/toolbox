@@ -3,7 +3,7 @@ if (-not $args) {
     $config = ('--workspace', '--all-features')
 }
 else {
-    $config = $args 
+    $config = $args
 }
 if (Test-Path $PSScriptRoot/setup.ps1) {
     &$PSScriptRoot/setup.ps1

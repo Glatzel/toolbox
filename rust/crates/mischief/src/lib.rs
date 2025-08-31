@@ -4,6 +4,7 @@ use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
+use crate::alloc::string::ToString;
 
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
@@ -98,10 +99,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
     {
         match self {
             Err(mut e) => {
-                let mut final_msg = String::new();
-                // Add custom message + formatted error
-                write!(final_msg, "{}", msg).ok();
-                e.append_error(final_msg); // Append the new message to the Report
+                e.append_error(msg.to_string()); // Append the new message to the Report
                 Err(e)
             }
             ok => ok,
@@ -115,10 +113,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
     {
         match self {
             Err(mut e) => {
-                let mut final_msg = String::new();
-                // Add custom message + formatted error
-                write!(final_msg, "{}", msg()).ok();
-                e.append_error(final_msg); // Append the new message to the Report
+                e.append_error(msg().to_string()); // Append the new message to the Report
                 Err(e)
             }
             ok => ok,
@@ -136,6 +131,7 @@ mod tests {
         assert_eq!(report.msgs.len(), 2);
 
         let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        println!("{:?}", report);
         assert_eq!(msgs[0], "Second error");
         assert_eq!(msgs[1], "Initial error");
     }
@@ -143,6 +139,7 @@ mod tests {
     #[test]
     fn report_from_str() {
         let report: Report = Report::from("Error from str");
+        println!("{:?}", report);
         assert_eq!(report.msgs.len(), 1);
         assert_eq!(report.msgs.front().unwrap(), "Error from str");
     }
@@ -152,6 +149,7 @@ mod tests {
         let mut report = Report::new("First".to_string());
         report.append_error("Second".to_string());
         let debug_str = format!("{:?}", report);
+        println!("{:?}", report);
         assert!(debug_str.contains("First"));
         assert!(debug_str.contains("Second"));
     }
@@ -163,6 +161,7 @@ mod tests {
         assert_eq!(ok.into_mischief().unwrap(), 42);
 
         let report = err.into_mischief().unwrap_err();
+        println!("{:?}", report);
         assert_eq!(report.msgs.front().unwrap(), "\"fail\"");
     }
 
@@ -172,6 +171,7 @@ mod tests {
         let wrapped = err.wrap_err("context");
         let report = wrapped.unwrap_err();
         let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        println!("{:?}", report);
         assert!(msgs.contains(&"context".to_string()));
         assert!(msgs.contains(&"original".to_string()));
     }
@@ -182,6 +182,7 @@ mod tests {
         let wrapped = err.wrap_err_with(|| "context_with");
         let report = wrapped.unwrap_err();
         let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        println!("{:?}", report);
         assert!(msgs.contains(&"context_with".to_string()));
         assert!(msgs.contains(&"original".to_string()));
     }

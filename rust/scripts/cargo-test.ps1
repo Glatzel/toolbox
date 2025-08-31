@@ -7,12 +7,12 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
 Write-Output "::group::nextest"
-cargo +nightly llvm-cov nextest --no-report --all --all-features --branch --no-fail-fast
+cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast @args
 $code = $LASTEXITCODE
 Write-Output "::endgroup::"
 
 Write-Output "::group::doctest"
-cargo +nightly llvm-cov --no-report --all --all-features --branch --no-fail-fast --doc
+cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc @args
 $code = $code + $LASTEXITCODE
 Write-Output "::endgroup::"
 

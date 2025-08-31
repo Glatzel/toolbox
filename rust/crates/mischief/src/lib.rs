@@ -4,10 +4,11 @@ use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
-use crate::alloc::string::ToString;
 
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
+
+use crate::alloc::string::ToString;
 
 pub struct Report {
     msgs: LinkedList<String>,
@@ -120,8 +121,12 @@ impl<T> WrapErr<T> for Result<T, Report> {
         }
     }
 }
-#[cfg(all(test, feature = "std"))]
+#[cfg(test)]
 mod tests {
+    extern crate std;
+    use alloc::{format, vec::Vec};
+    use std::println;
+
     use super::*;
     #[test]
     fn report_new_and_append_error() {

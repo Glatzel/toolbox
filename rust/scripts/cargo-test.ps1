@@ -1,6 +1,9 @@
 # This File is automatically synchronized from https://github.com/Glatzel/template
 if (-not $args) {
-    $args = ('--workspace', '--all-features')
+    $config = ('--workspace', '--all-features')
+}
+else {
+    $config = $args 
 }
 if (Test-Path $PSScriptRoot/setup.ps1) {
     &$PSScriptRoot/setup.ps1
@@ -9,12 +12,12 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
 Write-Output "::group::nextest"
-cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast @args
+cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast @config
 $code = $LASTEXITCODE
 Write-Output "::endgroup::"
 
 Write-Output "::group::doctest"
-cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc @args
+cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc @config
 $code = $code + $LASTEXITCODE
 Write-Output "::endgroup::"
 

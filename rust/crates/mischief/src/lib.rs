@@ -4,10 +4,11 @@ use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::collections::LinkedList;
 use alloc::string::String;
-use crate::alloc::string::ToString;
 
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
+
+use crate::alloc::string::ToString;
 
 pub struct Report {
     msgs: LinkedList<String>,

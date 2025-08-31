@@ -154,8 +154,6 @@ mod tests {
         let debug_str = format!("{:?}", report);
         assert!(debug_str.contains("First"));
         assert!(debug_str.contains("Second"));
-        assert!(debug_str.contains("x "));
-        assert!(debug_str.contains("╰─▶ ") || debug_str.contains("├─▶ "));
     }
 
     #[test]

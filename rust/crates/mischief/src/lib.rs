@@ -124,7 +124,8 @@ impl<T> WrapErr<T> for Result<T, Report> {
 #[cfg(test)]
 mod tests {
     extern crate std;
-    use alloc::{format, vec::Vec};
+    use alloc::format;
+    use alloc::vec::Vec;
     use std::println;
 
     use super::*;

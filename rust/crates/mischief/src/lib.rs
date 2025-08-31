@@ -97,7 +97,6 @@ impl<T> WrapErr<T> for Result<T, Report> {
         D: Display + Send + Sync + 'static,
     {
         match self {
-            Ok(v) => Ok(v),
             Err(mut e) => {
                 let mut final_msg = String::new();
                 // Add custom message + formatted error
@@ -105,6 +104,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
                 e.append_error(final_msg); // Append the new message to the Report
                 Err(e)
             }
+            ok => ok,
         }
     }
 
@@ -114,7 +114,6 @@ impl<T> WrapErr<T> for Result<T, Report> {
         F: FnOnce() -> D,
     {
         match self {
-            Ok(v) => Ok(v),
             Err(mut e) => {
                 let mut final_msg = String::new();
                 // Add custom message + formatted error
@@ -122,6 +121,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
                 e.append_error(final_msg); // Append the new message to the Report
                 Err(e)
             }
+            ok => ok,
         }
     }
 }

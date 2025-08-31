@@ -11,6 +11,10 @@
 		}
 	],
 	"settings": {
-		"rust-analyzer.testExplorer": true
+		"rust-analyzer.check.features": "all",
+		"rust-analyzer.cargo.features": "all",
+		"python.analysis.extraPaths": [
+			"./python/src"
+		]
 	}
 }

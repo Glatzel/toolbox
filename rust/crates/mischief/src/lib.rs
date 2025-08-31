@@ -128,22 +128,63 @@ impl<T> WrapErr<T> for Result<T, Report> {
 #[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
+    #[test]
+    fn report_new_and_append_error() {
+        let mut report = Report::new("Initial error".to_string());
+        assert_eq!(report.msgs.len(), 1);
+        report.append_error("Second error".to_string());
+        assert_eq!(report.msgs.len(), 2);
+
+        let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        assert_eq!(msgs[0], "Second error");
+        assert_eq!(msgs[1], "Initial error");
+    }
 
     #[test]
-    fn test_wrap_err_creates_error_chain() {
-        let initial_err: Result<i32> = Err(Report::from("Initial error"));
+    fn report_from_str() {
+        let report: Report = Report::from("Error from str");
+        assert_eq!(report.msgs.len(), 1);
+        assert_eq!(report.msgs.front().unwrap(), "Error from str");
+    }
 
-        // Wrap the error with a custom message
-        let result = initial_err
-            .wrap_err("First wrap")
-            .wrap_err("second wrap")
-            .wrap_err_with(|| "third wrap");
+    #[test]
+    fn debug_format_basic() {
+        let mut report = Report::new("First".to_string());
+        report.append_error("Second".to_string());
+        let debug_str = format!("{:?}", report);
+        assert!(debug_str.contains("First"));
+        assert!(debug_str.contains("Second"));
+        assert!(debug_str.contains("x "));
+        assert!(debug_str.contains("╰─▶ ") || debug_str.contains("├─▶ "));
+    }
 
-        match result {
-            Ok(_) => panic!("Expected an error, but got Ok"),
-            Err(report) =>  {
-                println!("{report:?}")
-            }
-        }
+    #[test]
+    fn into_mischief_ok_and_err() {
+        let ok: core::result::Result<u32, &str> = Ok(42);
+        let err: core::result::Result<u32, &str> = Err("fail");
+        assert_eq!(ok.into_mischief().unwrap(), 42);
+
+        let report = err.into_mischief().unwrap_err();
+        assert_eq!(report.msgs.front().unwrap(), "\"fail\"");
+    }
+
+    #[test]
+    fn wrap_err_adds_message() {
+        let err: Result<u32> = Err(Report::from("original"));
+        let wrapped = err.wrap_err("context");
+        let report = wrapped.unwrap_err();
+        let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        assert!(msgs.contains(&"context".to_string()));
+        assert!(msgs.contains(&"original".to_string()));
+    }
+
+    #[test]
+    fn wrap_err_with_adds_message() {
+        let err: Result<u32> = Err(Report::from("original"));
+        let wrapped = err.wrap_err_with(|| "context_with");
+        let report = wrapped.unwrap_err();
+        let msgs: Vec<_> = report.msgs.iter().cloned().collect();
+        assert!(msgs.contains(&"context_with".to_string()));
+        assert!(msgs.contains(&"original".to_string()));
     }
 }

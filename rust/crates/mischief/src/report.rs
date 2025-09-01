@@ -1,7 +1,8 @@
 use core::fmt::{Debug, Display, Write};
 extern crate alloc;
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
+
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
 

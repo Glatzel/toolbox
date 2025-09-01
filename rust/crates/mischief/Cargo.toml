@@ -8,4 +8,3 @@ owo-colors = { workspace = true, optional = true }
 
 [features]
 fancy = ["owo-colors"]
-

@@ -39,10 +39,18 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
-    pub fn new(description: String, source: Option<alloc::boxed::Box<dyn IDiagnostic>>) -> Self {
+    pub fn new<D>(description: D, source: Option<alloc::boxed::Box<dyn IDiagnostic>>) -> Self
+    where
+        D: Display,
+    {
         Self {
-            description,
+            description: description.to_string(),
             source,
         }
     }
+}
+impl IDiagnostic for Diagnostic {
+    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> { todo!() }
+
+    fn source<'a>(&self) -> Option<&dyn IDiagnostic> { todo!() }
 }

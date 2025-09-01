@@ -9,6 +9,8 @@ use owo_colors::OwoColorize;
 
 use crate::diagnostic::{Diagnostic, IDiagnostic};
 
+
+
 pub struct Report {
     inner: Box<dyn IDiagnostic>,
 }

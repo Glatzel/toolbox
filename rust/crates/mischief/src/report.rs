@@ -116,12 +116,3 @@ impl<T> WrapErr<T> for Result<T, Report> {
         }
     }
 }
-#[cfg(test)]
-mod tests {
-    extern crate std;
-    use alloc::string::ToString;
-
-    use super::*;
-
-  
-}

@@ -7,9 +7,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
 
-use crate::diagnostic::{Diagnostic, IDiagnostic};
-
-
+use crate::diagnostic::{IDiagnostic, MischiefError};
 
 pub struct Report {
     inner: Box<dyn IDiagnostic>,
@@ -90,7 +88,10 @@ impl<T> WrapErr<T> for Result<T, Report> {
         D: Display + Send + Sync + 'static,
     {
         match self {
-            Err(e) => Err(Report::new(Box::new(Diagnostic::new(msg, Some(e.inner))))),
+            Err(e) => Err(Report::new(Box::new(MischiefError::new(
+                msg,
+                Some(e.inner),
+            )))),
             ok => ok,
         }
     }
@@ -101,7 +102,10 @@ impl<T> WrapErr<T> for Result<T, Report> {
         F: FnOnce() -> D,
     {
         match self {
-            Err(e) => Err(Report::new(Box::new(Diagnostic::new(msg(), Some(e.inner))))),
+            Err(e) => Err(Report::new(Box::new(MischiefError::new(
+                msg(),
+                Some(e.inner),
+            )))),
             ok => ok,
         }
     }

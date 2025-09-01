@@ -1,4 +1,5 @@
 extern crate alloc;
+use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use core::error::Error;
 use core::fmt::{Debug, Display, Write};
@@ -13,9 +14,9 @@ impl<T> IDiagnostic for T
 where
     T: Debug,
 {
-    default fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> {
+    default fn description<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
         let mut msg = String::new();
-        write!(msg, "{:?}", self);
+        let _ = write!(msg, "{:?}", self);
         Some(alloc::boxed::Box::new(msg))
     }
 
@@ -29,16 +30,17 @@ where
         Some(alloc::boxed::Box::new(self))
     }
 
-    fn source<'a>(&self) -> Option<&dyn IDiagnostic> {
+    fn source<'b>(&'b self) -> Option<&dyn IDiagnostic> {
         self.source().map(|e| e as &dyn IDiagnostic)
     }
 }
-pub struct Diagnostic {
+
+pub struct MischiefError {
     description: alloc::string::String,
     source: Option<alloc::boxed::Box<dyn IDiagnostic>>,
 }
 
-impl Diagnostic {
+impl MischiefError {
     pub fn new<D>(description: D, source: Option<alloc::boxed::Box<dyn IDiagnostic>>) -> Self
     where
         D: Display,
@@ -49,8 +51,10 @@ impl Diagnostic {
         }
     }
 }
-impl IDiagnostic for Diagnostic {
-    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> { todo!() }
+impl IDiagnostic for MischiefError {
+    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> {
+        Some(Box::new(self.description.clone()))
+    }
 
-    fn source<'a>(&self) -> Option<&dyn IDiagnostic> { todo!() }
+    fn source<'a>(&self) -> Option<&dyn IDiagnostic> { self.source.as_deref() }
 }

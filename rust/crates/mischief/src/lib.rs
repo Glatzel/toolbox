@@ -2,8 +2,8 @@
 
 use core::fmt::{Debug, Display, Write};
 extern crate alloc;
-use alloc::collections::LinkedList;
 use alloc::string::String;
+use alloc::vec::Vec;
 
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
@@ -11,20 +11,20 @@ use owo_colors::OwoColorize;
 use crate::alloc::string::ToString;
 
 pub struct Report {
-    msgs: LinkedList<String>,
+    msgs: Vec<String>,
 }
 
 impl Report {
     // Helper method to create a new Report from a single message
     pub fn new(msg: String) -> Self {
-        let mut msgs = LinkedList::new();
-        msgs.push_front(msg); // Add the initial error message
+        let mut msgs = Vec::with_capacity(4);
+        msgs.push(msg); // Add the initial error message
         Report { msgs }
     }
 
     // Helper method to append a new error message to the Report
     pub fn append_error(&mut self, msg: String) {
-        self.msgs.push_front(msg); // Add the new error message to the front
+        self.msgs.push(msg); // Add the new error message to the front
     }
 }
 
@@ -38,7 +38,7 @@ impl Debug for Report {
         let msgs_len = self.msgs.len();
 
         // Iterate over the messages in the LinkedList and apply color
-        for (i, msg) in self.msgs.iter().enumerate() {
+        for (i, msg) in self.msgs.iter().rev().enumerate() {
             output.push('\n'); // Add a newline between messages
             if i == 0 {
                 #[cfg(feature = "fancy")]
@@ -135,11 +135,14 @@ mod tests {
         assert_eq!(report.msgs.len(), 1);
         report.append_error("Second error".to_string());
         assert_eq!(report.msgs.len(), 2);
+        report.append_error("Third error".to_string());
+        assert_eq!(report.msgs.len(), 3);
 
         let msgs: Vec<_> = report.msgs.iter().cloned().collect();
         println!("{:?}", report);
-        assert_eq!(msgs[0], "Second error");
-        assert_eq!(msgs[1], "Initial error");
+        assert_eq!(msgs[2], "Third error");
+        assert_eq!(msgs[1], "Second error");
+        assert_eq!(msgs[0], "Initial error");
     }
 
     #[test]
@@ -147,7 +150,7 @@ mod tests {
         let report: Report = Report::from("Error from str");
         println!("{:?}", report);
         assert_eq!(report.msgs.len(), 1);
-        assert_eq!(report.msgs.front().unwrap(), "Error from str");
+        assert_eq!(report.msgs.first().unwrap(), "Error from str");
     }
 
     #[test]
@@ -168,7 +171,7 @@ mod tests {
 
         let report = err.into_mischief().unwrap_err();
         println!("{:?}", report);
-        assert_eq!(report.msgs.front().unwrap(), "\"fail\"");
+        assert_eq!(report.msgs.first().unwrap(), "\"fail\"");
     }
 
     #[test]

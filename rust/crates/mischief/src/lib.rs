@@ -135,9 +135,12 @@ mod tests {
         assert_eq!(report.msgs.len(), 1);
         report.append_error("Second error".to_string());
         assert_eq!(report.msgs.len(), 2);
+        report.append_error("Third error".to_string());
+        assert_eq!(report.msgs.len(), 3);
 
         let msgs: Vec<_> = report.msgs.iter().cloned().collect();
         println!("{:?}", report);
+        assert_eq!(msgs[2], "Third error");
         assert_eq!(msgs[1], "Second error");
         assert_eq!(msgs[0], "Initial error");
     }

@@ -1,8 +1,8 @@
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use core::error::Error;
-use core::fmt::{Debug, Display, Write};
+use core::fmt::Display;
 pub trait IDiagnostic {
     fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>>;
     fn source(&self) -> Option<&dyn IDiagnostic>;
@@ -37,9 +37,9 @@ where
 {
     fn from(value: T) -> Self {
         let description = value.to_string();
-        let source = value.source().map(|src| {
-            Box::new(MischiefError::new(src.to_string(), None)) as Box<dyn IDiagnostic>
-        });
+        let source = value
+            .source()
+            .map(|src| Box::new(MischiefError::new(src.to_string(), None)) as Box<dyn IDiagnostic>);
         MischiefError::new(description, source)
     }
 }

@@ -5,7 +5,7 @@ use core::error::Error;
 use core::fmt::{Debug, Display, Write};
 pub trait IDiagnostic {
     fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>>;
-    fn source<'a>(&self) -> Option<&dyn IDiagnostic>;
+    fn source(&self) -> Option<&dyn IDiagnostic>;
 }
 
 // Removed default implementation for Debug, as Rust does not support default
@@ -20,7 +20,7 @@ where
         Some(alloc::boxed::Box::new(msg))
     }
 
-    default fn source<'a>(&self) -> Option<&dyn IDiagnostic> { None }
+    default fn source(&self) -> Option<&dyn IDiagnostic> { None }
 }
 impl<T> IDiagnostic for T
 where
@@ -30,9 +30,7 @@ where
         Some(alloc::boxed::Box::new(self))
     }
 
-    fn source<'b>(&'b self) -> Option<&dyn IDiagnostic> {
-        self.source().map(|e| e as &dyn IDiagnostic)
-    }
+    fn source(&self) -> Option<&dyn IDiagnostic> { None }
 }
 
 pub struct MischiefError {
@@ -56,5 +54,5 @@ impl IDiagnostic for MischiefError {
         Some(Box::new(self.description.clone()))
     }
 
-    fn source<'a>(&self) -> Option<&dyn IDiagnostic> { self.source.as_deref() }
+    fn source(&self) -> Option<&dyn IDiagnostic> { self.source.as_deref() }
 }

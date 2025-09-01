@@ -7,23 +7,23 @@ use alloc::vec::Vec;
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
 
-use crate::diagnostic::Diagnostic;
+use crate::diagnostic::{Diagnostic, IDiagnostic};
 
 pub struct Report {
-    inner: Diagnostic,
+    inner: Box<dyn IDiagnostic>,
 }
 
 impl Report {
-    pub(crate) fn new(diagnostic: Diagnostic) -> Self { Report { inner: diagnostic } }
+    pub(crate) fn new(diagnostic: Box<dyn IDiagnostic>) -> Self { Report { inner: diagnostic } }
 
-    pub(crate) fn chain(&self) -> impl Iterator<Item = &Diagnostic> {
-        core::iter::successors(Some(&self.inner), |r| r.source())
+    pub(crate) fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
+        core::iter::successors(Some(&*self.inner), |r| r.source())
     }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let chain: Vec<&Diagnostic> = self.chain().collect();
+        let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
         let mut output = String::new();
 
         for (i, diagnostic) in chain.iter().enumerate() {
@@ -44,7 +44,10 @@ impl Debug for Report {
                 output.push_str("├─▶ ");
             }
 
-            output.push_str(diagnostic.description());
+            if let Some(desc) = diagnostic.description() {
+                use core::fmt::Write as _;
+                let _ = write!(output, "{}", desc);
+            }
             output.push('\n');
         }
 
@@ -55,26 +58,19 @@ impl Debug for Report {
 pub trait IntoMischief<T> {
     fn into_mischief(self) -> Result<T>;
 }
-
 pub type Result<T, E = Report> = core::result::Result<T, E>;
 
 impl<T, E> IntoMischief<T> for core::result::Result<T, E>
 where
-    E: core::fmt::Debug,
+    E: IDiagnostic + 'static,
 {
     fn into_mischief(self) -> Result<T> {
         match self {
             Ok(v) => Ok(v),
-            Err(e) => {
-                let mut msg = String::new();
-                let _ = write!(msg, "{:?}", e);
-                let diagnostic = Diagnostic::new(msg, None);
-                Err(Report::new(diagnostic))
-            }
+            Err(e) => Err(Report::new(Box::new(e))),
         }
     }
 }
-
 pub trait WrapErr<T> {
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
@@ -92,7 +88,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
         D: Display + Send + Sync + 'static,
     {
         match self {
-            Err(e) => Err(Report::new(Diagnostic::new(msg, Some(Box::new(e.inner))))),
+            Err(e) => Err(Report::new(Box::new(Diagnostic::new(msg, Some(e.inner))))),
             ok => ok,
         }
     }
@@ -103,7 +99,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
         F: FnOnce() -> D,
     {
         match self {
-            Err(e) => Err(Report::new(Diagnostic::new(msg(), Some(Box::new(e.inner))))),
+            Err(e) => Err(Report::new(Box::new(Diagnostic::new(msg(), Some(e.inner))))),
             ok => ok,
         }
     }

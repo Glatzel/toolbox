@@ -22,7 +22,7 @@ impl Report {
 
     pub(crate) fn append_error(self, diagnostic: Diagnostic) -> Self {
         Self {
-            diagnostic: diagnostic,
+            diagnostic,
             source: Some(Box::new(self)),
         }
     }

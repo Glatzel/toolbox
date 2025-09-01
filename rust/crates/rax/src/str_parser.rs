@@ -1,7 +1,9 @@
 pub mod filters;
 pub mod rules;
-
+extern crate alloc;
+use alloc::string::String;
 mod parse_opt;
+
 pub use parse_opt::*;
 pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
 

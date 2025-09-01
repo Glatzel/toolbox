@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use crate::str_parser::filters::IFilter;
-
 /// A fixed, sorted list of characters.
 /// `contains()` uses a const‑friendly binary search.
 /// No nightly features required.

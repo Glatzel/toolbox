@@ -17,8 +17,7 @@ jobs:
         machine: [windows-latest, ubuntu-latest, macos-latest,ubuntu-24.04-arm]
         args:
           - --workspace --all-features
-          - --no-default-features -p envoy -p mischief
-          - --no-default-features -p mischief --features fancy
+          - --no-default-features -p mischief
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5

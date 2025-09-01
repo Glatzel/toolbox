@@ -2,7 +2,3 @@
 edition.workspace = true
 name = "envoy"
 version.workspace = true
-
-[features]
-default=["std"]
-std=[]

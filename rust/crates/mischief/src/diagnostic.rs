@@ -1,7 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use core::fmt::Display;
-
 pub struct Diagnostic {
     msg: String,
 }

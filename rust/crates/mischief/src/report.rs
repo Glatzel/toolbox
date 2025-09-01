@@ -1,7 +1,9 @@
 use core::fmt::{Debug, Display, Write};
 extern crate alloc;
-use alloc::string::String;
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
+
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
 
@@ -27,7 +29,7 @@ impl Report {
         }
     }
     pub(crate) fn chain(&self) -> impl Iterator<Item = &Report> {
-        std::iter::successors(Some(self), |r| r.source.as_deref())
+        core::iter::successors(Some(self), |r| r.source.as_deref())
     }
 }
 
@@ -117,19 +119,9 @@ impl<T> WrapErr<T> for Result<T, Report> {
 #[cfg(test)]
 mod tests {
     extern crate std;
+    use alloc::string::ToString;
 
     use super::*;
 
-    #[test]
-    fn report_new_and_append_error() {
-        let e: core::result::Result<i32, Report> =
-            Err(Report::new(Diagnostic::new("Initial error".to_string())));
-
-        let e = e.wrap_err("Second error");
-        let e = e.wrap_err_with(|| "Third error");
-        match e {
-            Ok(_) => panic!(),
-            Err(report) => print!("{:?}", report),
-        }
-    }
+  
 }

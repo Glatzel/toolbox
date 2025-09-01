@@ -8,31 +8,6 @@ pub trait IDiagnostic {
     fn source(&self) -> Option<&dyn IDiagnostic>;
 }
 
-// Removed default implementation for Debug, as Rust does not support default
-// trait methods outside nightly.
-impl<T> IDiagnostic for T
-where
-    T: Debug,
-{
-    default fn description<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        let mut msg = String::new();
-        let _ = write!(msg, "{:?}", self);
-        Some(alloc::boxed::Box::new(msg))
-    }
-
-    default fn source(&self) -> Option<&dyn IDiagnostic> { None }
-}
-impl<T> IDiagnostic for T
-where
-    T: Error,
-{
-    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> {
-        Some(alloc::boxed::Box::new(self))
-    }
-
-    fn source(&self) -> Option<&dyn IDiagnostic> { None }
-}
-
 pub struct MischiefError {
     description: alloc::string::String,
     source: Option<alloc::boxed::Box<dyn IDiagnostic>>,
@@ -55,4 +30,16 @@ impl IDiagnostic for MischiefError {
     }
 
     fn source(&self) -> Option<&dyn IDiagnostic> { self.source.as_deref() }
+}
+impl<T> From<T> for MischiefError
+where
+    T: Error,
+{
+    fn from(value: T) -> Self {
+        let description = value.to_string();
+        let source = value.source().map(|src| {
+            Box::new(MischiefError::new(src.to_string(), None)) as Box<dyn IDiagnostic>
+        });
+        MischiefError::new(description, source)
+    }
 }

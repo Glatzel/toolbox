@@ -1,3 +1,4 @@
+use core::error::Error;
 use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::boxed::Box;
@@ -62,12 +63,12 @@ pub type Result<T, E = Report> = core::result::Result<T, E>;
 
 impl<T, E> IntoMischief<T> for core::result::Result<T, E>
 where
-    E: IDiagnostic + 'static,
+    E: Error,
 {
     fn into_mischief(self) -> Result<T> {
         match self {
             Ok(v) => Ok(v),
-            Err(e) => Err(Report::new(Box::new(e))),
+            Err(e) => Err(Report::new(Box::new(MischiefError::from(e)))),
         }
     }
 }

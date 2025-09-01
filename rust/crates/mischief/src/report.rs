@@ -10,35 +10,23 @@ use owo_colors::OwoColorize;
 use crate::diagnostic::Diagnostic;
 
 pub struct Report {
-    diagnostic: Diagnostic,
-    source: Option<Box<Report>>,
+    inner: Diagnostic,
 }
 
 impl Report {
-    pub(crate) fn new(diagnostic: Diagnostic) -> Self {
-        Report {
-            diagnostic,
-            source: None,
-        }
-    }
+    pub(crate) fn new(diagnostic: Diagnostic) -> Self { Report { inner: diagnostic } }
 
-    pub(crate) fn append_error(self, diagnostic: Diagnostic) -> Self {
-        Self {
-            diagnostic,
-            source: Some(Box::new(self)),
-        }
-    }
-    pub(crate) fn chain(&self) -> impl Iterator<Item = &Report> {
-        core::iter::successors(Some(self), |r| r.source.as_deref())
+    pub(crate) fn chain(&self) -> impl Iterator<Item = &Diagnostic> {
+        core::iter::successors(Some(&self.inner), |r| r.source())
     }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let chain: Vec<&Report> = self.chain().collect();
+        let chain: Vec<&Diagnostic> = self.chain().collect();
         let mut output = String::new();
 
-        for (i, report) in chain.iter().enumerate() {
+        for (i, diagnostic) in chain.iter().enumerate() {
             if i == 0 {
                 #[cfg(feature = "fancy")]
                 write!(output, "{} ", "x".red())?;
@@ -56,7 +44,7 @@ impl Debug for Report {
                 output.push_str("├─▶ ");
             }
 
-            output.push_str(report.diagnostic.msg());
+            output.push_str(diagnostic.description());
             output.push('\n');
         }
 
@@ -76,7 +64,7 @@ impl<T, E: core::fmt::Debug> IntoMischief<T> for core::result::Result<T, E> {
             Err(e) => {
                 let mut msg: String = String::new();
                 write!(msg, "{:?}", e).ok();
-                let diagnostic = Diagnostic::new(msg);
+                let diagnostic = Diagnostic::new(msg, None);
                 Err(Report::new(diagnostic))
             }
         }
@@ -100,7 +88,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
         D: Display + Send + Sync + 'static,
     {
         match self {
-            Err(e) => Err(e.append_error(Diagnostic::new(msg))),
+            Err(e) => Err(Report::new(Diagnostic::new(msg, Some(Box::new(e.inner))))),
             ok => ok,
         }
     }
@@ -111,7 +99,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
         F: FnOnce() -> D,
     {
         match self {
-            Err(e) => Err(e.append_error(Diagnostic::new(msg()))),
+            Err(e) => Err(Report::new(Diagnostic::new(msg(), Some(Box::new(e.inner))))),
             ok => ok,
         }
     }

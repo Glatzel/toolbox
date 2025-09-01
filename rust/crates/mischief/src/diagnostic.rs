@@ -1,17 +1,22 @@
 extern crate alloc;
 use alloc::string::{String, ToString};
 use core::fmt::Display;
+
+#[derive(Debug)]
 pub struct Diagnostic {
-    msg: String,
+    description: String,
+    source: Option<alloc::boxed::Box<Diagnostic>>,
 }
 impl Diagnostic {
-    pub(crate) fn new<D>(msg: D) -> Self
+    pub(crate) fn new<D>(description: D, source: Option<alloc::boxed::Box<Diagnostic>>) -> Self
     where
         D: Display + Send + Sync + 'static,
     {
         Self {
-            msg: msg.to_string(),
+            description: description.to_string(),
+            source,
         }
     }
-    pub(crate) fn msg(&self) -> &str { self.msg.as_str() }
+    pub(crate) fn description(&self) -> &str { self.description.as_str() }
+    pub(crate) fn source(&self) -> Option<&Diagnostic> { self.source.as_deref() }
 }

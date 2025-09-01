@@ -8,7 +8,7 @@ async-trait = { workspace = true, optional = true }
 clerk = { workspace = true }
 miette = { workspace = true }
 serialport = { workspace = true, optional = true }
-tokio = { workspace = true }
+tokio = { workspace = true, optional = true }
 tokio-serial = { workspace = true, optional = true }
 
 [dev-dependencies]
@@ -16,10 +16,10 @@ async-trait = { workspace = true }
 criterion = { workspace = true }
 serialport = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
-clerk = { workspace = true , features = ["log"]}
+clerk = { workspace = true, features = ["log"] }
 
 [features]
-async = ["tokio/io-util", "async-trait", "tokio-serial"]
+async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial"]
 device = ["serialport"]
 log = ["clerk/log"]
 

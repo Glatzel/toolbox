@@ -14,5 +14,5 @@ impl Diagnostic {
             msg: msg.to_string(),
         }
     }
-    pub(crate) fn msg<'a>(&'a self) -> &'a str { self.msg.as_str() }
+    pub(crate) fn msg(&self) -> &str { self.msg.as_str() }
 }

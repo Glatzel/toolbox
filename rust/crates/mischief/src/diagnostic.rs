@@ -4,7 +4,7 @@ use alloc::string::{String, ToString};
 use core::error::Error;
 use core::fmt::{Debug, Display, Write};
 
-pub trait IDiagnostic {
+pub trait IDiagnostic: Debug {
     fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>>;
     fn source(&self) -> Option<&dyn IDiagnostic>;
 }
@@ -26,6 +26,18 @@ impl MischiefError {
     }
     pub fn description(&self) -> Option<&str> { Some(&self.description) }
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
+}
+impl Debug for MischiefError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.description().unwrap_or_default())
+    }
+}
+impl IDiagnostic for MischiefError {
+    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> {
+        Some(Box::new(&self.description))
+    }
+
+    fn source(&self) -> Option<&dyn IDiagnostic> { self.source().map(|f| f as &dyn IDiagnostic) }
 }
 impl<T> From<T> for MischiefError
 where

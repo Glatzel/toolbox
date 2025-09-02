@@ -1,14 +1,10 @@
 use core::error::Error;
-use core::fmt::{Debug, Display, Write};
+use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::String;
-use alloc::vec::Vec;
-
-#[cfg(feature = "fancy")]
-use owo_colors::OwoColorize;
 
 use crate::diagnostic::MischiefError;
+use crate::render;
 
 pub struct Report {
     inner: MischiefError,
@@ -16,43 +12,11 @@ pub struct Report {
 
 impl Report {
     pub(crate) fn new(error: MischiefError) -> Self { Report { inner: error } }
-
-    pub(crate) fn chain(&self) -> impl Iterator<Item = &MischiefError> {
-        core::iter::successors(Some(&self.inner), |r| r.source())
-    }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let chain: Vec<&MischiefError> = self.chain().collect();
-        let mut output = String::new();
-
-        for (i, diagnostic) in chain.iter().enumerate() {
-            if i == 0 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "x".red())?;
-                #[cfg(not(feature = "fancy"))]
-                output.push_str("x ");
-            } else if i == chain.len() - 1 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "╰─▶".red())?;
-                #[cfg(not(feature = "fancy"))]
-                output.push_str("╰─▶ ");
-            } else {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "├─▶".red())?;
-                #[cfg(not(feature = "fancy"))]
-                output.push_str("├─▶ ");
-            }
-
-            if let Some(desc) = diagnostic.description() {
-                use core::fmt::Write as _;
-                let _ = write!(output, "{}", desc);
-            }
-            output.push('\n');
-        }
-
-        write!(f, "{}", output)
+        render::Render::new(&self.inner).fmt(f)
     }
 }
 

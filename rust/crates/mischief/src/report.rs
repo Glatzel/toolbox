@@ -55,7 +55,7 @@ pub trait WrapErr<T> {
 }
 
 impl<T> WrapErr<T> for Result<T, Report> {
-    /// Wraps the error with a custom message and returns a `Result`.
+    
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
         D: Display + Send + Sync + 'static,

@@ -19,7 +19,7 @@ where
 {
     pub fn new(diagnostic: &'a T) -> Self { Self { diagnostic } }
     fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
-        core::iter::successors(self.diagnostic.source(), |r| r.source())
+        core::iter::successors(Some(self.diagnostic as &dyn IDiagnostic), |r| r.source())
     }
 }
 

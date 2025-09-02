@@ -1,4 +1,5 @@
 #![no_std]
+
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
 mod error;
 pub(crate) mod report;

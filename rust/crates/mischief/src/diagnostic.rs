@@ -24,7 +24,7 @@ impl MischiefError {
             source,
         }
     }
-    pub fn description<'a>(&'a self) -> Option<&'a str> { Some(&self.description) }
+    pub fn description(&self) -> Option<&str> { Some(&self.description) }
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
 }
 impl<T> From<T> for MischiefError

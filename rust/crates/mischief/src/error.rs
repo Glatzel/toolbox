@@ -4,10 +4,7 @@ use alloc::string::{String, ToString};
 use core::error::Error;
 use core::fmt::{Debug, Display, Write};
 
-pub trait IDiagnostic: Debug {
-    fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>>;
-    fn source(&self) -> Option<&dyn IDiagnostic>;
-}
+use crate::IDiagnostic;
 
 pub struct MischiefError {
     description: alloc::string::String,

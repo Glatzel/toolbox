@@ -3,7 +3,7 @@ use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
 
-use crate::diagnostic::MischiefError;
+use crate::error::MischiefError;
 use crate::render;
 
 pub struct Report {

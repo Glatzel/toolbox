@@ -8,23 +8,23 @@ use alloc::vec::Vec;
 #[cfg(feature = "fancy")]
 use owo_colors::OwoColorize;
 
-use crate::diagnostic::{IDiagnostic, MischiefError};
+use crate::diagnostic::MischiefError;
 
 pub struct Report {
-    inner: Box<dyn IDiagnostic>,
+    inner: MischiefError,
 }
 
 impl Report {
-    pub(crate) fn new(diagnostic: Box<dyn IDiagnostic>) -> Self { Report { inner: diagnostic } }
+    pub(crate) fn new(error: MischiefError) -> Self { Report { inner: error } }
 
-    pub(crate) fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
-        core::iter::successors(Some(&*self.inner), |r| r.source())
+    pub(crate) fn chain(&self) -> impl Iterator<Item = &MischiefError> {
+        core::iter::successors(Some(&self.inner), |r| r.source())
     }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
+        let chain: Vec<&MischiefError> = self.chain().collect();
         let mut output = String::new();
 
         for (i, diagnostic) in chain.iter().enumerate() {
@@ -68,7 +68,15 @@ where
     fn into_mischief(self) -> Result<T> {
         match self {
             Ok(v) => Ok(v),
-            Err(e) => Err(Report::new(Box::new(MischiefError::from(e)))),
+            Err(e) => Err(Report::new(MischiefError::from(e))),
+        }
+    }
+}
+impl<T> IntoMischief<T> for core::result::Result<T, MischiefError> {
+    fn into_mischief(self) -> Result<T> {
+        match self {
+            Ok(v) => Ok(v),
+            Err(e) => Err(Report::new(e)),
         }
     }
 }
@@ -89,10 +97,10 @@ impl<T> WrapErr<T> for Result<T, Report> {
         D: Display + Send + Sync + 'static,
     {
         match self {
-            Err(e) => Err(Report::new(Box::new(MischiefError::new(
+            Err(e) => Err(Report::new(MischiefError::new(
                 msg,
-                Some(e.inner),
-            )))),
+                Some(Box::new(e.inner)),
+            ))),
             ok => ok,
         }
     }
@@ -103,10 +111,10 @@ impl<T> WrapErr<T> for Result<T, Report> {
         F: FnOnce() -> D,
     {
         match self {
-            Err(e) => Err(Report::new(Box::new(MischiefError::new(
+            Err(e) => Err(Report::new(MischiefError::new(
                 msg(),
-                Some(e.inner),
-            )))),
+                Some(Box::new(e.inner)),
+            ))),
             ok => ok,
         }
     }

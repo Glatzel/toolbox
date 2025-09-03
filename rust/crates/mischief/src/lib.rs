@@ -1,6 +1,6 @@
 #![no_std]
 
-pub use crate::report::{ Report, Result, WrapErr};
+pub use crate::report::{Report, Result, WrapErr};
 mod error;
 pub(crate) mod report;
 pub use error::MischiefError;

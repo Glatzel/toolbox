@@ -1,7 +1,8 @@
 use core::error::Error;
-use core::fmt::{Debug, Display};
+use core::fmt::{Debug, Display, Write};
 extern crate alloc;
 use alloc::boxed::Box;
+use alloc::string::String;
 
 use crate::error::MischiefError;
 use crate::render;
@@ -19,31 +20,21 @@ impl Debug for Report {
         render::Render::new(&self.inner).fmt(f)
     }
 }
-
-pub trait IntoMischief<T> {
-    fn into_mischief(self) -> Result<T>;
+impl From<MischiefError> for Report {
+    fn from(value: MischiefError) -> Self { Self { inner: value } }
 }
-pub type Result<T, E = Report> = core::result::Result<T, E>;
-
-impl<T, E> IntoMischief<T> for core::result::Result<T, E>
+impl<E> From<E> for Report
 where
     E: Error,
 {
-    fn into_mischief(self) -> Result<T> {
-        match self {
-            Ok(v) => Ok(v),
-            Err(e) => Err(Report::new(MischiefError::from(e))),
+    fn from(value: E) -> Self {
+        Self {
+            inner: MischiefError::from(value),
         }
     }
 }
-impl<T> IntoMischief<T> for core::result::Result<T, MischiefError> {
-    fn into_mischief(self) -> Result<T> {
-        match self {
-            Ok(v) => Ok(v),
-            Err(e) => Err(Report::new(e)),
-        }
-    }
-}
+pub type Result<T, E = Report> = core::result::Result<T, E>;
+
 pub trait WrapErr<T> {
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
@@ -55,7 +46,6 @@ pub trait WrapErr<T> {
 }
 
 impl<T> WrapErr<T> for Result<T, Report> {
-
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
         D: Display + Send + Sync + 'static,
@@ -80,6 +70,62 @@ impl<T> WrapErr<T> for Result<T, Report> {
                 Some(Box::new(e.inner)),
             ))),
             ok => ok,
+        }
+    }
+}
+impl<T, E> WrapErr<T> for Result<T, E>
+where
+    E: Error,
+{
+    fn wrap_err<D>(self, msg: D) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static,
+    {
+        match self {
+            Err(e) => Err(Report::new(MischiefError::new(
+                msg,
+                Some(Box::new(MischiefError::from(e))),
+            ))),
+            ok => Ok(ok?),
+        }
+    }
+
+    fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
+    where
+        D: Display + Send + Sync + 'static,
+        F: FnOnce() -> D,
+    {
+        match self {
+            Err(e) => Err(Report::new(MischiefError::new(
+                msg(),
+                Some(Box::new(MischiefError::from(e))),
+            ))),
+            ok => Ok(ok?),
+        }
+    }
+}
+
+impl Report {
+    /// Wrap anything that implements Display (preferred for user-facing).
+    pub fn from_display<D>(desc: D) -> Self
+    where
+        D: Display,
+    {
+        Self {
+            inner: MischiefError::new(desc, None),
+        }
+    }
+
+    /// Wrap anything that only implements Debug.
+    pub fn from_debug<D>(dbg: D) -> Self
+    where
+        D: Debug,
+    {
+        let mut description = String::new();
+        write!(description, "{:?}", dbg).unwrap();
+
+        Self {
+            inner: MischiefError::new(description, None),
         }
     }
 }

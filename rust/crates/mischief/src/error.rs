@@ -1,8 +1,8 @@
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use core::error::Error;
-use core::fmt::{Debug, Display, Write};
+use core::fmt::{Debug, Display};
 
 use crate::IDiagnostic;
 
@@ -36,11 +36,11 @@ impl IDiagnostic for MischiefError {
 
     fn source(&self) -> Option<&dyn IDiagnostic> { self.source().map(|f| f as &dyn IDiagnostic) }
 }
-impl<T> From<T> for MischiefError
+impl<E> From<E> for MischiefError
 where
-    T: Error,
+    E: Error,
 {
-    fn from(value: T) -> Self {
+    fn from(value: E) -> Self {
         // convert recursively
         fn convert(err: &dyn Error) -> MischiefError {
             MischiefError {
@@ -50,31 +50,5 @@ where
         }
 
         convert(&value)
-    }
-}
-
-impl MischiefError {
-    /// Wrap anything that implements Display (preferred for user-facing).
-    pub fn from_display<D>(desc: D) -> Self
-    where
-        D: Display,
-    {
-        Self {
-            description: desc.to_string(),
-            source: None,
-        }
-    }
-
-    /// Wrap anything that only implements Debug.
-    pub fn from_debug<D>(dbg: D) -> Self
-    where
-        D: Debug,
-    {
-        let mut description = String::new();
-        write!(description, "{:?}", dbg).unwrap();
-        Self {
-            description,
-            source: None,
-        }
     }
 }

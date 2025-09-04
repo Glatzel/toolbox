@@ -20,9 +20,7 @@ impl Debug for Report {
         render::Render::new(&self.inner).fmt(f)
     }
 }
-impl From<MischiefError> for Report {
-    fn from(value: MischiefError) -> Self { Self { inner: value } }
-}
+
 impl<E> From<E> for Report
 where
     E: Error,

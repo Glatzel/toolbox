@@ -7,6 +7,4 @@ version.workspace = true
 owo-colors = { workspace = true, optional = true }
 
 [features]
-default = ["std"]
 fancy = ["owo-colors"]
-std = []

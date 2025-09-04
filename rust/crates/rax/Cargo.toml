@@ -21,7 +21,6 @@ clerk = { workspace = true, features = ["log"] }
 [features]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial"]
 device = ["serialport"]
-log = ["clerk/log"]
 
 [[bench]]
 harness = false

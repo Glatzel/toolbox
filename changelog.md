@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.27] - 2025-09-04
+
+### Performance
+
+- Use vec to store error message by @Glatzel in [#205](https://github.com/Glatzel/toolbox/pull/205)
+
+### Refactor
+
+- New framework for mischief by @Glatzel in [#209](https://github.com/Glatzel/toolbox/pull/209)
+
+### Removed
+
+- Remove unused features by @Glatzel in [#211](https://github.com/Glatzel/toolbox/pull/211)
+
+### Testing
+
+- Add mischief test by @Glatzel in [#202](https://github.com/Glatzel/toolbox/pull/202)
+
 ## [0.0.26] - 2025-08-30
 
 ### Changed
@@ -178,6 +196,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.27]: https://github.com/Glatzel/toolbox/compare/v0.0.26..v0.0.27
 [0.0.26]: https://github.com/Glatzel/toolbox/compare/v0.0.25..v0.0.26
 [0.0.25]: https://github.com/Glatzel/toolbox/compare/v0.0.24..v0.0.25
 [0.0.24]: https://github.com/Glatzel/toolbox/compare/v0.0.23..v0.0.24

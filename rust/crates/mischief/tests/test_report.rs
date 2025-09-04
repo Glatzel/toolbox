@@ -24,10 +24,10 @@ fn report_ok() -> mischief::Result<()> {
 }
 #[test]
 fn report_from_error() -> mischief::Result<()> {
-    let f = File::open("fake");
+    let f = File::open("fake").wrap_err("error wrapper");
     match f {
         Ok(_) => panic!(),
-        Err(e) => println!("{e:?}"),
+        Err(e) => println!("{e}"),
     }
     Ok(())
 }

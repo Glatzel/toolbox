@@ -20,7 +20,11 @@ impl Debug for Report {
         render::Render::new(&self.inner).fmt(f)
     }
 }
-
+impl Display for Report {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        render::Render::new(&self.inner).fmt(f)
+    }
+}
 impl<E> From<E> for Report
 where
     E: Error,

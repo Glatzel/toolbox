@@ -29,6 +29,11 @@ impl Debug for MischiefError {
         write!(f, "{}", self.description().unwrap_or_default())
     }
 }
+impl Display for MischiefError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.description().unwrap_or_default())
+    }
+}
 impl IDiagnostic for MischiefError {
     fn description<'a>(&'a self) -> Option<alloc::boxed::Box<dyn Display + 'a>> {
         Some(Box::new(&self.description))

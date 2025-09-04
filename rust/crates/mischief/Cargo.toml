@@ -4,7 +4,7 @@ name = "mischief"
 version.workspace = true
 
 [dependencies]
-owo-colors = { workspace = true, optional = true }
+owo-colors = {  version = "4.2.2", optional = true }
 
 [features]
 fancy = ["owo-colors"]

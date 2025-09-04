@@ -16,9 +16,6 @@ criterion = { workspace = true }
 float-cmp = { workspace = true }
 serialport = { workspace = true }
 
-[features]
-log = ["clerk/log"]
-
 [[bench]]
 harness = false
 name = "nmea"

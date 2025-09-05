@@ -678,6 +678,7 @@ dependencies = [
 name = "mischief"
 version = "0.0.27"
 dependencies = [
+ "mischief-macros",
  "owo-colors",
 ]
 

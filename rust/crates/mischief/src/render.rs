@@ -58,11 +58,7 @@ impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
 
         // Top-level error
         if let Some(first) = chain.next() {
-            if let Some(desc) = first.description() {
-                writeln!(f, "Error: {}", desc)?;
-            } else {
-                writeln!(f, "Error: <unknown>")?;
-            }
+            writeln!(f, "Error: {}", first.description())?;
         }
 
         // Causes

@@ -6,4 +6,4 @@ pub(crate) mod report;
 pub use error::MischiefError;
 mod protocol;
 mod render;
-pub use protocol::IDiagnostic;
+pub use protocol::{IDiagnostic, Severity};

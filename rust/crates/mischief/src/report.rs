@@ -54,8 +54,12 @@ impl<T> WrapErr<T> for Result<T, Report> {
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
-                msg,
+                &msg,
                 Some(Box::new(e.inner)),
+                None,
+                None,
+                None,
+                None,
             ))),
             ok => ok,
         }
@@ -68,8 +72,12 @@ impl<T> WrapErr<T> for Result<T, Report> {
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
-                msg(),
+                &msg(),
                 Some(Box::new(e.inner)),
+                None,
+                None,
+                None,
+                None,
             ))),
             ok => ok,
         }
@@ -85,8 +93,12 @@ where
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
-                msg,
+                &msg,
                 Some(Box::new(MischiefError::from(e))),
+                None,
+                None,
+                None,
+                None,
             ))),
             ok => Ok(ok?),
         }
@@ -99,8 +111,12 @@ where
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
-                msg(),
+                &msg(),
                 Some(Box::new(MischiefError::from(e))),
+                None,
+                None,
+                None,
+                None,
             ))),
             ok => Ok(ok?),
         }
@@ -111,10 +127,10 @@ impl Report {
     /// Wrap anything that implements Display (preferred for user-facing).
     pub fn from_display<D>(desc: D) -> Self
     where
-        D: Display,
+        D: Display + Send + Sync + 'static,
     {
         Self {
-            inner: MischiefError::new(desc, None),
+            inner: MischiefError::new(&desc, None, None, None, None, None),
         }
     }
 
@@ -127,7 +143,7 @@ impl Report {
         write!(description, "{:?}", dbg).unwrap();
 
         Self {
-            inner: MischiefError::new(description, None),
+            inner: MischiefError::new(&description, None, None, None, None, None),
         }
     }
 }

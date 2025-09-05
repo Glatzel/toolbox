@@ -50,7 +50,7 @@ impl Display for MischiefError {
     }
 }
 impl IDiagnostic for MischiefError {
-    fn description<'a>(&'a self) -> Option<&'a str> { Some(&self.description) }
+    fn description<'a>(&'a self) -> &'a str { &self.description }
 
     fn source(&self) -> Option<&dyn IDiagnostic> { self.source().map(|f| f as &dyn IDiagnostic) }
 

@@ -3,7 +3,7 @@ extern crate alloc;
 use core::fmt::Debug;
 
 pub trait IDiagnostic: Debug {
-    fn description<'a>(&'a self) -> Option<&'a str>;
+    fn description<'a>(&'a self) -> &'a str;
     fn source(&self) -> Option<&dyn IDiagnostic>;
     fn code<'a>(&'a self) -> Option<&'a str>;
     fn severity(&self) -> Option<Severity>;

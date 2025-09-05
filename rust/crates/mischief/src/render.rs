@@ -24,7 +24,6 @@ where
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         use alloc::string::String;
         use alloc::vec::Vec;
-        use core::fmt::Write;
 
         use owo_colors::OwoColorize;
 
@@ -43,10 +42,9 @@ where
                 write!(output, "{} ", "├─▶".red())?;
             }
 
-            if let Some(desc) = diagnostic.description() {
-                use core::fmt::Write as _;
-                let _ = write!(output, "{}", desc);
-            }
+            use core::fmt::Write as _;
+            let _ = write!(output, "{}", diagnostic.description());
+
             output.push('\n');
         }
 

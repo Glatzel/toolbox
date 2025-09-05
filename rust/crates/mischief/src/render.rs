@@ -72,11 +72,7 @@ impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
                 writeln!(f, "\nCaused by:")?;
                 first = false;
             }
-            if let Some(desc) = diagnostic.description() {
-                writeln!(f, "    {}", desc)?;
-            } else {
-                writeln!(f, "    <unknown>")?;
-            }
+            writeln!(f, "    {}", diagnostic.description())?;
         }
 
         Ok(())

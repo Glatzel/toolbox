@@ -31,7 +31,7 @@ impl MischiefError {
             description: description.to_string(),
             source,
             code: code.map(|s| s.to_string()),
-            severity: severity,
+            severity,
             help: help.map(|s| s.to_string()),
             url: url.map(|s| s.to_string()),
         }
@@ -54,13 +54,13 @@ impl IDiagnostic for MischiefError {
 
     fn source(&self) -> Option<&dyn IDiagnostic> { self.source().map(|f| f as &dyn IDiagnostic) }
 
-    fn code<'a>(&'a self) -> Option<&'a str> { self.code.as_deref() }
+    fn code(&self) -> Option<&str> { self.code.as_deref() }
 
     fn severity(&self) -> Option<crate::protocol::Severity> { self.severity.clone() }
 
-    fn help<'a>(&'a self) -> Option<&'a str> { self.help.as_deref() }
+    fn help(&self) -> Option<&str> { self.help.as_deref() }
 
-    fn url<'a>(&'a self) -> Option<&'a str> { self.url.as_deref() }
+    fn url(&self) -> Option<&str> { self.url.as_deref() }
 }
 impl<E> From<E> for MischiefError
 where

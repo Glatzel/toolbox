@@ -48,6 +48,9 @@ mod test {
 
     use clerk::{LogLevel, init_log_with_level};
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use super::*;
     #[test]
     fn test_new_gpq() -> mischief::Result<()> {

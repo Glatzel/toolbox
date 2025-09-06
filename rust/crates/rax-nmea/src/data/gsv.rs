@@ -153,7 +153,8 @@ impl fmt::Debug for Gsv {
 #[cfg(test)]
 mod test {
     use clerk::{LogLevel, init_log_with_level};
-
+    use std::println;
+    use std::string::ToString;
     use super::*;
     extern crate std;
     #[test]

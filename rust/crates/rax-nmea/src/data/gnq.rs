@@ -47,7 +47,8 @@ impl fmt::Debug for Gnq {
 mod test {
     extern crate std;
     use clerk::{LogLevel, init_log_with_level};
-
+    use std::println;
+    use std::string::ToString;
     use super::*;
     #[test]
     fn test_new_gnq() -> mischief::Result<()> {

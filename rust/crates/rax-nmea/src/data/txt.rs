@@ -1,7 +1,8 @@
 use core::fmt;
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use core::fmt::Write;
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
@@ -96,8 +97,16 @@ impl fmt::Debug for Txt {
                 .map(|x| match x {
                     (None, None) => panic!("Null txt info"),
                     (None, Some(i)) => i.to_string(),
-                    (Some(t), None) => format!("{t}: "),
-                    (Some(t), Some(i)) => format!("{t}: {i}"),
+                    (Some(t), None) => {
+                        let mut s = String::new();
+                        write!(s, "{t}: ").unwrap();
+                        s
+                    }
+                    (Some(t), Some(i)) => {
+                        let mut s = String::new();
+                        write!(s, "{t}: {i}").unwrap();
+                        s
+                    }
                 })
                 .collect::<Vec<String>>(),
         );
@@ -110,6 +119,9 @@ impl fmt::Debug for Txt {
 mod test {
     use clerk::{LogLevel, init_log_with_level};
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use super::*;
     #[test]
     fn test_new_txt() -> mischief::Result<()> {

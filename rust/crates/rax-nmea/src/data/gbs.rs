@@ -83,7 +83,7 @@ impl INmeaData for Gbs {
     }
 }
 impl Debug for Gbs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut ds = f.debug_struct("GBS");
         ds.field("talker", &self.talker);
 
@@ -125,8 +125,10 @@ impl Debug for Gbs {
 mod tests {
     use clerk::{LogLevel, init_log_with_level};
     extern crate std;
-    use super::*;
+    use std::println;
+    use std::string::ToString;
 
+    use super::*;
     #[test]
     fn test_gbs() {
         init_log_with_level(LogLevel::TRACE);

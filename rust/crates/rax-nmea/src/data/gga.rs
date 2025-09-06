@@ -1,5 +1,8 @@
 use core::fmt::{self, Display};
 use core::str::FromStr;
+extern crate alloc;
+use alloc::string::String;
+use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
@@ -197,10 +200,14 @@ impl fmt::Debug for Gga {
             ds.field("hdop", &hdop);
         }
         if let Some(alt) = self.alt {
-            ds.field("alt", &format!("{alt} M"));
+            let mut s = String::new();
+            write!(s, "{alt} M")?;
+            ds.field("alt", &s);
         }
         if let Some(sep) = self.sep {
-            ds.field("sep", &format!("{sep} M"));
+            let mut s = String::new();
+            write!(s, "{sep} M")?;
+            ds.field("sep", &s);
         }
         if let Some(diff_age) = self.diff_age {
             ds.field("diff_age", &diff_age);
@@ -216,6 +223,9 @@ impl fmt::Debug for Gga {
 #[cfg(test)]
 mod test {
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
 

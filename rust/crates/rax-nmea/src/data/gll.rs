@@ -91,6 +91,9 @@ impl fmt::Debug for Gll {
 
 #[cfg(test)]
 mod test {
+    use std::println;
+    use std::string::ToString;
+
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
     extern crate std;

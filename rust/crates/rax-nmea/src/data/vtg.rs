@@ -1,6 +1,9 @@
 use core::fmt;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+extern crate alloc;
+use alloc::string::String;
+use core::fmt::Write;
 
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
@@ -69,16 +72,24 @@ impl fmt::Debug for Vtg {
         ds.field("talker", &self.talker);
 
         if let Some(cogt) = self.cogt {
-            ds.field("cogt", &format!("{cogt} Degrees"));
+            let mut s = String::new();
+            write!(s, "{cogt} Degrees")?;
+            ds.field("cogt", &s);
         }
         if let Some(cogm) = self.cogm {
-            ds.field("cogm", &format!("{cogm} Degrees"));
+            let mut s = String::new();
+            write!(s, "{cogm} Degrees")?;
+            ds.field("cogm", &s);
         }
         if let Some(sogn) = self.sogn {
-            ds.field("sogn", &format!("{sogn} Knots"));
+            let mut s = String::new();
+            write!(s, "{sogn} Knots")?;
+            ds.field("sogn", &s);
         }
         if let Some(sogk) = self.sogk {
-            ds.field("sogk", &format!("{sogk} Kph"));
+            let mut s = String::new();
+            write!(s, "{sogk} Kph")?;
+            ds.field("sogk", &s);
         }
         if let Some(ref pos_mode) = self.pos_mode {
             ds.field("pos_mode", pos_mode);
@@ -93,6 +104,9 @@ mod test {
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use super::*;
     #[test]
     fn test_new_vtg() -> mischief::Result<()> {

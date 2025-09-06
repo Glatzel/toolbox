@@ -200,9 +200,11 @@ mod test {
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use super::*;
     use crate::data::{PosMode, Talker};
-
     #[test]
     fn test_gns_parsing1() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);

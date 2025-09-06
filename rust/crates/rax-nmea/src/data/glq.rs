@@ -45,7 +45,8 @@ impl fmt::Debug for Glq {
 
 #[cfg(test)]
 mod test {
-
+    use std::println;
+    use std::string::ToString;
     use clerk::{LogLevel, init_log_with_level};
     extern crate std;
     use super::*;

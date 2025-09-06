@@ -1,5 +1,7 @@
 use core::fmt;
 use core::str::FromStr;
+extern crate alloc;
+use alloc::vec::Vec;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
@@ -157,6 +159,9 @@ impl fmt::Debug for Gsa {
 #[cfg(test)]
 mod test {
     extern crate std;
+    use std::string::ToString;
+    use std::{println, vec};
+
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
 

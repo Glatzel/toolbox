@@ -89,6 +89,9 @@ impl fmt::Debug for Dhv {
 #[cfg(test)]
 mod test {
     extern crate std;
+    use std::println;
+    use std::string::ToString;
+
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

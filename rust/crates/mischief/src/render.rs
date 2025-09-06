@@ -46,7 +46,6 @@ where
 
         let chain: alloc::vec::Vec<&dyn IDiagnostic> = self.chain().collect();
         let width = terminal_config.width.unwrap_or(80);
-
         let mut buffer = String::new();
 
         for (i, diagnostic) in chain.iter().enumerate() {
@@ -70,28 +69,23 @@ where
 
             write!(f, "{} ", prefix)?;
 
-            // --- Severity  ---
-            if let Some(sev) = self.diagnostic.severity() {
-                match (&sev, terminal_config.support_color) {
-                    (crate::Severity::Error, true) => write!(buffer, "{}", sev.to_string().red())?,
-                    (crate::Severity::Warning, true) => {
-                        write!(buffer, "{}", sev.to_string().yellow())?
-                    }
-                    (crate::Severity::Advice, true) => {
-                        write!(buffer, "{}", sev.to_string().green())?
-                    }
-                    _ => write!(buffer, "{:?}", sev)?,
-                }
+            // --- Severity + Code  ---
+            if let Some(sev) = diagnostic.severity() {
+                write!(buffer, "{:?}", sev)?
             };
 
-            // --- Code  ---
             if let Some(code) = diagnostic.code() {
                 if terminal_config.support_color {
-                    write!(buffer, " <{}>", code.red())?;
+                    let code_colored = match diagnostic.severity() {
+                        Some(crate::Severity::Warning) => code.red().to_string(),
+                        Some(crate::Severity::Advice) => code.yellow().to_string(),
+                        _ => code.green().to_string(),
+                    };
+                    write!(buffer, "<{}>", code_colored)?;
                 } else {
-                    write!(buffer, " <{}>", code)?;
+                    write!(buffer, "<{}>", code)?;
                 }
-            };
+            }
 
             // --- URL ---
             if let Some(url) = diagnostic.url() {
@@ -103,9 +97,9 @@ where
                 }
 
                 if terminal_config.support_color {
-                    write!(buffer, " ({})", link.blue())?;
+                    write!(buffer, "({})", link.blue())?;
                 } else {
-                    write!(buffer, " ({})", link)?;
+                    write!(buffer, "({})", link)?;
                 }
             }
 
@@ -133,15 +127,14 @@ where
                 write!(buffer, "    {}: {}", "help".cyan(), help.blue())?;
                 write!(
                     f,
-                    "\n\n{}",
+                    "\n{}",
                     textwrap::fill(
                         &buffer,
                         textwrap::Options::new(width).subsequent_indent(&sub_prefix)
                     )
                 )?;
             }
-
-            writeln!(f)?;
+            write!(f, "\n")?;
         }
 
         Ok(())

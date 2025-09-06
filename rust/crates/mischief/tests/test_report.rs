@@ -1,6 +1,6 @@
 use std::fs::File;
 
-use mischief::{Severity, WrapErr, mischief};
+use mischief::{WrapErr, mischief};
 
 #[test]
 fn report_error() {

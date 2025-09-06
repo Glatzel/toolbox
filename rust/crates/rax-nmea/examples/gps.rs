@@ -2,7 +2,6 @@ use std::io::BufReader;
 use std::time::Duration;
 
 use clerk::LogLevel;
-
 use rax::io::IRaxReader;
 use rax::str_parser::StrParserContext;
 use rax_nmea::Dispatcher;
@@ -12,8 +11,7 @@ fn main() -> mischief::Result<()> {
     let path = "COM5";
     let port = serialport::new(path, 9600)
         .timeout(Duration::from_millis(3000))
-        .open()
-     ?;
+        .open()?;
     let mut reader = rax::io::RaxReader::new(BufReader::new(port));
     let mut ctx = StrParserContext::new();
     let mut dispatcher = Dispatcher::new();

@@ -1,5 +1,4 @@
 use clerk::LogLevel;
-
 use rax::io::{AsyncIRaxReader, AsyncRaxReader};
 use tokio::io::BufReader;
 use tokio_serial::SerialPortBuilderExt;

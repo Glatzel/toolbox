@@ -2,7 +2,6 @@ use std::io::BufReader;
 use std::time::Duration;
 
 use clerk::LogLevel;
-
 use rax::io::IRaxReader;
 fn main() -> mischief::Result<()> {
     clerk::init_log_with_level(LogLevel::TRACE);

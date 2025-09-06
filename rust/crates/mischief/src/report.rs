@@ -1,8 +1,7 @@
 use core::error::Error;
-use core::fmt::{Debug, Display, Write};
+use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::String;
 
 use crate::error::MischiefError;
 use crate::render;
@@ -83,6 +82,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
         }
     }
 }
+
 impl<T, E> WrapErr<T> for Result<T, E>
 where
     E: Error,
@@ -119,31 +119,6 @@ where
                 None,
             ))),
             ok => Ok(ok?),
-        }
-    }
-}
-
-impl Report {
-    /// Wrap anything that implements Display (preferred for user-facing).
-    pub fn from_display<D>(desc: D) -> Self
-    where
-        D: Display + Send + Sync + 'static,
-    {
-        Self {
-            inner: MischiefError::new(&desc, None, None, None, None, None),
-        }
-    }
-
-    /// Wrap anything that only implements Debug.
-    pub fn from_debug<D>(dbg: D) -> Self
-    where
-        D: Debug,
-    {
-        let mut description = String::new();
-        write!(description, "{:?}", dbg).unwrap();
-
-        Self {
-            inner: MischiefError::new(&description, None, None, None, None, None),
         }
     }
 }

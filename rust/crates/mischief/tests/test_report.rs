@@ -22,7 +22,26 @@ fn report_error() {
         Err(report) => println!("{:?}", report),
     }
 }
-
+#[test]
+fn report_error_long() {
+    let e: Result<i32, mischief::Report> = Err("first errorx xxxxxxxxxxxxx xxxxxxxxxxx xxxxxxxxxxxxxxxx xxxxxxxxxxxx xxxxxxxxxx")
+        .map_err(|e| {
+            mischief!(
+                "{}",
+                e,
+                severity = mischief::Severity::Warning,
+                code = "E404",
+                url = "https://github.com/Glatzel/toolbox",
+                help = "Try again xxxx xxxxxxxx xxxxxxxxx xxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx."
+            )
+        })
+        .wrap_err("Second errorxxxxxxxxx xxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxx")
+        .wrap_err_with(|| "Third errorxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxx");
+    match e {
+        Ok(_) => panic!(),
+        Err(report) => println!("{:?}", report),
+    }
+}
 #[test]
 fn report_ok() -> mischief::Result<()> {
     Ok::<i32, mischief::Result<()>>(2i32)

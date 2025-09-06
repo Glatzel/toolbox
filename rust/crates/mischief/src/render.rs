@@ -16,80 +16,130 @@ where
         core::iter::successors(Some(self.diagnostic as &dyn IDiagnostic), |r| r.source())
     }
 }
-#[cfg(feature = "fancy")]
 impl<'a, T> Debug for Render<'a, T>
 where
     T: IDiagnostic,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        use alloc::string::String;
+        #[cfg(not(feature = "fancy"))]
+        self.render_plain(f)?;
+
+        #[cfg(feature = "fancy")]
+        self.render_fancy(f, TerminalConfig::init())?;
+        Ok(())
+    }
+}
+impl<'a, T> Render<'a, T>
+where
+    T: IDiagnostic,
+{
+    #[cfg(feature = "fancy")]
+    fn render_fancy(
+        &self,
+        f: &mut core::fmt::Formatter<'_>,
+        terminal_config: TerminalConfig,
+    ) -> core::fmt::Result {
+        use alloc::string::{String, ToString};
         use alloc::vec::Vec;
+        use core::fmt::Write;
 
         use owo_colors::OwoColorize;
 
         let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
-        let mut output = String::new();
+        let width: usize = terminal_config.width.unwrap_or(80);
 
-        output.push('\n');
         for (i, diagnostic) in chain.iter().enumerate() {
-            if i == 0 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "x".red())?;
-            } else if i == chain.len() - 1 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "╰─▶".red())?;
-            } else {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "├─▶".red())?;
-            }
-
-            use core::fmt::Write as _;
-            if let Some(severity) = diagnostic.severity() {
-                write!(output, "{:?}", severity).unwrap();
-            }
-            if let Some(code) = diagnostic.code() {
-                use crate::Severity;
-
-                match diagnostic.severity() {
-                    Some(Severity::Warning) => write!(output, " <{}>", code.red()).unwrap(),
-                    Some(Severity::Advice) => write!(output, " <{}>", code.yellow()).unwrap(),
-                    _ => write!(output, " <{}>", code.green()).unwrap(),
-                }
-            }
-            if let Some(url) = diagnostic.url() {
-                let mut link_url = String::new();
-                write!(link_url, "\x1b]8;;{}\x1b\\link\x1b]8;;\x1b\\", url).unwrap();
-                write!(output, " ({})", link_url.blue()).unwrap();
-            }
-            if diagnostic.severity().is_some()
-                || diagnostic.code().is_some()
-                || diagnostic.url().is_some()
-            {
-                output.push_str(": ");
-            }
-            write!(output, "{}", diagnostic.description()).unwrap();
-            if let Some(help) = diagnostic.help() {
-                output.push('\n');
+            let (prefix, sub_prefix) = if terminal_config.support_color {
                 if i == 0 {
-                    write!(output, "{}", "  ╰─".red())?;
+                    ("x".red().to_string(), "│  ".red().to_string())
                 } else if i == chain.len() - 1 {
-                    write!(output, "{}", "    ╰─".red())?;
+                    ("╰─▶".red().to_string(), "    ".to_string())
                 } else {
-                    write!(output, "{}", "│   ╰─".red())?;
+                    ("├─▶".red().to_string(), "│    ".red().to_string())
                 }
-                write!(output, " {}", "help: ".cyan())?;
-                write!(output, "{}", help.blue())?;
+            } else {
+                if i == 0 {
+                    ("x".to_string(), "│  ".to_string())
+                } else if i == chain.len() - 1 {
+                    ("╰─▶".to_string(), "    ".to_string())
+                } else {
+                    ("├─▶".to_string(), "│    ".to_string())
+                }
+            };
+            write!(f, "{} ", prefix)?;
+            let mut line = String::new();
+            //line 1
+            {
+                // severity + code
+                if let Some(severity) = diagnostic.severity() {
+                    write!(line, "{:?}", severity)?;
+                }
+                if let Some(code) = diagnostic.code() {
+                    if terminal_config.support_color {
+                        match diagnostic.severity() {
+                            Some(crate::Severity::Warning) => write!(line, " <{}>", code.red())?,
+                            Some(crate::Severity::Advice) => write!(line, " <{}>", code.yellow())?,
+                            _ => write!(line, " <{}>", code.green())?,
+                        }
+                    } else {
+                        write!(line, " <{}>", code)?
+                    }
+                }
+
+                // url
+                if let Some(url) = diagnostic.url() {
+                    let mut link_url = String::new();
+                    if terminal_config.support_hyperlinks {
+                        write!(link_url, "\x1b]8;;{}\x1b\\link\x1b]8;;\x1b\\", url)?;
+                    } else {
+                        write!(link_url, "{}", url)?;
+                    }
+                    if terminal_config.support_color {
+                        write!(line, " ({})", link_url.blue())?;
+                    } else {
+                        write!(line, " ({})", link_url)?;
+                    }
+                }
+                if diagnostic.severity().is_some()
+                    || diagnostic.code().is_some()
+                    || diagnostic.url().is_some()
+                {
+                    write!(line, ": ")?;
+                }
+                write!(line, "{}", diagnostic.description())?;
+                write!(
+                    f,
+                    "{}",
+                    textwrap::fill(
+                        &line,
+                        textwrap::Options::new(width).subsequent_indent(&sub_prefix)
+                    )
+                )?;
+                line.clear();
             }
 
-            output.push('\n');
+            //line 2
+            {
+                if let Some(help) = diagnostic.help() {
+                    write!(f, "\n\n")?;
+                    write!(line, "    {}: {}\n", "help".cyan(), help.blue())?;
+                    write!(
+                        f,
+                        "{}",
+                        textwrap::fill(
+                            &line,
+                            textwrap::Options::new(width).subsequent_indent(&sub_prefix)
+                        )
+                    )?;
+                    line.clear();
+                }
+            }
+            write!(f, "\n")?;
         }
-
-        write!(f, "{}", output)
+        Ok(())
     }
-}
-#[cfg(not(feature = "fancy"))]
-impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    #[cfg(not(feature = "fancy"))]
+    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut chain = self.chain();
 
         // Top-level error
@@ -108,5 +158,32 @@ impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "fancy")]
+struct TerminalConfig {
+    width: Option<usize>,
+    support_color: bool,
+    support_hyperlinks: bool,
+    _supports_unicode: bool,
+}
+
+#[cfg(feature = "fancy")]
+impl TerminalConfig {
+    pub fn init() -> Self {
+        Self {
+            width: Self::get_terminal_width(),
+            support_color: supports_color::on(supports_color::Stream::Stdout).is_some(),
+            support_hyperlinks: supports_hyperlinks::supports_hyperlinks(),
+            _supports_unicode: supports_unicode::supports_unicode(),
+        }
+    }
+    fn get_terminal_width() -> Option<usize> {
+        if let Some((terminal_size::Width(w), _)) = terminal_size::terminal_size() {
+            Some(w as usize)
+        } else {
+            None
+        }
     }
 }

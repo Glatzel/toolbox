@@ -64,7 +64,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
 #[cfg(test)]
 mod tests {
     use clerk::{LogLevel, init_log_with_level};
- extern crate std;
+    extern crate std;
     use super::*;
 
     #[test]

@@ -60,14 +60,12 @@ where
                 } else {
                     ("├─▶".red().to_string(), "│    ".red().to_string())
                 }
+            } else if i == 0 {
+                ("x".to_string(), "│  ".to_string())
+            } else if i == chain.len() - 1 {
+                ("╰─▶".to_string(), "     ".to_string())
             } else {
-                if i == 0 {
-                    ("x".to_string(), "│  ".to_string())
-                } else if i == chain.len() - 1 {
-                    ("╰─▶".to_string(), "     ".to_string())
-                } else {
-                    ("├─▶".to_string(), "│    ".to_string())
-                }
+                ("├─▶".to_string(), "│    ".to_string())
             };
 
             write!(f, "{} ", prefix)?;
@@ -143,7 +141,7 @@ where
                 )?;
             }
 
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())

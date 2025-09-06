@@ -1,9 +1,7 @@
 macro_rules! readonly_struct {
     ($name:ident, $($struct_doc:expr)+, $({$field:ident: $type:ty $(, $field_doc:expr)?}),*) => {
         $(#[doc=$struct_doc])+
-        #[cfg(feature = "serde")]
-        use serde::{Serialize, Deserialize};
-        #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
         pub struct $name {
             $( $field: $type ),*
         }

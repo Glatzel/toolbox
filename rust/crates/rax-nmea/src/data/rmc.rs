@@ -119,7 +119,7 @@ impl fmt::Debug for Rmc {
 mod test {
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
- extern crate std;
+    extern crate std;
     use super::*;
     #[test]
     fn test_new_rmc1() -> mischief::Result<()> {

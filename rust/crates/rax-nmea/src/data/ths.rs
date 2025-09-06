@@ -51,7 +51,7 @@ impl fmt::Debug for Ths {
 
 #[cfg(test)]
 mod test {
- extern crate std;
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

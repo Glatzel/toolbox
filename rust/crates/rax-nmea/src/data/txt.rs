@@ -30,8 +30,8 @@ impl TryFrom<u8> for TxtType {
         }
     }
 }
-impl std::fmt::Display for TxtType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for TxtType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             TxtType::Error => "Error",
             TxtType::Warn => "Warn",

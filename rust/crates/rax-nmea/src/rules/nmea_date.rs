@@ -15,7 +15,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> (std::option::Option<NaiveDate>, &'a str) {
+    fn apply(&self, input: &'a str) -> (core::option::Option<NaiveDate>, &'a str) {
         clerk::trace!("NmeaUtc rule: input='{}'", input);
 
         let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);

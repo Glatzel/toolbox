@@ -23,7 +23,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
     /// Applies the NmeaCoord rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> (std::option::Option<f64>, &'a str) {
+    fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
         let (num_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);

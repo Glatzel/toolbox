@@ -127,7 +127,7 @@ impl FromStr for Identifier {
     }
 }
 impl Display for Identifier {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             Self::DHV => "DHV",
             Self::DTM => "DTM",
@@ -187,7 +187,7 @@ impl FromStr for Talker {
     }
 }
 impl Display for Talker {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             Self::BD => "BD",
             Self::GA => "GA",

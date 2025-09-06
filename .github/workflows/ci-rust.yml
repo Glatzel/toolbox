@@ -18,6 +18,7 @@ jobs:
         args:
           - --workspace --all-features
           - --no-default-features --features macros -p mischief
+          - --no-default-features -p rax
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5

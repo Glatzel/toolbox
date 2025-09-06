@@ -148,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn test_until_n_in_char_set_unicode_keep_left() -> miette::Result<()> {
+    fn test_until_n_in_char_set_unicode_keep_left() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter: CharSetFilter<3> = CharSetFilter::from_str("你世好")?;
         let rule = UntilNInCharSet::<2, 3> {

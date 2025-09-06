@@ -24,9 +24,9 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     }
 }
 impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(s: &str) -> miette::Result<Self> {
+    fn from_str(s: &str) -> mischief::Result<Self> {
         let mut chars = [0 as char; N];
         let mut i = 0;
         for c in s.chars() {
@@ -34,7 +34,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
                 chars[i] = c;
                 i += 1;
             } else {
-                miette::bail!(
+                mischief::bail!(
                     "String too long for CharSet, expected {} but got {}",
                     N,
                     i + 1
@@ -42,7 +42,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
             }
         }
         if i != N {
-            miette::bail!(
+            mischief::bail!(
                 "String length does not match CharSet size, expected {} but got {}",
                 N,
                 i
@@ -77,7 +77,7 @@ mod tests {
 
     use super::*;
     #[test]
-    fn test_char_set_filter() -> miette::Result<()> {
+    fn test_char_set_filter() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter = CharSetFilter::<3>::from_str("abc")?;
         assert!(filter.filter(&'a'));
@@ -88,7 +88,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_from_str() -> miette::Result<()> {
+    fn test_char_set_filter_from_str() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter: CharSetFilter<3> = CharSetFilter::from_str("abc")?;
         assert!(filter.filter(&'a'));
@@ -103,7 +103,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_invalid_length() -> miette::Result<()> {
+    fn test_char_set_filter_invalid_length() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("abcd");
         assert!(result.is_err());
@@ -116,7 +116,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_too_short() -> miette::Result<()> {
+    fn test_char_set_filter_too_short() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("ab");
         assert!(result.is_err());
@@ -129,7 +129,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_empty() -> miette::Result<()> {
+    fn test_char_set_filter_empty() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("");
         assert!(result.is_err());
@@ -142,7 +142,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_invalid_chars() -> miette::Result<()> {
+    fn test_char_set_filter_invalid_chars() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("abce");
         assert!(result.is_err());
@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn test_char_set_filter_unicode() -> miette::Result<()> {
+    fn test_char_set_filter_unicode() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter = CharSetFilter::<3>::from_str("あいう")?;
         assert!(filter.filter(&'あ'));
@@ -167,7 +167,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_unicode_invalid_length() -> miette::Result<()> {
+    fn test_char_set_filter_unicode_invalid_length() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("あいうえ");
         assert!(result.is_err());
@@ -180,7 +180,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_unicode_too_short() -> miette::Result<()> {
+    fn test_char_set_filter_unicode_too_short() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("あい");
         assert!(result.is_err());
@@ -193,7 +193,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_char_set_filter_unicode_empty() -> miette::Result<()> {
+    fn test_char_set_filter_unicode_empty() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let result = CharSetFilter::<3>::from_str("");
         assert!(result.is_err());

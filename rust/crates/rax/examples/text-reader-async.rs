@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use miette::Result;
+use mischief::Result;
 use rax::io::{AsyncIRaxReader, AsyncRaxReader};
 use tokio::io::BufReader; // async API
 

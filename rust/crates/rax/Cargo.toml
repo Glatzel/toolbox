@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 async-trait = { version = "0.1.89", optional = true }
 clerk = { workspace = true }
-miette = "7.6.0"
+mischief = { workspace = true }
 serialport = { version = "4.7.2", optional = true }
 tokio = { version = "1.47.1", default-features = false, optional = true }
 tokio-serial = { version = "5.4.5", optional = true }
@@ -23,8 +23,10 @@ tokio = { version = "1.47.1", default-features = false, features = [
 clerk = { workspace = true, features = ["log"] }
 
 [features]
-async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial"]
-device = ["serialport"]
+default = ["std"]
+std = []
+async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]
+device = ["serialport", "std"]
 
 [[bench]]
 harness = false

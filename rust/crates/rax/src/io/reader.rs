@@ -1,13 +1,11 @@
 use std::io::BufRead;
 
-use miette::IntoDiagnostic;
-
 /// Trait for reading lines from a source.
 pub trait IRaxReader {
     /// Reads the next line; returns `None` on EOF.
-    fn read_line(&mut self) -> miette::Result<Option<String>>;
+    fn read_line(&mut self) -> mischief::Result<Option<String>>;
     /// Reads up to `count` lines, or until EOF.
-    fn read_lines_by_count(&mut self, count: usize) -> miette::Result<Vec<String>>;
+    fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>>;
 }
 
 /// A buffered line reader that implements `IRaxReader`.
@@ -29,10 +27,10 @@ impl<R: BufRead> RaxReader<R> {
 impl<R: BufRead> IRaxReader for RaxReader<R> {
     /// Reads a single line from the inner reader.
     /// Returns `Ok(Some(line))` if a line is read, or `Ok(None)` on EOF.
-    fn read_line(&mut self) -> miette::Result<Option<String>> {
+    fn read_line(&mut self) -> mischief::Result<Option<String>> {
         let mut buf = String::new();
         self.buf.clear();
-        let n = self.inner.read_line(&mut buf).into_diagnostic()?;
+        let n = self.inner.read_line(&mut buf)?;
         // Log the number of bytes read and the line content (for debugging)
         clerk::debug!(
             "[RaxReader] read_line: bytes read = {}, line = {:?}",
@@ -44,7 +42,7 @@ impl<R: BufRead> IRaxReader for RaxReader<R> {
 
     /// Reads up to `count` lines from the inner reader.
     /// Stops early if EOF is reached.
-    fn read_lines_by_count(&mut self, count: usize) -> miette::Result<Vec<String>> {
+    fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>> {
         let mut lines = Vec::with_capacity(count);
         for _i in 0..count {
             match self.read_line()? {

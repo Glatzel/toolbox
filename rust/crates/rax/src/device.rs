@@ -3,7 +3,6 @@
 //! This module provides types and functions to list and filter serial devices
 //! (such as USB, PCI, and Bluetooth devices) using the `serialport` crate.
 
-use miette::IntoDiagnostic;
 use serialport::{SerialPortInfo, SerialPortType};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeviceType {
@@ -67,12 +66,12 @@ impl DeviceInfo {
 ///
 /// # Returns
 /// * `Ok(Vec<DeviceInfo>)` on success.
-/// * `Err(miette::Report)` if device enumeration fails.
-pub fn list_devices<F>(filter: F) -> miette::Result<Vec<DeviceInfo>>
+/// * `Err(mischief::Report)` if device enumeration fails.
+pub fn list_devices<F>(filter: F) -> mischief::Result<Vec<DeviceInfo>>
 where
     F: Fn(&SerialPortInfo) -> bool,
 {
-    let ports = serialport::available_ports().into_diagnostic()?;
+    let ports = serialport::available_ports()?;
     // Log the number of ports found before filtering
     clerk::info!(
         "[Device] Found {} serial ports before filtering",

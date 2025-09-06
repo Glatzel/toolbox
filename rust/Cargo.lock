@@ -842,7 +842,7 @@ dependencies = [
  "async-trait",
  "clerk",
  "codspeed-criterion-compat",
- "miette",
+ "mischief",
  "serialport",
  "tokio",
  "tokio-serial",

@@ -78,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn test_char_unicode() -> miette::Result<()> {
+    fn test_char_unicode() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter: CharSetFilter<1> = CharSetFilter::from_str("你")?;
         let rule = OneOfCharSet(&filter);

@@ -1,5 +1,5 @@
-use std::fmt;
-use std::str::FromStr;
+use core::fmt;
+use core::str::FromStr;
 extern crate alloc;
 use alloc::vec::Vec;
 

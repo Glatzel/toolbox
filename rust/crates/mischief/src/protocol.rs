@@ -1,6 +1,6 @@
 extern crate alloc;
 
-use core::fmt::Debug;
+use core::fmt::{Debug, Display};
 
 pub trait IDiagnostic: Debug {
     fn description(&self) -> &str;
@@ -23,4 +23,13 @@ pub enum Severity {
     /// This is the default severity, if you don't specify another one.
     #[default]
     Error,
+}
+impl Display for Severity {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Severity::Advice => write!(f, "Advice"),
+            Severity::Warning => write!(f, "Warning"),
+            Severity::Error => write!(f, "Error"),
+        }
+    }
 }

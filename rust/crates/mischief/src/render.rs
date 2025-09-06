@@ -134,7 +134,7 @@ where
                     )
                 )?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())

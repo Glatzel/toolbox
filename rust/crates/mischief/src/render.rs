@@ -135,7 +135,7 @@ where
             }
 
             if !is_last {
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
 
             is_first = false;

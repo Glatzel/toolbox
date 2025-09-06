@@ -17,7 +17,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Glq {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -48,7 +48,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_glq() -> miette::Result<()> {
+    fn test_new_glq() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$EIGLQ,RMC*26";
         let mut ctx = StrParserContext::new();

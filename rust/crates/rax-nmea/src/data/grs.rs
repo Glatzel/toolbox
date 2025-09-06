@@ -14,12 +14,12 @@ pub enum GrsResidualMode {
     CalculatedAfterGga,
 }
 impl FromStr for GrsResidualMode {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "0" => Ok(Self::UsedInGga),
             "1" => Ok(Self::CalculatedAfterGga),
-            other => miette::bail!("Unknown GrsResidualMode: {}", other),
+            other => mischief::bail!("Unknown GrsResidualMode: {}", other),
         }
     }
 }
@@ -50,7 +50,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Grs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
@@ -119,7 +119,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_grs() -> miette::Result<()> {
+    fn test_grs() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let input = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
         let mut ctx = StrParserContext::new();

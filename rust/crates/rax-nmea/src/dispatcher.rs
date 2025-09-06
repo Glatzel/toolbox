@@ -155,12 +155,11 @@ mod test {
     use std::io;
 
     use clerk::{LogLevel, init_log_with_level};
-    use miette::IntoDiagnostic;
     use rax::io::{IRaxReader, RaxReader};
 
     use crate::Dispatcher;
     #[test]
-    fn test_dispatcher() -> miette::Result<()> {
+    fn test_dispatcher() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
 
         for f in [
@@ -168,7 +167,7 @@ mod test {
             "data/nmea2.log",
             "data/nmea_with_sat_info.log",
         ] {
-            let file = File::open(f).into_diagnostic()?;
+            let file = File::open(f)?;
             let mut reader = RaxReader::new(io::BufReader::new(file));
             let mut dispatcher = Dispatcher::new();
 

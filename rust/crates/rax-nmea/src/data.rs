@@ -44,7 +44,7 @@ pub use vlw::*;
 pub use vtg::*;
 pub use zda::*;
 pub trait INmeaData {
-    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> miette::Result<Self>
+    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> mischief::Result<Self>
     where
         Self: Sized;
 }
@@ -91,11 +91,11 @@ pub enum Identifier {
     ZDA,
 }
 impl FromStr for Identifier {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
     fn from_str(sentence: &str) -> Result<Self, Self::Err> {
         if sentence.len() < 6 {
-            miette::bail!("Invalid sentence: {}", sentence);
+            mischief::bail!("Invalid sentence: {}", sentence);
         }
         let out = match &sentence.get(3..6) {
             Some("DHV") => Self::DHV,
@@ -119,7 +119,7 @@ impl FromStr for Identifier {
             Some("VTG") => Self::VTG,
             Some("ZDA") => Self::ZDA,
 
-            _ => miette::bail!("Unknown identifier: {}", sentence),
+            _ => mischief::bail!("Unknown identifier: {}", sentence),
         };
         Ok(out)
     }
@@ -168,9 +168,9 @@ pub enum Talker {
 }
 
 impl FromStr for Talker {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(sentence: &str) -> miette::Result<Self> {
+    fn from_str(sentence: &str) -> mischief::Result<Self> {
         let out = match &sentence.get(1..3) {
             Some("BD") => Self::BD,
             Some("GA") => Self::GA,
@@ -178,7 +178,7 @@ impl FromStr for Talker {
             Some("GN") => Self::GN,
             Some("GP") => Self::GP,
             Some("PQ") => Self::PQ,
-            _ => miette::bail!("Unknown talker: {}", sentence),
+            _ => mischief::bail!("Unknown talker: {}", sentence),
         };
         Ok(out)
     }
@@ -209,7 +209,7 @@ pub enum PosMode {
     Simulator,
 }
 impl FromStr for PosMode {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Autonomous),
@@ -223,7 +223,7 @@ impl FromStr for PosMode {
             "S" => Ok(Self::Simulator),
             "V" => Ok(Self::NotValid),
 
-            other => miette::bail!("Unknown FaaMode: {}", other),
+            other => mischief::bail!("Unknown FaaMode: {}", other),
         }
     }
 }
@@ -244,7 +244,7 @@ impl Display for PosMode {
     }
 }
 impl TryFrom<&char> for PosMode {
-    type Error = miette::Report;
+    type Error = mischief::Report;
 
     fn try_from(value: &char) -> Result<Self, Self::Error> {
         match value {
@@ -259,7 +259,7 @@ impl TryFrom<&char> for PosMode {
             'S' => Ok(Self::Simulator),
             'V' => Ok(Self::NotValid),
 
-            other => miette::bail!("Unknown FaaMode: {}", other),
+            other => mischief::bail!("Unknown FaaMode: {}", other),
         }
     }
 }
@@ -273,7 +273,7 @@ pub enum SystemId {
     NavIC = 5,
 }
 impl FromStr for SystemId {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(Self::GPS),
@@ -281,7 +281,7 @@ impl FromStr for SystemId {
             "3" => Ok(Self::BDS),
             "4" => Ok(Self::QZSS),
             "5" => Ok(Self::NavIC),
-            other => miette::bail!("Unknown sysyemid {}", other),
+            other => mischief::bail!("Unknown sysyemid {}", other),
         }
     }
 }
@@ -291,12 +291,12 @@ pub enum Status {
     Invalid,
 }
 impl FromStr for Status {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Valid),
             "V" => Ok(Self::Invalid),
-            other => miette::bail!("Unknown status {}", other),
+            other => mischief::bail!("Unknown status {}", other),
         }
     }
 }

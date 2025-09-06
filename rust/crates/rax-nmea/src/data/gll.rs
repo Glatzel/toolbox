@@ -32,7 +32,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gll {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;
@@ -96,7 +96,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_ggl() -> miette::Result<()> {
+    fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
         let mut ctx = StrParserContext::new();

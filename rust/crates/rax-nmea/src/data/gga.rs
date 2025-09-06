@@ -21,7 +21,7 @@ pub enum GgaQualityIndicator {
     SimulationMode = 8,
 }
 impl FromStr for GgaQualityIndicator {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "0" => Ok(Self::Invalid),
@@ -33,7 +33,7 @@ impl FromStr for GgaQualityIndicator {
             "6" => Ok(Self::DeadReckoning),
             "7" => Ok(Self::ManualInputMode),
             "8" => Ok(Self::SimulationMode),
-            other => miette::bail!("Unknown GgaQualityIndicator {}", other),
+            other => mischief::bail!("Unknown GgaQualityIndicator {}", other),
         }
     }
 }
@@ -104,7 +104,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gga {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;
@@ -220,7 +220,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_new_gga1() -> miette::Result<()> {
+    fn test_new_gga1() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
         let mut ctx = StrParserContext::new();

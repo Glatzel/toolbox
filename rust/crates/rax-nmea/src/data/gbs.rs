@@ -55,7 +55,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gbs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
         let err_lat = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let err_lon = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();

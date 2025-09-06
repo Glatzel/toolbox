@@ -29,7 +29,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vlw {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let twd = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -80,7 +80,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_vlw() -> miette::Result<()> {
+    fn test_new_vlw() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
         let mut ctx = StrParserContext::new();

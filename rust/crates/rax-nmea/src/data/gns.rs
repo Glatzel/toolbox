@@ -15,15 +15,15 @@ pub enum NavigationStatus {
     Invalid,
 }
 impl FromStr for NavigationStatus {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(s: &str) -> miette::Result<Self> {
+    fn from_str(s: &str) -> mischief::Result<Self> {
         match s {
             "S" => Ok(Self::Safe),
             "C" => Ok(Self::Caution),
             "U" => Ok(Self::Unsafe),
             "V" => Ok(Self::Invalid),
-            _ => miette::bail!("Unknown NavigationStatus: {}", s),
+            _ => mischief::bail!("Unknown NavigationStatus: {}", s),
         }
     }
 }
@@ -79,7 +79,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gns {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;
@@ -200,7 +200,7 @@ mod test {
     use crate::data::{PosMode, Talker};
 
     #[test]
-    fn test_gns_parsing1() -> miette::Result<()> {
+    fn test_gns_parsing1() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
         let mut ctx = StrParserContext::new();
@@ -221,7 +221,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_gns_parsing2() -> miette::Result<()> {
+    fn test_gns_parsing2() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
         let mut ctx = StrParserContext::new();

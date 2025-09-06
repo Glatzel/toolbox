@@ -32,7 +32,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vtg {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let cogt = ctx
@@ -95,7 +95,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_vtg() -> miette::Result<()> {
+    fn test_new_vtg() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
         let mut ctx = StrParserContext::new();

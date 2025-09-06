@@ -21,7 +21,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Ths {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let headt = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -56,7 +56,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_parse() -> miette::Result<()> {
+    fn test_parse() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPTHS,77.52,E*34";
         let mut ctx = StrParserContext::new();

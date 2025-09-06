@@ -14,14 +14,14 @@ pub enum TxtType {
     User = 7,
 }
 impl TryFrom<u8> for TxtType {
-    type Error = miette::Report;
-    fn try_from(s: u8) -> miette::Result<Self> {
+    type Error = mischief::Report;
+    fn try_from(s: u8) -> mischief::Result<Self> {
         match s {
             0 => Ok(Self::Error),
             1 => Ok(Self::Warn),
             2 => Ok(Self::Info),
             7 => Ok(Self::User),
-            _ => miette::bail!("Unknown txt type: {}", s),
+            _ => mischief::bail!("Unknown txt type: {}", s),
         }
     }
 }
@@ -48,7 +48,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Txt {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
 
         for l in ctx.full_str().lines() {
@@ -107,7 +107,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_txt() -> miette::Result<()> {
+    fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
         let mut ctx = StrParserContext::new();

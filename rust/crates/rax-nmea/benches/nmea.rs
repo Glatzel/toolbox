@@ -4,7 +4,7 @@ use rax_nmea::data::{INmeaData, Talker};
 
 fn bench_nmea<'a, F, D>(c: &mut Criterion, name: &str, sentence: &'static str, ctor: F)
 where
-    F: Fn(&mut StrParserContext, Talker) -> miette::Result<D> + 'static,
+    F: Fn(&mut StrParserContext, Talker) -> mischief::Result<D> + 'static,
     D: INmeaData,
 {
     let mut ctx = StrParserContext::new();

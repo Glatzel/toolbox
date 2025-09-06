@@ -2,20 +2,19 @@ use std::fs::File;
 use std::io;
 
 use clerk::{LogLevel, init_log_with_level};
-use miette::IntoDiagnostic;
 use rax::io::{IRaxReader, RaxReader};
 use rax::str_parser::StrParserContext;
 use rax_nmea::Dispatcher;
 use rax_nmea::data::*;
 #[test]
-fn test_parse_nmea() -> miette::Result<()> {
+fn test_parse_nmea() -> mischief::Result<()> {
     init_log_with_level(LogLevel::WARN);
     for f in [
         "data/nmea1.log",
         "data/nmea2.log",
         "data/nmea_with_sat_info.log",
     ] {
-        let mut reader = RaxReader::new(io::BufReader::new(File::open(f).into_diagnostic()?));
+        let mut reader = RaxReader::new(io::BufReader::new(File::open(f)?));
         let mut ctx = StrParserContext::new();
         let mut dispatcher = Dispatcher::new();
         while let Some((talker, identifier, sentence)) = reader

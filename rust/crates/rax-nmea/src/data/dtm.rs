@@ -14,14 +14,14 @@ pub enum DtmDatum {
     UserDefined,
 }
 impl FromStr for DtmDatum {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(s: &str) -> miette::Result<Self> {
+    fn from_str(s: &str) -> mischief::Result<Self> {
         let result = match s {
             "W84" => Self::WGS84,
             "P90" => Self::PZ90,
             "999" => Self::UserDefined,
-            other => miette::bail!("Unknown DtmDatum: {}", other),
+            other => mischief::bail!("Unknown DtmDatum: {}", other),
         };
         Ok(result)
     }
@@ -53,7 +53,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Dtm {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let datum = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -107,7 +107,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_dtm() -> miette::Result<()> {
+    fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
         let mut ctx = StrParserContext::new();

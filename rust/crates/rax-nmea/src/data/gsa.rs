@@ -14,12 +14,12 @@ pub enum GsaOperationMode {
     Automatic,
 }
 impl FromStr for GsaOperationMode {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Automatic),
             "M" => Ok(Self::Manual),
-            other => miette::bail!("Unknown GsaSelectionMode: {}", other),
+            other => mischief::bail!("Unknown GsaSelectionMode: {}", other),
         }
     }
 }
@@ -30,13 +30,13 @@ pub enum GsaNavigationMode {
     Fix3D,
 }
 impl FromStr for GsaNavigationMode {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(Self::NoFix),
             "2" => Ok(Self::Fix2D),
             "3" => Ok(Self::Fix3D),
-            other => miette::bail!("Unknown GsaMode: {}", other),
+            other => mischief::bail!("Unknown GsaMode: {}", other),
         }
     }
 }
@@ -75,7 +75,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gsa {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let op_mode = ctx
@@ -160,7 +160,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_new_gsa_with_system_id() -> miette::Result<()> {
+    fn test_new_gsa_with_system_id() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
         let mut ctx = StrParserContext::new();
@@ -178,7 +178,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_new_gsa_without_system_id() -> miette::Result<()> {
+    fn test_new_gsa_without_system_id() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
         let mut ctx = StrParserContext::new();

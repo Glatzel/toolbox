@@ -37,7 +37,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Dhv {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
         let speed3d = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
@@ -93,7 +93,7 @@ mod test {
 
     use super::*;
     #[test]
-    fn test_new_dhv() -> miette::Result<()> {
+    fn test_new_dhv() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
         let mut ctx = StrParserContext::new();

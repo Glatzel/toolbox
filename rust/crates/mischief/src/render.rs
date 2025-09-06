@@ -70,13 +70,15 @@ where
             write!(output, "{}", diagnostic.description()).unwrap();
             if let Some(help) = diagnostic.help() {
                 output.push('\n');
-                if i == chain.len() - 1 {
+                if i == 0 {
+                    write!(output, "{}", "  ╰─".red())?;
+                } else if i == chain.len() - 1 {
                     write!(output, "{}", "    ╰─".red())?;
                 } else {
                     write!(output, "{}", "│   ╰─".red())?;
                 }
                 write!(output, " {}", "help: ".cyan())?;
-                write!(output, " {}", help.blue())?;
+                write!(output, "{}", help.blue())?;
             }
 
             output.push('\n');

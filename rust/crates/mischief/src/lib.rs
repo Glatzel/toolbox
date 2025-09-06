@@ -8,3 +8,4 @@ mod protocol;
 mod render;
 pub use mischief_macros::mischief;
 pub use protocol::{IDiagnostic, Severity};
+mod macros;

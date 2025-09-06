@@ -1,6 +1,7 @@
 use core::fmt;
 extern crate alloc;
 use alloc::string::String;
+
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::data::{INmeaData, Talker};

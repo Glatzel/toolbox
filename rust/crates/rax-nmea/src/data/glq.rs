@@ -45,7 +45,7 @@ impl fmt::Debug for Glq {
 mod test {
 
     use clerk::{LogLevel, init_log_with_level};
-
+    extern crate std;
     use super::*;
     #[test]
     fn test_new_glq() -> mischief::Result<()> {

@@ -77,7 +77,7 @@ impl fmt::Debug for Vlw {
 mod test {
 
     use clerk::{LogLevel, init_log_with_level};
-
+ extern crate std;
     use super::*;
     #[test]
     fn test_new_vlw() -> mischief::Result<()> {

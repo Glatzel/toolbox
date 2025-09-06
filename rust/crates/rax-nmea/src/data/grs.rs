@@ -113,7 +113,7 @@ impl fmt::Debug for Grs {
 
 #[cfg(test)]
 mod test {
-
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
 

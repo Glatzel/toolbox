@@ -151,7 +151,7 @@ mod test {
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
-
+    extern crate std;
     #[test]
     fn test_new_gsv() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);

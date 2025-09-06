@@ -92,7 +92,7 @@ impl fmt::Debug for Vtg {
 mod test {
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
-
+    extern crate std;
     use super::*;
     #[test]
     fn test_new_vtg() -> mischief::Result<()> {

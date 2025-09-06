@@ -43,7 +43,7 @@ impl fmt::Debug for Gnq {
 
 #[cfg(test)]
 mod test {
-
+ extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

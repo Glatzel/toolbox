@@ -102,7 +102,7 @@ impl fmt::Debug for Dtm {
 
 #[cfg(test)]
 mod test {
-
+ extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

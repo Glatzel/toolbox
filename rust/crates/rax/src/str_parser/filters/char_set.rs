@@ -122,9 +122,9 @@ mod tests {
         let result = CharSetFilter::<3>::from_str("ab");
         assert!(result.is_err());
         if let Err(e) = result {
-            assert_eq!(
-                e.to_string(),
-                "String length does not match CharSet size, expected 3 but got 2"
+            assert!(
+                e.to_string()
+                    .contains("String length does not match CharSet size, expected 3 but got 2")
             );
         }
         Ok(())

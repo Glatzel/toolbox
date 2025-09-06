@@ -19,7 +19,7 @@ rax = { workspace = true ,features = ["device","async"]}
 
 [features]
 default = ["std"]
-std = []
+std = ["rax/std"]
 serde = ["std", "dep:serde", "chrono/serde"]
 
 [[bench]]

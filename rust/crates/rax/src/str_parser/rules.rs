@@ -1,5 +1,5 @@
 mod byte_count;
-use std::fmt::Display;
+use core::fmt::Display;
 
 pub use byte_count::*;
 mod char_count;

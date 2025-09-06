@@ -85,7 +85,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

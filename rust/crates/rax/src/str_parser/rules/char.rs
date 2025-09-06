@@ -42,7 +42,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
 
 #[cfg(test)]
 mod tests {
-
+ extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

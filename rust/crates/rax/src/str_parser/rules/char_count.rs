@@ -62,7 +62,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
 
 #[cfg(test)]
 mod tests {
-
+ extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

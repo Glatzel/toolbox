@@ -10,3 +10,4 @@ version = "0.0.27"
 clerk = { path = "./crates/clerk/" }
 rax = { path = "./crates/rax/" }
 mischief-macros = { path = "./crates/mischief-macros/" }
+mischief = { path = "./crates/mischief/" }

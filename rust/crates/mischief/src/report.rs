@@ -39,17 +39,17 @@ pub type Result<T, E = Report> = core::result::Result<T, E>;
 pub trait WrapErr<T> {
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static;
+        D: Display + 'static;
     fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static,
+        D: Display + 'static,
         F: FnOnce() -> D;
 }
 
 impl<T> WrapErr<T> for Result<T, Report> {
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static,
+        D: Display + 'static,
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
@@ -66,7 +66,7 @@ impl<T> WrapErr<T> for Result<T, Report> {
 
     fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static,
+        D: Display + 'static,
         F: FnOnce() -> D,
     {
         match self {
@@ -89,7 +89,7 @@ where
 {
     fn wrap_err<D>(self, msg: D) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static,
+        D: Display + 'static,
     {
         match self {
             Err(e) => Err(Report::new(MischiefError::new(
@@ -106,7 +106,7 @@ where
 
     fn wrap_err_with<D, F>(self, msg: F) -> Result<T, Report>
     where
-        D: Display + Send + Sync + 'static,
+        D: Display + 'static,
         F: FnOnce() -> D,
     {
         match self {

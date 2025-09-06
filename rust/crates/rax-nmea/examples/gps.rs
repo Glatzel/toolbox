@@ -1,3 +1,4 @@
+#[allow(unreachable_code)]
 fn main() -> mischief::Result<()> {
     #[cfg(feature = "std")]
     {
@@ -127,4 +128,5 @@ fn main() -> mischief::Result<()> {
             }
         }
     }
+    Ok(())
 }

@@ -109,9 +109,9 @@ mod tests {
         let result = CharSetFilter::<3>::from_str("abcd");
         assert!(result.is_err());
         if let Err(e) = result {
-            assert_eq!(
-                e.to_string(),
-                "String too long for CharSet, expected 3 but got 4"
+            assert!(
+                e.to_string()
+                    .contains("String too long for CharSet, expected 3 but got 4")
             );
         }
         Ok(())

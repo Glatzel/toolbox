@@ -57,9 +57,9 @@ where
             let (prefix_str, sub_prefix_str) = if is_first {
                 ("x", "│ ")
             } else if is_last {
-                ("╰─▶", "   ") // Note: adjust spacing to your preference
+                ("╰─▶", "    ") // Note: adjust spacing to your preference
             } else {
-                ("├─▶", "│  ")
+                ("├─▶", "│   ")
             };
 
             // 2. Write prefix (colored or not) directly to the formatter

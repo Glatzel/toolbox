@@ -30,7 +30,7 @@ where
         let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
         let mut output = String::new();
 
-        output.push_str("\n");
+        output.push('\n');
         for (i, diagnostic) in chain.iter().enumerate() {
             if i == 0 {
                 #[cfg(feature = "fancy")]

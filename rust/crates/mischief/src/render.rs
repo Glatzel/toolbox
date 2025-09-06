@@ -39,7 +39,7 @@ where
         f: &mut core::fmt::Formatter<'_>,
         terminal_config: TerminalConfig,
     ) -> core::fmt::Result {
-        use alloc::string::String;
+        use alloc::string::{String, ToString};
         use core::fmt::Write;
 
         use owo_colors::OwoColorize;
@@ -94,7 +94,7 @@ where
                 let link = if terminal_config.support_hyperlinks {
                     alloc::format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", url, "link")
                 } else {
-                    alloc::format!("{}", url)
+                    url.to_string()
                 };
 
                 if terminal_config.support_color {

@@ -73,7 +73,6 @@ where
             write!(f, "{} ", prefix)?;
 
             // --- Severity  ---
-            write!(buffer, "{:?}", self.diagnostic.severity())?;
             if let Some(sev) = self.diagnostic.severity() {
                 match (&sev, terminal_config.support_color) {
                     (crate::Severity::Error, true) => write!(buffer, "{}", sev.to_string().red())?,

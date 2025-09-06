@@ -1,5 +1,5 @@
+use core::str::FromStr;
 use std::collections::HashMap;
-use std::str::FromStr;
 
 use crate::data::{Identifier, Talker};
 

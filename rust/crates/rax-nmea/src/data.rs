@@ -11,8 +11,8 @@ mod rmc;
 mod txt;
 mod vtg;
 mod zda;
-use std::fmt::Display;
-use std::str::FromStr;
+use core::fmt::Display;
+use core::str::FromStr;
 mod dtm;
 mod gbq;
 mod glq;
@@ -37,6 +37,7 @@ pub use gst::*;
 pub use gsv::*;
 use rax::str_parser::StrParserContext;
 pub use rmc::*;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 pub use ths::*;
 pub use txt::*;
@@ -44,11 +45,12 @@ pub use vlw::*;
 pub use vtg::*;
 pub use zda::*;
 pub trait INmeaData {
-    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> miette::Result<Self>
+    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> mischief::Result<Self>
     where
         Self: Sized;
 }
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Identifier {
     DHV,
     ///Datum reference
@@ -91,11 +93,11 @@ pub enum Identifier {
     ZDA,
 }
 impl FromStr for Identifier {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
     fn from_str(sentence: &str) -> Result<Self, Self::Err> {
         if sentence.len() < 6 {
-            miette::bail!("Invalid sentence: {}", sentence);
+            mischief::bail!("Invalid sentence: {}", sentence);
         }
         let out = match &sentence.get(3..6) {
             Some("DHV") => Self::DHV,
@@ -119,13 +121,13 @@ impl FromStr for Identifier {
             Some("VTG") => Self::VTG,
             Some("ZDA") => Self::ZDA,
 
-            _ => miette::bail!("Unknown identifier: {}", sentence),
+            _ => mischief::bail!("Unknown identifier: {}", sentence),
         };
         Ok(out)
     }
 }
 impl Display for Identifier {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             Self::DHV => "DHV",
             Self::DTM => "DTM",
@@ -151,7 +153,8 @@ impl Display for Identifier {
         write!(f, "{s}")
     }
 }
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy, Hash, Eq)]
+#[derive(Debug, Clone, PartialEq, Copy, Hash, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Talker {
     ///BeiDou (China)
     BD,
@@ -168,9 +171,9 @@ pub enum Talker {
 }
 
 impl FromStr for Talker {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(sentence: &str) -> miette::Result<Self> {
+    fn from_str(sentence: &str) -> mischief::Result<Self> {
         let out = match &sentence.get(1..3) {
             Some("BD") => Self::BD,
             Some("GA") => Self::GA,
@@ -178,13 +181,13 @@ impl FromStr for Talker {
             Some("GN") => Self::GN,
             Some("GP") => Self::GP,
             Some("PQ") => Self::PQ,
-            _ => miette::bail!("Unknown talker: {}", sentence),
+            _ => mischief::bail!("Unknown talker: {}", sentence),
         };
         Ok(out)
     }
 }
 impl Display for Talker {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             Self::BD => "BD",
             Self::GA => "GA",
@@ -196,7 +199,8 @@ impl Display for Talker {
         write!(f, "{s}")
     }
 }
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PosMode {
     Autonomous,
     Differential,
@@ -209,7 +213,7 @@ pub enum PosMode {
     Simulator,
 }
 impl FromStr for PosMode {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Autonomous),
@@ -223,12 +227,12 @@ impl FromStr for PosMode {
             "S" => Ok(Self::Simulator),
             "V" => Ok(Self::NotValid),
 
-            other => miette::bail!("Unknown FaaMode: {}", other),
+            other => mischief::bail!("Unknown FaaMode: {}", other),
         }
     }
 }
 impl Display for PosMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             PosMode::Autonomous => "Autonomous",
             PosMode::Differential => "Differential",
@@ -244,7 +248,7 @@ impl Display for PosMode {
     }
 }
 impl TryFrom<&char> for PosMode {
-    type Error = miette::Report;
+    type Error = mischief::Report;
 
     fn try_from(value: &char) -> Result<Self, Self::Error> {
         match value {
@@ -259,12 +263,13 @@ impl TryFrom<&char> for PosMode {
             'S' => Ok(Self::Simulator),
             'V' => Ok(Self::NotValid),
 
-            other => miette::bail!("Unknown FaaMode: {}", other),
+            other => mischief::bail!("Unknown FaaMode: {}", other),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SystemId {
     GPS = 1,
     GLONASS = 2,
@@ -273,7 +278,7 @@ pub enum SystemId {
     NavIC = 5,
 }
 impl FromStr for SystemId {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(Self::GPS),
@@ -281,22 +286,23 @@ impl FromStr for SystemId {
             "3" => Ok(Self::BDS),
             "4" => Ok(Self::QZSS),
             "5" => Ok(Self::NavIC),
-            other => miette::bail!("Unknown sysyemid {}", other),
+            other => mischief::bail!("Unknown sysyemid {}", other),
         }
     }
 }
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Status {
     Valid,
     Invalid,
 }
 impl FromStr for Status {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Valid),
             "V" => Ok(Self::Invalid),
-            other => miette::bail!("Unknown status {}", other),
+            other => mischief::bail!("Unknown status {}", other),
         }
     }
 }

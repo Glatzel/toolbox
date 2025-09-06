@@ -53,13 +53,13 @@ impl<'a> StrParserContext {
             }
         }
     }
-    pub fn take_strict<R>(&mut self, rule: &R) -> miette::Result<R::Output>
+    pub fn take_strict<R>(&mut self, rule: &R) -> mischief::Result<R::Output>
     where
         R: IStrFlowRule<'a>,
     {
         match self.take(rule) {
             Some(s) => Ok(s),
-            None => miette::bail!("take fail"),
+            None => mischief::bail!("take fail"),
         }
     }
 }
@@ -72,7 +72,7 @@ impl<'a> StrParserContext {
         self.take(rule);
         self
     }
-    pub fn skip_strict<R>(&mut self, rule: &R) -> miette::Result<&mut Self>
+    pub fn skip_strict<R>(&mut self, rule: &R) -> mischief::Result<&mut Self>
     where
         R: IStrFlowRule<'a>,
     {

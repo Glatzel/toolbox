@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
@@ -37,7 +37,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Zda {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
@@ -90,10 +90,13 @@ impl fmt::Debug for Zda {
 #[cfg(test)]
 mod test {
     use clerk::{LogLevel, init_log_with_level};
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use super::*;
     #[test]
-    fn test_new_zda() -> miette::Result<()> {
+    fn test_new_zda() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPZDA,160012.71,11,03,2004,-1,00*7D";
         let mut ctx = StrParserContext::new();

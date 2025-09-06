@@ -1,27 +1,31 @@
-use std::fmt;
-use std::str::FromStr;
+use core::fmt;
+use core::str::FromStr;
+extern crate alloc;
+use alloc::string::String;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
     WGS84,
     PZ90,
     UserDefined,
 }
 impl FromStr for DtmDatum {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(s: &str) -> miette::Result<Self> {
+    fn from_str(s: &str) -> mischief::Result<Self> {
         let result = match s {
             "W84" => Self::WGS84,
             "P90" => Self::PZ90,
             "999" => Self::UserDefined,
-            other => miette::bail!("Unknown DtmDatum: {}", other),
+            other => mischief::bail!("Unknown DtmDatum: {}", other),
         };
         Ok(result)
     }
@@ -53,7 +57,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Dtm {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let datum = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -102,12 +106,15 @@ impl fmt::Debug for Dtm {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
     #[test]
-    fn test_new_dtm() -> miette::Result<()> {
+    fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
         let mut ctx = StrParserContext::new();

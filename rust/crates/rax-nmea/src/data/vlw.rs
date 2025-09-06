@@ -1,4 +1,7 @@
-use std::fmt;
+use core::fmt;
+extern crate alloc;
+use alloc::string::String;
+use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
@@ -29,7 +32,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vlw {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let twd = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -57,16 +60,24 @@ impl fmt::Debug for Vlw {
         ds.field("talker", &self.talker);
 
         if let Some(ref twd) = self.twd {
-            ds.field("twd", &format!("{twd} N"));
+            let mut s = String::new();
+            write!(s, "{twd} N")?;
+            ds.field("twd", &s);
         }
         if let Some(ref wd) = self.wd {
-            ds.field("wd", &format!("{wd} N"));
+            let mut s = String::new();
+            write!(s, "{wd} N")?;
+            ds.field("wd", &s);
         }
         if let Some(ref tgd) = self.tgd {
-            ds.field("twd", &format!("{tgd} N"));
+            let mut s = String::new();
+            write!(s, "{tgd} N")?;
+            ds.field("tgd", &s);
         }
         if let Some(ref gd) = self.gd {
-            ds.field("gd", &format!("{gd} N"));
+            let mut s = String::new();
+            write!(s, "{gd} N")?;
+            ds.field("gd", &s);
         }
 
         ds.finish()
@@ -75,12 +86,14 @@ impl fmt::Debug for Vlw {
 
 #[cfg(test)]
 mod test {
+    use std::println;
+    use std::string::ToString;
 
     use clerk::{LogLevel, init_log_with_level};
-
+    extern crate std;
     use super::*;
     #[test]
-    fn test_new_vlw() -> miette::Result<()> {
+    fn test_new_vlw() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
         let mut ctx = StrParserContext::new();

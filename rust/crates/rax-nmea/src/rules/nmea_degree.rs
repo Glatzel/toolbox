@@ -15,7 +15,7 @@ impl IRule for NmeaDegree {
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = f64;
 
-    fn apply(&self, input: &'a str) -> (std::option::Option<f64>, &'a str) {
+    fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
         // Log the input at trace level.
         clerk::trace!("NmeaDegree rule: input='{}'", input);
         let (deg_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);

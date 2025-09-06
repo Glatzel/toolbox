@@ -74,6 +74,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

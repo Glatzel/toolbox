@@ -1,12 +1,18 @@
-use std::fmt::{self};
+use core::fmt;
+extern crate alloc;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::fmt::Write;
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
     Error = 0,
     Warn = 1,
@@ -14,19 +20,19 @@ pub enum TxtType {
     User = 7,
 }
 impl TryFrom<u8> for TxtType {
-    type Error = miette::Report;
-    fn try_from(s: u8) -> miette::Result<Self> {
+    type Error = mischief::Report;
+    fn try_from(s: u8) -> mischief::Result<Self> {
         match s {
             0 => Ok(Self::Error),
             1 => Ok(Self::Warn),
             2 => Ok(Self::Info),
             7 => Ok(Self::User),
-            _ => miette::bail!("Unknown txt type: {}", s),
+            _ => mischief::bail!("Unknown txt type: {}", s),
         }
     }
 }
-impl std::fmt::Display for TxtType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for TxtType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
             TxtType::Error => "Error",
             TxtType::Warn => "Warn",
@@ -48,7 +54,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Txt {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
 
         for l in ctx.full_str().lines() {
@@ -91,8 +97,16 @@ impl fmt::Debug for Txt {
                 .map(|x| match x {
                     (None, None) => panic!("Null txt info"),
                     (None, Some(i)) => i.to_string(),
-                    (Some(t), None) => format!("{t}: "),
-                    (Some(t), Some(i)) => format!("{t}: {i}"),
+                    (Some(t), None) => {
+                        let mut s = String::new();
+                        write!(s, "{t}: ").unwrap();
+                        s
+                    }
+                    (Some(t), Some(i)) => {
+                        let mut s = String::new();
+                        write!(s, "{t}: {i}").unwrap();
+                        s
+                    }
                 })
                 .collect::<Vec<String>>(),
         );
@@ -104,10 +118,13 @@ impl fmt::Debug for Txt {
 #[cfg(test)]
 mod test {
     use clerk::{LogLevel, init_log_with_level};
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use super::*;
     #[test]
-    fn test_new_txt() -> miette::Result<()> {
+    fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
         let mut ctx = StrParserContext::new();

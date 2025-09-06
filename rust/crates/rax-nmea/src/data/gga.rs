@@ -1,14 +1,19 @@
-use std::fmt::{self, Display};
-use std::str::FromStr;
+use core::fmt::{self, Display};
+use core::str::FromStr;
+extern crate alloc;
+use alloc::string::String;
+use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GgaQualityIndicator {
     Invalid = 0,
     GpsFix = 1,
@@ -21,7 +26,7 @@ pub enum GgaQualityIndicator {
     SimulationMode = 8,
 }
 impl FromStr for GgaQualityIndicator {
-    type Err = miette::Report;
+    type Err = mischief::Report;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "0" => Ok(Self::Invalid),
@@ -33,7 +38,7 @@ impl FromStr for GgaQualityIndicator {
             "6" => Ok(Self::DeadReckoning),
             "7" => Ok(Self::ManualInputMode),
             "8" => Ok(Self::SimulationMode),
-            other => miette::bail!("Unknown GgaQualityIndicator {}", other),
+            other => mischief::bail!("Unknown GgaQualityIndicator {}", other),
         }
     }
 }
@@ -104,7 +109,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gga {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;
@@ -195,10 +200,14 @@ impl fmt::Debug for Gga {
             ds.field("hdop", &hdop);
         }
         if let Some(alt) = self.alt {
-            ds.field("alt", &format!("{alt} M"));
+            let mut s = String::new();
+            write!(s, "{alt} M")?;
+            ds.field("alt", &s);
         }
         if let Some(sep) = self.sep {
-            ds.field("sep", &format!("{sep} M"));
+            let mut s = String::new();
+            write!(s, "{sep} M")?;
+            ds.field("sep", &s);
         }
         if let Some(diff_age) = self.diff_age {
             ds.field("diff_age", &diff_age);
@@ -213,6 +222,9 @@ impl fmt::Debug for Gga {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
@@ -220,7 +232,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_new_gga1() -> miette::Result<()> {
+    fn test_new_gga1() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
         let mut ctx = StrParserContext::new();

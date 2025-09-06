@@ -85,7 +85,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
@@ -170,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_until_not_in_char_set_unicode() -> miette::Result<()> {
+    fn test_until_not_in_char_set_unicode() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter: CharSetFilter<2> = CharSetFilter::from_str("好你")?;
         let rule = UntilNotInCharSet {

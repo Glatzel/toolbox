@@ -18,13 +18,12 @@ jobs:
         args:
           - --workspace --all-features
           - --no-default-features --features macros -p mischief
+          - --no-default-features -p rax -p rax-nmea
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5
 
       - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: "miri"
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest

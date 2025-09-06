@@ -1,4 +1,6 @@
-use std::fmt;
+use core::fmt;
+extern crate alloc;
+use alloc::string::String;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
@@ -17,7 +19,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gpq {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -45,10 +47,13 @@ impl fmt::Debug for Gpq {
 mod test {
 
     use clerk::{LogLevel, init_log_with_level};
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use super::*;
     #[test]
-    fn test_new_gpq() -> miette::Result<()> {
+    fn test_new_gpq() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$EIGPQ,RMC*3A";
         let mut ctx = StrParserContext::new();

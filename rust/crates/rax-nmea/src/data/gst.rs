@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
@@ -44,7 +44,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gst {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
@@ -106,12 +106,15 @@ impl fmt::Debug for Gst {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
     #[test]
-    fn test_new_gst() -> miette::Result<()> {
+    fn test_new_gst() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
         let mut ctx = StrParserContext::new();

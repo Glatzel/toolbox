@@ -1,7 +1,7 @@
 use rax::str_parser::IRule;
 
 /// Rule to validate an NMEA sentence for correct start character and checksum.
-/// Returns Ok(()) if the sentence is valid, otherwise returns a miette error.
+/// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
 pub struct NmeaValidate();
 
 impl IRule for NmeaValidate {
@@ -9,12 +9,12 @@ impl IRule for NmeaValidate {
 }
 
 impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
-    type Output = miette::Result<()>;
+    type Output = mischief::Result<()>;
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> miette::Result<()> {
+    fn apply(&self, input: &'a str) -> mischief::Result<()> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{}'", input);
         let input = input.trim_end();
@@ -22,13 +22,13 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
         // Check if the sentence starts with '$'.
         if !input.starts_with('$') {
             clerk::warn!("NmeaValidate: sentence does not start with '$'");
-            miette::bail!("sentence doesn't start with `$`");
+            mischief::bail!("sentence doesn't start with `$`");
         }
 
         // Find the position of the '*' checksum delimiter.
         let Some(star_pos) = input.find('*') else {
             clerk::warn!("NmeaValidate: missing checksum delimiter '*'");
-            miette::bail!("Missing checksum delimiter `*`");
+            mischief::bail!("Missing checksum delimiter `*`");
         };
 
         // Split the input into data and checksum string.
@@ -46,14 +46,14 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
                 "NmeaValidate: checksum_str length is {}, expected 2",
                 checksum_str.len()
             );
-            miette::bail!("require checksum_str length 2, get {}", checksum_str.len());
+            mischief::bail!("require checksum_str length 2, get {}", checksum_str.len());
         }
 
         // Parse the expected checksum from hex.
         let expected = u8::from_str_radix(checksum_str, 16);
         let Ok(expected) = expected else {
             clerk::warn!("NmeaValidate: invalid hex checksum '{}'", checksum_str);
-            miette::bail!("Invalid hex checksum");
+            mischief::bail!("Invalid hex checksum");
         };
 
         // Calculate the checksum by XOR'ing all data bytes.
@@ -71,7 +71,7 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
                 calculated,
                 expected
             );
-            miette::bail!(
+            mischief::bail!(
                 "Checksum mismatch: calculated {:02X}, expected {:02X}",
                 calculated,
                 expected
@@ -85,6 +85,8 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
 #[cfg(test)]
 mod tests {
     use rax::str_parser::IStrGlobalRule;
+    extern crate std;
+    use std::{format, vec};
 
     use super::*;
 

@@ -48,7 +48,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
@@ -95,7 +95,7 @@ mod tests {
     }
 
     #[test]
-    fn test_n_in_charset_unicode() -> miette::Result<()> {
+    fn test_n_in_charset_unicode() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let filter: CharSetFilter<2> = CharSetFilter::from_str("你好")?;
         let rule = NInCharSet::<2, 2>(&filter);

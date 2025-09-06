@@ -88,7 +88,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
 #[cfg(test)]
 mod tests {
     use clerk::{LogLevel, init_log_with_level};
-
+    extern crate std;
     use super::*;
     use crate::str_parser::filters::{ASCII_LETTERS, DIGITS};
 

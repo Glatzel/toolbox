@@ -1,13 +1,17 @@
-use std::fmt::Debug;
-use std::str::FromStr;
+use core::fmt::Debug;
+use core::str::FromStr;
+extern crate alloc;
+use alloc::vec::Vec;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum NavigationStatus {
     Safe,
     Caution,
@@ -15,15 +19,15 @@ pub enum NavigationStatus {
     Invalid,
 }
 impl FromStr for NavigationStatus {
-    type Err = miette::Report;
+    type Err = mischief::Report;
 
-    fn from_str(s: &str) -> miette::Result<Self> {
+    fn from_str(s: &str) -> mischief::Result<Self> {
         match s {
             "S" => Ok(Self::Safe),
             "C" => Ok(Self::Caution),
             "U" => Ok(Self::Unsafe),
             "V" => Ok(Self::Invalid),
-            _ => miette::bail!("Unknown NavigationStatus: {}", s),
+            _ => mischief::bail!("Unknown NavigationStatus: {}", s),
         }
     }
 }
@@ -79,7 +83,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gns {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;
@@ -153,7 +157,7 @@ impl INmeaData for Gns {
     }
 }
 impl Debug for Gns {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut ds = f.debug_struct("GNS");
         ds.field("talker", &self.talker);
         if let Some(ref time) = self.time {
@@ -195,12 +199,14 @@ impl Debug for Gns {
 mod test {
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use super::*;
     use crate::data::{PosMode, Talker};
-
     #[test]
-    fn test_gns_parsing1() -> miette::Result<()> {
+    fn test_gns_parsing1() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
         let mut ctx = StrParserContext::new();
@@ -221,7 +227,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_gns_parsing2() -> miette::Result<()> {
+    fn test_gns_parsing2() -> mischief::Result<()> {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
         let mut ctx = StrParserContext::new();

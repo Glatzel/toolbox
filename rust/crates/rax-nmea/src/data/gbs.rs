@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
@@ -55,7 +55,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gbs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> miette::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
         let err_lat = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let err_lon = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
@@ -83,7 +83,7 @@ impl INmeaData for Gbs {
     }
 }
 impl Debug for Gbs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut ds = f.debug_struct("GBS");
         ds.field("talker", &self.talker);
 
@@ -124,9 +124,11 @@ impl Debug for Gbs {
 #[cfg(test)]
 mod tests {
     use clerk::{LogLevel, init_log_with_level};
+    extern crate std;
+    use std::println;
+    use std::string::ToString;
 
     use super::*;
-
     #[test]
     fn test_gbs() {
         init_log_with_level(LogLevel::TRACE);

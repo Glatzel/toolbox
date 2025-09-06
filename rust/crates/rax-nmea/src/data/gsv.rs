@@ -1,4 +1,6 @@
 use std::fmt;
+extern crate alloc;
+use alloc::vec::Vec;
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]

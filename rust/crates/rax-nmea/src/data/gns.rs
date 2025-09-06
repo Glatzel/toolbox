@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::str::FromStr;
-
+extern crate alloc;
+use alloc::vec::Vec;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

@@ -1,3 +1,4 @@
+#![cfg(feature = "std")]
 use std::fs::File;
 use std::io;
 
@@ -6,6 +7,7 @@ use rax::io::{IRaxReader, RaxReader};
 use rax::str_parser::StrParserContext;
 use rax_nmea::Dispatcher;
 use rax_nmea::data::*;
+
 #[test]
 fn test_parse_nmea() -> mischief::Result<()> {
     init_log_with_level(LogLevel::WARN);

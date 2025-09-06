@@ -18,7 +18,7 @@ jobs:
         args:
           - --workspace --all-features
           - --no-default-features --features macros -p mischief
-          - --no-default-features -p rax
+          - --no-default-features -p rax -p rax-nmea
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5

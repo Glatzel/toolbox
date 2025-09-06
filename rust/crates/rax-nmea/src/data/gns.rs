@@ -2,12 +2,14 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum NavigationStatus {
     Safe,
     Caution,

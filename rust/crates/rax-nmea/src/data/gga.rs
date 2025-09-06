@@ -2,13 +2,15 @@ use std::fmt::{self, Display};
 use std::str::FromStr;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GgaQualityIndicator {
     Invalid = 0,
     GpsFix = 1,
@@ -213,7 +215,7 @@ impl fmt::Debug for Gga {
 
 #[cfg(test)]
 mod test {
- extern crate std;
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
     use float_cmp::assert_approx_eq;
 

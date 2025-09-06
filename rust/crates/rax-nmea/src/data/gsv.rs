@@ -1,6 +1,7 @@
 use std::fmt;
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
@@ -8,7 +9,8 @@ use crate::macros::readonly_struct;
 use crate::rules::*;
 
 /// Represents a single satellite's data in a GSV sentence.
-#[derive(Clone, Copy, Serialize, Deserialize)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Satellite {
     /// Satellite ID, typically a number from 1 to 32.
     svid: Option<u16>,

@@ -15,6 +15,7 @@ clerk = { workspace = true, features = ["log"] }
 criterion = { package = "codspeed-criterion-compat", version = "2.10.1" }
 float-cmp = "0.10.0"
 serialport = "4.7.2"
+rax = { workspace = true ,features = ["device","async"]}
 
 [features]
 default = ["std"]

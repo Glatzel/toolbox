@@ -2,12 +2,14 @@ use std::fmt;
 use std::str::FromStr;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
     WGS84,
     PZ90,
@@ -102,7 +104,7 @@ impl fmt::Debug for Dtm {
 
 #[cfg(test)]
 mod test {
- extern crate std;
+    extern crate std;
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;

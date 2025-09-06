@@ -1,12 +1,14 @@
 use std::fmt::{self};
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
     Error = 0,
     Warn = 1,
@@ -104,7 +106,7 @@ impl fmt::Debug for Txt {
 #[cfg(test)]
 mod test {
     use clerk::{LogLevel, init_log_with_level};
- extern crate std;
+    extern crate std;
     use super::*;
     #[test]
     fn test_new_txt() -> mischief::Result<()> {

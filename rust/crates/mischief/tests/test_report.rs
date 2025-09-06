@@ -1,11 +1,20 @@
 use std::fs::File;
 
-use mischief::{Report, WrapErr};
+use mischief::{WrapErr, mischief};
 
 #[test]
 fn report_error() {
     let e: Result<i32, mischief::Report> = Err("first error")
-        .map_err(|e| Report::from_display(e))
+        .map_err(|e| {
+            mischief!(
+                "{}",
+                e,
+                severity = mischief::Severity::Warning,
+                code = "E404",
+                url = "https://github.com/Glatzel/toolbox",
+                help = "Try again."
+            )
+        })
         .wrap_err("Second error")
         .wrap_err_with(|| "Third error");
     match e {
@@ -17,7 +26,7 @@ fn report_error() {
 #[test]
 fn report_ok() -> mischief::Result<()> {
     Ok::<i32, mischief::Result<()>>(2i32)
-        .map_err(|e| Report::from_debug(e))
+        .map_err(|e| mischief!("{:?}", e))
         .wrap_err("Second error")
         .wrap_err_with(|| "Third error")?;
     Ok(())

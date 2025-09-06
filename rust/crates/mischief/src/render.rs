@@ -24,13 +24,13 @@ where
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         use alloc::string::String;
         use alloc::vec::Vec;
-        use core::fmt::Write;
 
         use owo_colors::OwoColorize;
 
         let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
         let mut output = String::new();
 
+        output.push('\n');
         for (i, diagnostic) in chain.iter().enumerate() {
             if i == 0 {
                 #[cfg(feature = "fancy")]
@@ -43,10 +43,44 @@ where
                 write!(output, "{} ", "├─▶".red())?;
             }
 
-            if let Some(desc) = diagnostic.description() {
-                use core::fmt::Write as _;
-                let _ = write!(output, "{}", desc);
+            use core::fmt::Write as _;
+            if let Some(severity) = diagnostic.severity() {
+                write!(output, "{:?}", severity).unwrap();
             }
+            if let Some(code) = diagnostic.code() {
+                use crate::Severity;
+
+                match diagnostic.severity() {
+                    Some(Severity::Warning) => write!(output, " <{}>", code.red()).unwrap(),
+                    Some(Severity::Advice) => write!(output, " <{}>", code.yellow()).unwrap(),
+                    _ => write!(output, " <{}>", code.green()).unwrap(),
+                }
+            }
+            if let Some(url) = diagnostic.url() {
+                let mut link_url = String::new();
+                write!(link_url, "\x1b]8;;{}\x1b\\link\x1b]8;;\x1b\\", url).unwrap();
+                write!(output, " ({})", link_url.blue()).unwrap();
+            }
+            if diagnostic.severity().is_some()
+                || diagnostic.code().is_some()
+                || diagnostic.url().is_some()
+            {
+                output.push_str(": ");
+            }
+            write!(output, "{}", diagnostic.description()).unwrap();
+            if let Some(help) = diagnostic.help() {
+                output.push('\n');
+                if i == 0 {
+                    write!(output, "{}", "  ╰─".red())?;
+                } else if i == chain.len() - 1 {
+                    write!(output, "{}", "    ╰─".red())?;
+                } else {
+                    write!(output, "{}", "│   ╰─".red())?;
+                }
+                write!(output, " {}", "help: ".cyan())?;
+                write!(output, "{}", help.blue())?;
+            }
+
             output.push('\n');
         }
 
@@ -60,11 +94,7 @@ impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
 
         // Top-level error
         if let Some(first) = chain.next() {
-            if let Some(desc) = first.description() {
-                writeln!(f, "Error: {}", desc)?;
-            } else {
-                writeln!(f, "Error: <unknown>")?;
-            }
+            writeln!(f, "Error: {}", first.description())?;
         }
 
         // Causes
@@ -74,11 +104,7 @@ impl<'a, T: IDiagnostic> Debug for Render<'a, T> {
                 writeln!(f, "\nCaused by:")?;
                 first = false;
             }
-            if let Some(desc) = diagnostic.description() {
-                writeln!(f, "    {}", desc)?;
-            } else {
-                writeln!(f, "    <unknown>")?;
-            }
+            writeln!(f, "    {}", diagnostic.description())?;
         }
 
         Ok(())

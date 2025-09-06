@@ -39,102 +39,106 @@ where
         f: &mut core::fmt::Formatter<'_>,
         terminal_config: TerminalConfig,
     ) -> core::fmt::Result {
-        use alloc::string::{String, ToString};
+        use alloc::string::String;
         use core::fmt::Write;
 
         use owo_colors::OwoColorize;
 
-        let chain: alloc::vec::Vec<&dyn IDiagnostic> = self.chain().collect();
         let width = terminal_config.width.unwrap_or(80);
-        let mut buffer = String::new();
+        let mut buffer = String::new(); // Reuse a single buffer
 
-        for (i, diagnostic) in chain.iter().enumerate() {
-            buffer.clear();
-            // --- Prefixes ---
-            let (prefix, sub_prefix) = if terminal_config.support_color {
-                if i == 0 {
-                    ("x".red().to_string(), "│ ".red().to_string())
-                } else if i == chain.len() - 1 {
-                    ("╰─▶".red().to_string(), "     ".red().to_string())
-                } else {
-                    ("├─▶".red().to_string(), "│    ".red().to_string())
-                }
-            } else if i == 0 {
-                ("x".to_string(), "│  ".to_string())
-            } else if i == chain.len() - 1 {
-                ("╰─▶".to_string(), "     ".to_string())
+        let mut chain = self.chain().peekable();
+        let mut is_first = true;
+
+        while let Some(diagnostic) = chain.next() {
+            let is_last = chain.peek().is_none();
+
+            // 1. Determine prefixes without allocating
+            let (prefix_str, sub_prefix_str) = if is_first {
+                ("x", "│ ")
+            } else if is_last {
+                ("╰─▶", "  ") // Note: adjust spacing to your preference
             } else {
-                ("├─▶".to_string(), "│    ".to_string())
+                ("├─▶", "│ ")
             };
 
-            write!(f, "{} ", prefix)?;
+            // 2. Write prefix (colored or not) directly to the formatter
+            if terminal_config.support_color {
+                write!(f, "{} ", prefix_str.red())?;
+            } else {
+                write!(f, "{} ", prefix_str)?;
+            }
 
-            // --- Severity + Code  ---
+            // --- Build the main diagnostic line in the buffer ---
+            buffer.clear();
+
             if let Some(sev) = diagnostic.severity() {
-                write!(buffer, "{:?}", sev)?
-            };
+                write!(buffer, "{:?}", sev)?;
+            }
 
             if let Some(code) = diagnostic.code() {
                 if terminal_config.support_color {
-                    let code_colored = match diagnostic.severity() {
-                        Some(crate::Severity::Warning) => code.red().to_string(),
-                        Some(crate::Severity::Advice) => code.yellow().to_string(),
-                        _ => code.green().to_string(),
-                    };
-                    write!(buffer, "<{}>", code_colored)?;
+                    match diagnostic.severity() {
+                        Some(crate::Severity::Warning) => write!(buffer, "<{}>", code.yellow()),
+                        Some(crate::Severity::Advice) => write!(buffer, "<{}>", code.cyan()),
+                        _ => write!(buffer, "<{}>", code.red()),
+                    }?;
                 } else {
                     write!(buffer, "<{}>", code)?;
                 }
             }
 
-            // --- URL ---
             if let Some(url) = diagnostic.url() {
-                let mut link = String::new();
-                if terminal_config.support_hyperlinks {
-                    write!(link, "\x1b]8;;{}\x1b\\link\x1b]8;;\x1b\\", url)?;
+                // This part is tricky to do without allocation if you need the link string
+                // For now, let's keep it but it could be optimized further if needed.
+                let link = if terminal_config.support_hyperlinks {
+                    alloc::format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", url, "link")
                 } else {
-                    write!(link, "{}", url)?;
-                }
+                    alloc::format!("{}", url)
+                };
 
                 if terminal_config.support_color {
-                    write!(buffer, "({})", link.blue())?;
+                    write!(buffer, " ({})", link.blue())?;
                 } else {
-                    write!(buffer, "({})", link)?;
+                    write!(buffer, " ({})", link)?;
                 }
             }
 
-            if diagnostic.severity().is_some()
-                || diagnostic.code().is_some()
-                || diagnostic.url().is_some()
-            {
-                write!(buffer, ": ")?;
+            if !buffer.is_empty() {
+                buffer.push_str(": ");
             }
 
-            // --- Description with wrapping ---
             write!(buffer, "{}", diagnostic.description())?;
-            write!(
-                f,
-                "{}",
-                textwrap::fill(
-                    &buffer,
-                    textwrap::Options::new(width).subsequent_indent(&sub_prefix)
-                )
-            )?;
+
+            // 3. Setup textwrap options with the correct indent
+            let sub_prefix_colored = if terminal_config.support_color {
+                alloc::format!("{}", sub_prefix_str.red())
+            } else {
+                sub_prefix_str.into()
+            };
+
+            let opts = textwrap::Options::new(width).subsequent_indent(&sub_prefix_colored);
+
+            // Write the wrapped main line
+            write!(f, "{}", textwrap::fill(&buffer, &opts))?;
 
             // --- Help line ---
             if let Some(help) = diagnostic.help() {
                 buffer.clear();
-                write!(buffer, "    {}: {}", "help".cyan(), help.blue())?;
-                write!(
-                    f,
-                    "\n{}",
-                    textwrap::fill(
-                        &buffer,
-                        textwrap::Options::new(width).subsequent_indent(&sub_prefix)
-                    )
-                )?;
+                if terminal_config.support_color {
+                    write!(buffer, "    {}: {}", "help".cyan(), help.blue())?;
+                } else {
+                    write!(buffer, "    help: {}", help)?;
+                }
+                // Write the wrapped help line
+                write!(f, "\n{}", textwrap::fill(&buffer, &opts))?;
             }
-            write!(f, "\n")?;
+
+            if !is_last {
+                write!(f, "\n")?;
+            }
+
+            is_first = false;
         }
 
         Ok(())

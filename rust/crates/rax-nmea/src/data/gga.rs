@@ -1,5 +1,5 @@
-use std::fmt::{self, Display};
-use std::str::FromStr;
+use core::fmt::{self, Display};
+use core::str::FromStr;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]

@@ -1,5 +1,6 @@
-use std::fmt::{self};
+use core::fmt;
 extern crate alloc;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};

@@ -1,5 +1,7 @@
 use core::fmt;
 use core::str::FromStr;
+extern crate alloc;
+use alloc::string::String;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]

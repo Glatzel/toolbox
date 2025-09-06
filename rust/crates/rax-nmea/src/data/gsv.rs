@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 extern crate alloc;
 use alloc::vec::Vec;
 

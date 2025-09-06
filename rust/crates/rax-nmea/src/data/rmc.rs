@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 
 use chrono::NaiveDate;
 use rax::str_parser::{ParseOptExt, StrParserContext};

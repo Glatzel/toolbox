@@ -12,7 +12,7 @@ pub struct Report {
 }
 
 impl Report {
-    pub(crate) fn new(error: MischiefError) -> Self { Report { inner: error } }
+    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
 }
 
 impl Debug for Report {

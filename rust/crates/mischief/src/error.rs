@@ -17,9 +17,9 @@ pub struct MischiefError {
 
 impl MischiefError {
     pub fn new<D>(
-        description: &D,
+        description: D,
         source: Option<Box<MischiefError>>,
-        code: Option<&D>,
+        code: Option<D>,
         severity: Option<crate::Severity>,
         help: Option<D>,
         url: Option<D>,

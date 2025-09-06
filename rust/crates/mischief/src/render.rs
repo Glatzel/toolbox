@@ -30,22 +30,26 @@ where
         let chain: Vec<&dyn IDiagnostic> = self.chain().collect();
         let mut output = String::new();
 
-        for (i, diagnostic) in chain.iter().enumerate() {
-            if i == 0 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "x".red())?;
-            } else if i == chain.len() - 1 {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "╰─▶".red())?;
-            } else {
-                #[cfg(feature = "fancy")]
-                write!(output, "{} ", "├─▶".red())?;
+        //description
+        {
+            output.push_str("\n\n");
+            for (i, diagnostic) in chain.iter().enumerate() {
+                if i == 0 {
+                    #[cfg(feature = "fancy")]
+                    write!(output, "{} ", "x".red())?;
+                } else if i == chain.len() - 1 {
+                    #[cfg(feature = "fancy")]
+                    write!(output, "{} ", "╰─▶".red())?;
+                } else {
+                    #[cfg(feature = "fancy")]
+                    write!(output, "{} ", "├─▶".red())?;
+                }
+
+                use core::fmt::Write as _;
+                let _ = write!(output, "{}", diagnostic.description());
+
+                output.push('\n');
             }
-
-            use core::fmt::Write as _;
-            let _ = write!(output, "{}", diagnostic.description());
-
-            output.push('\n');
         }
 
         write!(f, "{}", output)

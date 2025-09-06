@@ -3,9 +3,9 @@ edition.workspace = true
 name = "mischief-macros"
 version.workspace = true
 
+[lib]
+proc-macro = true
+
 [dependencies]
 syn = "2.0.106"
 quote = "1.0.40"
-
-[package.metadata.cargo-machete]
-ignored = ["syn","quote"]

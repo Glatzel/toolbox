@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use mischief instead of miette by @Glatzel in [#214](https://github.com/Glatzel/toolbox/pull/214)
 
+### Fixed
+
+- Mischief long line length by @Glatzel in [#216](https://github.com/Glatzel/toolbox/pull/216)
+
 ## [0.0.27] - 2025-09-04
 
 ### Performance

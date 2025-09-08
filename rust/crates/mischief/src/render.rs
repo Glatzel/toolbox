@@ -127,9 +127,9 @@ where
             if let Some(help) = diagnostic.help() {
                 buffer.clear();
                 if terminal_config.support_color {
-                    write!(buffer, "    {}: {}", "help".cyan(), help.blue())?;
+                    write!(buffer, "{}   {}: {}", "|".red(), "help".cyan(), help.blue())?;
                 } else {
-                    write!(buffer, "    help: {}", help)?;
+                    write!(buffer, "|   help: {}", help)?;
                 }
                 // Write the wrapped help line
                 write!(f, "\n{}", textwrap::fill(&buffer, &opts))?;

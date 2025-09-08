@@ -44,13 +44,13 @@ impl<'a, T> Render<'a, T>
 where
     T: IDiagnostic,
 {
-    pub fn new(diagnostic: &'a T) -> Self {
+    pub fn new(diagnostic: &'a T) -> Self {#[cfg(feature = "fancy")]
         let terminal_config = TerminalConfig::init();
         Self {
-            diagnostic,
-            indent: Indent,
-            shader: Shader,
-            terminal_config,
+            diagnostic,#[cfg(feature = "fancy")]
+            indent: Indent,#[cfg(feature = "fancy")]
+            shader: Shader,#[cfg(feature = "fancy")]
+            terminal_config,#[cfg(feature = "fancy")]
             theme: Theme::default(),
         }
     }

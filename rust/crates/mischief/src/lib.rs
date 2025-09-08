@@ -1,6 +1,7 @@
 #![no_std]
-
-pub use crate::report::{Report, Result, WrapErr};
+#![feature(specialization)]
+#![allow(incomplete_features)]
+pub use crate::report::{IntoMischief, Report, Result, WrapErr};
 mod error;
 pub(crate) mod report;
 pub use error::MischiefError;

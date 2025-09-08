@@ -1,14 +1,13 @@
 extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
-use core::error::Error;
-use core::fmt::{Debug, Display};
+use core::fmt::Display;
 
 use crate::IDiagnostic;
 
 pub struct MischiefError {
     description: String,
-    source: Option<Box<MischiefError>>,
+    pub(crate) source: Option<Box<MischiefError>>,
     code: Option<String>,
     severity: Option<crate::Severity>,
     help: Option<String>,
@@ -39,16 +38,7 @@ impl MischiefError {
     pub fn description(&self) -> Option<&str> { Some(&self.description) }
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
 }
-impl Debug for MischiefError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.description().unwrap_or_default())
-    }
-}
-impl Display for MischiefError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.description().unwrap_or_default())
-    }
-}
+
 impl IDiagnostic for MischiefError {
     fn description(&self) -> &str { &self.description }
 
@@ -61,24 +51,4 @@ impl IDiagnostic for MischiefError {
     fn help(&self) -> Option<&str> { self.help.as_deref() }
 
     fn url(&self) -> Option<&str> { self.url.as_deref() }
-}
-impl<E> From<E> for MischiefError
-where
-    E: Error,
-{
-    fn from(value: E) -> Self {
-        // convert recursively
-        fn convert(err: &dyn Error) -> MischiefError {
-            MischiefError {
-                description: err.to_string(),
-                source: err.source().map(|src| Box::new(convert(src))),
-                code: None,
-                severity: None,
-                help: None,
-                url: None,
-            }
-        }
-
-        convert(&value)
-    }
 }

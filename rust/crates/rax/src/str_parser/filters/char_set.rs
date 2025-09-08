@@ -74,6 +74,7 @@ pub const ASCII_LETTERS_DIGITS: CharSetFilter<62> = CharSetFilter::new([
 #[cfg(test)]
 mod tests {
     extern crate std;
+
     use clerk::{LogLevel, init_log_with_level};
 
     use super::*;
@@ -110,8 +111,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
-                    .contains("String too long for CharSet, expected 3 but got 4")
+                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
             );
         }
         Ok(())
@@ -123,7 +123,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
+                format!("{:?}", e)
                     .contains("String length does not match CharSet size, expected 3 but got 2")
             );
         }
@@ -136,7 +136,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
+                format!("{:?}", e)
                     .contains("String length does not match CharSet size, expected 3 but got 0")
             );
         }
@@ -149,8 +149,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
-                    .contains("String too long for CharSet, expected 3 but got 4")
+                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
             );
         }
         Ok(())
@@ -174,8 +173,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
-                    .contains("String too long for CharSet, expected 3 but got 4")
+                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
             );
         }
         Ok(())
@@ -187,7 +185,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
+                format!("{:?}", e)
                     .contains("String length does not match CharSet size, expected 3 but got 2")
             );
         }
@@ -200,7 +198,7 @@ mod tests {
         assert!(result.is_err());
         if let Err(e) = result {
             assert!(
-                e.to_string()
+                format!("{:?}", e)
                     .contains("String length does not match CharSet size, expected 3 but got 0")
             );
         }

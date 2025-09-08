@@ -29,6 +29,7 @@ where
         Ok(())
     }
 }
+
 impl<'a, T> Render<'a, T>
 where
     T: IDiagnostic,

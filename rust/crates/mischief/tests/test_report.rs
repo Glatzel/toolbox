@@ -1,6 +1,6 @@
 use std::fs::File;
 
-use mischief::{WrapErr, mischief};
+use mischief::{IntoMischief, WrapErr, mischief};
 
 #[test]
 fn report_error() {
@@ -52,10 +52,10 @@ fn report_ok() -> mischief::Result<()> {
 }
 #[test]
 fn report_from_error() -> mischief::Result<()> {
-    let f = File::open("fake").wrap_err("error wrapper");
+    let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => panic!(),
-        Err(e) => println!("{e}"),
+        Err(e) => println!("{e:?}"),
     }
     Ok(())
 }

@@ -4,7 +4,7 @@ name = "rax-nmea"
 version.workspace = true
 
 [dependencies]
-chrono = { version = "0.4.41" ,default-features = false,features = ["clock"]}
+chrono = { version = "0.4.42" ,default-features = false,features = ["clock"]}
 clerk = { workspace = true }
 mischief = { workspace = true }
 rax = { workspace = true }
@@ -14,7 +14,7 @@ serde = { version = "1.0.219", features = ["derive"], optional = true }
 clerk = { workspace = true, features = ["log"] }
 criterion = { package = "codspeed-criterion-compat", version = "2.10.1" }
 float-cmp = "0.10.0"
-serialport = "4.7.2"
+serialport = "4.7.3"
 rax = { workspace = true ,features = ["device","async"]}
 
 [features]

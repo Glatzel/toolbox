@@ -7,14 +7,14 @@ version.workspace = true
 async-trait = { version = "0.1.89", optional = true }
 clerk = { workspace = true }
 mischief = { workspace = true }
-serialport = { version = "4.7.2", optional = true }
+serialport = { version = "4.7.3", optional = true }
 tokio = { version = "1.47.1", default-features = false, optional = true }
 tokio-serial = { version = "5.4.5", optional = true }
 
 [dev-dependencies]
 async-trait = "0.1.89"
 criterion = { package = "codspeed-criterion-compat", version = "2.10.1" }
-serialport = "4.7.2"
+serialport = "4.7.3"
 tokio = { version = "1.47.1", default-features = false, features = [
     "macros",
     "rt-multi-thread",

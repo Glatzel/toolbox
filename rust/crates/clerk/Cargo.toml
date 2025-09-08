@@ -4,12 +4,12 @@ name = "clerk"
 version.workspace = true
 
 [dependencies]
-chrono = { version = "0.4.41", optional = true }
+chrono = { version = "0.4.42", optional = true }
 owo-colors = { version = "4.2.2", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 tracing = { version = "0.1.41", optional = true }
 tracing-core = { version = "0.1.34", optional = true }
-tracing-subscriber = { version = "0.3.19", features = [
+tracing-subscriber = { version = "0.3.20", features = [
   "env-filter",
 ], optional = true }
 

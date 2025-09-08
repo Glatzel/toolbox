@@ -32,3 +32,4 @@ jobs:
           run: cargo codspeed run
           token: ${{ secrets.CODSPEED_TOKEN }}
           working-directory: ./rust
+          mode: instrumentation

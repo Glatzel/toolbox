@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 
 use crate::error::MischiefError;
-use crate::{ render};
+use crate::render;
 pub struct Report {
     inner: MischiefError,
 }

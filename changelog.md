@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.29] - 2025-09-09
+
+### Changed
+
+- New terminal error render for mischief by @Glatzel in [#221](https://github.com/Glatzel/toolbox/pull/221)
+- Use standard error for library by @Glatzel in [#224](https://github.com/Glatzel/toolbox/pull/224)
+- Use hashbrown instead of std hashmap by @Glatzel in [#225](https://github.com/Glatzel/toolbox/pull/225)
+
+### Documentation
+
+- Add docs for rust crates by @Glatzel in [#226](https://github.com/Glatzel/toolbox/pull/226)
+
+### Fixed
+
+- No std rax by @Glatzel in [#223](https://github.com/Glatzel/toolbox/pull/223)
+
 ## [0.0.28] - 2025-09-06
 
 ### Added
@@ -210,6 +226,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.29]: https://github.com/Glatzel/toolbox/compare/v0.0.28..v0.0.29
 [0.0.28]: https://github.com/Glatzel/toolbox/compare/v0.0.27..v0.0.28
 [0.0.27]: https://github.com/Glatzel/toolbox/compare/v0.0.26..v0.0.27
 [0.0.26]: https://github.com/Glatzel/toolbox/compare/v0.0.25..v0.0.26

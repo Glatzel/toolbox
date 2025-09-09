@@ -27,14 +27,14 @@ impl Dispatcher {
         let talker = match Talker::from_str(&sentence) {
             Ok(t) => t,
             Err(_e) => {
-                clerk::warn!("{}", _e);
+                clerk::warn!("{:?}", _e);
                 return None;
             }
         };
         let identifier = match Identifier::from_str(&sentence) {
             Ok(i) => i,
             Err(_e) => {
-                clerk::warn!("{}", _e);
+                clerk::warn!("{:?}", _e);
                 return None;
             }
         };

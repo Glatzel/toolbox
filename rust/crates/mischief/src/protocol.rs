@@ -2,7 +2,7 @@ extern crate alloc;
 
 use core::fmt::{Debug, Display};
 
-pub trait IDiagnostic: Debug {
+pub trait IDiagnostic {
     fn description(&self) -> &str;
     fn source(&self) -> Option<&dyn IDiagnostic>;
     fn code(&self) -> Option<&str>;
@@ -13,7 +13,7 @@ pub trait IDiagnostic: Debug {
     //  fn labels<'a>(&'a self) -> Option<&'a str>;
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum Severity {
     /// Just some help. Here's how you could be doing it better.
     Advice,

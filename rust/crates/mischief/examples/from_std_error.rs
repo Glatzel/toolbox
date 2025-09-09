@@ -1,8 +1,11 @@
 use std::fs::File;
 
-use mischief::WrapErr;
+use mischief::{IntoMischief, WrapErr};
 
 fn main() -> mischief::Result<()> {
-    let _ = File::open("fake").wrap_err("error wrapper")?;
+    let _ = File::open("fake")
+        .into_mischief()
+        .wrap_err(mischief::mischief!("mischief wrapper", help = "some help"))
+        .wrap_err("error wrapper")?;
     Ok(())
 }

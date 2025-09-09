@@ -1,17 +1,72 @@
 use crate::IDiagnostic;
 extern crate alloc;
 use core::fmt::Debug;
+#[cfg(feature = "fancy")]
+mod indent;
+#[cfg(feature = "fancy")]
+mod position;
+#[cfg(feature = "fancy")]
+mod shader;
+#[cfg(feature = "fancy")]
+mod terminal_config;
+#[cfg(feature = "fancy")]
+mod theme;
+#[cfg(feature = "fancy")]
+use alloc::format;
+#[cfg(feature = "fancy")]
+use alloc::string::String;
+#[cfg(feature = "fancy")]
+use core::fmt::Write;
+
+#[cfg(feature = "fancy")]
+pub use indent::{IIndent, Indent};
+#[cfg(feature = "fancy")]
+pub use position::{Element, Layer};
+#[cfg(feature = "fancy")]
+pub use shader::{IShader, Shader};
+#[cfg(feature = "fancy")]
+pub use terminal_config::TerminalConfig;
+#[cfg(feature = "fancy")]
+pub use theme::{ITheme, Theme};
+pub trait IRender: Debug {
+    #[cfg(feature = "fancy")]
+    fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
+    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
+}
+
 pub struct Render<'a, T>
 where
     T: IDiagnostic,
 {
     diagnostic: &'a T,
+    #[cfg(feature = "fancy")]
+    indent: Indent,
+    #[cfg(feature = "fancy")]
+    shader: Shader,
+    #[cfg(feature = "fancy")]
+    terminal_config: TerminalConfig,
+    #[cfg(feature = "fancy")]
+    theme: Theme,
 }
 impl<'a, T> Render<'a, T>
 where
     T: IDiagnostic,
 {
-    pub fn new(diagnostic: &'a T) -> Self { Self { diagnostic } }
+    pub fn new(diagnostic: &'a T) -> Self {
+        #[cfg(feature = "fancy")]
+        let terminal_config = TerminalConfig::init();
+        Self {
+            diagnostic,
+            #[cfg(feature = "fancy")]
+            indent: Indent,
+            #[cfg(feature = "fancy")]
+            shader: Shader,
+            #[cfg(feature = "fancy")]
+            terminal_config,
+            #[cfg(feature = "fancy")]
+            theme: Theme,
+        }
+    }
     fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
         core::iter::successors(Some(self.diagnostic as &dyn IDiagnostic), |r| r.source())
     }
@@ -25,126 +80,107 @@ where
         self.render_plain(f)?;
 
         #[cfg(feature = "fancy")]
-        self.render_fancy(f, TerminalConfig::init())?;
+        {
+            if self.terminal_config.supports_unicode() {
+                self.render_fancy(f)?
+            } else {
+                self.render_plain(f)?
+            }
+        }
+
         Ok(())
     }
 }
-impl<'a, T> Render<'a, T>
+
+impl<'a, T> IRender for Render<'a, T>
 where
     T: IDiagnostic,
 {
     #[cfg(feature = "fancy")]
-    fn render_fancy(
-        &self,
-        f: &mut core::fmt::Formatter<'_>,
-        terminal_config: TerminalConfig,
-    ) -> core::fmt::Result {
-        use alloc::string::{String, ToString};
-        use core::fmt::Write;
-
-        use owo_colors::OwoColorize;
-
-        let width = terminal_config.width.unwrap_or(80);
+    fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut buffer = String::new(); // Reuse a single buffer
 
         let mut chain = self.chain().peekable();
-        let mut is_first = true;
+        let mut node: Layer = Layer::Bottom;
 
         while let Some(diagnostic) = chain.next() {
-            let is_last = chain.peek().is_none();
-
-            // 1. Determine prefixes without allocating
-            let (prefix_str, sub_prefix_str) = if is_first {
-                ("x", "│ ")
-            } else if is_last {
-                ("╰─▶", "    ") // Note: adjust spacing to your preference
-            } else {
-                ("├─▶", "│   ")
-            };
-
-            // 2. Write prefix (colored or not) directly to the formatter
-            if terminal_config.support_color {
-                write!(f, "{} ", prefix_str.red())?;
-            } else {
-                write!(f, "{} ", prefix_str)?;
+            if chain.peek().is_none() {
+                node = Layer::Top;
             }
-
-            // --- Build the main diagnostic line in the buffer ---
             buffer.clear();
 
-            if let Some(sev) = diagnostic.severity() {
-                write!(buffer, "{:?}", sev)?;
+            let severity_theme = self.theme.severity_theme(diagnostic.severity());
+            if let Some(s) = diagnostic.severity() {
+                self.shader
+                    .apply(&mut buffer, s, &severity_theme, &self.terminal_config)?
+            }
+            if let Some(s) = diagnostic.code() {
+                self.shader.apply(
+                    &mut buffer,
+                    format!("[{}]", s),
+                    &severity_theme,
+                    &self.terminal_config,
+                )?
+            }
+            if let Some(s) = diagnostic.url() {
+                self.shader.apply_hyperlink(
+                    &mut buffer,
+                    s,
+                    "(link)",
+                    &self.theme.url_theme(),
+                    &self.terminal_config,
+                )?
+            }
+            if diagnostic.severity().is_some()
+                || diagnostic.code().is_some()
+                || diagnostic.url().is_some()
+            {
+                buffer.write_str(": ")?;
             }
 
-            if let Some(code) = diagnostic.code() {
-                if terminal_config.support_color {
-                    match diagnostic.severity() {
-                        Some(crate::Severity::Warning) => write!(buffer, "<{}>", code.yellow()),
-                        Some(crate::Severity::Advice) => write!(buffer, "<{}>", code.cyan()),
-                        _ => write!(buffer, "<{}>", code.red()),
-                    }?;
-                } else {
-                    write!(buffer, "<{}>", code)?;
-                }
-            }
+            self.shader.apply(
+                &mut buffer,
+                diagnostic.description(),
+                &self.theme.description_theme(),
+                &self.terminal_config,
+            )?;
+            buffer = self.shader.write_wrapped(
+                &buffer,
+                &self.terminal_config,
+                &self.theme,
+                &self.indent,
+                &node,
+                &position::Element::First,
+            );
+            f.write_str(&buffer)?;
+            buffer.clear();
 
-            if let Some(url) = diagnostic.url() {
-                // This part is tricky to do without allocation if you need the link string
-                // For now, let's keep it but it could be optimized further if needed.
-                let link = if terminal_config.support_hyperlinks {
-                    alloc::format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", url, "link")
-                } else {
-                    url.to_string()
-                };
-
-                if terminal_config.support_color {
-                    write!(buffer, " ({})", link.blue())?;
-                } else {
-                    write!(buffer, " ({})", link)?;
-                }
-            }
-
-            if !buffer.is_empty() {
-                buffer.push_str(": ");
-            }
-
-            write!(buffer, "{}", diagnostic.description())?;
-
-            // 3. Setup textwrap options with the correct indent
-            let sub_prefix_colored = if terminal_config.support_color {
-                alloc::format!("{}", sub_prefix_str.red())
-            } else {
-                sub_prefix_str.into()
+            if let Some(s) = diagnostic.help() {
+                writeln!(f)?;
+                let help_theme = self.theme.help_theme();
+                self.shader
+                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)?;
+                self.shader
+                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)?;
+                buffer = self.shader.write_wrapped(
+                    &buffer,
+                    &self.terminal_config,
+                    &self.theme,
+                    &self.indent,
+                    &node,
+                    &position::Element::Other,
+                );
+                f.write_str(&buffer)?;
             };
 
-            let opts = textwrap::Options::new(width).subsequent_indent(&sub_prefix_colored);
+            writeln!(f)?;
 
-            // Write the wrapped main line
-            write!(f, "{}", textwrap::fill(&buffer, &opts))?;
-
-            // --- Help line ---
-            if let Some(help) = diagnostic.help() {
-                buffer.clear();
-                if terminal_config.support_color {
-                    write!(buffer, "    {}: {}", "help".cyan(), help.blue())?;
-                } else {
-                    write!(buffer, "    help: {}", help)?;
-                }
-                // Write the wrapped help line
-                write!(f, "\n{}", textwrap::fill(&buffer, &opts))?;
-            }
-
-            if !is_last {
-                writeln!(f)?;
-            }
-
-            is_first = false;
+            node = Layer::Middle;
         }
 
         Ok(())
     }
 
-    #[cfg(not(feature = "fancy"))]
     fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut chain = self.chain();
 
@@ -164,32 +200,5 @@ where
         }
 
         Ok(())
-    }
-}
-
-#[cfg(feature = "fancy")]
-struct TerminalConfig {
-    width: Option<usize>,
-    support_color: bool,
-    support_hyperlinks: bool,
-    _supports_unicode: bool,
-}
-
-#[cfg(feature = "fancy")]
-impl TerminalConfig {
-    pub fn init() -> Self {
-        Self {
-            width: Self::get_terminal_width(),
-            support_color: supports_color::on(supports_color::Stream::Stdout).is_some(),
-            support_hyperlinks: supports_hyperlinks::supports_hyperlinks(),
-            _supports_unicode: supports_unicode::supports_unicode(),
-        }
-    }
-    fn get_terminal_width() -> Option<usize> {
-        if let Some((terminal_size::Width(w), _)) = terminal_size::terminal_size() {
-            Some(w as usize)
-        } else {
-            None
-        }
     }
 }

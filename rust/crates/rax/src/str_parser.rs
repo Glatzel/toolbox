@@ -3,9 +3,10 @@ pub mod rules;
 extern crate alloc;
 use alloc::string::String;
 mod parse_opt;
-
 pub use parse_opt::*;
 pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
+
+use crate::RaxError;
 
 pub struct StrParserContext {
     full: String,
@@ -53,13 +54,16 @@ impl<'a> StrParserContext {
             }
         }
     }
-    pub fn take_strict<R>(&mut self, rule: &R) -> mischief::Result<R::Output>
+    pub fn take_strict<R>(&mut self, rule: &'a R) -> Result<R::Output, RaxError>
     where
         R: IStrFlowRule<'a>,
     {
         match self.take(rule) {
             Some(s) => Ok(s),
-            None => mischief::bail!("take fail"),
+            None => Err(RaxError::VerbError {
+                verb: "TakeStrict".to_string(),
+                rule: rule.to_string(),
+            }),
         }
     }
 }
@@ -72,12 +76,17 @@ impl<'a> StrParserContext {
         self.take(rule);
         self
     }
-    pub fn skip_strict<R>(&mut self, rule: &R) -> mischief::Result<&mut Self>
+    pub fn skip_strict<R>(&mut self, rule: &'a R) -> Result<&mut Self, RaxError>
     where
         R: IStrFlowRule<'a>,
     {
-        self.take_strict(rule)?;
-        Ok(self)
+        match self.take_strict(rule) {
+            Ok(_) => Ok(self),
+            Err(_) => Err(RaxError::VerbError {
+                verb: "SkipStrict".to_string(),
+                rule: rule.to_string(),
+            }),
+        }
     }
 }
 impl<'a> StrParserContext {

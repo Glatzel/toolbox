@@ -1,12 +1,14 @@
 use core::fmt;
 use core::str::FromStr;
 extern crate alloc;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -18,12 +20,12 @@ pub enum GrsResidualMode {
     CalculatedAfterGga,
 }
 impl FromStr for GrsResidualMode {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "0" => Ok(Self::UsedInGga),
             "1" => Ok(Self::CalculatedAfterGga),
-            other => mischief::bail!("Unknown GrsResidualMode: {}", other),
+            other => Err(RaxNmeaError::UnknownGrsResidualMode(other.to_string())),
         }
     }
 }
@@ -54,7 +56,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Grs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);

@@ -1,3 +1,5 @@
+use core::fmt::{self, Debug, Display};
+
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
 
@@ -5,10 +7,14 @@ use crate::str_parser::rules::IRule;
 /// Returns a tuple of (prefix, rest) if enough characters are present,
 /// otherwise returns None.
 pub struct CharCount<const N: usize>;
-
-impl<const N: usize> IRule for CharCount<N> {
-    fn name(&self) -> &str { "CharCount" }
+impl<const N: usize> Debug for CharCount<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "CharCount<{}>", N) }
 }
+
+impl<const N: usize> Display for CharCount<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+}
+impl<const N: usize> IRule for CharCount<N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     type Output = &'a str;
@@ -18,11 +24,11 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Otherwise, returns None.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Log the input and the requested character count at trace level.
-        clerk::trace!("CharCount rule: input='{}', count={}", input, N);
+        clerk::trace!("{}: input='{}', count={}", self, input, N);
 
         // If count is zero, return empty prefix and full input.
         if N == 0 {
-            clerk::debug!("CharCount: count is zero, returning empty prefix and full input.");
+            clerk::debug!("{self}: count is zero, returning empty prefix and full input.");
             return (Some(""), input);
         }
 
@@ -31,7 +37,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
 
         // If count matches input length, return the whole input as prefix.
         if N == length {
-            clerk::debug!("CharCount: count matches input length, returning whole input.");
+            clerk::debug!("{self}: count matches input length, returning whole input.");
             return (Some(input), "");
         }
 
@@ -40,7 +46,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             if count == N {
                 // Found the split point at the requested character count.
                 clerk::debug!(
-                    "CharCount: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    "{self}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
                     count,
                     idx,
                     &input[..idx],

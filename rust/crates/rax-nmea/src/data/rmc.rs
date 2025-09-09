@@ -3,6 +3,7 @@ use core::fmt;
 use chrono::NaiveDate;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -51,7 +52,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Rmc {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);

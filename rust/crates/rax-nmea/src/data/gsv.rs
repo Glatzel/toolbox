@@ -6,6 +6,7 @@ use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -57,7 +58,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gsv {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::new: sentence='{}'", ctx.full_str());
         // Validate each line with NMEA_VALIDATE
         for l in ctx.full_str().lines() {
@@ -123,7 +124,7 @@ impl INmeaData for Gsv {
 impl Gsv {
     /// Helper to parse a single satellite entry.
     /// If `last` is true, the SNR field is terminated by a star.
-    fn parse_satellite(ctx: &mut StrParserContext, last: bool) -> mischief::Result<Satellite> {
+    fn parse_satellite(ctx: &mut StrParserContext, last: bool) -> Result<Satellite, RaxNmeaError> {
         let id = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();

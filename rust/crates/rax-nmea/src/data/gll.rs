@@ -2,6 +2,7 @@ use core::fmt;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -32,7 +33,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gll {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;

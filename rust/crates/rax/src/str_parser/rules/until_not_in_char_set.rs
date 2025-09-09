@@ -15,10 +15,16 @@ pub struct UntilNotInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
     pub mode: super::UntilMode,
 }
-
-impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {
-    fn name(&self) -> &str { "UntilNotInCharSet" }
+impl<'a, const N: usize> core::fmt::Debug for UntilNotInCharSet<'a, N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "UntilNotInCharSet<N={}> {{ mode: {:?} }}", N, self.mode)
+    }
 }
+
+impl<'a, const N: usize> core::fmt::Display for UntilNotInCharSet<'a, N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
@@ -38,7 +44,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
                         let prefix = &input[..i];
                         let rest = &input[i + c.len_utf8()..];
                         clerk::debug!(
-                            "UntilNotInCharSet(include): prefix='{}', rest='{}', i={}, c='{}'",
+                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
                             prefix,
                             rest,
                             i,
@@ -50,7 +56,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
                         let prefix = &input[..i + c.len_utf8()];
                         let rest = &input[i + c.len_utf8()..];
                         clerk::debug!(
-                            "UntilNotInCharSet(include): prefix='{}', rest='{}', i={}, c='{}'",
+                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
                             prefix,
                             rest,
                             i,
@@ -62,7 +68,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
                         let prefix = &input[..i];
                         let rest = &input[i..];
                         clerk::debug!(
-                            "UntilNotInCharSet(not include): prefix='{}', rest='{}', i={}, c='{}'",
+                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
                             prefix,
                             rest,
                             i,
@@ -75,7 +81,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
         }
         // If all characters are in the set, return None and the original input
         clerk::debug!(
-            "UntilNotInCharSet: all characters in set, returning None, input='{}'",
+            "{self}: all characters in set, returning None, input='{}'",
             input
         );
         (None, input)

@@ -1,12 +1,13 @@
 use core::fmt;
 use core::str::FromStr;
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -18,16 +19,15 @@ pub enum DtmDatum {
     UserDefined,
 }
 impl FromStr for DtmDatum {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
 
-    fn from_str(s: &str) -> mischief::Result<Self> {
-        let result = match s {
-            "W84" => Self::WGS84,
-            "P90" => Self::PZ90,
-            "999" => Self::UserDefined,
-            other => mischief::bail!("Unknown DtmDatum: {}", other),
-        };
-        Ok(result)
+    fn from_str(s: &str) -> Result<Self, RaxNmeaError> {
+        match s {
+            "W84" => Ok(Self::WGS84),
+            "P90" => Ok(Self::PZ90),
+            "999" => Ok(Self::UserDefined),
+            other => Err(RaxNmeaError::UnknownDtmDatum(other.to_string())),
+        }
     }
 }
 readonly_struct!(
@@ -57,7 +57,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Dtm {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
         let datum = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

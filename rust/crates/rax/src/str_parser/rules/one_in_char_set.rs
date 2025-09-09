@@ -1,15 +1,20 @@
+use core::fmt::{self, Debug, Display};
+
 use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
-
 /// Rule to match if the first character of the input is in a given character
 /// set. If the first character is in the set, returns a tuple of (matched_char,
 /// rest_of_input). Otherwise, returns None.
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
-
-impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {
-    fn name(&self) -> &str { "OneOfCharSet" }
+impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "OneOfCharSet<N={}>", N) }
 }
+
+impl<'a, const N: usize> Display for OneOfCharSet<'a, N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+}
+impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;

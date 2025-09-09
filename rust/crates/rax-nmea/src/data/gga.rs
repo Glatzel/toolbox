@@ -1,13 +1,14 @@
 use core::fmt::{self, Display};
 use core::str::FromStr;
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -26,7 +27,7 @@ pub enum GgaQualityIndicator {
     SimulationMode = 8,
 }
 impl FromStr for GgaQualityIndicator {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "0" => Ok(Self::Invalid),
@@ -38,7 +39,7 @@ impl FromStr for GgaQualityIndicator {
             "6" => Ok(Self::DeadReckoning),
             "7" => Ok(Self::ManualInputMode),
             "8" => Ok(Self::SimulationMode),
-            other => mischief::bail!("Unknown GgaQualityIndicator {}", other),
+            other => Err(RaxNmeaError::UnknownGgaQualityIndicator(other.to_string())),
         }
     }
 }
@@ -109,7 +110,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gga {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;

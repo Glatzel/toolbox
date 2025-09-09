@@ -8,6 +8,7 @@ version = "0.0.28"
 
 [workspace.dependencies]
 clerk = { path = "./crates/clerk/" }
-rax = { path = "./crates/rax/" }
+rax = { path = "./crates/rax/" ,default-features = false}
 mischief-macros = { path = "./crates/mischief-macros/" }
 mischief = { path = "./crates/mischief/" }
+serialport-ext= { path = "./crates/serialport-ext/" }

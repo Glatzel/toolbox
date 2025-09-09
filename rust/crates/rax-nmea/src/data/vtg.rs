@@ -5,6 +5,7 @@ extern crate alloc;
 use alloc::string::String;
 use core::fmt::Write;
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -35,7 +36,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vtg {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let cogt = ctx

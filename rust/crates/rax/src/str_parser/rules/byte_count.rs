@@ -1,3 +1,5 @@
+use core::fmt::{self, Debug, Display};
+
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
 
@@ -5,11 +7,16 @@ use crate::str_parser::rules::IRule;
 /// Returns a tuple of (prefix, rest) if enough bytes are present and the split
 /// is on a valid UTF-8 boundary, otherwise returns None.
 pub struct ByteCount<const N: usize>;
-
-impl<const N: usize> IRule for ByteCount<N> {
-    fn name(&self) -> &str { "byte count" }
+impl<const N: usize> Debug for ByteCount<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // You can format it however you want for Debug
+        write!(f, "ByteCount<{}>", N)
+    }
 }
-
+impl<const N: usize> Display for ByteCount<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+}
+impl<const N: usize> IRule for ByteCount<N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     type Output = &'a str;
     /// Applies the ByteCount rule to the input string.
@@ -18,17 +25,17 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// of the string. Otherwise, returns None.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Log the input and the requested byte count at trace level.
-        clerk::trace!("ByteCount rule: input='{}', byte_count={}", input, N);
+        clerk::trace!("{self}: input='{}', byte_count={}", input, N);
 
         match input.get(..N) {
             Some(out) => {
                 let rest = &input[N..];
-                clerk::debug!("ByteCount: matched prefix='{}', rest='{}'", out, rest);
+                clerk::debug!("{self}: matched prefix='{}', rest='{}'", out, rest);
                 (Some(out), rest)
             }
             None => {
                 clerk::debug!(
-                    "ByteCount: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
+                    "{self}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
                     N,
                     input
                 );

@@ -67,7 +67,7 @@ impl DeviceInfo {
 /// # Returns
 /// * `Ok(Vec<DeviceInfo>)` on success.
 /// * `Err(mischief::Report)` if device enumeration fails.
-pub fn list_devices<F>(filter: F) -> mischief::Result<Vec<DeviceInfo>>
+pub fn list_devices<F>(filter: F) -> Result<Vec<DeviceInfo>, serialport::Error>
 where
     F: Fn(&SerialPortInfo) -> bool,
 {

@@ -1,5 +1,5 @@
 use clerk::LogLevel;
-use rax::device::{DeviceFilter, list_devices};
+use serialport_ext::{DeviceFilter, list_devices};
 
 fn main() -> mischief::Result<()> {
     clerk::init_log_with_level(LogLevel::TRACE);

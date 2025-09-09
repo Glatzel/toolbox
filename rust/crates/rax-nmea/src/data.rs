@@ -20,6 +20,8 @@ mod gnq;
 mod gpq;
 mod ths;
 mod vlw;
+extern crate alloc;
+use alloc::string::ToString;
 
 pub use dhv::*;
 pub use dtm::*;
@@ -44,8 +46,10 @@ pub use txt::*;
 pub use vlw::*;
 pub use vtg::*;
 pub use zda::*;
+
+use crate::RaxNmeaError;
 pub trait INmeaData {
-    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> mischief::Result<Self>
+    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> Result<Self, RaxNmeaError>
     where
         Self: Sized;
 }
@@ -93,37 +97,36 @@ pub enum Identifier {
     ZDA,
 }
 impl FromStr for Identifier {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
 
-    fn from_str(sentence: &str) -> Result<Self, Self::Err> {
+    fn from_str(sentence: &str) -> Result<Identifier, RaxNmeaError> {
         if sentence.len() < 6 {
-            mischief::bail!("Invalid sentence: {}", sentence);
+            return Err(RaxNmeaError::InvalidSentence(sentence.to_string()));
         }
-        let out = match &sentence.get(3..6) {
-            Some("DHV") => Self::DHV,
-            Some("DTM") => Self::DTM,
-            Some("GBQ") => Self::GBQ,
-            Some("GBS") => Self::GBS,
-            Some("GGA") => Self::GGA,
-            Some("GLL") => Self::GLL,
-            Some("GLQ") => Self::GLQ,
-            Some("GNQ") => Self::GNQ,
-            Some("GNS") => Self::GNS,
-            Some("GPQ") => Self::GPQ,
-            Some("GRS") => Self::GRS,
-            Some("GSA") => Self::GSA,
-            Some("GST") => Self::GST,
-            Some("GSV") => Self::GSV,
-            Some("RMC") => Self::RMC,
-            Some("THS") => Self::THS,
-            Some("TXT") => Self::TXT,
-            Some("VLW") => Self::VLW,
-            Some("VTG") => Self::VTG,
-            Some("ZDA") => Self::ZDA,
+        match &sentence.get(3..6) {
+            Some("DHV") => Ok(Self::DHV),
+            Some("DTM") => Ok(Self::DTM),
+            Some("GBQ") => Ok(Self::GBQ),
+            Some("GBS") => Ok(Self::GBS),
+            Some("GGA") => Ok(Self::GGA),
+            Some("GLL") => Ok(Self::GLL),
+            Some("GLQ") => Ok(Self::GLQ),
+            Some("GNQ") => Ok(Self::GNQ),
+            Some("GNS") => Ok(Self::GNS),
+            Some("GPQ") => Ok(Self::GPQ),
+            Some("GRS") => Ok(Self::GRS),
+            Some("GSA") => Ok(Self::GSA),
+            Some("GST") => Ok(Self::GST),
+            Some("GSV") => Ok(Self::GSV),
+            Some("RMC") => Ok(Self::RMC),
+            Some("THS") => Ok(Self::THS),
+            Some("TXT") => Ok(Self::TXT),
+            Some("VLW") => Ok(Self::VLW),
+            Some("VTG") => Ok(Self::VTG),
+            Some("ZDA") => Ok(Self::ZDA),
 
-            _ => mischief::bail!("Unknown identifier: {}", sentence),
-        };
-        Ok(out)
+            _ => Err(RaxNmeaError::UnknownIdentifier(sentence.to_string())),
+        }
     }
 }
 impl Display for Identifier {
@@ -171,19 +174,18 @@ pub enum Talker {
 }
 
 impl FromStr for Talker {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
 
-    fn from_str(sentence: &str) -> mischief::Result<Self> {
-        let out = match &sentence.get(1..3) {
-            Some("BD") => Self::BD,
-            Some("GA") => Self::GA,
-            Some("GL") => Self::GL,
-            Some("GN") => Self::GN,
-            Some("GP") => Self::GP,
-            Some("PQ") => Self::PQ,
-            _ => mischief::bail!("Unknown talker: {}", sentence),
-        };
-        Ok(out)
+    fn from_str(sentence: &str) -> Result<Self, RaxNmeaError> {
+        match &sentence.get(1..3) {
+            Some("BD") => Ok(Self::BD),
+            Some("GA") => Ok(Self::GA),
+            Some("GL") => Ok(Self::GL),
+            Some("GN") => Ok(Self::GN),
+            Some("GP") => Ok(Self::GP),
+            Some("PQ") => Ok(Self::PQ),
+            _ => Err(RaxNmeaError::UnknownTalker(sentence.to_string())),
+        }
     }
 }
 impl Display for Talker {
@@ -213,7 +215,7 @@ pub enum PosMode {
     Simulator,
 }
 impl FromStr for PosMode {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Autonomous),
@@ -227,7 +229,7 @@ impl FromStr for PosMode {
             "S" => Ok(Self::Simulator),
             "V" => Ok(Self::NotValid),
 
-            other => mischief::bail!("Unknown FaaMode: {}", other),
+            other => Err(RaxNmeaError::UnknownFaaMode(other.to_string())),
         }
     }
 }
@@ -248,7 +250,7 @@ impl Display for PosMode {
     }
 }
 impl TryFrom<&char> for PosMode {
-    type Error = mischief::Report;
+    type Error = RaxNmeaError;
 
     fn try_from(value: &char) -> Result<Self, Self::Error> {
         match value {
@@ -263,7 +265,7 @@ impl TryFrom<&char> for PosMode {
             'S' => Ok(Self::Simulator),
             'V' => Ok(Self::NotValid),
 
-            other => mischief::bail!("Unknown FaaMode: {}", other),
+            other => Err(RaxNmeaError::UnknownFaaMode(other.to_string())),
         }
     }
 }
@@ -278,7 +280,7 @@ pub enum SystemId {
     NavIC = 5,
 }
 impl FromStr for SystemId {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(Self::GPS),
@@ -286,7 +288,7 @@ impl FromStr for SystemId {
             "3" => Ok(Self::BDS),
             "4" => Ok(Self::QZSS),
             "5" => Ok(Self::NavIC),
-            other => mischief::bail!("Unknown sysyemid {}", other),
+            other => Err(RaxNmeaError::UnknownSystemId(other.to_string())),
         }
     }
 }
@@ -297,12 +299,12 @@ pub enum Status {
     Invalid,
 }
 impl FromStr for Status {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Valid),
             "V" => Ok(Self::Invalid),
-            other => mischief::bail!("Unknown status {}", other),
+            other => Err(RaxNmeaError::UnknownStatus(other.to_string())),
         }
     }
 }

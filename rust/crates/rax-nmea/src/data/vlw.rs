@@ -5,6 +5,7 @@ use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -32,7 +33,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vlw {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
         let twd = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

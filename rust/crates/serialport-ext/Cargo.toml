@@ -1,0 +1,13 @@
+[package]
+edition.workspace = true
+name = "serialport-ext"
+version.workspace = true
+
+[dependencies]
+clerk = { workspace = true }
+serialport = "4.7.3"
+
+[dev-dependencies]
+
+clerk = { workspace = true, features = ["log"] }
+mischief = { workspace = true }

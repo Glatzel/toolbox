@@ -1,14 +1,19 @@
+use core::fmt::{self, Debug, Display};
+
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
-
 /// Rule to match a specific character at the start of the input string.
 /// If the first character matches the expected character, returns a tuple of
 /// (matched_char, rest_of_input). Otherwise, returns None.
 pub struct Char<const C: char>;
-
-impl<const C: char> IRule for Char<C> {
-    fn name(&self) -> &str { "char" }
+impl<const C: char> Debug for Char<C> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "Char<{:?}>", C) }
 }
+
+impl<const C: char> Display for Char<C> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+}
+impl<const C: char> IRule for Char<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     type Output = char;
@@ -17,7 +22,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// rest of the string. Otherwise, returns None.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
         // Log the input and the expected character at trace level.
-        clerk::trace!("Char rule: input='{}', expected='{}'", input, C);
+        clerk::trace!("{self}: input='{}', expected='{}'", input, C);
         let mut chars = input.char_indices();
 
         // Get the first character and its byte offset.
@@ -26,11 +31,11 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
             if out == C {
                 // If the character matches, find the next char boundary (or end of string).
                 let (end, _) = chars.next().unwrap_or((input.len(), '\0')); // second char or end of string
-                clerk::debug!("Char rule matched: '{}', rest='{}'", out, &input[end..]);
+                clerk::debug!("{self} matched: '{}', rest='{}'", out, &input[end..]);
                 (Some(out), &input[end..])
             } else {
                 // If the character does not match, log and return None.
-                clerk::debug!("Char rule did not match: found '{}', expected '{}'", out, C);
+                clerk::debug!("{self} did not match: found '{}', expected '{}'", out, C);
                 (None, input)
             }
         } else {

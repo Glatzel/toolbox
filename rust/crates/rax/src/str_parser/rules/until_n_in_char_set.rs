@@ -15,10 +15,20 @@ pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
     pub filter: &'a CharSetFilter<M>,
     pub mode: UntilMode,
 }
-
-impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {
-    fn name(&self) -> &str { "UntilNInCharSet" }
+impl<'a, const N: usize, const M: usize> core::fmt::Debug for UntilNInCharSet<'a, N, M> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "UntilNInCharSet<N={}, M={}> {{ mode: {:?} }}",
+            N, M, self.mode
+        )
+    }
 }
+
+impl<'a, const N: usize, const M: usize> core::fmt::Display for UntilNInCharSet<'a, N, M> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
@@ -61,7 +71,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
         }
         // Fewer than N occurrences found.
         clerk::debug!(
-            "UntilNInCharSet: fewer than {} matches found, returning None, input='{}'",
+            "{self}: fewer than {} matches found, returning None, input='{}'",
             N,
             input
         );

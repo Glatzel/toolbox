@@ -4,8 +4,8 @@ use tokio::io::{AsyncBufRead, AsyncBufReadExt};
 /// Async counterpart of `IRaxReader`.
 #[async_trait]
 pub trait AsyncIRaxReader {
-    async fn read_line(&mut self) -> mischief::Result<Option<String>>;
-    async fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>>;
+    async fn read_line(&mut self) -> Result<Option<String>, std::io::Error>;
+    async fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error>;
 }
 /// Buffered async reader implementing `AsyncIRaxReader`.
 pub struct AsyncRaxReader<R: AsyncBufRead + Unpin> {
@@ -21,7 +21,7 @@ impl<R> AsyncIRaxReader for AsyncRaxReader<R>
 where
     R: AsyncBufRead + Unpin + Send, // `Send` lets it cross await points safely
 {
-    async fn read_line(&mut self) -> mischief::Result<Option<String>> {
+    async fn read_line(&mut self) -> Result<Option<String>, std::io::Error> {
         let mut buf = String::new();
         let n = self.inner.read_line(&mut buf).await?;
         clerk::debug!(
@@ -32,7 +32,7 @@ where
         Ok((n > 0).then_some(buf))
     }
 
-    async fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>> {
+    async fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error> {
         let mut lines = Vec::with_capacity(count);
         for i in 0..count {
             match self.read_line().await? {

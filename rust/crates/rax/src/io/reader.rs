@@ -2,10 +2,8 @@ use std::io::BufRead;
 
 /// Trait for reading lines from a source.
 pub trait IRaxReader {
-    /// Reads the next line; returns `None` on EOF.
-    fn read_line(&mut self) -> mischief::Result<Option<String>>;
-    /// Reads up to `count` lines, or until EOF.
-    fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>>;
+    fn read_line(&mut self) -> Result<Option<String>, std::io::Error>;
+    fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error>;
 }
 
 /// A buffered line reader that implements `IRaxReader`.
@@ -27,7 +25,7 @@ impl<R: BufRead> RaxReader<R> {
 impl<R: BufRead> IRaxReader for RaxReader<R> {
     /// Reads a single line from the inner reader.
     /// Returns `Ok(Some(line))` if a line is read, or `Ok(None)` on EOF.
-    fn read_line(&mut self) -> mischief::Result<Option<String>> {
+    fn read_line(&mut self) -> Result<Option<String>, std::io::Error> {
         let mut buf = String::new();
         self.buf.clear();
         let n = self.inner.read_line(&mut buf)?;
@@ -42,7 +40,7 @@ impl<R: BufRead> IRaxReader for RaxReader<R> {
 
     /// Reads up to `count` lines from the inner reader.
     /// Stops early if EOF is reached.
-    fn read_lines_by_count(&mut self, count: usize) -> mischief::Result<Vec<String>> {
+    fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error> {
         let mut lines = Vec::with_capacity(count);
         for _i in 0..count {
             match self.read_line()? {

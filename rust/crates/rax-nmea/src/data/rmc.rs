@@ -3,9 +3,10 @@ use core::fmt;
 use chrono::NaiveDate;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
 use crate::macros::readonly_struct;
-use crate::{rules::*, RaxNmeaError};
+use crate::rules::*;
 
 readonly_struct!(
     Rmc ,

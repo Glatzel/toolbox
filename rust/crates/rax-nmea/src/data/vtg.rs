@@ -5,9 +5,10 @@ extern crate alloc;
 use alloc::string::String;
 use core::fmt::Write;
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
-use crate::{rules::*, RaxNmeaError};
+use crate::rules::*;
 readonly_struct!(
     Vtg ,
     "Course over ground and ground speed",

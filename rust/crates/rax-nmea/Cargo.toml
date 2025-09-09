@@ -21,7 +21,7 @@ rax = { workspace = true ,features = ["async"]}
 
 [features]
 default = ["std"]
-std = ["rax/std"]
+std = ["rax/std","thiserror/std"]
 serde = ["std", "dep:serde", "chrono/serde"]
 
 [[bench]]

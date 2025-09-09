@@ -43,22 +43,18 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
                 chars[i] = c;
                 i += 1;
             } else {
-                return Err(StrParserError::FilterError {
-                    reason: format!(
-                        "String too long for CharSet, expected {} but got {}",
-                        N,
-                        i + 1
-                    ),
-                });
+                return Err(StrParserError::FilterError(format!(
+                    "String too long for CharSet, expected {} but got {}",
+                    N,
+                    i + 1
+                )));
             }
         }
         if i != N {
-            return Err(StrParserError::FilterError {
-                reason: format!(
-                    "String length does not match CharSet size, expected {} but got {}",
-                    N, i
-                ),
-            });
+            return Err(StrParserError::FilterError(format!(
+                "String length does not match CharSet size, expected {} but got {}",
+                N, i
+            )));
         }
         Ok(Self::new(chars))
     }

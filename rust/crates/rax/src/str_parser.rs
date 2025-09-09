@@ -3,9 +3,9 @@ pub mod rules;
 extern crate alloc;
 use alloc::string::String;
 mod parse_opt;
-
 pub use parse_opt::*;
 pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
+use thiserror::Error;
 
 pub struct StrParserContext {
     full: String,
@@ -96,18 +96,10 @@ impl<'a> StrParserContext {
         rule.apply(&self.full)
     }
 }
-
+#[derive(Error, Debug)]
 pub enum StrParserError {
+    #[error("VerbError(verb: {verb}, rule: {rule})")]
     VerbError { verb: String, rule: String },
-    FilterError { reason: String },
-}
-impl core::fmt::Debug for StrParserError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
-}
-
-impl core::fmt::Display for StrParserError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
-}
-impl core::error::Error for StrParserError {
-    fn description(&self) -> &str { "description() is deprecated; use Display" }
+    #[error("FilterError: {0}")]
+    FilterError(String),
 }

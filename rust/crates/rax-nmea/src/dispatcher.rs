@@ -2,6 +2,7 @@ use core::str::FromStr;
 
 use hashbrown::HashMap;
 extern crate alloc;
+use alloc::string::String;
 
 use crate::data::{Identifier, Talker};
 

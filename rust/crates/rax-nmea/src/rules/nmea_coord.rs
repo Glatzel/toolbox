@@ -1,3 +1,5 @@
+use core::fmt::{self, Display};
+
 use rax::str_parser::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
@@ -6,11 +8,13 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the coordinate to decimal degrees, applying the correct sign.
 /// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
 /// None.
+#[derive(Debug)]
 pub struct NmeaCoord;
-
-impl IRule for NmeaCoord {
-
+impl Display for NmeaCoord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
+impl IRule for NmeaCoord {}
 impl NmeaCoord {
     fn convert_to_decimal_degrees(v: f64) -> f64 {
         let deg = (v / 100.0).floor();

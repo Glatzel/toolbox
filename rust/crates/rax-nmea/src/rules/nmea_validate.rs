@@ -1,6 +1,8 @@
-use core::fmt::{Debug, Display};
+use core::fmt::{self, Debug, Display};
 
 use rax::str_parser::IRule;
+
+use crate::RaxNmeaError;
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
 #[derive(Debug)]
@@ -12,51 +14,50 @@ impl Display for NmeaValidate {
 impl IRule for NmeaValidate {}
 
 impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
-    type Output = Result<(),>;
+    type Output = Result<(), RaxNmeaError>;
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> mischief::Result<()> {
+    fn apply(&self, input: &'a str) -> Result<(), RaxNmeaError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{}'", input);
         let input = input.trim_end();
 
         // Check if the sentence starts with '$'.
         if !input.starts_with('$') {
-            clerk::warn!("NmeaValidate: sentence does not start with '$'");
-            mischief::bail!("sentence doesn't start with `$`");
+            let e = RaxNmeaError::InvalidSentencePrefix(input.to_string());
+            clerk::warn!("{self}: {e}");
+            return Err(e);
         }
 
         // Find the position of the '*' checksum delimiter.
         let Some(star_pos) = input.find('*') else {
-            clerk::warn!("NmeaValidate: missing checksum delimiter '*'");
-            mischief::bail!("Missing checksum delimiter `*`");
+            let e = RaxNmeaError::MissingChecksumDelimiter(input.to_string());
+            clerk::warn!("{self}: {e}");
+            return Err(e);
         };
 
         // Split the input into data and checksum string.
         let (data, checksum_str) = input[1..].split_at(star_pos - 1); // skip $
         let checksum_str = &checksum_str[1..];
-        clerk::debug!(
-            "NmeaValidate: data='{}', checksum_str='{}'",
-            data,
-            checksum_str
-        );
+        clerk::debug!("{self}: data='{}', checksum_str='{}'", data, checksum_str);
 
         // Check that the checksum string is exactly 2 characters.
         if checksum_str.len() != 2 {
-            clerk::warn!(
-                "NmeaValidate: checksum_str length is {}, expected 2",
-                checksum_str.len()
-            );
-            mischief::bail!("require checksum_str length 2, get {}", checksum_str.len());
+            let e = RaxNmeaError::InvalidChecksumLength(checksum_str.len());
+            clerk::warn!("{self}: {e}");
+            return Err(e);
         }
 
         // Parse the expected checksum from hex.
-        let expected = u8::from_str_radix(checksum_str, 16);
-        let Ok(expected) = expected else {
-            clerk::warn!("NmeaValidate: invalid hex checksum '{}'", checksum_str);
-            mischief::bail!("Invalid hex checksum");
+        let expected = match u8::from_str_radix(checksum_str, 16) {
+            Ok(v) => v,
+            Err(e) => {
+                let e = RaxNmeaError::InvalidHexChecksum(e);
+                clerk::warn!("{self}: {e}");
+                return Err(e);
+            }
         };
 
         // Calculate the checksum by XOR'ing all data bytes.
@@ -69,18 +70,14 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
 
         // Compare calculated and expected checksums.
         if calculated != expected {
-            clerk::warn!(
-                "NmeaValidate: checksum mismatch: calculated {:02X}, expected {:02X}",
+            let e = RaxNmeaError::ChecksumMismatch {
                 calculated,
-                expected
-            );
-            mischief::bail!(
-                "Checksum mismatch: calculated {:02X}, expected {:02X}",
-                calculated,
-                expected
-            );
+                expected,
+            };
+            clerk::warn!("{self}: {e}");
+            return Err(e);
         }
-        clerk::info!("NmeaValidate: sentence is valid: {input}");
+        clerk::info!("{self}: sentence is valid: {input}");
         Ok(())
     }
 }
@@ -95,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_valid_sentence() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         for input in vec![
             "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47",
             "$GPGSV,4,1,15,05,00,000,17,07,06,105,20,08,11,032,15,10,00,000,16*77",
@@ -156,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_invalid_checksum() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*00";
         let result = rule.apply(input);
         assert!(result.is_err());
@@ -166,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_missing_dollar() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         let input = "GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
         let result = rule.apply(input);
         assert!(result.is_err());
@@ -176,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_missing_star() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,47";
         let result = rule.apply(input);
         assert!(result.is_err());
@@ -186,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_invalid_hex_checksum() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*ZZ";
         let result = rule.apply(input);
         assert!(result.is_err());
@@ -196,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_short_checksum() {
-        let rule = NmeaValidate();
+        let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*4";
         let result = rule.apply(input);
         assert!(result.is_err());

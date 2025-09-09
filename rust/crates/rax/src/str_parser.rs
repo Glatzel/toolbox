@@ -5,7 +5,8 @@ use alloc::string::String;
 mod parse_opt;
 pub use parse_opt::*;
 pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
-use thiserror::Error;
+
+use crate::RaxError;
 
 pub struct StrParserContext {
     full: String,
@@ -53,13 +54,13 @@ impl<'a> StrParserContext {
             }
         }
     }
-    pub fn take_strict<R>(&mut self, rule: &'a R) -> Result<R::Output, StrParserError>
+    pub fn take_strict<R>(&mut self, rule: &'a R) -> Result<R::Output, RaxError>
     where
         R: IStrFlowRule<'a>,
     {
         match self.take(rule) {
             Some(s) => Ok(s),
-            None => Err(StrParserError::VerbError {
+            None => Err(RaxError::VerbError {
                 verb: "TakeStrict".to_string(),
                 rule: rule.to_string(),
             }),
@@ -75,13 +76,13 @@ impl<'a> StrParserContext {
         self.take(rule);
         self
     }
-    pub fn skip_strict<R>(&mut self, rule: &'a R) -> Result<&mut Self, StrParserError>
+    pub fn skip_strict<R>(&mut self, rule: &'a R) -> Result<&mut Self, RaxError>
     where
         R: IStrFlowRule<'a>,
     {
         match self.take_strict(rule) {
             Ok(_) => Ok(self),
-            Err(_) => Err(StrParserError::VerbError {
+            Err(_) => Err(RaxError::VerbError {
                 verb: "SkipStrict".to_string(),
                 rule: rule.to_string(),
             }),
@@ -95,11 +96,4 @@ impl<'a> StrParserContext {
     {
         rule.apply(&self.full)
     }
-}
-#[derive(Error, Debug)]
-pub enum StrParserError {
-    #[error("VerbError(verb: {verb}, rule: {rule})")]
-    VerbError { verb: String, rule: String },
-    #[error("FilterError: {0}")]
-    FilterError(String),
 }

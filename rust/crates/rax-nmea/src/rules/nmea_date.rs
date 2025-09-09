@@ -1,13 +1,15 @@
+use core::fmt::{self, Debug, Display};
+
 use chrono::NaiveDate;
 use rax::str_parser::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
-
+#[derive(Debug)]
 pub struct NmeaDate;
-
-impl IRule for NmeaDate {
-
+impl Display for NmeaDate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+impl IRule for NmeaDate {}
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {
     type Output = NaiveDate;

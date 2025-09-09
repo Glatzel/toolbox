@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::str_parser::StrParserError;
+use crate::str_parser::RaxError;
 use crate::str_parser::filters::IFilter;
 /// A fixed, sorted list of characters.
 /// `contains()` uses a const‑friendly binary search.
@@ -33,9 +33,9 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     }
 }
 impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = crate::str_parser::StrParserError;
+    type Err = crate::str_parser::RaxError;
 
-    fn from_str(s: &str) -> Result<Self, crate::str_parser::StrParserError> {
+    fn from_str(s: &str) -> Result<Self, crate::str_parser::RaxError> {
         let mut chars = [0 as char; N];
         let mut i = 0;
         for c in s.chars() {
@@ -43,7 +43,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
                 chars[i] = c;
                 i += 1;
             } else {
-                return Err(StrParserError::FilterError(format!(
+                return Err(RaxError::FilterError(format!(
                     "String too long for CharSet, expected {} but got {}",
                     N,
                     i + 1
@@ -51,7 +51,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
             }
         }
         if i != N {
-            return Err(StrParserError::FilterError(format!(
+            return Err(RaxError::FilterError(format!(
                 "String length does not match CharSet size, expected {} but got {}",
                 N, i
             )));

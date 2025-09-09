@@ -852,6 +852,7 @@ dependencies = [
  "rax",
  "serde",
  "serialport",
+ "thiserror",
 ]
 
 [[package]]

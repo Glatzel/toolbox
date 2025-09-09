@@ -1,3 +1,5 @@
+use core::fmt::{self, Display};
+
 use chrono::NaiveTime;
 use rax::str_parser::IRule;
 
@@ -7,11 +9,13 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the time to a `DateTime<Utc>` using today's date.
 /// Returns a tuple of (DateTime<Utc>, rest_of_input) if successful, otherwise
 /// None.
+#[derive(Debug)]
 pub struct NmeaTime;
-
-impl IRule for NmeaTime {
-
+impl Display for NmeaTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
+impl IRule for NmeaTime {}
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
     type Output = NaiveTime;

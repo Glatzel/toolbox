@@ -11,9 +11,12 @@ use crate::str_parser::rules::UntilMode;
 /// # Fields
 ///
 /// - `mode`: Determines how the delimiter is treated in the output:
-///   - [`UntilMode::Discard`]: The delimiter is removed from the prefix and rest.
-///   - [`UntilMode::KeepLeft`]: The delimiter is included at the end of the prefix.
-///   - [`UntilMode::KeepRight`]: The delimiter is included at the start of the rest.
+///   - [`UntilMode::Discard`]: The delimiter is removed from the prefix and
+///     rest.
+///   - [`UntilMode::KeepLeft`]: The delimiter is included at the end of the
+///     prefix.
+///   - [`UntilMode::KeepRight`]: The delimiter is included at the start of the
+///     rest.
 ///
 /// # Type Parameters
 ///
@@ -37,9 +40,7 @@ impl<const C: char> core::fmt::Debug for UntilChar<C> {
 }
 
 impl<const C: char> core::fmt::Display for UntilChar<C> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
-    }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<const C: char> IRule for UntilChar<C> {}
@@ -96,7 +97,6 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
         (None, input)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

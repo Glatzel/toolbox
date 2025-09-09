@@ -15,15 +15,11 @@ use crate::str_parser::rules::IRule;
 pub struct Char<const C: char>;
 
 impl<const C: char> Debug for Char<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Char<{:?}>", C)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "Char<{:?}>", C) }
 }
 
 impl<const C: char> Display for Char<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<const C: char> IRule for Char<C> {}
@@ -36,12 +32,14 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// # Returns
     ///
     /// - `(Some(C), rest)` if the first character of the input matches `C`.
-    /// - `(None, input)` if the first character does not match `C` or the input is empty.
+    /// - `(None, input)` if the first character does not match `C` or the input
+    ///   is empty.
     ///
     /// # Logging
     ///
     /// - Trace-level logs show the input and the expected character.
-    /// - Debug-level logs show whether a match occurred and the resulting rest of the input.
+    /// - Debug-level logs show whether a match occurred and the resulting rest
+    ///   of the input.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
         clerk::trace!("{self}: input='{}', expected='{}'", input, C);
 
@@ -54,7 +52,11 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                 clerk::debug!("{self} matched: '{}', rest='{}'", first_char, &input[end..]);
                 (Some(first_char), &input[end..])
             } else {
-                clerk::debug!("{self} did not match: found '{}', expected '{}'", first_char, C);
+                clerk::debug!(
+                    "{self} did not match: found '{}', expected '{}'",
+                    first_char,
+                    C
+                );
                 (None, input)
             }
         } else {

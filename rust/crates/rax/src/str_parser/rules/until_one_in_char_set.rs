@@ -10,13 +10,16 @@ use crate::str_parser::rules::UntilMode;
 ///
 /// - `filter`: A [`CharSetFilter`] defining the set of characters to stop at.
 /// - `mode`: Determines how the matched character is treated:
-///   - [`UntilMode::Discard`]: Exclude the matched character from the prefix and remove it from the rest.
+///   - [`UntilMode::Discard`]: Exclude the matched character from the prefix
+///     and remove it from the rest.
 ///   - [`UntilMode::KeepLeft`]: Include the matched character in the prefix.
-///   - [`UntilMode::KeepRight`]: Keep the matched character at the start of the rest.
+///   - [`UntilMode::KeepRight`]: Keep the matched character at the start of the
+///     rest.
 ///
 /// # Behavior
 ///
-/// - Returns `(Some(prefix), rest)` when a character from the set is found, split according to `mode`.
+/// - Returns `(Some(prefix), rest)` when a character from the set is found,
+///   split according to `mode`.
 /// - Returns `(None, input)` if no character from the set is found.
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information for each split or if no match is found.
@@ -32,9 +35,7 @@ impl<'a, const N: usize> core::fmt::Debug for UntilOneInCharSet<'a, N> {
 }
 
 impl<'a, const N: usize> core::fmt::Display for UntilOneInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
-    }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
@@ -55,7 +56,10 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                 };
                 clerk::debug!(
                     "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                    prefix, rest, i, c
+                    prefix,
+                    rest,
+                    i,
+                    c
                 );
                 return (Some(prefix), rest);
             }
@@ -65,7 +69,6 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
         (None, input)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -12,7 +12,5 @@ pub trait ParseOptExt<T> {
 }
 
 impl<'a> ParseOptExt<&'a str> for Option<&'a str> {
-    fn parse_opt<U: std::str::FromStr>(self) -> Option<U> {
-        self.and_then(|s| s.parse::<U>().ok())
-    }
+    fn parse_opt<U: std::str::FromStr>(self) -> Option<U> { self.and_then(|s| s.parse::<U>().ok()) }
 }

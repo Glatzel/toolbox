@@ -7,15 +7,19 @@ use crate::str_parser::rules::UntilMode;
 /// matching a given character set is reached.
 ///
 /// `UntilNInCharSet<N, M>` scans the input string from the start, counting
-/// how many characters belong to the specified character set (defined by `filter`).
+/// how many characters belong to the specified character set (defined by
+/// `filter`).
 ///
 /// # Fields
 ///
 /// - `filter`: The [`CharSetFilter`] that defines the set of valid characters.
 /// - `mode`: Determines how the N-th matched character is treated:
-///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix and removed from the rest.
-///   - [`UntilMode::KeepLeft`]: The N-th character is included at the end of the prefix.
-///   - [`UntilMode::KeepRight`]: The N-th character is included at the start of the rest.
+///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix
+///     and removed from the rest.
+///   - [`UntilMode::KeepLeft`]: The N-th character is included at the end of
+///     the prefix.
+///   - [`UntilMode::KeepRight`]: The N-th character is included at the start of
+///     the rest.
 ///
 /// # Type Parameters
 ///
@@ -24,8 +28,8 @@ use crate::str_parser::rules::UntilMode;
 ///
 /// # Behavior
 ///
-/// - Returns `(Some(prefix), rest)` when N characters in the set have been seen,
-///   split according to `mode`.
+/// - Returns `(Some(prefix), rest)` when N characters in the set have been
+///   seen, split according to `mode`.
 /// - Returns `(None, input)` if fewer than N characters in the set are found.
 /// - Respects UTF-8 character boundaries and logs trace/debug information.
 pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
@@ -44,9 +48,7 @@ impl<'a, const N: usize, const M: usize> core::fmt::Debug for UntilNInCharSet<'a
 }
 
 impl<'a, const N: usize, const M: usize> core::fmt::Display for UntilNInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
-    }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}

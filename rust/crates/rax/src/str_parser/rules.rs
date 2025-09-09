@@ -17,9 +17,9 @@ pub use until_n_in_char_set::*;
 mod n_in_charset;
 pub use n_in_charset::*;
 mod until_char;
-pub use until_char::*;
-
 use core::fmt::{Debug, Display};
+
+pub use until_char::*;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Clone, Copy, Debug)]

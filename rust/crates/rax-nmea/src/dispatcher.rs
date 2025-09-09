@@ -1,5 +1,10 @@
 use core::str::FromStr;
-use std::collections::HashMap;
+
+use hashbrown::HashMap;
+extern crate alloc;
+use alloc::format;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 use crate::data::{Identifier, Talker};
 
@@ -151,6 +156,7 @@ impl Dispatcher {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
     use std::fs::File;
     use std::io;
 

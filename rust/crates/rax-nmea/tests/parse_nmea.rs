@@ -1,4 +1,4 @@
-#![cfg(feature = "std")]
+extern crate std;
 use std::fs::File;
 use std::io;
 

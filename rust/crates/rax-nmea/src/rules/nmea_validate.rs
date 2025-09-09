@@ -160,7 +160,8 @@ mod tests {
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");
-        assert!(msg.contains("Checksum mismatch"));
+        println!("{msg}");
+        assert!(msg.contains("ChecksumMismatch"));
     }
 
     #[test]
@@ -170,7 +171,8 @@ mod tests {
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");
-        assert!(msg.contains("doesn't start with"));
+        println!("{msg}");
+        assert!(msg.contains("InvalidSentencePrefix"));
     }
 
     #[test]
@@ -180,7 +182,8 @@ mod tests {
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");
-        assert!(msg.contains("Missing checksum delimiter"));
+        println!("{msg}");
+        assert!(msg.contains("MissingChecksumDelimiter"));
     }
 
     #[test]
@@ -190,7 +193,8 @@ mod tests {
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");
-        assert!(msg.contains("Invalid hex checksum"));
+        println!("{msg}");
+        assert!(msg.contains("InvalidHexChecksum"));
     }
 
     #[test]
@@ -200,6 +204,7 @@ mod tests {
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");
-        assert!(msg.contains("require checksum_str length 2"));
+        println!("{msg}");
+        assert!(msg.contains("InvalidChecksumLength"));
     }
 }

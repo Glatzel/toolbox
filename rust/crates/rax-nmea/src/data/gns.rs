@@ -7,6 +7,7 @@ use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -19,15 +20,15 @@ pub enum NavigationStatus {
     Invalid,
 }
 impl FromStr for NavigationStatus {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
 
-    fn from_str(s: &str) -> mischief::Result<Self> {
+    fn from_str(s: &str) -> Result<Self, RaxNmeaError> {
         match s {
             "S" => Ok(Self::Safe),
             "C" => Ok(Self::Caution),
             "U" => Ok(Self::Unsafe),
             "V" => Ok(Self::Invalid),
-            _ => mischief::bail!("Unknown NavigationStatus: {}", s),
+            _ => Err(RaxNmeaError::UnknownNavigationStatus(s.to_string())),
         }
     }
 }
@@ -83,7 +84,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gns {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NMEA_VALIDATE)?;

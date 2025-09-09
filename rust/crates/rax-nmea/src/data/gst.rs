@@ -4,7 +4,7 @@ use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
-use crate::rules::*;
+use crate::{rules::*, RaxNmeaError};
 readonly_struct!(
     Gst ,
     "GNSS pseudorange error statistics",
@@ -44,7 +44,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gst {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);

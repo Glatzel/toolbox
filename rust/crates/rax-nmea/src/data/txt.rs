@@ -8,6 +8,7 @@ use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -20,14 +21,14 @@ pub enum TxtType {
     User = 7,
 }
 impl TryFrom<u8> for TxtType {
-    type Error = mischief::Report;
-    fn try_from(s: u8) -> mischief::Result<Self> {
+    type Error = RaxNmeaError;
+    fn try_from(s: u8) -> Result<Self, RaxNmeaError> {
         match s {
             0 => Ok(Self::Error),
             1 => Ok(Self::Warn),
             2 => Ok(Self::Info),
             7 => Ok(Self::User),
-            _ => mischief::bail!("Unknown txt type: {}", s),
+            other => Err(RaxNmeaError::UnknownTxtType(other)),
         }
     }
 }
@@ -54,7 +55,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Txt {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
 
         for l in ctx.full_str().lines() {

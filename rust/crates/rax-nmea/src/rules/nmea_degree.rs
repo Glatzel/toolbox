@@ -21,22 +21,22 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
 
     fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
         // Log the input at trace level.
-        clerk::trace!("NmeaDegree rule: input='{}'", input);
+        clerk::trace!("{self}: input='{}'", input);
         let (deg_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);
         let (sign_str, rest2) = UNTIL_COMMA_DISCARD.apply(rest1);
         match (deg_str.and_then(|d| d.parse::<f64>().ok()), sign_str) {
             (Some(val), Some("E" | "N")) => (Some(val), rest2),
             (Some(val), Some("W" | "S")) => (Some(-val), rest2),
             (Some(_), Some(_sign)) => {
-                clerk::info!("NmeaDegree: unknown sign '{}'", _sign);
+                clerk::info!("{self}: unknown sign '{}'", _sign);
                 (None, rest2)
             }
             (_, Some("")) => {
-                clerk::info!("NmeaDegree: Null degree: `{}`", input);
+                clerk::info!("{self}: Null degree: `{}`", input);
                 (None, rest2)
             }
             _ => {
-                clerk::warn!("NmeaDegree: failed to parse input '{}'", input);
+                clerk::warn!("{self}: failed to parse input '{}'", input);
                 (None, rest2)
             }
         }
@@ -51,7 +51,7 @@ mod test {
     #[test]
     fn test_nmea_degree() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaDegree();
+        let rule = NmeaDegree;
         let input = "123.45,N,other_data";
         let (result, rest) = rule.apply(input);
         assert!(result.is_some());
@@ -61,7 +61,7 @@ mod test {
     #[test]
     fn test_nmea_degree_negative() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaDegree();
+        let rule = NmeaDegree;
         let input = "123.45,S,other_data";
         let (result, rest) = rule.apply(input);
         assert!(result.is_some());
@@ -71,7 +71,7 @@ mod test {
     #[test]
     fn test_nmea_degree_invalid() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaDegree();
+        let rule = NmeaDegree;
         let input = "invalid_input";
         let (result, rest) = rule.apply(input);
         assert!(result.is_none());
@@ -80,7 +80,7 @@ mod test {
     #[test]
     fn test_nmea_degree_no_second_comma() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaDegree();
+        let rule = NmeaDegree;
         let input = "12345.6789,Nother_data";
         let (result, rest) = rule.apply(input);
         assert!(result.is_none());
@@ -89,7 +89,7 @@ mod test {
     #[test]
     fn test_nmea_degree_null() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaDegree();
+        let rule = NmeaDegree;
         let input = ",,Nother_data";
         let (result, rest) = rule.apply(input);
         assert!(result.is_none());

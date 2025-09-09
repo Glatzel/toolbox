@@ -7,6 +7,7 @@ use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -18,12 +19,12 @@ pub enum GsaOperationMode {
     Automatic,
 }
 impl FromStr for GsaOperationMode {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Automatic),
             "M" => Ok(Self::Manual),
-            other => mischief::bail!("Unknown GsaSelectionMode: {}", other),
+            other => Err(RaxNmeaError::UnknownGsaSelectionMode(other.to_string())),
         }
     }
 }
@@ -35,13 +36,13 @@ pub enum GsaNavigationMode {
     Fix3D,
 }
 impl FromStr for GsaNavigationMode {
-    type Err = mischief::Report;
+    type Err = RaxNmeaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(Self::NoFix),
             "2" => Ok(Self::Fix2D),
             "3" => Ok(Self::Fix3D),
-            other => mischief::bail!("Unknown GsaMode: {}", other),
+            other => Err(RaxNmeaError::UnknownGsaNavigationMode(other.to_string())),
         }
     }
 }
@@ -80,7 +81,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gsa {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let op_mode = ctx

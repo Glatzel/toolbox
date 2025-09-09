@@ -6,7 +6,7 @@ use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::data::{INmeaData, Talker};
 use crate::macros::readonly_struct;
-use crate::rules::*;
+use crate::{rules::*, RaxNmeaError};
 
 readonly_struct!(
     Gnq ,
@@ -19,7 +19,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Gnq {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

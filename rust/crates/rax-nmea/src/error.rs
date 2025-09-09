@@ -25,4 +25,21 @@ pub enum RaxNmeaError {
     UnknownSystemId(String),
     #[error("Unknown status: {0}")]
     UnknownStatus(String),
+    #[error("Unknown DTM datum: {0}")]
+    UnknownDtmDatum(String),
+    #[error("Unknown navigation status: {0}")]
+    UnknownNavigationStatus(String),
+    #[error("Unknown GGA quality indicator: {0}")]
+    UnknownGgaQualityIndicator(String),
+    #[error("Unknown GRS residual mode: {0}")]
+    UnknownGrsResidualMode(String),
+    #[error("Unknown TXT type: {0}")]
+    UnknownTxtType(u8),
+    #[error("Unknown GSA selection mode: {0}")]
+    UnknownGsaSelectionMode(String),
+    #[error("Unknown GSA navigation mode: {0}")]
+    UnknownGsaNavigationMode(String),
+
+    #[error("RaxError")]
+    RaxError(#[from] rax::RaxError),
 }

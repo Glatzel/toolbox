@@ -24,12 +24,12 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply(&self, input: &'a str) -> (core::option::Option<NaiveTime>, &'a str) {
-        clerk::trace!("NmeaUtc rule: input='{}'", input);
+        clerk::trace!("{self}: input='{}'", input);
 
         let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);
         let res = match res {
             Some("") | None => {
-                clerk::info!("NmeaTime: got empty string.");
+                clerk::info!("{self}: got empty string.");
                 return (None, rest);
             }
             Some(res) => res,
@@ -53,7 +53,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
             res.get(range)
                 .and_then(|s| s.parse::<u32>().ok())
                 .ok_or_else(|| {
-                    clerk::warn!("NmeaUtc: failed to parse {} ', input='{}'", label, input);
+                    clerk::warn!("{self}: failed to parse {} ', input='{}'", label, input);
                 })
         };
 
@@ -71,7 +71,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
         };
 
         clerk::debug!(
-            "NmeaUtc: parsed hour={}, min={}, sec={}, nanos={}",
+            "{self}: parsed hour={}, min={}, sec={}, nanos={}",
             hour,
             min,
             sec,
@@ -80,12 +80,12 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
 
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
-                clerk::debug!("NmeaUtc: parsed time: {}", t);
+                clerk::debug!("{self}: parsed time: {}", t);
                 (Some(t), rest)
             }
             None => {
                 clerk::warn!(
-                    "NmeaUtc: invalid time: hour={}, min={}, sec={}, nanos={}",
+                    "{self}: invalid time: hour={}, min={}, sec={}, nanos={}",
                     hour,
                     min,
                     sec,
@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_valid() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("123456.789,foo,bar");
         let dt = dt.expect("Should parse valid UTC time");
         assert_eq!(dt.hour(), 12);
@@ -122,7 +122,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_no_fraction() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("235959,rest");
         let dt = dt.expect("Should parse valid time");
         assert_eq!(dt.hour(), 23);
@@ -136,7 +136,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_invalid_hour() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("xx3456,foo");
         assert!(dt.is_none());
         assert_eq!(rest, "foo");
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_invalid_minute() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("12xx56,foo");
         assert!(dt.is_none());
         assert_eq!(rest, "foo");
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_invalid_second() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("1234xx,foo");
         assert!(dt.is_none());
         assert_eq!(rest, "foo");
@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_empty() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply(",foo");
         assert!(dt.is_none());
         assert_eq!(rest, "foo");
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn test_nmea_utc_no_comma() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaTime();
+        let rule = NmeaTime;
         let (dt, rest) = rule.apply("123456");
         assert!(dt.is_none());
         assert_eq!(rest, "123456");

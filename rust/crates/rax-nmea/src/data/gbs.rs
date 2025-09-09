@@ -2,6 +2,7 @@ use core::fmt::Debug;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
+use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
 use crate::macros::readonly_struct;
 use crate::rules::*;
@@ -55,7 +56,7 @@ readonly_struct!(
 );
 
 impl INmeaData for Gbs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
         let err_lat = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let err_lon = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();

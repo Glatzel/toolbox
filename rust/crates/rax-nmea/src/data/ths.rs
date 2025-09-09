@@ -4,7 +4,7 @@ use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
-use crate::rules::*;
+use crate::{rules::*, RaxNmeaError};
 
 readonly_struct!(
     Ths ,
@@ -21,7 +21,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Ths {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
         let headt = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

@@ -7,7 +7,7 @@ use core::fmt::Write;
 
 use crate::data::{INmeaData, PosMode, Talker};
 use crate::macros::readonly_struct;
-use crate::rules::*;
+use crate::{rules::*, RaxNmeaError};
 readonly_struct!(
     Vtg ,
     "Course over ground and ground speed",
@@ -35,7 +35,7 @@ readonly_struct!(
     }
 );
 impl INmeaData for Vtg {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> mischief::Result<Self> {
+    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NMEA_VALIDATE)?;
 
         let cogt = ctx

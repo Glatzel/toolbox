@@ -37,7 +37,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             (Some(v), Some(sign @ ("N" | "E"))) => {
                 let result = Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "NmeaCoord: positive sign '{}', deg={}, min={}, result={}",
+                    "{self}: positive sign '{}', deg={}, min={}, result={}",
                     sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
@@ -48,7 +48,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             (Some(v), Some(sign @ ("S" | "W"))) => {
                 let result = -Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "NmeaCoord: negative sign '{}', deg={}, min={}, result={}",
+                    "{self}: negative sign '{}', deg={}, min={}, result={}",
                     sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
@@ -57,15 +57,15 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                 (Some(result), rest2)
             }
             (Some(_), Some(_sign)) => {
-                clerk::info!("NmeaCoord: invalid sign '{}'", _sign);
+                clerk::info!("{self}: invalid sign '{}'", _sign);
                 (None, rest2)
             }
             (_, Some("")) => {
-                clerk::info!("NmeaCoord: Null coord: '{}'", input);
+                clerk::info!("{self}: Null coord: '{}'", input);
                 (None, rest2)
             }
             _ => {
-                clerk::warn!("NmeaCoord: Invalid input: '{}'", input);
+                clerk::warn!("{self}: Invalid input: '{}'", input);
                 (None, rest2)
             }
         }
@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_east() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         // 12319.123,E,rest
         let input = "12319.123,E,rest";
         let (val, rest) = rule.apply(input);
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_west() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "12319.123,W,foo";
 
         let (val, rest) = rule.apply(input);
@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_north() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "4807.038,N,bar";
 
         let (val, rest) = rule.apply(input);
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_south() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "4807.038,S,xyz";
 
         let (val, rest) = rule.apply(input);
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_invalid_sign() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "12319.123,X,rest";
 
         let (val, rest) = rule.apply(input);
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_invalid_number() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "notanumber,E,rest";
 
         let (val, rest) = rule.apply(input);
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn test_nmea_coord_missing_comma() {
         init_log_with_level(LogLevel::TRACE);
-        let rule = NmeaCoord();
+        let rule = NmeaCoord;
         let input = "12319.123Erest";
 
         let (val, rest) = rule.apply(input);

@@ -1,28 +1,44 @@
 //! Device enumeration and filtering utilities for serial devices.
 //!
 //! This module provides types and functions to list and filter serial devices
-//! (such as USB, PCI, and Bluetooth devices) using the `serialport` crate.
+//! such as USB, PCI, and Bluetooth devices using the `serialport` crate.
 
 use serialport::{SerialPortInfo, SerialPortType};
+
+/// Enumeration of supported device types.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeviceType {
+    /// USB device
     Usb,
+    /// PCI device
     Pci,
+    /// Bluetooth device
     Bluetooth,
+    /// Unknown device type
     Unknown,
 }
+
+/// Struct containing detailed information about a serial device.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeviceInfo {
+    /// Device name (e.g., "COM3" or "/dev/ttyUSB0")
     name: String,
+    /// Type of the device
     device_type: DeviceType,
+    /// Optional USB vendor ID
     vendor_id: Option<u16>,
+    /// Optional USB product ID
     product_id: Option<u16>,
+    /// Optional device serial number
     serial_number: Option<String>,
+    /// Optional device manufacturer
     manufacturer: Option<String>,
+    /// Optional product name
     product: Option<String>,
 }
+
 impl DeviceInfo {
-    /// Create a new `DeviceInfo` instance.
+    /// Create a new `DeviceInfo` instance with the provided details.
     pub fn new(
         name: String,
         device_type: DeviceType,
@@ -42,31 +58,40 @@ impl DeviceInfo {
             product,
         }
     }
-    /// Get the device name.
+
+    /// Returns the device name.
     pub fn name(&self) -> &str { &self.name }
-    /// Get the device type.
+
+    /// Returns the device type.
     pub fn device_type(&self) -> &DeviceType { &self.device_type }
-    /// Get the vendor ID, if available.
+
+    /// Returns the USB vendor ID, if available.
     pub fn vendor_id(&self) -> Option<u16> { self.vendor_id }
-    /// Get the product ID, if available.
+
+    /// Returns the USB product ID, if available.
     pub fn product_id(&self) -> Option<u16> { self.product_id }
-    /// Get the serial number, if available.
+
+    /// Returns the device serial number, if available.
     pub fn serial_number(&self) -> Option<&str> { self.serial_number.as_deref() }
-    /// Get the manufacturer, if available.
+
+    /// Returns the device manufacturer, if available.
     pub fn manufacturer(&self) -> Option<&str> { self.manufacturer.as_deref() }
-    /// Get the product name, if available.
+
+    /// Returns the device product name, if available.
     pub fn product(&self) -> Option<&str> { self.product.as_deref() }
 }
 
-/// List available devices that match a custom filter.
+/// Lists available serial devices filtered by a custom closure.
 ///
 /// # Arguments
-/// * `filter` - A closure that takes a reference to [`SerialPortInfo`] and
+///
+/// * `filter` - Closure that receives a reference to [`SerialPortInfo`] and
 ///   returns `true` if the device should be included.
 ///
 /// # Returns
-/// * `Ok(Vec<DeviceInfo>)` on success.
-/// * `Err(mischief::Report)` if device enumeration fails.
+///
+/// * `Ok(Vec<DeviceInfo>)` containing the filtered devices.
+/// * `Err(serialport::Error)` if device enumeration fails.
 pub fn list_devices<F>(filter: F) -> Result<Vec<DeviceInfo>, serialport::Error>
 where
     F: Fn(&SerialPortInfo) -> bool,
@@ -137,10 +162,12 @@ where
 
 /// Utility struct for common device filters.
 pub struct DeviceFilter();
+
 impl DeviceFilter {
-    /// Filter that matches all devices.
+    /// Returns `true` for all devices.
     pub fn all(_: &SerialPortInfo) -> bool { true }
-    /// Filter that matches only USB devices.
+
+    /// Returns `true` only for USB devices.
     pub fn usb(info: &SerialPortInfo) -> bool {
         matches!(info.port_type, SerialPortType::UsbPort { .. })
     }

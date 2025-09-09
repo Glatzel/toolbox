@@ -16,7 +16,8 @@ pub trait IShader {
         s: T,
         style: &owo_colors::Style,
         terminal_config: &TerminalConfig,
-    ) where
+    ) -> core::fmt::Result
+    where
         T: Display;
     fn apply_hyperlink<T>(
         &self,
@@ -25,7 +26,8 @@ pub trait IShader {
         text: T,
         style: &owo_colors::Style,
         terminal_config: &TerminalConfig,
-    ) where
+    ) -> core::fmt::Result
+    where
         T: Display;
     fn write_wrapped<INDENT, THEME>(
         &self,
@@ -49,13 +51,14 @@ impl IShader for Shader {
         s: T,
         style: &owo_colors::Style,
         terminal_config: &TerminalConfig,
-    ) where
+    ) -> core::fmt::Result
+    where
         T: Display,
     {
         if terminal_config.support_color() {
-            buffer.write_str(&s.style(*style).to_string()).unwrap();
+            buffer.write_str(&s.style(*style).to_string())
         } else {
-            buffer.write_str(&s.to_string()).unwrap();
+            buffer.write_str(&s.to_string())
         }
     }
     fn apply_hyperlink<T>(
@@ -65,30 +68,25 @@ impl IShader for Shader {
         text: T,
         style: &owo_colors::Style,
         terminal_config: &TerminalConfig,
-    ) where
+    ) -> core::fmt::Result
+    where
         T: Display,
     {
         match (
             terminal_config.support_color(),
             terminal_config.support_hyperlinks(),
         ) {
-            (true, true) => buffer
-                .write_str(
-                    &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
-                        .style(*style)
-                        .to_string(),
-                )
-                .unwrap(),
-            (true, false) => buffer
-                .write_str(&format!("{}", hyperlink).style(*style).to_string())
-                .unwrap(),
-            (false, true) => buffer
-                .write_str(&format!(
-                    "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
-                    hyperlink, text
-                ))
-                .unwrap(),
-            (false, false) => (),
+            (true, true) => buffer.write_str(
+                &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
+                    .style(*style)
+                    .to_string(),
+            ),
+            (true, false) => buffer.write_str(&format!("{}", hyperlink).style(*style).to_string()),
+            (false, true) => buffer.write_str(&format!(
+                "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
+                hyperlink, text
+            )),
+            (false, false) => Ok(()),
         }
     }
     fn write_wrapped<INDENT, THEME>(

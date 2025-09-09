@@ -143,7 +143,7 @@ where
                 diagnostic.description(),
                 &self.theme.description_theme(),
                 &self.terminal_config,
-            );
+            )?;
             buffer = self.shader.write_wrapped(
                 &buffer,
                 &self.terminal_config,
@@ -159,9 +159,11 @@ where
                 writeln!(f).unwrap();
                 let help_theme = self.theme.help_theme();
                 self.shader
-                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config);
+                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)
+                    .unwrap();
                 self.shader
-                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config);
+                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)
+                    .unwrap();
                 buffer = self.shader.write_wrapped(
                     &buffer,
                     &self.terminal_config,

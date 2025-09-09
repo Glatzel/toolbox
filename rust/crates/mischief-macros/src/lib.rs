@@ -4,7 +4,11 @@ use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
 use syn::{Expr, Ident, LitStr, Token};
 
-/// A helper struct to parse the custom syntax of the `mischief_error!` macro.
+/// Internal structure used to parse the arguments of `mischief!`.
+///
+/// Supports:
+/// - Positional format arguments for the error description.
+/// - Optional named fields: `code`, `severity`, `help`, `url`.
 struct MischiefErrorInput {
     description_lit: LitStr,
     description_args: Punctuated<Expr, Token![,]>,
@@ -14,39 +18,32 @@ struct MischiefErrorInput {
     url: Option<Expr>,
 }
 
-/// Implement the `Parse` trait from `syn` to define our parsing logic.
 impl Parse for MischiefErrorInput {
     fn parse(input: ParseStream) -> Result<Self> {
-        // 1. The first argument must be the format string literal.
+        // The first argument must always be a string literal for the description.
         let description_lit = input.parse()?;
         let mut description_args = Punctuated::new();
 
-        // Optional fields
         let mut code = None;
         let mut severity = None;
         let mut help = None;
         let mut url = None;
-
-        // Flag to enforce that positional format arguments come before named fields.
         let mut seen_named_arg = false;
 
-        // 2. Loop through the rest of the comma-separated arguments.
         while !input.is_empty() {
-            input.parse::<Token![,]>()?;
+            input.parse::<Token![,]>()?; // consume comma
             if input.is_empty() {
-                break;
-            } // Allow a trailing comma
+                break; // allow trailing comma
+            }
 
-            // 3. Check if the next part is a named field like `code = "..."`.
+            // Named fields: key = value
             if input.peek(Ident) && input.peek2(Token![=]) {
                 seen_named_arg = true;
                 let key: Ident = input.parse()?;
-                let key_str = key.to_string();
-                input.parse::<Token![=]>()?; // Consume the `=`
+                input.parse::<Token![=]>()?;
                 let value: Expr = input.parse()?;
 
-                // Match the identifier to the correct struct field.
-                match key_str.as_str() {
+                match key.to_string().as_str() {
                     "code" if code.is_none() => code = Some(value),
                     "severity" if severity.is_none() => severity = Some(value),
                     "help" if help.is_none() => help = Some(value),
@@ -65,7 +62,7 @@ impl Parse for MischiefErrorInput {
                     }
                 }
             } else {
-                // 4. If not a named field, it's a positional format argument.
+                // Positional format arguments
                 if seen_named_arg {
                     return Err(syn::Error::new(
                         input.span(),
@@ -87,9 +84,15 @@ impl Parse for MischiefErrorInput {
     }
 }
 
+/// Procedural macro to create a [`MischiefError`] wrapped in a [`Report`].
+///
+/// # Syntax
+///
+/// ```text
+/// mischief!("format string", positional_args..., code = ..., severity = ..., help = ..., url = ...)
+/// ```
 #[proc_macro]
 pub fn mischief(input: TokenStream) -> TokenStream {
-    // Parse the token stream into our custom `MischiefErrorInput` struct.
     let parsed_input = match syn::parse::<MischiefErrorInput>(input) {
         Ok(input) => input,
         Err(e) => return e.to_compile_error().into(),
@@ -98,9 +101,6 @@ pub fn mischief(input: TokenStream) -> TokenStream {
     let description_lit = parsed_input.description_lit;
     let description_args = parsed_input.description_args;
 
-    // Use `quote` to generate the code for optional fields.
-    // If an expression `e` was provided, this generates `Some(e.into())`.
-    // Otherwise, it generates `None`.
     let code = parsed_input
         .code
         .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
@@ -114,7 +114,6 @@ pub fn mischief(input: TokenStream) -> TokenStream {
         .url
         .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
 
-    // Generate the final `MischiefError` struct instantiation.
     let expanded = quote! {
         {
             extern crate mischief;
@@ -123,11 +122,11 @@ pub fn mischief(input: TokenStream) -> TokenStream {
             extern crate alloc;
             use alloc::string::String;
             use core::fmt::Write;
+
             let mut description = String::new();
             write!(description, #description_lit, #description_args).unwrap();
 
-            // Note: Your `MischiefError` struct and `Severity` enum must be in scope where this macro is called.
-           Report::new(
+            Report::new(
                 MischiefError::new(
                     description,
                     None,
@@ -136,7 +135,7 @@ pub fn mischief(input: TokenStream) -> TokenStream {
                     #help,
                     #url,
                 )
-           )
+            )
         }
     };
 

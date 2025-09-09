@@ -3,40 +3,45 @@ use alloc::string::String;
 
 const CSTRING_NEW_EXCEPTION: &str = "Failed to create CString";
 
-/// Provides conversion from Rust string types to `CString`.
+/// A helper trait for converting Rust string types into [`CString`],
+/// which is safe to pass across FFI boundaries.
 ///
-/// # Examples
+/// Unlike plain Rust strings, [`CString`] requires:
+/// - No interior null bytes (`\0`) inside the string.
+/// - A terminating null byte will be appended automatically.
 ///
-/// ```
-/// use envoy::ToCString;
-/// let cstr = "hello".to_cstring();
-/// assert_eq!(cstr.to_str().unwrap(), "hello");
-/// ```
+/// This trait provides a convenient `to_cstring()` method for both `&str`
+/// and [`String`] values.
 pub trait ToCString {
-    /// Converts the value to a `CString`.
+    /// Converts the value into a [`CString`].
     ///
     /// # Panics
     ///
-    /// Panics if the string contains an interior null byte.
+    /// Panics if the string contains an **interior null byte** (`\0`),
+    /// since this would violate the C string contract.
     fn to_cstring(&self) -> CString;
 }
 
 impl ToCString for &str {
-    /// Converts a `&str` to a `CString`.
+    /// Converts a string slice (`&str`) into a [`CString`].
     ///
     /// # Panics
     ///
-    /// Panics if the string contains an interior null byte.
-    fn to_cstring(&self) -> CString { CString::new(*self).expect(CSTRING_NEW_EXCEPTION) }
+    /// Panics if the slice contains an interior null byte.
+    fn to_cstring(&self) -> CString {
+        CString::new(*self).expect(CSTRING_NEW_EXCEPTION)
+    }
 }
 
 impl ToCString for String {
-    /// Converts a `String` to a `CString`.
+    /// Converts an owned [`String`] into a [`CString`].
     ///
     /// # Panics
     ///
     /// Panics if the string contains an interior null byte.
-    fn to_cstring(&self) -> CString { CString::new(self as &str).expect(CSTRING_NEW_EXCEPTION) }
+    fn to_cstring(&self) -> CString {
+        CString::new(self as &str).expect(CSTRING_NEW_EXCEPTION)
+    }
 }
 
 #[cfg(test)]

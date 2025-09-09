@@ -4,11 +4,32 @@ use core::ffi::c_char;
 
 use crate::CStrToString;
 
+/// A helper trait for converting null-terminated lists of C strings (`char**`)
+/// into a safe Rust [`Vec<String>`].
+///
+/// # Safety
+///
+/// - The underlying pointer must represent a **null-terminated list** of
+///   C-style string pointers.
+/// - Each non-null element must point to a valid, null-terminated C string.
+/// - This trait will traverse the list until it encounters a `NULL` pointer.
+/// - If any pointer is invalid or points to non-UTF-8 data, conversion may
+///   fail.
 pub trait CStrListToVecString {
+    /// Convert the underlying C string list into a Rust [`Vec<String>`].
+    ///
+    /// Returns an empty vector if the pointer itself is null.
     fn to_vec_string(&self) -> Vec<String>;
 }
 
 impl CStrListToVecString for *mut *mut c_char {
+    /// Implementation for mutable double pointers (`*mut *mut c_char`),
+    /// often used for `argv` in `main(int argc, char** argv)`.
+    ///
+    /// # Safety
+    ///
+    /// - Traverses the pointer list until a `NULL` entry is found.
+    /// - Assumes each pointer is valid and points to a UTF-8 C string.
     fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
             return Vec::new();
@@ -17,6 +38,7 @@ impl CStrListToVecString for *mut *mut c_char {
         let mut offset = 0;
 
         loop {
+            // SAFETY: `offset` walks through a null-terminated list of pointers.
             let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
             if current_ptr.is_null() {
                 break;
@@ -27,7 +49,15 @@ impl CStrListToVecString for *mut *mut c_char {
         vec_str
     }
 }
+
 impl CStrListToVecString for *const *const c_char {
+    /// Implementation for const double pointers (`*const *const c_char`),
+    /// also common in FFI contexts.
+    ///
+    /// # Safety
+    ///
+    /// - Traverses the pointer list until a `NULL` entry is found.
+    /// - Assumes each pointer is valid and points to a UTF-8 C string.
     fn to_vec_string(&self) -> Vec<String> {
         if self.is_null() {
             return Vec::new();
@@ -36,6 +66,7 @@ impl CStrListToVecString for *const *const c_char {
         let mut offset = 0;
 
         loop {
+            // SAFETY: `offset` walks through a null-terminated list of pointers.
             let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
             if current_ptr.is_null() {
                 break;
@@ -46,6 +77,7 @@ impl CStrListToVecString for *const *const c_char {
         vec_str
     }
 }
+
 #[cfg(test)]
 mod tests {
     use alloc::ffi::CString;

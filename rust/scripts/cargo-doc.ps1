@@ -1,7 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
-cargo doc --no-deps --all
+cargo doc --no-deps --workspace --all-features
 
 
 Remove-Item ./dist/rust-doc.zip -Force -ErrorAction SilentlyContinue

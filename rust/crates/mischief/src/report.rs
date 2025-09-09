@@ -6,12 +6,17 @@ use alloc::string::ToString;
 
 use crate::error::MischiefError;
 use crate::render;
+
+/// Wrapper around a `MischiefError` for ergonomic error handling.
 pub struct Report {
     inner: MischiefError,
 }
 
 impl Report {
-    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
+    /// Creates a new `Report` from a `MischiefError`.
+    pub fn new(error: MischiefError) -> Self {
+        Report { inner: error }
+    }
 }
 
 impl Debug for Report {
@@ -20,17 +25,8 @@ impl Debug for Report {
     }
 }
 
-// default impl<E> From<E> for Report
-// where
-//     E: ToString,
-// {
-//     fn from(value: E) -> Self {
-//         Self {
-//             inner: { MischiefError::new(value.to_string(), None, None, None,
-// None, None) },         }
-//     }
-// }
-
+/// Converts any type implementing `Error` into a `Report`, recursively converting
+/// source errors into `MischiefError`.
 impl<E> From<E> for Report
 where
     E: Error,
@@ -38,7 +34,6 @@ where
     fn from(value: E) -> Self {
         Self {
             inner: {
-                // convert recursively
                 fn convert(err: &dyn Error) -> MischiefError {
                     MischiefError::new(
                         err.to_string(),
@@ -56,28 +51,14 @@ where
     }
 }
 
+/// Convenient `Result` type with `Report` as the default error.
 pub type Result<T, E = Report> = core::result::Result<T, E>;
+
+/// Converts results or other error types into `Report`.
 pub trait IntoMischief<T> {
     fn into_mischief(self) -> Result<T, Report>;
 }
-// default impl<T, E> IntoMischief<T> for Result<T, E>
-// where
-//     E: ToString + Debug,
-// {
-//     fn into_mischief(self) -> Result<T, Report> {
-//         match self {
-//             Err(e) => Err(Report::new(MischiefError::new(
-//                 e.to_string(),
-//                 None,
-//                 None,
-//                 None,
-//                 None,
-//                 None,
-//             ))),
-//             Ok(v) => Ok(v),
-//         }
-//     }
-// }
+
 impl<T, E: Error> IntoMischief<T> for Result<T, E> {
     fn into_mischief(self) -> Result<T, Report> {
         match self {
@@ -86,6 +67,8 @@ impl<T, E: Error> IntoMischief<T> for Result<T, E> {
         }
     }
 }
+
+/// Adds context to existing `Report` errors.
 pub trait WrapErr<D, T> {
     fn wrap_err(self, msg: D) -> Result<T, Report>;
     fn wrap_err_with<F>(self, msg: F) -> Result<T, Report>
@@ -128,6 +111,7 @@ where
         }
     }
 }
+
 impl<T> WrapErr<Report, T> for Result<T, Report> {
     fn wrap_err(self, mut msg: Report) -> Result<T, Report> {
         match self {

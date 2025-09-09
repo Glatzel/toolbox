@@ -6,11 +6,33 @@ use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
 use tracing_subscriber::fmt::{FmtContext, format};
 use tracing_subscriber::registry::LookupSpan;
 
+/// A custom [`tracing`] event formatter for use with
+/// [`tracing_subscriber`]'s `fmt` layer.
+///
+/// `ClerkFormatter` controls how log events are rendered:
+/// - Timestamps are included in `[YYYY-MM-DD HH:MM:SS.sss]` format.
+/// - Log levels are displayed, optionally colorized.
+/// - In debug builds (`#[cfg(debug_assertions)]`), the target, file, and line
+///   are also shown.
+/// - Event fields are printed using the configured field formatter.
+///
+/// # Colorization
+///
+/// If `color` is `true`, log levels are highlighted using [`owo-colors`]:
+/// - `TRACE` → purple
+/// - `DEBUG` → blue
+/// - `INFO` → green
+/// - `WARN` → bold yellow
+/// - `ERROR` → bold red
+///
+/// If `color` is `false`, plain text is used.
 pub struct ClerkFormatter {
+    /// Whether to enable colored output for log levels.
     pub(crate) color: bool,
 }
 
 impl ClerkFormatter {
+    /// Format a log [`Level`] into a string, applying color if enabled.
     fn color_level(&self, level: &tracing::Level) -> String {
         if !self.color {
             return format!("{}", level);
@@ -31,6 +53,16 @@ where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
 {
+    /// Formats a single [`Event`] for output.
+    ///
+    /// The format is roughly:
+    /// ```text
+    /// [timestamp] [LEVEL] [target] [file:line] field1=value field2=value
+    /// ```
+    ///
+    /// - The `[target] [file:line]` portion is included only in debug builds.
+    /// - Timestamps use the local timezone.
+    /// - Event fields are formatted via the active [`FormatFields`].
     fn format_event(
         &self,
         ctx: &FmtContext<'_, S, N>,

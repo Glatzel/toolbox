@@ -5,22 +5,25 @@ use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::LogLevel;
+
 /// Generate a terminal log layer for tracing.
 ///
 /// # Arguments
 ///
 /// - `level`: The desired log level filter to set.
+/// - `color`: Whether to colorize log levels in terminal output.
 ///
 /// # Example
 ///
 /// ```
 /// use tracing::{debug, error, info, trace, warn};
-/// use tracing_subscriber::EnvFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
+///
 /// tracing_subscriber::registry()
 ///     .with(clerk::layer::terminal_layer(clerk::LogLevel::TRACE, true))
 ///     .init();
+///
 /// trace!("Trace message");
 /// debug!("Debug message");
 /// info!("Informational message");
@@ -48,24 +51,28 @@ where
 /// # Arguments
 ///
 /// - `level`: The desired log level filter to set.
-/// - `filepath`: The Path of log file.
-/// - `overwrite`: whether to Overwrite log file if it is existed.
+/// - `filepath`: The path of the log file.
+/// - `overwrite`: Whether to overwrite the log file if it already exists.
 ///
 /// # Example
 ///
 /// ```
+/// use std::path::PathBuf;
+///
 /// use tracing::{debug, error, info, trace, warn};
-/// use tracing_subscriber::EnvFilter;
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
+///
 /// let f = format!(
 ///     "./temp/{}.log",
 ///     chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
 /// );
-/// let f = std::path::PathBuf::from(f);
+/// let f = PathBuf::from(f);
+///
 /// tracing_subscriber::registry()
 ///     .with(clerk::layer::file_layer(clerk::LogLevel::TRACE, f, true))
 ///     .init();
+///
 /// trace!("Trace message");
 /// debug!("Debug message");
 /// info!("Informational message");
@@ -101,7 +108,6 @@ where
         )
         .boxed()
 }
-
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};

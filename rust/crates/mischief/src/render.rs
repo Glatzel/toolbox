@@ -112,7 +112,7 @@ where
             let severity_theme = self.theme.severity_theme(diagnostic.severity());
             if let Some(s) = diagnostic.severity() {
                 self.shader
-                    .apply(&mut buffer, s, &severity_theme, &self.terminal_config)
+                    .apply(&mut buffer, s, &severity_theme, &self.terminal_config)?
             }
             if let Some(s) = diagnostic.code() {
                 self.shader.apply(
@@ -120,7 +120,7 @@ where
                     format!("[{}]", s),
                     &severity_theme,
                     &self.terminal_config,
-                )
+                )?
             }
             if let Some(s) = diagnostic.url() {
                 self.shader.apply_hyperlink(
@@ -129,7 +129,7 @@ where
                     "(link)",
                     &self.theme.url_theme(),
                     &self.terminal_config,
-                )
+                )?
             }
             if diagnostic.severity().is_some()
                 || diagnostic.code().is_some()
@@ -152,18 +152,16 @@ where
                 &node,
                 &position::Element::First,
             );
-            f.write_str(&buffer).unwrap();
+            f.write_str(&buffer)?;
             buffer.clear();
 
-            diagnostic.help().map(|s| {
-                writeln!(f).unwrap();
+            if let Some(s) = diagnostic.help() {
+                writeln!(f)?;
                 let help_theme = self.theme.help_theme();
                 self.shader
-                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)
-                    .unwrap();
+                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)?;
                 self.shader
-                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)
-                    .unwrap();
+                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)?;
                 buffer = self.shader.write_wrapped(
                     &buffer,
                     &self.terminal_config,
@@ -172,8 +170,8 @@ where
                     &node,
                     &position::Element::Other,
                 );
-                f.write_str(&buffer).unwrap();
-            });
+                f.write_str(&buffer)?;
+            };
 
             writeln!(f)?;
 

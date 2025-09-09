@@ -6,10 +6,10 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the coordinate to decimal degrees, applying the correct sign.
 /// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
 /// None.
-pub struct NmeaDegree();
+pub struct NmeaDegree;
 
 impl IRule for NmeaDegree {
-    fn name(&self) -> &str { "NmeaDegree" }
+   
 }
 
 impl<'a> IStrFlowRule<'a> for NmeaDegree {

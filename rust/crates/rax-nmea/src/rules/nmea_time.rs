@@ -7,10 +7,10 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the time to a `DateTime<Utc>` using today's date.
 /// Returns a tuple of (DateTime<Utc>, rest_of_input) if successful, otherwise
 /// None.
-pub struct NmeaTime();
+pub struct NmeaTime;
 
 impl IRule for NmeaTime {
-    fn name(&self) -> &str { "NmeaUtc" }
+   
 }
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {

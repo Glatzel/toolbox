@@ -1,15 +1,18 @@
-use rax::str_parser::IRule;
+use core::fmt::{Debug, Display};
 
+use rax::str_parser::IRule;
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
-pub struct NmeaValidate();
-
-impl IRule for NmeaValidate {
-    fn name(&self) -> &str { "NmeaValidate" }
+#[derive(Debug)]
+pub struct NmeaValidate;
+impl Display for NmeaValidate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
 
+impl IRule for NmeaValidate {}
+
 impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
-    type Output = mischief::Result<()>;
+    type Output = Result<(),>;
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.

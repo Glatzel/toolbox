@@ -3,10 +3,10 @@ use rax::str_parser::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 
-pub struct NmeaDate();
+pub struct NmeaDate;
 
 impl IRule for NmeaDate {
-    fn name(&self) -> &str { "NmeaDate" }
+   
 }
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {

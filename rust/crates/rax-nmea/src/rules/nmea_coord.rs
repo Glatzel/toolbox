@@ -6,10 +6,10 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the coordinate to decimal degrees, applying the correct sign.
 /// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
 /// None.
-pub struct NmeaCoord();
+pub struct NmeaCoord;
 
 impl IRule for NmeaCoord {
-    fn name(&self) -> &str { "NmeaCoord" }
+   
 }
 impl NmeaCoord {
     fn convert_to_decimal_degrees(v: f64) -> f64 {

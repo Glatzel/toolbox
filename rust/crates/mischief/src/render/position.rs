@@ -3,3 +3,7 @@ pub enum Layer {
     Middle,
     Top,
 }
+pub enum Element {
+    First,
+    Other,
+}

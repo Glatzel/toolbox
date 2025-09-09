@@ -4,7 +4,7 @@ use core::fmt::Debug;
 #[cfg(feature = "fancy")]
 mod indent;
 #[cfg(feature = "fancy")]
-mod layer;
+mod position;
 #[cfg(feature = "fancy")]
 mod shader;
 #[cfg(feature = "fancy")]
@@ -12,14 +12,22 @@ mod terminal_config;
 #[cfg(feature = "fancy")]
 mod theme;
 #[cfg(feature = "fancy")]
+use alloc::format;
+#[cfg(feature = "fancy")]
+use alloc::string::String;
+#[cfg(feature = "fancy")]
+use core::fmt::Write;
+
+#[cfg(feature = "fancy")]
 use indent::Indent;
+#[cfg(feature = "fancy")]
+use position::Layer;
 #[cfg(feature = "fancy")]
 use shader::{IShader, Shader};
 #[cfg(feature = "fancy")]
 use terminal_config::TerminalConfig;
 #[cfg(feature = "fancy")]
 use theme::{ITheme, Theme};
-
 pub trait IRender: Debug {
     #[cfg(feature = "fancy")]
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
@@ -90,10 +98,6 @@ where
 {
     #[cfg(feature = "fancy")]
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        use alloc::string::String;
-
-        use crate::render::layer::Layer;
-
         let mut buffer = String::new(); // Reuse a single buffer
 
         let mut chain = self.chain().peekable();
@@ -104,30 +108,35 @@ where
                 node = Layer::Top;
             }
             buffer.clear();
+
+            let severity_theme = self.theme.severity_theme(diagnostic.severity());
             diagnostic.severity().map(|s| {
-                self.shader.apply(
-                    &mut buffer,
-                    s,
-                    &self.theme.severity_theme(),
-                    &self.terminal_config,
-                )
+                self.shader
+                    .apply(&mut buffer, s, &severity_theme, &self.terminal_config)
             });
             diagnostic.code().map(|s| {
                 self.shader.apply(
                     &mut buffer,
-                    s,
-                    &self.theme.code_theme(diagnostic.severity()),
+                    format!("[{}]", s),
+                    &severity_theme,
                     &self.terminal_config,
                 )
             });
             diagnostic.url().map(|s| {
-                self.shader.apply(
+                self.shader.apply_hyperlink(
                     &mut buffer,
                     s,
+                    "(link)",
                     &self.theme.url_theme(),
                     &self.terminal_config,
                 )
             });
+            if diagnostic.severity().is_some()
+                || diagnostic.code().is_some()
+                || diagnostic.url().is_some()
+            {
+                buffer.write_str(": ")?;
+            }
 
             self.shader.apply(
                 &mut buffer,
@@ -141,8 +150,29 @@ where
                 &self.theme,
                 &self.indent,
                 &node,
+                &position::Element::First,
             );
-            write!(f, "{}", buffer)?;
+            f.write_str(&buffer).unwrap();
+            buffer.clear();
+
+            diagnostic.help().map(|s| {
+                writeln!(f).unwrap();
+                let help_theme = self.theme.help_theme();
+                self.shader
+                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config);
+                self.shader
+                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config);
+                buffer = self.shader.write_wrapped(
+                    &buffer,
+                    &self.terminal_config,
+                    &self.theme,
+                    &self.indent,
+                    &node,
+                    &position::Element::Other,
+                );
+                f.write_str(&buffer).unwrap();
+            });
+
             writeln!(f)?;
 
             node = Layer::Middle;

@@ -64,7 +64,7 @@ where
             #[cfg(feature = "fancy")]
             terminal_config,
             #[cfg(feature = "fancy")]
-            theme: Theme::default(),
+            theme: Theme,
         }
     }
     fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {

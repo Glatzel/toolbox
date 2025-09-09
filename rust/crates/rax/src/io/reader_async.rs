@@ -2,25 +2,63 @@ use async_trait::async_trait;
 use tokio::io::{AsyncBufRead, AsyncBufReadExt};
 
 /// Async counterpart of `IRaxReader`.
+///
+/// Provides asynchronous line-oriented reading from a source,
+/// allowing reading one line at a time or a batch of lines.
 #[async_trait]
 pub trait AsyncIRaxReader {
+    /// Reads a single line from the underlying async source.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(Some(String))` if a line was successfully read.
+    /// - `Ok(None)` if the end of the input has been reached (EOF).
+    /// - `Err(std::io::Error)` if an I/O error occurs while reading.
     async fn read_line(&mut self) -> Result<Option<String>, std::io::Error>;
+
+    /// Reads up to `count` lines from the underlying async source.
+    ///
+    /// Stops early if the end of the input is reached.
+    ///
+    /// # Arguments
+    ///
+    /// - `count`: Maximum number of lines to read.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<String>` containing the lines that were read (may be fewer than
+    /// `count` if EOF is reached), or an `std::io::Error` if an I/O error
+    /// occurs.
     async fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error>;
 }
-/// Buffered async reader implementing `AsyncIRaxReader`.
+
+/// A buffered asynchronous line reader implementing `AsyncIRaxReader`.
+///
+/// Wraps a type implementing `AsyncBufRead` and provides utilities for
+/// reading lines individually or in batches, with optional debug logging.
 pub struct AsyncRaxReader<R: AsyncBufRead + Unpin> {
+    /// The inner async buffered reader.
     inner: R,
 }
 
 impl<R: AsyncBufRead + Unpin> AsyncRaxReader<R> {
+    /// Creates a new `AsyncRaxReader` from a type implementing `AsyncBufRead`.
+    ///
+    /// # Arguments
+    ///
+    /// - `inner`: The async buffered reader to wrap.
     pub fn new(inner: R) -> Self { Self { inner } }
 }
 
 #[async_trait]
 impl<R> AsyncIRaxReader for AsyncRaxReader<R>
 where
-    R: AsyncBufRead + Unpin + Send, // `Send` lets it cross await points safely
+    R: AsyncBufRead + Unpin + Send, // `Send` ensures safe crossing of await points
 {
+    /// Reads a single line asynchronously from the inner reader.
+    ///
+    /// Logs the number of bytes read and the content of the line if
+    /// `clerk::debug!` logging is enabled.
     async fn read_line(&mut self) -> Result<Option<String>, std::io::Error> {
         let mut buf = String::new();
         let n = self.inner.read_line(&mut buf).await?;
@@ -32,6 +70,11 @@ where
         Ok((n > 0).then_some(buf))
     }
 
+    /// Reads up to `count` lines asynchronously from the inner reader.
+    ///
+    /// Stops early if EOF is reached.
+    ///
+    /// Logs each line read with its index (for debugging).
     async fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error> {
         let mut lines = Vec::with_capacity(count);
         for i in 0..count {

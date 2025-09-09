@@ -3,10 +3,24 @@ use core::fmt::{self, Debug, Display};
 use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
-/// Rule to match if the first character of the input is in a given character
-/// set. If the first character is in the set, returns a tuple of (matched_char,
-/// rest_of_input). Otherwise, returns None.
+
+/// Rule that matches the first character of the input string if it belongs to
+/// a specified character set.
+///
+/// `OneOfCharSet<'a, N>` takes a reference to a [`CharSetFilter<N>`] and checks
+/// the first character of the input. If the first character is in the set, it
+/// returns a tuple `(Some(matched), rest)` where `matched` is the character and
+/// `rest` is the remainder of the input. Otherwise, it returns `(None, input)`.
+///
+/// This rule respects UTF-8 boundaries and stops immediately on the first
+/// character if it is not in the set, or if the input is empty.
+///
+/// # Type Parameters
+///
+/// - `'a`: Lifetime of the character set reference.
+/// - `N`: Size of the character set (length of the `CharSetFilter`).
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
+
 impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "OneOfCharSet<N={}>", N) }
 }
@@ -14,35 +28,43 @@ impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {
 impl<'a, const N: usize> Display for OneOfCharSet<'a, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-    /// Applies the OneOfCharSet rule to the input string.
-    /// If the first character is in the set, returns the character and the rest
-    /// of the string. Otherwise, returns None.
+
+    /// Applies the `OneOfCharSet` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(matched), rest)` if the first character is in the character
+    ///   set.
+    /// - `(None, input)` if the first character is not in the set or the input
+    ///   is empty.
+    ///
+    /// # Logging
+    ///
+    /// - Trace-level logs show the input string.
+    /// - Debug-level logs indicate matches or mismatches.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
-        // Log the input at trace level.
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
-        // Get the first character and its byte offset.
+
         if let Some((_, c)) = input.char_indices().next() {
             if self.0.filter(&c) {
-                // If the character is in the set, find the next char boundary (or end of
-                // string).
                 let next_i = input.char_indices().nth(1).map_or(input.len(), |(j, _)| j);
                 clerk::debug!("OneOfCharSet matched: '{}', rest='{}'", c, &input[next_i..]);
                 (Some(c), &input[next_i..])
             } else {
-                // If the character is not in the set, log and return None.
                 clerk::debug!("OneOfCharSet did not match: found '{}', not in set", c);
                 (None, input)
             }
         } else {
-            // No character in input, return None and the original input
             (None, input)
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;

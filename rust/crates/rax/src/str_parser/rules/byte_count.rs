@@ -3,28 +3,48 @@ use core::fmt::{self, Debug, Display};
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
 
-/// Rule to extract a fixed number of bytes from the input string.
-/// Returns a tuple of (prefix, rest) if enough bytes are present and the split
-/// is on a valid UTF-8 boundary, otherwise returns None.
+/// Rule that extracts a fixed number of bytes from the input string.
+///
+/// The `ByteCount<N>` rule attempts to split the input string at exactly `N`
+/// bytes. If the input has at least `N` bytes and the split is on a valid UTF-8
+/// boundary, it returns a tuple `(Some(prefix), rest)` where:
+/// - `prefix` is the first `N` bytes of the input,
+/// - `rest` is the remainder of the input.
+///
+/// If the input is shorter than `N` bytes, or if `N` would split a UTF-8
+/// character in half, the rule returns `(None, input)`.
+///
+/// This rule is useful for parsing fixed-width fields or binary-like data
+/// represented as UTF-8 strings.
 pub struct ByteCount<const N: usize>;
+
 impl<const N: usize> Debug for ByteCount<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // You can format it however you want for Debug
-        write!(f, "ByteCount<{}>", N)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "ByteCount<{}>", N) }
 }
+
 impl<const N: usize> Display for ByteCount<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<const N: usize> IRule for ByteCount<N> {}
+
 impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     type Output = &'a str;
-    /// Applies the ByteCount rule to the input string.
-    /// If the input contains at least `self.0` bytes and the split is on a
-    /// valid UTF-8 boundary, returns the first `self.0` bytes and the rest
-    /// of the string. Otherwise, returns None.
+
+    /// Applies the `ByteCount` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
+    ///   the split occurs on a valid UTF-8 boundary.
+    /// - `(None, input)` otherwise.
+    ///
+    /// # Logging
+    ///
+    /// Logs trace messages showing the input and requested byte count,
+    /// and debug messages showing the matched prefix and remaining input.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
-        // Log the input and the requested byte count at trace level.
+        // Trace input and requested byte count
         clerk::trace!("{self}: input='{}', byte_count={}", input, N);
 
         match input.get(..N) {

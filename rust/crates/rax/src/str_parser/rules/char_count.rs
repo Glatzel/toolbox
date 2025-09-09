@@ -3,10 +3,22 @@ use core::fmt::{self, Debug, Display};
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
 
-/// Rule to extract a fixed number of characters from the input string.
-/// Returns a tuple of (prefix, rest) if enough characters are present,
-/// otherwise returns None.
+/// Rule that extracts a fixed number of characters from the input string.
+///
+/// The `CharCount<N>` rule attempts to split the input string at exactly `N`
+/// characters. If the input contains at least `N` characters, it returns a
+/// tuple `(Some(prefix), rest)` where:
+/// - `prefix` is the first `N` characters of the input,
+/// - `rest` is the remainder of the input.
+///
+/// If the input contains fewer than `N` characters, the rule returns `(None,
+/// input)`.
+///
+/// This rule operates on **character boundaries**, so it correctly handles
+/// multi-byte UTF-8 characters. It is useful for parsing fixed-length
+/// fields based on character count rather than byte count.
 pub struct CharCount<const N: usize>;
+
 impl<const N: usize> Debug for CharCount<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "CharCount<{}>", N) }
 }
@@ -14,37 +26,42 @@ impl<const N: usize> Debug for CharCount<N> {
 impl<const N: usize> Display for CharCount<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<const N: usize> IRule for CharCount<N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     type Output = &'a str;
-    /// Applies the CharCount rule to the input string.
-    /// If the input contains at least `self.0` characters, returns
-    /// the first `self.0` characters and the rest of the string.
-    /// Otherwise, returns None.
+
+    /// Applies the `CharCount` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(prefix), rest)` if the input contains at least `N` characters.
+    /// - `(None, input)` if the input is shorter than `N` characters.
+    ///
+    /// # Logging
+    ///
+    /// Logs trace messages showing the input and requested character count,
+    /// debug messages showing the split position, and warnings if the input
+    /// is too short.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
-        // Log the input and the requested character count at trace level.
+        // Trace input and requested character count
         clerk::trace!("{}: input='{}', count={}", self, input, N);
 
-        // If count is zero, return empty prefix and full input.
         if N == 0 {
             clerk::debug!("{self}: count is zero, returning empty prefix and full input.");
             return (Some(""), input);
         }
 
-        // Count the number of characters in the input.
         let length = input.chars().count();
 
-        // If count matches input length, return the whole input as prefix.
         if N == length {
             clerk::debug!("{self}: count matches input length, returning whole input.");
             return (Some(input), "");
         }
 
-        // Iterate over char boundaries to find the split point.
         for (count, (idx, _)) in input.char_indices().enumerate() {
             if count == N {
-                // Found the split point at the requested character count.
                 clerk::debug!(
                     "{self}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
                     count,
@@ -56,7 +73,6 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             }
         }
 
-        // Not enough characters in the input.
         clerk::warn!(
             "CharCount: not enough chars in input (needed {}, found {})",
             N,

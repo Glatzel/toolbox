@@ -2,10 +2,18 @@ use core::fmt::{self, Debug, Display};
 
 use super::IStrFlowRule;
 use crate::str_parser::rules::IRule;
-/// Rule to match a specific character at the start of the input string.
-/// If the first character matches the expected character, returns a tuple of
-/// (matched_char, rest_of_input). Otherwise, returns None.
+
+/// Rule that matches a specific character at the start of the input string.
+///
+/// `Char<C>` checks if the first character of the input string is equal to the
+/// expected character `C`. If the first character matches, it returns a tuple:
+/// `(Some(C), rest)` where `rest` is the remainder of the input after the
+/// matched character. Otherwise, it returns `(None, input)`.
+///
+/// This rule respects UTF-8 character boundaries and only examines the first
+/// character of the input.
 pub struct Char<const C: char>;
+
 impl<const C: char> Debug for Char<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "Char<{:?}>", C) }
 }
@@ -13,33 +21,46 @@ impl<const C: char> Debug for Char<C> {
 impl<const C: char> Display for Char<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<const C: char> IRule for Char<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     type Output = char;
-    /// Applies the Char rule to the input string.
-    /// If the first character matches `C`, returns the character and the
-    /// rest of the string. Otherwise, returns None.
+
+    /// Applies the `Char` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(C), rest)` if the first character of the input matches `C`.
+    /// - `(None, input)` if the first character does not match `C` or the input
+    ///   is empty.
+    ///
+    /// # Logging
+    ///
+    /// - Trace-level logs show the input and the expected character.
+    /// - Debug-level logs show whether a match occurred and the resulting rest
+    ///   of the input.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
-        // Log the input and the expected character at trace level.
         clerk::trace!("{self}: input='{}', expected='{}'", input, C);
+
         let mut chars = input.char_indices();
 
-        // Get the first character and its byte offset.
-        if let Some((_, out)) = chars.next() {
-            // first char's byte offset (0)
-            if out == C {
-                // If the character matches, find the next char boundary (or end of string).
-                let (end, _) = chars.next().unwrap_or((input.len(), '\0')); // second char or end of string
-                clerk::debug!("{self} matched: '{}', rest='{}'", out, &input[end..]);
-                (Some(out), &input[end..])
+        if let Some((_, first_char)) = chars.next() {
+            if first_char == C {
+                // Find the next char boundary or end of string
+                let (end, _) = chars.next().unwrap_or((input.len(), '\0'));
+                clerk::debug!("{self} matched: '{}', rest='{}'", first_char, &input[end..]);
+                (Some(first_char), &input[end..])
             } else {
-                // If the character does not match, log and return None.
-                clerk::debug!("{self} did not match: found '{}', expected '{}'", out, C);
+                clerk::debug!(
+                    "{self} did not match: found '{}', expected '{}'",
+                    first_char,
+                    C
+                );
                 (None, input)
             }
         } else {
-            // No character in input
+            // Input is empty
             (None, input)
         }
     }

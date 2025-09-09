@@ -1,10 +1,6 @@
-$ROOT = git rev-parse --show-toplevel
+# This File is automatically synchronized from https://github.com/Glatzel/template
+
+$config = if ($args.Count) { $args } else { @('--no-deps', '--workspace', '--all-features') }
+if (Test-Path $PSScriptRoot/setup.ps1) { &$PSScriptRoot/setup.ps1 }
 Set-Location $PSScriptRoot/..
-
-cargo doc --no-deps --all
-
-
-Remove-Item ./dist/rust-doc.zip -Force -ErrorAction SilentlyContinue
-New-Item ./dist -ItemType Directory -ErrorAction SilentlyContinue
-Compress-Archive ./target/doc "./dist/rust-doc.zip"
-Set-Location $ROOT
+cargo doc @config

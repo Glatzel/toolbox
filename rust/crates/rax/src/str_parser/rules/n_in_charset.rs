@@ -3,13 +3,28 @@ use core::fmt::{self, Debug, Display};
 use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
-/// Rule to match if the first N characters of the input are all in a given
-/// character set. If so, returns a tuple of (matched_str, rest_of_input).
-/// Otherwise, returns None.
+
+/// Rule that matches if the first `N` characters of the input are all in a
+/// specified character set.
+///
+/// `NInCharSet<'a, N, M>` takes a reference to a [`CharSetFilter<M>`] and
+/// checks the first `N` characters of the input string. If all `N` characters
+/// are present in the character set, it returns a tuple `(Some(matched), rest)`
+/// where `matched` is the substring of the first `N` characters and `rest` is
+/// the remainder of the input. Otherwise, it returns `(None, input)`.
+///
+/// This rule respects UTF-8 boundaries and stops immediately on the first
+/// character that does not belong to the set, or if the input is too short.
+///
+/// # Type Parameters
+///
+/// - `'a`: Lifetime of the character set reference.
+/// - `N`: Number of characters to match at the start of the input.
+/// - `M`: Size of the character set (length of the `CharSetFilter`).
 pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
+
 impl<'a, const N: usize, const M: usize> Debug for NInCharSet<'a, N, M> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Just show type-level information; you could include pointer if needed
         write!(f, "NInCharSet<N={}, M={}>", N, M)
     }
 }
@@ -17,14 +32,25 @@ impl<'a, const N: usize, const M: usize> Debug for NInCharSet<'a, N, M> {
 impl<'a, const N: usize, const M: usize> Display for NInCharSet<'a, N, M> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
     type Output = &'a str;
-    /// Applies the NInCharSet rule to the input string.
-    /// If the first N characters are all in the set, returns the matched
-    /// substring and the rest. Otherwise, returns None and the original
-    /// input.
+
+    /// Applies the `NInCharSet` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(matched), rest)` if the first `N` characters are all in the
+    ///   character set.
+    /// - `(None, input)` if a character is not in the set before reaching `N`,
+    ///   or if the input has fewer than `N` characters.
+    ///
+    /// # Logging
+    ///
+    /// - Debug-level logs indicate matches, unmatched characters, and
+    ///   insufficient input.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -38,12 +64,11 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     return (Some(matched), rest);
                 }
             } else {
-                // Found a char not in the set before reaching N
                 clerk::debug!("{self} did not match: char '{}' not in set at pos {}", c, i);
                 return (None, input);
             }
         }
-        // Not enough characters in input
+
         clerk::debug!("{self} did not match: input too short or not enough chars in set");
         (None, input)
     }

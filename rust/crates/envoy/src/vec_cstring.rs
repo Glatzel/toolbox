@@ -5,17 +5,32 @@ use core::ptr;
 
 use crate::ToCString;
 
-/// Trait for converting a collection of CStrings to a vector of raw pointers.
+/// A helper trait for exposing collections of [`CString`]s as raw pointer
+/// arrays (`*const c_char`).
+///
+/// Implementors of this trait produce a **null-terminated** vector of pointers,
+/// which is the convention expected by many C APIs (e.g. `argv` style).
+///
+/// # Safety
+///
+/// - The returned pointers are only valid as long as the underlying
+///   [`CString`]s are alive.
+/// - Dropping the container or modifying it may invalidate the pointers.
 pub trait AsVecPtr {
-    /// Returns a null-terminated vector of `*const i8` pointers to the inner C
-    /// strings.
+    /// Returns a **null-terminated** vector of `*const c_char` pointers
+    /// referencing the internal [`CString`]s.
+    ///
+    /// The last element is always a `NULL` pointer (`ptr::null()`).
     fn as_vec_ptr(&self) -> Vec<*const c_char>;
 }
 
-/// A wrapper for a vector of `CString` with ergonomic conversions from Rust
-/// string types.
+/// A wrapper around a vector of [`CString`], with ergonomic conversions from
+/// standard Rust string types.
+///
+/// This type is especially useful for preparing argument lists (`argv`) or
+/// environment variable lists (`envp`) for C APIs.
 pub struct VecCString {
-    /// The underlying vector of `CString`.
+    /// The owned collection of [`CString`]s.
     pub content: Vec<CString>,
 }
 
@@ -33,7 +48,13 @@ impl VecCString {
 }
 
 impl AsVecPtr for VecCString {
-    /// Returns a null-terminated vector of pointers to the C strings.
+    /// Converts the internal vector into a list of raw pointers, terminated by
+    /// a `NULL` pointer.
+    ///
+    /// # Safety
+    ///
+    /// - The returned pointers must not outlive the `VecCString` itself.
+    /// - Dropping `VecCString` invalidates the returned pointers.
     fn as_vec_ptr(&self) -> Vec<*const c_char> {
         let mut vec_ptr = self
             .content
@@ -46,7 +67,9 @@ impl AsVecPtr for VecCString {
 }
 
 impl<T: ToCString> From<&[T]> for VecCString {
-    /// Converts a slice of Rust string types into a `VecCString`.
+    /// Converts a slice of Rust string-like types into a `VecCString`.
+    ///
+    /// Each element is converted to a [`CString`] via [`ToCString`].
     fn from(value: &[T]) -> Self {
         VecCString {
             content: value
@@ -58,7 +81,9 @@ impl<T: ToCString> From<&[T]> for VecCString {
 }
 
 impl<T: ToCString> From<Vec<T>> for VecCString {
-    /// Converts a vector of Rust string types into a `VecCString`.
+    /// Converts a vector of Rust string-like types into a `VecCString`.
+    ///
+    /// Each element is converted to a [`CString`] via [`ToCString`].
     fn from(value: Vec<T>) -> Self {
         VecCString {
             content: value
@@ -71,13 +96,17 @@ impl<T: ToCString> From<Vec<T>> for VecCString {
 
 impl<T: ToCString> From<Option<Vec<T>>> for VecCString {
     /// Converts an `Option<Vec<T>>` into a `VecCString`.
-    /// Returns an empty `VecCString` if `None`.
+    ///
+    /// - If `Some(v)`, each element is converted into a [`CString`].
+    /// - If `None`, returns an empty `VecCString`.
     fn from(value: Option<Vec<T>>) -> Self { value.as_deref().map_or_else(Self::new, Self::from) }
 }
 
 impl<T: ToCString> From<Option<&[T]>> for VecCString {
     /// Converts an `Option<&[T]>` into a `VecCString`.
-    /// Returns an empty `VecCString` if `None`.
+    ///
+    /// - If `Some(slice)`, each element is converted into a [`CString`].
+    /// - If `None`, returns an empty `VecCString`.
     fn from(value: Option<&[T]>) -> Self { value.map_or_else(Self::new, Self::from) }
 }
 

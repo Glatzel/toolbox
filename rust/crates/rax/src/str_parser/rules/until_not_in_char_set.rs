@@ -3,18 +3,33 @@ use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
 use crate::str_parser::rules::UntilMode;
 
-/// Rule that extracts a prefix from the input string up to (but not including)
-/// the first character that is NOT in the provided character set filter.
-/// Returns a tuple of (prefix, rest) where `prefix` contains all consecutive
-/// characters from the start of the input that are in the set, and `rest` is
-/// the remainder of the string starting from the first character not in the
-/// set. If all characters are in the set, returns (None, input).
-/// If `include` is true, the first character not in the set is included in the
-/// prefix.
+/// Rule that extracts a prefix from the input string consisting of consecutive
+/// characters that are in the provided character set, stopping at the first
+/// character not in the set.
+///
+/// # Fields
+///
+/// - `filter`: A [`CharSetFilter`] that defines the allowed characters.
+/// - `mode`: Determines how the first character *not* in the set is treated:
+///   - [`UntilMode::Discard`]: Exclude the first non-matching character from
+///     the prefix and remove it from the rest.
+///   - [`UntilMode::KeepLeft`]: Include the first non-matching character at the
+///     end of the prefix.
+///   - [`UntilMode::KeepRight`]: Keep the first non-matching character at the
+///     start of the rest.
+///
+/// # Behavior
+///
+/// - Returns `(Some(prefix), rest)` when a non-matching character is found,
+///   split according to `mode`.
+/// - Returns `(None, input)` if all characters in the input are in the set.
+/// - Respects UTF-8 character boundaries.
+/// - Logs debug information at each split or if all characters are in the set.
 pub struct UntilNotInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
-    pub mode: super::UntilMode,
+    pub mode: UntilMode,
 }
+
 impl<'a, const N: usize> core::fmt::Debug for UntilNotInCharSet<'a, N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "UntilNotInCharSet<N={}> {{ mode: {:?} }}", N, self.mode)
@@ -24,62 +39,31 @@ impl<'a, const N: usize> core::fmt::Debug for UntilNotInCharSet<'a, N> {
 impl<'a, const N: usize> core::fmt::Display for UntilNotInCharSet<'a, N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    /// Applies the rule to the input string, returning the prefix of characters
-    /// in the set and the rest of the string starting from the first character
-    /// not in the set. If all characters are in the set, returns (None, input).
-    /// If `include` is true, the first character not in the set is included in
-    /// the prefix.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
-        // Iterate over each character and its byte index in the input string
         for (i, c) in input.char_indices() {
-            // If the character is NOT in the set, split here
             if !self.filter.filter(&c) {
-                match self.mode {
-                    UntilMode::Discard => {
-                        let prefix = &input[..i];
-                        let rest = &input[i + c.len_utf8()..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
-                    }
-                    UntilMode::KeepLeft => {
-                        let prefix = &input[..i + c.len_utf8()];
-                        let rest = &input[i + c.len_utf8()..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
-                    }
-                    UntilMode::KeepRight => {
-                        let prefix = &input[..i];
-                        let rest = &input[i..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
-                    }
-                }
+                let (prefix, rest) = match self.mode {
+                    UntilMode::Discard => (&input[..i], &input[i + c.len_utf8()..]),
+                    UntilMode::KeepLeft => (&input[..i + c.len_utf8()], &input[i + c.len_utf8()..]),
+                    UntilMode::KeepRight => (&input[..i], &input[i..]),
+                };
+                clerk::debug!(
+                    "{self}: prefix='{}', rest='{}', i={}, c='{}'",
+                    prefix,
+                    rest,
+                    i,
+                    c
+                );
+                return (Some(prefix), rest);
             }
         }
-        // If all characters are in the set, return None and the original input
+
         clerk::debug!(
             "{self}: all characters in set, returning None, input='{}'",
             input

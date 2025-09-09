@@ -3,16 +3,31 @@ use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
 use crate::str_parser::rules::UntilMode;
 
-/// Rule to extract everything from the input string up to (but not including)
-/// the first occurrence of any character in the provided character set.
-/// Returns a tuple of (prefix, rest) where `prefix` contains all characters
-/// up to the first character in the set, and `rest` is the remainder of the
-/// string starting from that character. If no character in the set is found,
-/// returns (None, input).
+/// Rule that extracts a prefix from the input string up to the first occurrence
+/// of any character in the provided character set.
+///
+/// # Fields
+///
+/// - `filter`: A [`CharSetFilter`] defining the set of characters to stop at.
+/// - `mode`: Determines how the matched character is treated:
+///   - [`UntilMode::Discard`]: Exclude the matched character from the prefix
+///     and remove it from the rest.
+///   - [`UntilMode::KeepLeft`]: Include the matched character in the prefix.
+///   - [`UntilMode::KeepRight`]: Keep the matched character at the start of the
+///     rest.
+///
+/// # Behavior
+///
+/// - Returns `(Some(prefix), rest)` when a character from the set is found,
+///   split according to `mode`.
+/// - Returns `(None, input)` if no character from the set is found.
+/// - Respects UTF-8 character boundaries.
+/// - Logs debug information for each split or if no match is found.
 pub struct UntilOneInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
-    pub mode: super::UntilMode,
+    pub mode: UntilMode,
 }
+
 impl<'a, const N: usize> core::fmt::Debug for UntilOneInCharSet<'a, N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "UntilOneInCharSet<N={}> {{ mode: {:?} }}", N, self.mode)
@@ -22,67 +37,34 @@ impl<'a, const N: usize> core::fmt::Debug for UntilOneInCharSet<'a, N> {
 impl<'a, const N: usize> core::fmt::Display for UntilOneInCharSet<'a, N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
 
-    /// Applies the UntilOneInCharSet rule to the input string.
-    /// If a character in the set is found, returns the substring before the
-    /// character and the rest of the string (starting with the character).
-    /// If `include` is true, the matched character is included in the prefix.
-    /// If `include` is false and the first character is in the set, returns
-    /// None. If no character in the set is found, returns None and the
-    /// original input.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
-                match self.mode {
-                    UntilMode::Discard => {
-                        // Include the matched character in the prefix
-                        let prefix = &input[..i];
-                        let rest = &input[i + c.len_utf8()..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
-                    }
+                let (prefix, rest) = match self.mode {
+                    UntilMode::Discard => (&input[..i], &input[i + c.len_utf8()..]),
                     UntilMode::KeepLeft => {
-                        // Include the matched character in the prefix
-                        let end_of_char = i + c.len_utf8();
-                        let prefix = &input[..end_of_char];
-                        let rest = &input[end_of_char..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
+                        let end = i + c.len_utf8();
+                        (&input[..end], &input[end..])
                     }
-
-                    UntilMode::KeepRight => {
-                        // Not include, and not first char
-                        let prefix = &input[..i];
-                        let rest = &input[i..];
-                        clerk::debug!(
-                            "{self}: prefix='{}', rest='{}', i={}, c='{}'",
-                            prefix,
-                            rest,
-                            i,
-                            c
-                        );
-                        return (Some(prefix), rest);
-                    }
-                }
+                    UntilMode::KeepRight => (&input[..i], &input[i..]),
+                };
+                clerk::debug!(
+                    "{self}: prefix='{}', rest='{}', i={}, c='{}'",
+                    prefix,
+                    rest,
+                    i,
+                    c
+                );
+                return (Some(prefix), rest);
             }
         }
-        // No character in the set found
+
         clerk::debug!("{self}: no match found, returning None, input='{}'", input);
         (None, input)
     }

@@ -2,15 +2,29 @@ use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::rules::UntilMode;
 
-/// Rule to extract everything from the input string up to (but not including)
-/// the first occurrence of a specified delimiter substring.
-/// Returns a tuple of (prefix, rest) if the delimiter is found,
-/// otherwise returns None.
-/// If `include` is true, the delimiter is included in the prefix.
+/// Rule that extracts a prefix from the input string up to the first occurrence
+/// of a specified substring delimiter.
+///
+/// # Fields
+///
+/// - `pattern`: The delimiter substring to search for.
+/// - `mode`: Determines how the delimiter is treated:
+///   - [`UntilMode::Discard`]: Exclude the delimiter from the prefix and remove
+///     it from the rest.
+///   - [`UntilMode::KeepLeft`]: Include the delimiter in the prefix.
+///   - [`UntilMode::KeepRight`]: Keep the delimiter at the start of the rest.
+///
+/// # Behavior
+///
+/// - Returns `(Some(prefix), rest)` if the delimiter is found, split according
+///   to `mode`.
+/// - Returns `(None, input)` if the delimiter is not found.
+/// - Logs debug information for each split or when no match is found.
 pub struct UntilStr {
     pub pattern: &'static str,
-    pub mode: super::UntilMode,
+    pub mode: UntilMode,
 }
+
 impl core::fmt::Debug for UntilStr {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
@@ -24,57 +38,35 @@ impl core::fmt::Debug for UntilStr {
 impl core::fmt::Display for UntilStr {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl IRule for UntilStr {}
 
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    /// Applies the Until rule to the input string.
-    /// If the delimiter is found, returns the substring before the delimiter
-    /// and the rest of the string (starting with the delimiter).
-    /// If `include` is true, the delimiter is included in the prefix.
-    /// Otherwise, returns None.
+
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
-        // Log the input and delimiter at trace level.
         clerk::trace!(
             "{self}: input='{}', delimiter='{}', mode={}",
             input,
             self.pattern,
             self.mode
         );
+
         match input.find(self.pattern) {
-            Some(idx) => match self.mode {
-                UntilMode::Discard => {
-                    let end = idx + self.pattern.len();
-                    clerk::debug!(
-                        "{self} matched (include): prefix='{}', rest='{}'",
-                        &input[..idx],
-                        &input[end..]
-                    );
-                    (Some(&input[..idx]), &input[end..])
-                }
-                UntilMode::KeepLeft => {
-                    let end = idx + self.pattern.len();
-                    clerk::debug!(
-                        "{self} matched (include): prefix='{}', rest='{}'",
-                        &input[..end],
-                        &input[end..]
-                    );
-                    (Some(&input[..end]), &input[end..])
-                }
-                UntilMode::KeepRight => {
-                    clerk::debug!(
-                        "Until rule matched: prefix='{}', rest='{}'",
-                        &input[..idx],
-                        &input[idx..]
-                    );
-                    (Some(&input[..idx]), &input[idx..])
-                }
-            },
+            Some(idx) => {
+                let end = idx + self.pattern.len();
+                let (prefix, rest) = match self.mode {
+                    UntilMode::Discard => (&input[..idx], &input[end..]),
+                    UntilMode::KeepLeft => (&input[..end], &input[end..]),
+                    UntilMode::KeepRight => (&input[..idx], &input[idx..]),
+                };
+                clerk::debug!("{self} matched: prefix='{}', rest='{}'", prefix, rest);
+                (Some(prefix), rest)
+            }
             None => {
                 clerk::debug!(
-                    "Until rule did not match: delimiter '{}' not found in '{}'",
-                    self.pattern,
-                    input
+                    "{self}: delimiter '{}' not found, returning None",
+                    self.pattern
                 );
                 (None, input)
             }

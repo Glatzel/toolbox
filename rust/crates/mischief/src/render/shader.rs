@@ -36,7 +36,7 @@ pub trait IShader {
         theme: &THEME,
         indent: &INDENT,
         node: &position::Layer,
-        element: &position::Element,
+        element: &position::Item,
     ) -> String
     where
         INDENT: IIndent,
@@ -96,7 +96,7 @@ impl IShader for Shader {
         theme: &THEME,
         indent: &INDENT,
         layer: &position::Layer,
-        element: &position::Element,
+        element: &position::Item,
     ) -> String
     where
         INDENT: IIndent,

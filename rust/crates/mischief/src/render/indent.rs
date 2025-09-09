@@ -1,21 +1,26 @@
-use crate::render::position::{Element, Layer};
+use crate::render::position::{Item, Layer};
 
 extern crate alloc;
 
+/// Trait for computing indentation strings based on node layers and elements.
 pub trait IIndent {
-    fn get(&self, node: &Layer, element: &Element) -> (&'static str, &'static str);
+    /// Returns a tuple of `(prefix, continuation)` strings for the given node
+    /// and element.
+    fn get(&self, node: &Layer, element: &Item) -> (&'static str, &'static str);
 }
+
+/// Default implementation of `IIndent`.
 pub struct Indent;
 
 impl IIndent for Indent {
-    fn get(&self, node: &Layer, element: &Element) -> (&'static str, &'static str) {
+    fn get(&self, node: &Layer, element: &Item) -> (&'static str, &'static str) {
         match (node, element) {
-            (Layer::Bottom, Element::First) => ("x ", "│ "),
-            (Layer::Bottom, Element::Other) => ("│ ", "│ "),
-            (Layer::Middle, Element::First) => ("├─▶ ", "│   "),
-            (Layer::Middle, Element::Other) => ("│   ", "│   "),
-            (Layer::Top, Element::First) => ("╰─▶ ", "    "),
-            (Layer::Top, Element::Other) => ("    ", "    "),
+            (Layer::Bottom, Item::First) => ("x ", "│ "),
+            (Layer::Bottom, Item::Other) => ("│ ", "│ "),
+            (Layer::Middle, Item::First) => ("├─▶ ", "│   "),
+            (Layer::Middle, Item::Other) => ("│   ", "│   "),
+            (Layer::Top, Item::First) => ("╰─▶ ", "    "),
+            (Layer::Top, Item::Other) => ("    ", "    "),
         }
     }
 }

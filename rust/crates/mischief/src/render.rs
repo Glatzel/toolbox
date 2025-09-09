@@ -1,6 +1,7 @@
 use crate::IDiagnostic;
 extern crate alloc;
 use core::fmt::Debug;
+
 #[cfg(feature = "fancy")]
 mod indent;
 #[cfg(feature = "fancy")]
@@ -11,6 +12,7 @@ mod shader;
 mod terminal_config;
 #[cfg(feature = "fancy")]
 mod theme;
+
 #[cfg(feature = "fancy")]
 use alloc::format;
 #[cfg(feature = "fancy")]
@@ -21,19 +23,23 @@ use core::fmt::Write;
 #[cfg(feature = "fancy")]
 pub use indent::{IIndent, Indent};
 #[cfg(feature = "fancy")]
-pub use position::{Element, Layer};
+pub use position::{Item, Layer};
 #[cfg(feature = "fancy")]
 pub use shader::{IShader, Shader};
 #[cfg(feature = "fancy")]
 pub use terminal_config::TerminalConfig;
 #[cfg(feature = "fancy")]
 pub use theme::{ITheme, Theme};
+
+/// Trait defining rendering behavior for diagnostic types.
 pub trait IRender: Debug {
     #[cfg(feature = "fancy")]
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
+
     fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
 }
 
+/// Wrapper struct to render diagnostics.
 pub struct Render<'a, T>
 where
     T: IDiagnostic,
@@ -48,10 +54,12 @@ where
     #[cfg(feature = "fancy")]
     theme: Theme,
 }
+
 impl<'a, T> Render<'a, T>
 where
     T: IDiagnostic,
 {
+    /// Creates a new render wrapper for a diagnostic.
     pub fn new(diagnostic: &'a T) -> Self {
         #[cfg(feature = "fancy")]
         let terminal_config = TerminalConfig::init();
@@ -67,10 +75,13 @@ where
             theme: Theme,
         }
     }
+
+    /// Produces an iterator over the diagnostic chain.
     fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
         core::iter::successors(Some(self.diagnostic as &dyn IDiagnostic), |r| r.source())
     }
 }
+
 impl<'a, T> Debug for Render<'a, T>
 where
     T: IDiagnostic,
@@ -98,8 +109,7 @@ where
 {
     #[cfg(feature = "fancy")]
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut buffer = String::new(); // Reuse a single buffer
-
+        let mut buffer = String::new();
         let mut chain = self.chain().peekable();
         let mut node: Layer = Layer::Bottom;
 
@@ -150,7 +160,7 @@ where
                 &self.theme,
                 &self.indent,
                 &node,
-                &position::Element::First,
+                &Item::First,
             );
             f.write_str(&buffer)?;
             buffer.clear();
@@ -168,13 +178,12 @@ where
                     &self.theme,
                     &self.indent,
                     &node,
-                    &position::Element::Other,
+                    &Item::Other,
                 );
                 f.write_str(&buffer)?;
-            };
+            }
 
             writeln!(f)?;
-
             node = Layer::Middle;
         }
 
@@ -184,12 +193,10 @@ where
     fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut chain = self.chain();
 
-        // Top-level error
         if let Some(first) = chain.next() {
             writeln!(f, "Error: {}", first.description())?;
         }
 
-        // Causes
         let mut first = true;
         for diagnostic in chain {
             if first {

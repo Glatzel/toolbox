@@ -156,6 +156,7 @@ impl Dispatcher {
 
 #[cfg(test)]
 mod test {
+    extern crate std;
     use std::fs::File;
     use std::io;
 

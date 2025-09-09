@@ -110,19 +110,19 @@ where
             buffer.clear();
 
             let severity_theme = self.theme.severity_theme(diagnostic.severity());
-            diagnostic.severity().map(|s| {
+            if let Some(s) = diagnostic.severity() {
                 self.shader
                     .apply(&mut buffer, s, &severity_theme, &self.terminal_config)
-            });
-            diagnostic.code().map(|s| {
+            }
+            if let Some(s) = diagnostic.code() {
                 self.shader.apply(
                     &mut buffer,
                     format!("[{}]", s),
                     &severity_theme,
                     &self.terminal_config,
                 )
-            });
-            diagnostic.url().map(|s| {
+            }
+            if let Some(s) = diagnostic.url() {
                 self.shader.apply_hyperlink(
                     &mut buffer,
                     s,
@@ -130,7 +130,7 @@ where
                     &self.theme.url_theme(),
                     &self.terminal_config,
                 )
-            });
+            }
             if diagnostic.severity().is_some()
                 || diagnostic.code().is_some()
                 || diagnostic.url().is_some()

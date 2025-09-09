@@ -11,10 +11,20 @@ pub struct UntilStr {
     pub pattern: &'static str,
     pub mode: super::UntilMode,
 }
-
-impl IRule for UntilStr {
-    fn name(&self) -> &str { "Until" }
+impl core::fmt::Debug for UntilStr {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "UntilStr {{ pattern: {:?}, mode: {:?} }}",
+            self.pattern, self.mode
+        )
+    }
 }
+
+impl core::fmt::Display for UntilStr {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+impl IRule for UntilStr {}
 
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
@@ -26,7 +36,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Log the input and delimiter at trace level.
         clerk::trace!(
-            "Until rule: input='{}', delimiter='{}', mode={}",
+            "{self}: input='{}', delimiter='{}', mode={}",
             input,
             self.pattern,
             self.mode
@@ -36,7 +46,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                 UntilMode::Discard => {
                     let end = idx + self.pattern.len();
                     clerk::debug!(
-                        "Until rule matched (include): prefix='{}', rest='{}'",
+                        "{self} matched (include): prefix='{}', rest='{}'",
                         &input[..idx],
                         &input[end..]
                     );
@@ -45,7 +55,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                 UntilMode::KeepLeft => {
                     let end = idx + self.pattern.len();
                     clerk::debug!(
-                        "Until rule matched (include): prefix='{}', rest='{}'",
+                        "{self} matched (include): prefix='{}', rest='{}'",
                         &input[..end],
                         &input[end..]
                     );

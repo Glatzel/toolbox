@@ -1,14 +1,19 @@
 use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::rules::UntilMode;
-
 pub struct UntilChar<const C: char> {
     pub mode: super::UntilMode,
 }
-
-impl<const C: char> IRule for UntilChar<C> {
-    fn name(&self) -> &str { "Until" }
+impl<const C: char> core::fmt::Debug for UntilChar<C> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "UntilChar<{}> {{ mode: {:?} }}", C, self.mode)
+    }
 }
+
+impl<const C: char> core::fmt::Display for UntilChar<C> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+impl<const C: char> IRule for UntilChar<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     type Output = &'a str;
@@ -20,7 +25,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Log the input and delimiter at trace level.
         clerk::trace!(
-            "Until Char rule: input='{}', char='{}', mode={}",
+            "{self} rule: input='{}', char='{}', mode={}",
             input,
             C,
             self.mode
@@ -31,7 +36,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     UntilMode::Discard => {
                         let end = i + C.len_utf8();
                         clerk::debug!(
-                            "Until rule matched (include): prefix='{}', rest='{}'",
+                            "{self} matched (include): prefix='{}', rest='{}'",
                             &input[..i],
                             &input[end..]
                         );
@@ -40,7 +45,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     UntilMode::KeepLeft => {
                         let end = i + C.len_utf8();
                         clerk::debug!(
-                            "Until rule matched (include): prefix='{}', rest='{}'",
+                            "{self} matched (include): prefix='{}', rest='{}'",
                             &input[..end],
                             &input[end..]
                         );
@@ -48,7 +53,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     }
                     UntilMode::KeepRight => {
                         clerk::debug!(
-                            "Until rule matched (include): prefix='{}', rest='{}'",
+                            "{self} matched (include): prefix='{}', rest='{}'",
                             &input[..i],
                             &input[i..]
                         );

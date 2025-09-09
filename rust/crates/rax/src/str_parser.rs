@@ -53,13 +53,16 @@ impl<'a> StrParserContext {
             }
         }
     }
-    pub fn take_strict<R>(&mut self, rule: &R) -> mischief::Result<R::Output>
+    pub fn take_strict<R>(&mut self, rule: &'a R) -> Result<R::Output, StrParserError>
     where
         R: IStrFlowRule<'a>,
     {
         match self.take(rule) {
             Some(s) => Ok(s),
-            None => mischief::bail!("take fail"),
+            None => Err(StrParserError::VerbError {
+                verb: "TakeStrict".to_string(),
+                rule: rule.to_string(),
+            }),
         }
     }
 }
@@ -72,12 +75,17 @@ impl<'a> StrParserContext {
         self.take(rule);
         self
     }
-    pub fn skip_strict<R>(&mut self, rule: &R) -> mischief::Result<&mut Self>
+    pub fn skip_strict<R>(&mut self, rule: &'a R) -> Result<&mut Self, StrParserError>
     where
         R: IStrFlowRule<'a>,
     {
-        self.take_strict(rule)?;
-        Ok(self)
+        match self.take_strict(rule) {
+            Ok(_) => Ok(self),
+            Err(_) => Err(StrParserError::VerbError {
+                verb: "SkipStrict".to_string(),
+                rule: rule.to_string(),
+            }),
+        }
     }
 }
 impl<'a> StrParserContext {
@@ -87,4 +95,19 @@ impl<'a> StrParserContext {
     {
         rule.apply(&self.full)
     }
+}
+
+pub enum StrParserError {
+    VerbError { verb: String, rule: String },
+    FilterError { reason: String },
+}
+impl core::fmt::Debug for StrParserError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+
+impl core::fmt::Display for StrParserError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+impl core::error::Error for StrParserError {
+    fn description(&self) -> &str { "description() is deprecated; use Display" }
 }

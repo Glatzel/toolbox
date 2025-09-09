@@ -1,5 +1,5 @@
 mod byte_count;
-use core::fmt::Display;
+use core::fmt::{Debug, Display};
 
 pub use byte_count::*;
 mod char_count;
@@ -38,9 +38,7 @@ impl Display for UntilMode {
         }
     }
 }
-pub trait IRule {
-    fn name(&self) -> &str;
-}
+pub trait IRule: Debug + Display {}
 pub trait IStrFlowRule<'a>: IRule {
     type Output;
     fn apply(&self, input: &'a str) -> (Option<Self::Output>, &'a str);

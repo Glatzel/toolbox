@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use crate::str_parser::StrParserError;
 use crate::str_parser::filters::IFilter;
 /// A fixed, sorted list of characters.
 /// `contains()` uses a const‑friendly binary search.
@@ -7,13 +8,21 @@ use crate::str_parser::filters::IFilter;
 pub struct CharSetFilter<const N: usize> {
     table: [char; N],
 }
+impl<const N: usize> core::fmt::Debug for CharSetFilter<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "CharSetFilter<N={}>{{table: {:?}}}", N, &self.table)
+    }
+}
 
+impl<const N: usize> core::fmt::Display for CharSetFilter<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
 impl<const N: usize> CharSetFilter<N> {
     /// The caller promises `table` is sorted and unique.
     pub const fn new(table: [char; N]) -> Self { Self { table } }
 }
+
 impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
-    fn name(&self) -> &str { "Char Set (array)" }
     fn filter(&self, input: &char) -> bool {
         clerk::trace!(
             "CharSetFilter: checking if '{}' is in the set {:?}",
@@ -24,9 +33,9 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     }
 }
 impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = mischief::Report;
+    type Err = crate::str_parser::StrParserError;
 
-    fn from_str(s: &str) -> mischief::Result<Self> {
+    fn from_str(s: &str) -> Result<Self, crate::str_parser::StrParserError> {
         let mut chars = [0 as char; N];
         let mut i = 0;
         for c in s.chars() {
@@ -34,19 +43,22 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
                 chars[i] = c;
                 i += 1;
             } else {
-                mischief::bail!(
-                    "String too long for CharSet, expected {} but got {}",
-                    N,
-                    i + 1
-                );
+                return Err(StrParserError::FilterError {
+                    reason: format!(
+                        "String too long for CharSet, expected {} but got {}",
+                        N,
+                        i + 1
+                    ),
+                });
             }
         }
         if i != N {
-            mischief::bail!(
-                "String length does not match CharSet size, expected {} but got {}",
-                N,
-                i
-            );
+            return Err(StrParserError::FilterError {
+                reason: format!(
+                    "String length does not match CharSet size, expected {} but got {}",
+                    N, i
+                ),
+            });
         }
         Ok(Self::new(chars))
     }

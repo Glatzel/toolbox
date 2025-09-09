@@ -6,11 +6,11 @@ version.workspace = true
 [dependencies]
 chrono = { version = "0.4.42" ,default-features = false,features = ["clock"]}
 clerk = { workspace = true }
-mischief = { workspace = true }
 rax = { workspace = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 
 [dev-dependencies]
+mischief = { workspace = true }
 clerk = { workspace = true, features = ["log"] }
 criterion = { package = "codspeed-criterion-compat", version = "2.10.1" }
 float-cmp = "0.10.0"

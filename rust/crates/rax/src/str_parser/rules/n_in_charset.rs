@@ -1,15 +1,23 @@
+use core::fmt::{self, Debug, Display};
+
 use super::IStrFlowRule;
 use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
-
 /// Rule to match if the first N characters of the input are all in a given
 /// character set. If so, returns a tuple of (matched_str, rest_of_input).
 /// Otherwise, returns None.
 pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
-
-impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {
-    fn name(&self) -> &str { "NInCharSet" }
+impl<'a, const N: usize, const M: usize> Debug for NInCharSet<'a, N, M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Just show type-level information; you could include pointer if needed
+        write!(f, "NInCharSet<N={}, M={}>", N, M)
+    }
 }
+
+impl<'a, const N: usize, const M: usize> Display for NInCharSet<'a, N, M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+}
+impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
     type Output = &'a str;
@@ -26,21 +34,17 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 if count == N {
                     let matched = &input[..end_idx];
                     let rest = &input[end_idx..];
-                    clerk::debug!("NInCharSet matched: '{}', rest='{}'", matched, rest);
+                    clerk::debug!("{self} matched: '{}', rest='{}'", matched, rest);
                     return (Some(matched), rest);
                 }
             } else {
                 // Found a char not in the set before reaching N
-                clerk::debug!(
-                    "NInCharSet did not match: char '{}' not in set at pos {}",
-                    c,
-                    i
-                );
+                clerk::debug!("{self} did not match: char '{}' not in set at pos {}", c, i);
                 return (None, input);
             }
         }
         // Not enough characters in input
-        clerk::debug!("NInCharSet did not match: input too short or not enough chars in set");
+        clerk::debug!("{self} did not match: input too short or not enough chars in set");
         (None, input)
     }
 }

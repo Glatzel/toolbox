@@ -16,7 +16,7 @@ pub use mischief_macros::mischief;
 /// # Example
 ///
 /// ```
-/// use mischief::{bail, Severity};
+/// use mischief::{Severity, bail};
 ///
 /// fn open_file(path: &str) -> Result<(), mischief::Report> {
 ///     if path != "config.toml" {

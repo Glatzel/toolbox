@@ -108,9 +108,7 @@ impl<T: ToCString> From<Option<Vec<T>>> for VecCString {
     ///
     /// - If `Some(v)`, each element is converted into a [`CString`].
     /// - If `None`, returns an empty `VecCString`.
-    fn from(value: Option<Vec<T>>) -> Self {
-        value.as_deref().map_or_else(Self::new, Self::from)
-    }
+    fn from(value: Option<Vec<T>>) -> Self { value.as_deref().map_or_else(Self::new, Self::from) }
 }
 
 impl<T: ToCString> From<Option<&[T]>> for VecCString {
@@ -118,9 +116,7 @@ impl<T: ToCString> From<Option<&[T]>> for VecCString {
     ///
     /// - If `Some(slice)`, each element is converted into a [`CString`].
     /// - If `None`, returns an empty `VecCString`.
-    fn from(value: Option<&[T]>) -> Self {
-        value.map_or_else(Self::new, Self::from)
-    }
+    fn from(value: Option<&[T]>) -> Self { value.map_or_else(Self::new, Self::from) }
 }
 
 #[cfg(test)]

@@ -88,7 +88,7 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
 mod tests {
     use rax::str_parser::IStrGlobalRule;
     extern crate std;
-    use std::{format, vec};
+    use std::{format, println, vec};
 
     use super::*;
 

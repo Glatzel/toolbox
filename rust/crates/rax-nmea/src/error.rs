@@ -1,5 +1,6 @@
 use core::num::ParseIntError;
-
+extern crate alloc;
+use alloc::string::String;
 #[derive(Debug, thiserror::Error)]
 pub enum RaxNmeaError {
     #[error("Invalid sentence: {0}")]

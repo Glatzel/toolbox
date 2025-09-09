@@ -20,6 +20,8 @@ mod gnq;
 mod gpq;
 mod ths;
 mod vlw;
+extern crate alloc;
+use alloc::string::ToString;
 
 pub use dhv::*;
 pub use dtm::*;

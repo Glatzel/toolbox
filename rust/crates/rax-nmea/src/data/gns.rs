@@ -1,6 +1,7 @@
 use core::fmt::Debug;
 use core::str::FromStr;
 extern crate alloc;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};

@@ -1,7 +1,7 @@
 use core::fmt::{self, Display};
 use core::str::FromStr;
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use core::fmt::Write;
 
 use rax::str_parser::{ParseOptExt, StrParserContext};

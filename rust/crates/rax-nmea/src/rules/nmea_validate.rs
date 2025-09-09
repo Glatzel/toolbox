@@ -1,6 +1,8 @@
 use core::fmt::{self, Debug, Display};
 
 use rax::str_parser::IRule;
+extern crate alloc;
+use alloc::string::ToString;
 
 use crate::RaxNmeaError;
 /// Rule to validate an NMEA sentence for correct start character and checksum.

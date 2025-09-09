@@ -32,8 +32,8 @@ impl<'a, const N: usize> core::fmt::Debug for UntilOneInCharSet<'a, N> {
 }
 
 impl<'a, const N: usize> core::fmt::Display for UntilOneInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { 
-        write!(f, "{:?}", self) 
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

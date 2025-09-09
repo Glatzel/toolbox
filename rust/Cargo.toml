@@ -11,3 +11,4 @@ clerk = { path = "./crates/clerk/" }
 rax = { path = "./crates/rax/" }
 mischief-macros = { path = "./crates/mischief-macros/" }
 mischief = { path = "./crates/mischief/" }
+serialport-ext= { path = "./crates/serialport-ext/" }

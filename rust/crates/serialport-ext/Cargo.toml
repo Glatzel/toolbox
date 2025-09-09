@@ -1,0 +1,14 @@
+[package]
+edition.workspace = true
+name = "serialport-ext"
+version.workspace = true
+
+[dependencies]
+async-trait = { version = "0.1.89", optional = true }
+clerk = { workspace = true }
+serialport = { version = "4.7.3", optional = true }
+
+[dev-dependencies]
+serialport = "4.7.3"
+clerk = { workspace = true, features = ["log"] }
+mischief = { workspace = true }

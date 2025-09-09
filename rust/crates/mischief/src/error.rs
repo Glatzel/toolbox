@@ -46,7 +46,7 @@ impl IDiagnostic for MischiefError {
 
     fn code(&self) -> Option<&str> { self.code.as_deref() }
 
-    fn severity(&self) -> Option<crate::protocol::Severity> { self.severity.clone() }
+    fn severity(&self) -> Option<crate::protocol::Severity> { self.severity }
 
     fn help(&self) -> Option<&str> { self.help.as_deref() }
 

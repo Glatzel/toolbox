@@ -26,8 +26,8 @@ impl Debug for Report {
 // {
 //     fn from(value: E) -> Self {
 //         Self {
-//             inner: { MischiefError::new(value.to_string(), None, None, None, None, None) },
-//         }
+//             inner: { MischiefError::new(value.to_string(), None, None, None,
+// None, None) },         }
 //     }
 // }
 

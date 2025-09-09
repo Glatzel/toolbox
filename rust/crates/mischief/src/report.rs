@@ -14,9 +14,7 @@ pub struct Report {
 
 impl Report {
     /// Creates a new `Report` from a `MischiefError`.
-    pub fn new(error: MischiefError) -> Self {
-        Report { inner: error }
-    }
+    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
 }
 
 impl Debug for Report {
@@ -25,8 +23,8 @@ impl Debug for Report {
     }
 }
 
-/// Converts any type implementing `Error` into a `Report`, recursively converting
-/// source errors into `MischiefError`.
+/// Converts any type implementing `Error` into a `Report`, recursively
+/// converting source errors into `MischiefError`.
 impl<E> From<E> for Report
 where
     E: Error,

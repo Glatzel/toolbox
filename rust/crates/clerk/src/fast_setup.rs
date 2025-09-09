@@ -10,7 +10,8 @@ static INIT_LOGGING: OnceLock<()> = OnceLock::new();
 /// Initialize global logging with the given [`LogLevel`].
 ///
 /// This function:
-/// - Installs a [`tracing_subscriber`] registry with your custom terminal layer.
+/// - Installs a [`tracing_subscriber`] registry with your custom terminal
+///   layer.
 /// - Runs only once per process; further calls are no-ops.
 /// - Is safe to call from multiple threads concurrently.
 ///

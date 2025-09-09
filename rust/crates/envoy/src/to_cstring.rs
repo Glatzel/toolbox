@@ -28,9 +28,7 @@ impl ToCString for &str {
     /// # Panics
     ///
     /// Panics if the slice contains an interior null byte.
-    fn to_cstring(&self) -> CString {
-        CString::new(*self).expect(CSTRING_NEW_EXCEPTION)
-    }
+    fn to_cstring(&self) -> CString { CString::new(*self).expect(CSTRING_NEW_EXCEPTION) }
 }
 
 impl ToCString for String {
@@ -39,9 +37,7 @@ impl ToCString for String {
     /// # Panics
     ///
     /// Panics if the string contains an interior null byte.
-    fn to_cstring(&self) -> CString {
-        CString::new(self as &str).expect(CSTRING_NEW_EXCEPTION)
-    }
+    fn to_cstring(&self) -> CString { CString::new(self as &str).expect(CSTRING_NEW_EXCEPTION) }
 }
 
 #[cfg(test)]

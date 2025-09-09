@@ -27,22 +27,14 @@ impl TerminalConfig {
     }
 
     /// Returns the detected terminal width.
-    pub fn width(&self) -> usize {
-        self.width
-    }
+    pub fn width(&self) -> usize { self.width }
 
     /// Returns whether the terminal supports color output.
-    pub fn support_color(&self) -> bool {
-        self.support_color
-    }
+    pub fn support_color(&self) -> bool { self.support_color }
 
     /// Returns whether the terminal supports hyperlinks.
-    pub fn support_hyperlinks(&self) -> bool {
-        self.support_hyperlinks
-    }
+    pub fn support_hyperlinks(&self) -> bool { self.support_hyperlinks }
 
     /// Returns whether the terminal supports Unicode characters.
-    pub fn supports_unicode(&self) -> bool {
-        self.supports_unicode
-    }
+    pub fn supports_unicode(&self) -> bool { self.supports_unicode }
 }

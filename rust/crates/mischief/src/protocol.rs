@@ -6,7 +6,7 @@ use core::fmt::{Debug, Display};
 ///
 /// Implement this trait for any custom error type that can provide
 /// structured diagnostic information. This is similar in spirit to
-/// [`miette::Diagnostic`] or [`anyhow::Error`] with context.
+/// `miette::Diagnostic` or `anyhow::Error` with context.
 pub trait IDiagnostic {
     /// Returns a textual description of the error.
     fn description(&self) -> &str;

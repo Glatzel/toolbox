@@ -18,7 +18,7 @@ use tracing_subscriber::registry::LookupSpan;
 ///
 /// # Colorization
 ///
-/// If `color` is `true`, log levels are highlighted using [`owo-colors`]:
+/// If `color` is `true`, log levels are highlighted using [`owo_colors`]:
 /// - `TRACE` → purple
 /// - `DEBUG` → blue
 /// - `INFO` → green

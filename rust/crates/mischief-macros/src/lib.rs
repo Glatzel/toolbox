@@ -84,7 +84,7 @@ impl Parse for MischiefErrorInput {
     }
 }
 
-/// Procedural macro to create a [`MischiefError`] wrapped in a [`Report`].
+/// Procedural macro to create a `MischiefError` wrapped in a `Report`.
 ///
 /// # Syntax
 ///

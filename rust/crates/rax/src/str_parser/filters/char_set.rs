@@ -2,12 +2,16 @@ use std::str::FromStr;
 
 use crate::str_parser::RaxError;
 use crate::str_parser::filters::IFilter;
-/// A fixed, sorted list of characters.
-/// `contains()` uses a const‑friendly binary search.
-/// No nightly features required.
+
+/// A fixed, sorted set of characters for efficient membership testing.
+///
+/// The `table` must be sorted and contain unique characters. The `filter`
+/// method uses a simple linear search, which is effectively O(N) but very
+/// fast for small sets and `const` friendly. No nightly features are required.
 pub struct CharSetFilter<const N: usize> {
     table: [char; N],
 }
+
 impl<const N: usize> core::fmt::Debug for CharSetFilter<N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "CharSetFilter<N={}>{{table: {:?}}}", N, &self.table)
@@ -17,12 +21,19 @@ impl<const N: usize> core::fmt::Debug for CharSetFilter<N> {
 impl<const N: usize> core::fmt::Display for CharSetFilter<N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
+
 impl<const N: usize> CharSetFilter<N> {
-    /// The caller promises `table` is sorted and unique.
+    /// Creates a new `CharSetFilter`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must guarantee that `table` is sorted and contains unique
+    /// characters.
     pub const fn new(table: [char; N]) -> Self { Self { table } }
 }
 
 impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
+    /// Returns `true` if the character is in the set, `false` otherwise.
     fn filter(&self, input: &char) -> bool {
         clerk::trace!(
             "CharSetFilter: checking if '{}' is in the set {:?}",
@@ -32,9 +43,14 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
         self.table.contains(input)
     }
 }
+
 impl<const N: usize> FromStr for CharSetFilter<N> {
     type Err = crate::str_parser::RaxError;
 
+    /// Parses a string into a `CharSetFilter`.
+    ///
+    /// The string must have exactly `N` characters, otherwise a `RaxError` is
+    /// returned.
     fn from_str(s: &str) -> Result<Self, crate::str_parser::RaxError> {
         let mut chars = [0 as char; N];
         let mut i = 0;
@@ -60,18 +76,20 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
     }
 }
 
-/// Digits (10 items) – lookup is ~3 comparisons.
+/// Predefined filters
+
+/// Digits 0–9.
 pub const DIGITS: CharSetFilter<10> =
     CharSetFilter::new(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
-/// ASCII letters (52 items) – lookup is ~6 comparisons.
-/// This includes both uppercase and lowercase letters.
+/// ASCII letters, uppercase and lowercase.
 pub const ASCII_LETTERS: CharSetFilter<52> = CharSetFilter::new([
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
     'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
     'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ]);
 
+/// ASCII letters and digits.
 pub const ASCII_LETTERS_DIGITS: CharSetFilter<62> = CharSetFilter::new([
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
     'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b',

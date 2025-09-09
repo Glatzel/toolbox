@@ -1,19 +1,52 @@
 use std::io::BufRead;
 
-/// Trait for reading lines from a source.
+/// Trait representing a line-oriented reader.
+///
+/// This trait abstracts over sources that can provide lines of text,
+/// allowing reading one line at a time or a batch of lines.
 pub trait IRaxReader {
+    /// Reads a single line from the underlying source.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(Some(String))` if a line was successfully read.
+    /// - `Ok(None)` if the end of the input has been reached (EOF).
+    /// - `Err(std::io::Error)` if an I/O error occurs while reading.
     fn read_line(&mut self) -> Result<Option<String>, std::io::Error>;
+
+    /// Reads up to `count` lines from the underlying source.
+    ///
+    /// Stops reading early if the end of the input is reached.
+    ///
+    /// # Arguments
+    ///
+    /// - `count`: Maximum number of lines to read.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<String>` containing the lines that were read (may be less than
+    /// `count` if EOF is reached), or an `std::io::Error` if an I/O error
+    /// occurs.
     fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error>;
 }
 
 /// A buffered line reader that implements `IRaxReader`.
+///
+/// Wraps a `BufRead` and provides utilities for reading lines individually
+/// or in batches, with optional debug logging.
 pub struct RaxReader<R: BufRead> {
+    /// The inner buffered reader.
     inner: R,
+    /// Internal buffer reused for reading lines.
     buf: String,
 }
 
 impl<R: BufRead> RaxReader<R> {
-    /// Create a new `RaxReader` from a type implementing `BufRead`.
+    /// Creates a new `RaxReader` from a type implementing `BufRead`.
+    ///
+    /// # Arguments
+    ///
+    /// - `inner`: The buffered reader to wrap.
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -24,12 +57,16 @@ impl<R: BufRead> RaxReader<R> {
 
 impl<R: BufRead> IRaxReader for RaxReader<R> {
     /// Reads a single line from the inner reader.
-    /// Returns `Ok(Some(line))` if a line is read, or `Ok(None)` on EOF.
+    ///
+    /// Clears the internal buffer before reading to ensure no leftover content.
+    /// Returns `None` at EOF.
+    ///
+    /// Logs the number of bytes read and the content of the line if
+    /// `clerk::debug!` logging is enabled.
     fn read_line(&mut self) -> Result<Option<String>, std::io::Error> {
         let mut buf = String::new();
         self.buf.clear();
         let n = self.inner.read_line(&mut buf)?;
-        // Log the number of bytes read and the line content (for debugging)
         clerk::debug!(
             "[RaxReader] read_line: bytes read = {}, line = {:?}",
             n,
@@ -39,16 +76,18 @@ impl<R: BufRead> IRaxReader for RaxReader<R> {
     }
 
     /// Reads up to `count` lines from the inner reader.
+    ///
     /// Stops early if EOF is reached.
+    ///
+    /// Logs each line read with its index (for debugging).
     fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error> {
         let mut lines = Vec::with_capacity(count);
-        for _i in 0..count {
+        for i in 0..count {
             match self.read_line()? {
                 Some(line) => {
-                    // Log each line read (for debugging)
                     clerk::debug!(
                         "[RaxReader] read_lines_by_count: line {} = {:?}",
-                        _i + 1,
+                        i + 1,
                         line
                     );
                     lines.push(line)

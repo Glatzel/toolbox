@@ -3,18 +3,36 @@ use crate::str_parser::IRule;
 use crate::str_parser::filters::{CharSetFilter, IFilter};
 use crate::str_parser::rules::UntilMode;
 
-/// Rule that extracts a prefix from the input string up to (but not including)
-/// the position where N or more characters in the set have been seen.
-/// Returns a tuple of (prefix, rest) where `prefix` contains all characters
-/// up to the N-th character in the set, and `rest` is the remainder of the
-/// string starting from that character. If fewer than N characters in the set
-/// are found, returns (None, input).
-/// The `mode` determines whether the N-th matched character is included in the
-/// prefix, excluded, or kept as the first character of the rest.
+/// Rule that extracts a prefix from the input string until the N-th character
+/// matching a given character set is reached.
+///
+/// `UntilNInCharSet<N, M>` scans the input string from the start, counting
+/// how many characters belong to the specified character set (defined by `filter`).
+///
+/// # Fields
+///
+/// - `filter`: The [`CharSetFilter`] that defines the set of valid characters.
+/// - `mode`: Determines how the N-th matched character is treated:
+///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix and removed from the rest.
+///   - [`UntilMode::KeepLeft`]: The N-th character is included at the end of the prefix.
+///   - [`UntilMode::KeepRight`]: The N-th character is included at the start of the rest.
+///
+/// # Type Parameters
+///
+/// - `N`: The number of matches required to stop scanning.
+/// - `M`: The size of the character set (`CharSetFilter<M>`).
+///
+/// # Behavior
+///
+/// - Returns `(Some(prefix), rest)` when N characters in the set have been seen,
+///   split according to `mode`.
+/// - Returns `(None, input)` if fewer than N characters in the set are found.
+/// - Respects UTF-8 character boundaries and logs trace/debug information.
 pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
     pub filter: &'a CharSetFilter<M>,
     pub mode: UntilMode,
 }
+
 impl<'a, const N: usize, const M: usize> core::fmt::Debug for UntilNInCharSet<'a, N, M> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
@@ -26,30 +44,23 @@ impl<'a, const N: usize, const M: usize> core::fmt::Debug for UntilNInCharSet<'a
 }
 
 impl<'a, const N: usize, const M: usize> core::fmt::Display for UntilNInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { 
+        write!(f, "{:?}", self) 
+    }
 }
+
 impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    /// Applies the rule to the input string, returning the prefix up to the
-    /// N-th character in the set, and the rest of the string starting from
-    /// that character. If fewer than N characters in the set are found,
-    /// returns (None, input).
-    /// The `mode` determines whether the N-th matched character is included in
-    /// the prefix, excluded, or kept as the first character of the rest.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
-        // How many more matches do we still need?
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
-            // Ask the user‑supplied filter whether this character is in the set.
             if self.filter.filter(&ch) {
                 remaining -= 1;
                 if remaining == 0 {
-                    // `idx` points to the first byte of the N‑th match.
-                    // `after` points to the first byte *after* it.
                     let after = idx + ch.len_utf8();
                     let (prefix, rest) = match self.mode {
                         UntilMode::Discard => (&input[..idx], &input[after..]),
@@ -69,7 +80,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
                 }
             }
         }
-        // Fewer than N occurrences found.
+
         clerk::debug!(
             "{self}: fewer than {} matches found, returning None, input='{}'",
             N,

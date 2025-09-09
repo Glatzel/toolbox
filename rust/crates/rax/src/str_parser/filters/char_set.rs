@@ -76,7 +76,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
     }
 }
 
-/// Predefined filters
+// Predefined filters
 
 /// Digits 0–9.
 pub const DIGITS: CharSetFilter<10> =

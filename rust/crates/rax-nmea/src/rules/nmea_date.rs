@@ -6,7 +6,7 @@ use super::UNTIL_COMMA_DISCARD;
 pub struct NmeaDate;
 
 impl IRule for NmeaDate {
-   
+
 }
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {

@@ -9,7 +9,7 @@ use super::UNTIL_COMMA_DISCARD;
 pub struct NmeaCoord;
 
 impl IRule for NmeaCoord {
-   
+
 }
 impl NmeaCoord {
     fn convert_to_decimal_degrees(v: f64) -> f64 {

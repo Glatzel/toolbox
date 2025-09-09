@@ -9,7 +9,7 @@ use super::UNTIL_COMMA_DISCARD;
 pub struct NmeaDegree;
 
 impl IRule for NmeaDegree {
-   
+
 }
 
 impl<'a> IStrFlowRule<'a> for NmeaDegree {

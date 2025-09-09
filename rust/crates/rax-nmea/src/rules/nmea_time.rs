@@ -10,7 +10,7 @@ use super::UNTIL_COMMA_DISCARD;
 pub struct NmeaTime;
 
 impl IRule for NmeaTime {
-   
+
 }
 
 impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {

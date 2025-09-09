@@ -29,15 +29,6 @@ pub trait AsVecPtr {
 ///
 /// This type is especially useful for preparing argument lists (`argv`) or
 /// environment variable lists (`envp`) for C APIs.
-///
-/// # Example
-///
-/// ```
-/// use envoy::VecCString;
-///
-/// let v = VecCString::from(vec!["hello", "world"]);
-/// let c_args = v.as_vec_ptr();
-/// ```
 pub struct VecCString {
     /// The owned collection of [`CString`]s.
     pub content: Vec<CString>,

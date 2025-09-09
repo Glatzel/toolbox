@@ -1005,7 +1005,6 @@ dependencies = [
 name = "serialport-ext"
 version = "0.0.28"
 dependencies = [
- "async-trait",
  "clerk",
  "mischief",
  "serialport",

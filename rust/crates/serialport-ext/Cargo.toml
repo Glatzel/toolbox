@@ -4,7 +4,6 @@ name = "serialport-ext"
 version.workspace = true
 
 [dependencies]
-async-trait = { version = "0.1.89", optional = true }
 clerk = { workspace = true }
 serialport = { version = "4.7.3", optional = true }
 

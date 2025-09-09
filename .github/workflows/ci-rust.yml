@@ -61,3 +61,10 @@ jobs:
       - name: cargo-miri
         run: ${{env.RUST_ROOT}}/scripts/cargo-miri.ps1
         shell: pwsh
+  cargo-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: cargo-doc
+        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
+        shell: pwsh

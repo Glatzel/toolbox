@@ -20,16 +20,16 @@ impl Debug for Report {
     }
 }
 
-default impl<E> From<E> for Report
-where
-    E: ToString,
-{
-    fn from(value: E) -> Self {
-        Self {
-            inner: { MischiefError::new(value.to_string(), None, None, None, None, None) },
-        }
-    }
-}
+// default impl<E> From<E> for Report
+// where
+//     E: ToString,
+// {
+//     fn from(value: E) -> Self {
+//         Self {
+//             inner: { MischiefError::new(value.to_string(), None, None, None, None, None) },
+//         }
+//     }
+// }
 
 impl<E> From<E> for Report
 where
@@ -60,24 +60,24 @@ pub type Result<T, E = Report> = core::result::Result<T, E>;
 pub trait IntoMischief<T> {
     fn into_mischief(self) -> Result<T, Report>;
 }
-default impl<T, E> IntoMischief<T> for Result<T, E>
-where
-    E: ToString + Debug,
-{
-    fn into_mischief(self) -> Result<T, Report> {
-        match self {
-            Err(e) => Err(Report::new(MischiefError::new(
-                e.to_string(),
-                None,
-                None,
-                None,
-                None,
-                None,
-            ))),
-            Ok(v) => Ok(v),
-        }
-    }
-}
+// default impl<T, E> IntoMischief<T> for Result<T, E>
+// where
+//     E: ToString + Debug,
+// {
+//     fn into_mischief(self) -> Result<T, Report> {
+//         match self {
+//             Err(e) => Err(Report::new(MischiefError::new(
+//                 e.to_string(),
+//                 None,
+//                 None,
+//                 None,
+//                 None,
+//                 None,
+//             ))),
+//             Ok(v) => Ok(v),
+//         }
+//     }
+// }
 impl<T, E: Error> IntoMischief<T> for Result<T, E> {
     fn into_mischief(self) -> Result<T, Report> {
         match self {

@@ -19,15 +19,15 @@ use alloc::string::String;
 use core::fmt::Write;
 
 #[cfg(feature = "fancy")]
-use indent::Indent;
+pub use indent::{IIndent, Indent};
 #[cfg(feature = "fancy")]
-use position::Layer;
+pub use position::{Element, Layer};
 #[cfg(feature = "fancy")]
-use shader::{IShader, Shader};
+pub use shader::{IShader, Shader};
 #[cfg(feature = "fancy")]
-use terminal_config::TerminalConfig;
+pub use terminal_config::TerminalConfig;
 #[cfg(feature = "fancy")]
-use theme::{ITheme, Theme};
+pub use theme::{ITheme, Theme};
 pub trait IRender: Debug {
     #[cfg(feature = "fancy")]
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;

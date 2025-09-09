@@ -35,11 +35,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                 (Some(out), &input[end..])
             } else {
                 // If the character does not match, log and return None.
-                clerk::debug!(
-                    "{self} did not match: found '{}', expected '{}'",
-                    out,
-                    C
-                );
+                clerk::debug!("{self} did not match: found '{}', expected '{}'", out, C);
                 (None, input)
             }
         } else {

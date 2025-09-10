@@ -23,7 +23,7 @@ clerk = { workspace = true, features = ["log"] }
 mischief = { workspace = true }
 
 [features]
-default = ["std"]
+default = []
 std = ["thiserror/std"]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]
 

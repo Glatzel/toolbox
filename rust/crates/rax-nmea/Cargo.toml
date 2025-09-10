@@ -20,7 +20,7 @@ serialport = "4.7.3"
 rax = { workspace = true ,features = ["async"]}
 
 [features]
-default = ["std"]
+default = []
 std = ["rax/std","thiserror/std"]
 serde = ["std", "dep:serde", "chrono/serde"]
 

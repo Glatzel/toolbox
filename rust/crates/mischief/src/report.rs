@@ -79,6 +79,7 @@ pub trait WrapErr<D, T> {
         F: FnOnce() -> D;
 }
 
+///TODO: use specialization to impl for [`Report`]
 impl<D, T> WrapErr<D, T> for Result<T, Report>
 where
     D: Display + 'static,

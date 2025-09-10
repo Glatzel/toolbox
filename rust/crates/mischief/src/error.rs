@@ -7,6 +7,7 @@ use crate::IDiagnostic;
 
 /// Represents a structured error with optional metadata such as source, code,
 /// severity, help message, and URL.
+#[derive(Clone)]
 pub struct MischiefError {
     description: String,
     pub(crate) source: Option<Box<MischiefError>>,

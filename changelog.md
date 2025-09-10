@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.30] - 2025-09-10
+
+### Changed
+
+- Impl display for report by @Glatzel in [#232](https://github.com/Glatzel/toolbox/pull/232)
+
 ## [0.0.29] - 2025-09-09
 
 ### Changed
@@ -226,6 +232,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.30]: https://github.com/Glatzel/toolbox/compare/v0.0.29..v0.0.30
 [0.0.29]: https://github.com/Glatzel/toolbox/compare/v0.0.28..v0.0.29
 [0.0.28]: https://github.com/Glatzel/toolbox/compare/v0.0.27..v0.0.28
 [0.0.27]: https://github.com/Glatzel/toolbox/compare/v0.0.26..v0.0.27

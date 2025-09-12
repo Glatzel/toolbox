@@ -4,25 +4,25 @@ name = "rax-nmea"
 version.workspace = true
 
 [dependencies]
-chrono = { version = "0.4.42" ,default-features = false,features = ["clock"]}
+chrono = { version = "0.4.42", default-features = false, features = ["clock"] }
 clerk = { workspace = true }
+hashbrown = "0.16.0"
 rax = { workspace = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
-thiserror ={ version = "2.0.16",default-features = false}
-hashbrown = "0.16.0"
+thiserror = { version = "2.0.16", default-features = false }
 
 [dev-dependencies]
-mischief = { workspace = true }
 clerk = { workspace = true, features = ["log"] }
 criterion = { package = "codspeed-criterion-compat", version = "3.0.0" }
 float-cmp = "0.10.0"
+mischief = { workspace = true }
+rax = { workspace = true, features = ["async"] }
 serialport = "4.7.3"
-rax = { workspace = true ,features = ["async"]}
 
 [features]
 default = []
-std = ["rax/std","thiserror/std"]
 serde = ["std", "dep:serde", "chrono/serde"]
+std = ["rax/std", "thiserror/std"]
 
 [[bench]]
 harness = false

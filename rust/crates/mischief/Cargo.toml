@@ -4,15 +4,22 @@ name = "mischief"
 version.workspace = true
 
 [dependencies]
-owo-colors = { version = "4.2.2", optional = true }
 mischief-macros = { workspace = true, optional = true }
-textwrap = { version = "0.16.2", optional = true }
+owo-colors = { version = "4.2.2", optional = true }
+supports-color = { version = "3.0.2", optional = true }
+supports-hyperlinks = { version = "3.1.0", optional = true }
+supports-unicode = { version = "3.0.0", optional = true }
 terminal_size = { version = "0.4.3", optional = true }
-supports-hyperlinks = { version ="3.1.0", optional = true }
-supports-color = { version ="3.0.2", optional = true }
-supports-unicode = { version ="3.0.0", optional = true }
+textwrap = { version = "0.16.2", optional = true }
 
 [features]
 default = ["macros"]
-fancy = ["owo-colors", "textwrap","terminal_size","supports-hyperlinks","supports-color","supports-unicode"]
+fancy = [
+  "owo-colors",
+  "textwrap",
+  "terminal_size",
+  "supports-hyperlinks",
+  "supports-color",
+  "supports-unicode",
+]
 macros = ["mischief-macros"]

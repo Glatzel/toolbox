@@ -7,5 +7,5 @@ version.workspace = true
 proc-macro = true
 
 [dependencies]
-syn = "2.0.106"
 quote = "1.0.40"
+syn = "2.0.106"

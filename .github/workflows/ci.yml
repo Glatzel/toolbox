@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v5
         if: ${{github.event_name == 'pull_request'}}
       - id: main
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         if: ${{github.event_name == 'pull_request'}}
         with:
           files_yaml: |

@@ -20,9 +20,8 @@ rax = { workspace = true, features = ["async"] }
 serialport = "4.7.3"
 
 [features]
-default = []
 serde = ["std", "dep:serde", "chrono/serde"]
-std = ["rax/std", "thiserror/std"]
+std = []
 
 [[bench]]
 harness = false

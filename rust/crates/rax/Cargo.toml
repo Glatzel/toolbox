@@ -24,8 +24,7 @@ tokio = { version = "1.47.1", default-features = false, features = [
 
 [features]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]
-default = []
-std = ["thiserror/std"]
+std = []
 
 [[bench]]
 harness = false

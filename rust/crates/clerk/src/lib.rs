@@ -3,6 +3,7 @@
 mod log_embedded;
 #[cfg(feature = "log-embedded")]
 pub use log_embedded::*;
+
 #[cfg(feature = "log")]
 mod log_normal;
 #[cfg(feature = "log")]

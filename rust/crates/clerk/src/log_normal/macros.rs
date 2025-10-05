@@ -2,7 +2,6 @@
 ///
 /// Delegates to [`tracing::trace!`] when the `log` feature is enabled.
 /// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
@@ -14,7 +13,6 @@ macro_rules! trace {
 ///
 /// Delegates to [`tracing::debug!`] when the `log` feature is enabled.
 /// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
@@ -26,7 +24,6 @@ macro_rules! debug {
 ///
 /// Delegates to [`tracing::info!`] when the `log` feature is enabled.
 /// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
@@ -38,7 +35,6 @@ macro_rules! info {
 ///
 /// Delegates to [`tracing::warn!`] when the `log` feature is enabled.
 /// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
@@ -50,7 +46,6 @@ macro_rules! warn {
 ///
 /// Delegates to [`tracing::error!`] when the `log` feature is enabled.
 /// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {

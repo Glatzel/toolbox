@@ -17,7 +17,6 @@ use crate::str_parser::rules::IRule;
 /// This rule operates on **character boundaries**, so it correctly handles
 /// multi-byte UTF-8 characters. It is useful for parsing fixed-length
 /// fields based on character count rather than byte count.
-
 pub struct CharCount<const N: usize>;
 
 impl<const N: usize> Debug for CharCount<N> {

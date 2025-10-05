@@ -18,6 +18,8 @@ tracing-subscriber = { version = "0.3.20", features = [
 defmt = { version = "1.0.1", optional = true }
 
 [features]
+defmt = ["dep:defmt"]
+serde = ["dep:serde"]
 tracing = [
   "dep:tracing",
   "dep:tracing-subscriber",
@@ -25,5 +27,3 @@ tracing = [
   "dep:chrono",
   "dep:tracing-core",
 ]
-defmt = ["dep:defmt"]
-serde = ["dep:serde"]

@@ -1,89 +1,39 @@
-/// Trace-level logging macro.
-///
-/// Delegates to [`tracing::trace!`] when the `log` feature is enabled.
-/// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {
-        $crate::tracing::trace!($($arg)*);
-    };
+// Default: tracing backend (std)
+#[cfg(all(feature = "log", not(feature = "embedded")))]
+mod log_backend {
+    pub use tracing::{trace, debug, info, warn, error};
 }
 
+// Embedded: defmt backend
+#[cfg(all(feature = "log", feature = "embedded"))]
+mod log_backend {
+    pub use defmt::{trace, debug, info, warn, error};
+}
+
+// No log feature: define no-op macros (zero cost)
 #[cfg(not(feature = "log"))]
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {{}};
+mod log_backend {
+    #[macro_export]
+    macro_rules! trace {
+        ($($arg:tt)*) => {{}};
+    }
+    #[macro_export]
+    macro_rules! debug {
+        ($($arg:tt)*) => {{}};
+    }
+    #[macro_export]
+    macro_rules! info {
+        ($($arg:tt)*) => {{}};
+    }
+    #[macro_export]
+    macro_rules! warn {
+        ($($arg:tt)*) => {{}};
+    }
+    #[macro_export]
+    macro_rules! error {
+        ($($arg:tt)*) => {{}};
+    }
 }
 
-/// Debug-level logging macro.
-///
-/// Delegates to [`tracing::debug!`] when the `log` feature is enabled.
-/// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        $crate::tracing::debug!($($arg)*);
-    };
-}
-
-#[cfg(not(feature = "log"))]
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {{}};
-}
-
-/// Info-level logging macro.
-///
-/// Delegates to [`tracing::info!`] when the `log` feature is enabled.
-/// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        $crate::tracing::info!($($arg)*);
-    };
-}
-
-#[cfg(not(feature = "log"))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {{}};
-}
-
-/// Warn-level logging macro.
-///
-/// Delegates to [`tracing::warn!`] when the `log` feature is enabled.
-/// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        $crate::tracing::warn!($($arg)*);
-    };
-}
-
-#[cfg(not(feature = "log"))]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {{}};
-}
-
-/// Error-level logging macro.
-///
-/// Delegates to [`tracing::error!`] when the `log` feature is enabled.
-/// Otherwise, expands to a no-op.
-#[cfg(feature = "log")]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        $crate::tracing::error!($($arg)*);
-    };
-}
-
-#[cfg(not(feature = "log"))]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {{}};
-}
+// Re-export unified interface
+pub use log_backend::*;

@@ -1,5 +1,5 @@
 #![cfg_attr(feature = "defmt", no_std)]
-
+#![allow(unexpected_cfgs)]
 #[cfg(feature = "defmt")]
 pub use defmt;
 

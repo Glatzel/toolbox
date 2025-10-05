@@ -21,22 +21,22 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
 
     fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
         // Log the input at trace level.
-        clerk::trace!("{self}: input='{}'", input);
+        clerk::trace!("{}: input='{}'", self, input);
         let (deg_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);
         let (sign_str, rest2) = UNTIL_COMMA_DISCARD.apply(rest1);
         match (deg_str.and_then(|d| d.parse::<f64>().ok()), sign_str) {
             (Some(val), Some("E" | "N")) => (Some(val), rest2),
             (Some(val), Some("W" | "S")) => (Some(-val), rest2),
             (Some(_), Some(_sign)) => {
-                clerk::info!("{self}: unknown sign '{}'", _sign);
+                clerk::info!("{}: unknown sign '{}'", self, _sign);
                 (None, rest2)
             }
             (_, Some("")) => {
-                clerk::info!("{self}: Null degree: `{}`", input);
+                clerk::info!("{}: Null degree: `{}`", self, input);
                 (None, rest2)
             }
             _ => {
-                clerk::warn!("{self}: failed to parse input '{}'", input);
+                clerk::warn!("{}: failed to parse input '{}'", self, input);
                 (None, rest2)
             }
         }

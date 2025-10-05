@@ -1,8 +1,9 @@
-use std::str::FromStr;
+use core::str::FromStr;
 
 use crate::str_parser::RaxError;
 use crate::str_parser::filters::IFilter;
-
+extern crate alloc;
+use alloc::format;
 /// A fixed, sorted set of characters for efficient membership testing.
 ///
 /// The `table` must be sorted and contain unique characters. The `filter`

@@ -46,7 +46,8 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         clerk::trace!(
-            "{self}: input='{}', delimiter='{}', mode={}",
+            "{}: input='{}', delimiter='{}', mode={}",
+            self,
             input,
             self.pattern,
             self.mode
@@ -60,12 +61,13 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     UntilMode::KeepLeft => (&input[..end], &input[end..]),
                     UntilMode::KeepRight => (&input[..idx], &input[idx..]),
                 };
-                clerk::debug!("{self} matched: prefix='{}', rest='{}'", prefix, rest);
+                clerk::debug!("{} matched: prefix='{}', rest='{}'", self, prefix, rest);
                 (Some(prefix), rest)
             }
             None => {
                 clerk::debug!(
-                    "{self}: delimiter '{}' not found, returning None",
+                    "{}: delimiter '{}' not found, returning None",
+                    self,
                     self.pattern
                 );
                 (None, input)

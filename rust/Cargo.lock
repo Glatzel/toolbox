@@ -961,6 +961,7 @@ dependencies = [
  "async-trait",
  "clerk",
  "codspeed-criterion-compat",
+ "defmt 1.0.1",
  "mischief",
  "serialport",
  "thiserror",

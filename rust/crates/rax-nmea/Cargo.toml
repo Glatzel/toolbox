@@ -21,7 +21,7 @@ serialport = "4.7.3"
 
 [features]
 serde = ["std", "dep:serde", "chrono/serde"]
-std = []
+std = ["rax/std"]
 
 [[bench]]
 harness = false

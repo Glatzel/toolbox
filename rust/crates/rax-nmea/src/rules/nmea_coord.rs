@@ -34,22 +34,24 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
         let (sign_str, rest2) = UNTIL_COMMA_DISCARD.apply(rest1);
 
         match (num_str.and_then(|s| s.parse::<f64>().ok()), sign_str) {
-            (Some(v), Some(sign @ ("N" | "E"))) => {
+            (Some(v), Some(_sign @ ("N" | "E"))) => {
                 let result = Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "{self}: positive sign '{}', deg={}, min={}, result={}",
-                    sign,
+                    "{}: positive sign '{}', deg={}, min={}, result={}",
+                    self,
+                    _sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
                 (Some(result), rest2)
             }
-            (Some(v), Some(sign @ ("S" | "W"))) => {
+            (Some(v), Some(_sign @ ("S" | "W"))) => {
                 let result = -Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "{self}: negative sign '{}', deg={}, min={}, result={}",
-                    sign,
+                    "{}: negative sign '{}', deg={}, min={}, result={}",
+                    self,
+                    _sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result
@@ -57,15 +59,15 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                 (Some(result), rest2)
             }
             (Some(_), Some(_sign)) => {
-                clerk::info!("{self}: invalid sign '{}'", _sign);
+                clerk::info!("{}: invalid sign '{}'", self, _sign);
                 (None, rest2)
             }
             (_, Some("")) => {
-                clerk::info!("{self}: Null coord: '{}'", input);
+                clerk::info!("{}: Null coord: '{}'", self, input);
                 (None, rest2)
             }
             _ => {
-                clerk::warn!("{self}: Invalid input: '{}'", input);
+                clerk::warn!("{}: Invalid input: '{}'", self, input);
                 (None, rest2)
             }
         }

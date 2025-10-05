@@ -7,7 +7,7 @@ edition = "2024"
 version = "0.0.30"
 
 [workspace.dependencies]
-clerk = { path = "./crates/clerk/" }
+clerk = { path = "./crates/clerk/" , default-features = false }
 mischief = { path = "./crates/mischief/" }
 mischief-macros = { path = "./crates/mischief-macros/" }
 rax = { path = "./crates/rax/", default-features = false }

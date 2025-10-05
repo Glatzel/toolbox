@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "defmt", no_std)]
 
 #[cfg(feature = "defmt")]
-pub use fmt;
+pub use defmt;
 
 #[cfg(feature = "tracing")]
 mod log_normal;

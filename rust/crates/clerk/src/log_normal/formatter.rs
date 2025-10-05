@@ -1,7 +1,7 @@
 use std::fmt;
 extern crate std;
 use std::format;
-use std::string::{ToString,String};
+use std::string::{String, ToString};
 
 use owo_colors::OwoColorize;
 use tracing::{Event, Level, Subscriber};

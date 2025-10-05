@@ -77,12 +77,12 @@ where
     /// Logs each line read with its index (for debugging).
     async fn read_lines_by_count(&mut self, count: usize) -> Result<Vec<String>, std::io::Error> {
         let mut lines = Vec::with_capacity(count);
-        for i in 0..count {
+        for _i in 0..count {
             match self.read_line().await? {
                 Some(line) => {
                     clerk::debug!(
                         "[AsyncRaxReader] read_lines_by_count: line {} = {:?}",
-                        i + 1,
+                        _i + 1,
                         line
                     );
                     lines.push(line);

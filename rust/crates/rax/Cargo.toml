@@ -6,14 +6,14 @@ version.workspace = true
 [dependencies]
 async-trait = { version = "0.1.89", optional = true }
 clerk = { workspace = true }
+defmt = "1.0.1"
 thiserror = { version = "2.0.16", default-features = false }
 tokio = { version = "1.47.1", default-features = false, optional = true }
 tokio-serial = { version = "5.4.5", optional = true }
-defmt = "1.0.1"
 
 [dev-dependencies]
 async-trait = "0.1.89"
-clerk = { workspace = true, features = [ "log"] }
+clerk = { workspace = true, features = ["log"] }
 criterion = { package = "codspeed-criterion-compat", version = "3.0.0" }
 mischief = { workspace = true }
 serialport = "4.7.3"

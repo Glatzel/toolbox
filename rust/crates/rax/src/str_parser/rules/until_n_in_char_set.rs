@@ -84,7 +84,8 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
         }
 
         clerk::debug!(
-            "{}: fewer than {} matches found, returning None, input='{}'",self,
+            "{}: fewer than {} matches found, returning None, input='{}'",
+            self,
             N,
             input
         );

@@ -1,12 +1,11 @@
-#![cfg_attr(not(feature = "log"), no_std)]
-#[cfg(feature = "log-embedded")]
-mod log_embedded;
-#[cfg(feature = "log-embedded")]
-pub use log_embedded::*;
+#![cfg_attr(feature = "defmt", no_std)]
 
-#[cfg(feature = "log")]
+#[cfg(feature = "defmt")]
+pub use fmt;
+
+#[cfg(feature = "tracing")]
 mod log_normal;
-#[cfg(feature = "log")]
+#[cfg(feature = "tracing")]
 pub use log_normal::*;
-#[cfg(all(not(feature = "log-embedded"), not(feature = "log")))]
+
 mod macros;

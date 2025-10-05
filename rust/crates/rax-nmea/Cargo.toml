@@ -12,7 +12,7 @@ serde = { version = "1.0.219", features = ["derive"], optional = true }
 thiserror = { version = "2.0.16", default-features = false }
 
 [dev-dependencies]
-clerk = { workspace = true, features = ["log"] }
+clerk = { workspace = true, features = ["tracing"] }
 criterion = { package = "codspeed-criterion-compat", version = "3.0.0" }
 float-cmp = "0.10.0"
 mischief = { workspace = true }

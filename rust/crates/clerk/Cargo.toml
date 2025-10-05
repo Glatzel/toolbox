@@ -18,12 +18,12 @@ tracing-subscriber = { version = "0.3.20", features = [
 defmt = { version = "1.0.1", optional = true }
 
 [features]
-log = [
+tracing = [
   "dep:tracing",
   "dep:tracing-subscriber",
   "dep:owo-colors",
   "dep:chrono",
   "dep:tracing-core",
 ]
-log-embedded = ["dep:defmt"]
+defmt = ["dep:defmt"]
 serde = ["dep:serde"]

@@ -1,13 +1,14 @@
+
 // Default: tracing backend (std)
 #[cfg(all(feature = "log", not(feature = "embedded")))]
 mod log_backend {
-    pub use tracing::{trace, debug, info, warn, error};
+    pub use tracing::{debug, error, info, trace, warn};
 }
 
 // Embedded: defmt backend
 #[cfg(all(feature = "log", feature = "embedded"))]
 mod log_backend {
-    pub use defmt::{trace, debug, info, warn, error};
+    pub use defmt::{debug, error, info, trace, warn};
 }
 
 // No log feature: define no-op macros (zero cost)

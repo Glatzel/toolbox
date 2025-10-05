@@ -13,7 +13,7 @@ tokio-serial = { version = "5.4.5", optional = true }
 [dev-dependencies]
 async-trait = "0.1.89"
 clerk = { workspace = true, features = ["tracing"] }
-criterion = { package = "codspeed-criterion-compat", version = "3.0.0" }
+criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
 mischief = { workspace = true }
 serialport = "4.7.3"
 tokio = { version = "1.47.1", default-features = false, features = [

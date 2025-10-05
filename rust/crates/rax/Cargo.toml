@@ -5,10 +5,11 @@ version.workspace = true
 
 [dependencies]
 async-trait = { version = "0.1.89", optional = true }
-clerk = { workspace = true }
+clerk = { workspace = true , default-features = false}
 thiserror = { version = "2.0.16", default-features = false }
 tokio = { version = "1.47.1", default-features = false, optional = true }
 tokio-serial = { version = "5.4.5", optional = true }
+defmt = { version ="1.0.1", optional = true }
 
 [dev-dependencies]
 async-trait = "0.1.89"
@@ -24,7 +25,7 @@ tokio = { version = "1.47.1", default-features = false, features = [
 
 [features]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]
-std = []
+std = ["clerk/std"]
 
 [[bench]]
 harness = false

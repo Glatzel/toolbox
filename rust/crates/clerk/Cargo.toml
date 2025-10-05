@@ -18,7 +18,8 @@ tracing-subscriber = { version = "0.3.20", features = [
 defmt = { version = "0.3", optional = true }
 
 [features]
-embedded = []
+default = ["std"]
+std = []
 log = [
   "dep:tracing",
   "dep:tracing-subscriber",

@@ -1,5 +1,5 @@
 use std::sync::OnceLock;
-
+extern crate std;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 

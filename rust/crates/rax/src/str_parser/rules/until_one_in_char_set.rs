@@ -55,7 +55,8 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                     UntilMode::KeepRight => (&input[..i], &input[i..]),
                 };
                 clerk::debug!(
-                    "{self}: prefix='{}', rest='{}', i={}, c='{}'",
+                    "{}: prefix='{}', rest='{}', i={}, c='{}'",
+                    self,
                     prefix,
                     rest,
                     i,
@@ -65,7 +66,11 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
             }
         }
 
-        clerk::debug!("{self}: no match found, returning None, input='{}'", input);
+        clerk::debug!(
+            "{}: no match found, returning None, input='{}'",
+            self,
+            input
+        );
         (None, input)
     }
 }

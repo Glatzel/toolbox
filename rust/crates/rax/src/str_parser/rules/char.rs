@@ -41,7 +41,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
-        clerk::trace!("{self}: input='{}', expected='{}'", input, C);
+        clerk::trace!("{}: input='{}', expected='{}'", self, input, C);
 
         let mut chars = input.char_indices();
 
@@ -49,11 +49,17 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
             if first_char == C {
                 // Find the next char boundary or end of string
                 let (end, _) = chars.next().unwrap_or((input.len(), '\0'));
-                clerk::debug!("{self} matched: '{}', rest='{}'", first_char, &input[end..]);
+                clerk::debug!(
+                    "{} matched: '{}', rest='{}'",
+                    self,
+                    first_char,
+                    &input[end..]
+                );
                 (Some(first_char), &input[end..])
             } else {
                 clerk::debug!(
-                    "{self} did not match: found '{}', expected '{}'",
+                    "{} did not match: found '{}', expected '{}'",
+                    self,
                     first_char,
                     C
                 );

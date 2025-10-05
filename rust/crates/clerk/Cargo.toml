@@ -4,6 +4,7 @@ name = "clerk"
 version.workspace = true
 
 [dependencies]
+# std logging (host side)
 chrono = { version = "0.4.42", optional = true }
 owo-colors = { version = "4.2.2", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
@@ -13,12 +14,16 @@ tracing-subscriber = { version = "0.3.20", features = [
   "env-filter",
 ], optional = true }
 
+# embedded logging (firmware side)
+defmt = { version = "1.0.1", optional = true }
+
 [features]
-log = [
+defmt = ["dep:defmt"]
+serde = ["dep:serde"]
+tracing = [
   "dep:tracing",
   "dep:tracing-subscriber",
   "dep:owo-colors",
   "dep:chrono",
   "dep:tracing-core",
 ]
-serde = ["dep:serde"]

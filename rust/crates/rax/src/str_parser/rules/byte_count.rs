@@ -45,17 +45,18 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// and debug messages showing the matched prefix and remaining input.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Trace input and requested byte count
-        clerk::trace!("{self}: input='{}', byte_count={}", input, N);
+        clerk::trace!("{}: input='{}', byte_count={}", self, input, N);
 
         match input.get(..N) {
             Some(out) => {
                 let rest = &input[N..];
-                clerk::debug!("{self}: matched prefix='{}', rest='{}'", out, rest);
+                clerk::debug!("{}: matched prefix='{}', rest='{}'", self, out, rest);
                 (Some(out), rest)
             }
             None => {
                 clerk::debug!(
-                    "{self}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
+                    "{}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
+                    self,
                     N,
                     input
                 );

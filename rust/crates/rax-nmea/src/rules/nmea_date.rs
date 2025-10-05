@@ -26,32 +26,33 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {
                 let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
                     Some(d) => d,
                     None => {
-                        clerk::info!("{self}: failed to parse day from '{}'", res);
+                        clerk::info!("{}: failed to parse day from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let month = match res.get(2..4).and_then(|s| s.parse::<u32>().ok()) {
                     Some(m) => m,
                     None => {
-                        clerk::info!("{self}: failed to parse month from '{}'", res);
+                        clerk::info!("{}: failed to parse month from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let year = match res.get(4..6).and_then(|s| s.parse::<i32>().ok()) {
                     Some(y) => y,
                     None => {
-                        clerk::info!("{self}: failed to parse year from '{}'", res);
+                        clerk::info!("{}: failed to parse year from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let dt = match NaiveDate::from_ymd_opt(year + 2000, month, day) {
                     Some(date) => {
-                        clerk::debug!("{self}: parsed date: {}", date);
+                        clerk::debug!("{}: parsed date: {}", self, date);
                         date
                     }
                     None => {
                         clerk::warn!(
-                            "{self}: invalid date: y={}, m={}, d={}",
+                            "{}: invalid date: y={}, m={}, d={}",
+                            self,
                             year + 2000,
                             month,
                             day

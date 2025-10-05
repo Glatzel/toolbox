@@ -8,9 +8,11 @@ pub trait ParseOptExt<T> {
     /// Returns:
     /// - `Some(U)` if the option contains a string and parsing succeeds.
     /// - `None` if the option is `None` or parsing fails.
-    fn parse_opt<U: std::str::FromStr>(self) -> Option<U>;
+    fn parse_opt<U: core::str::FromStr>(self) -> Option<U>;
 }
 
 impl<'a> ParseOptExt<&'a str> for Option<&'a str> {
-    fn parse_opt<U: std::str::FromStr>(self) -> Option<U> { self.and_then(|s| s.parse::<U>().ok()) }
+    fn parse_opt<U: core::str::FromStr>(self) -> Option<U> {
+        self.and_then(|s| s.parse::<U>().ok())
+    }
 }

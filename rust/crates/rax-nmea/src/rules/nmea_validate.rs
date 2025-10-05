@@ -29,26 +29,26 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
         // Check if the sentence starts with '$'.
         if !input.starts_with('$') {
             let e = RaxNmeaError::InvalidSentencePrefix(input.to_string());
-            clerk::warn!("{self}: {e}");
+            clerk::warn!("{}: {}", self, e);
             return Err(e);
         }
 
         // Find the position of the '*' checksum delimiter.
         let Some(star_pos) = input.find('*') else {
             let e = RaxNmeaError::MissingChecksumDelimiter(input.to_string());
-            clerk::warn!("{self}: {e}");
+            clerk::warn!("{}: {}", self, e);
             return Err(e);
         };
 
         // Split the input into data and checksum string.
         let (data, checksum_str) = input[1..].split_at(star_pos - 1); // skip $
         let checksum_str = &checksum_str[1..];
-        clerk::debug!("{self}: data='{}', checksum_str='{}'", data, checksum_str);
+        clerk::debug!("{}: data='{}', checksum_str='{}'", self, data, checksum_str);
 
         // Check that the checksum string is exactly 2 characters.
         if checksum_str.len() != 2 {
             let e = RaxNmeaError::InvalidChecksumLength(checksum_str.len());
-            clerk::warn!("{self}: {e}");
+            clerk::warn!("{}: {}", self, e);
             return Err(e);
         }
 
@@ -57,7 +57,7 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
             Ok(v) => v,
             Err(e) => {
                 let e = RaxNmeaError::InvalidHexChecksum(e);
-                clerk::warn!("{self}: {e}");
+                clerk::warn!("{}: {}", self, e);
                 return Err(e);
             }
         };
@@ -76,10 +76,10 @@ impl<'a> rax::str_parser::IStrGlobalRule<'a> for NmeaValidate {
                 calculated,
                 expected,
             };
-            clerk::warn!("{self}: {e}");
+            clerk::warn!("{}: {}", self, e);
             return Err(e);
         }
-        clerk::info!("{self}: sentence is valid: {input}");
+        clerk::info!("{}: sentence is valid: {}", self, input);
         Ok(())
     }
 }

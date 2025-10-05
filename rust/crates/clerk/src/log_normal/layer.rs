@@ -1,3 +1,5 @@
+extern crate std;
+use std::boxed::Box;
 use std::path::PathBuf;
 
 use tracing_core::LevelFilter;

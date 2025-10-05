@@ -49,21 +49,28 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
         clerk::trace!("{}: input='{}', count={}", self, input, N);
 
         if N == 0 {
-            clerk::debug!("{self}: count is zero, returning empty prefix and full input.");
+            clerk::debug!(
+                "{}: count is zero, returning empty prefix and full input.",
+                self
+            );
             return (Some(""), input);
         }
 
         let length = input.chars().count();
 
         if N == length {
-            clerk::debug!("{self}: count matches input length, returning whole input.");
+            clerk::debug!(
+                "{}: count matches input length, returning whole input.",
+                self
+            );
             return (Some(input), "");
         }
 
         for (count, (idx, _)) in input.char_indices().enumerate() {
             if count == N {
                 clerk::debug!(
-                    "{self}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    "{}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    self,
                     count,
                     idx,
                     &input[..idx],

@@ -14,9 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest,ubuntu-24.04-arm]
+        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
         args:
-          - --workspace --all-features
+          - --workspace --all-features --exclude clerk
+          - --features tracing -p clerk
           - --no-default-features --features macros -p mischief
           - --no-default-features -p rax -p rax-nmea
     runs-on: ${{matrix.machine}}
@@ -49,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest,ubuntu-24.04-arm]
+        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5

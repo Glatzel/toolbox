@@ -24,12 +24,12 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply(&self, input: &'a str) -> (core::option::Option<NaiveTime>, &'a str) {
-        clerk::trace!("{self}: input='{}'", input);
+        clerk::trace!("{}: input='{}'", self, input);
 
         let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);
         let res = match res {
             Some("") | None => {
-                clerk::info!("{self}: got empty string.");
+                clerk::info!("{}: got empty string.", self,);
                 return (None, rest);
             }
             Some(res) => res,
@@ -49,11 +49,11 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
             None => 0,
         };
 
-        let parse_field = |range: core::ops::Range<usize>, label: &str| {
+        let parse_field = |range: core::ops::Range<usize>, _label: &str| {
             res.get(range)
                 .and_then(|s| s.parse::<u32>().ok())
                 .ok_or_else(|| {
-                    clerk::warn!("{self}: failed to parse {} ', input='{}'", label, input);
+                    clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
                 })
         };
 
@@ -71,7 +71,8 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
         };
 
         clerk::debug!(
-            "{self}: parsed hour={}, min={}, sec={}, nanos={}",
+            "{}: parsed hour={}, min={}, sec={}, nanos={}",
+            self,
             hour,
             min,
             sec,
@@ -80,12 +81,13 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
 
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
-                clerk::debug!("{self}: parsed time: {}", t);
+                clerk::debug!("{}: parsed time: {}", self, t);
                 (Some(t), rest)
             }
             None => {
                 clerk::warn!(
-                    "{self}: invalid time: hour={}, min={}, sec={}, nanos={}",
+                    "{}: invalid time: hour={}, min={}, sec={}, nanos={}",
+                    self,
                     hour,
                     min,
                     sec,

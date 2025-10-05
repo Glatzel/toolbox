@@ -60,16 +60,24 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 if count == N {
                     let matched = &input[..end_idx];
                     let rest = &input[end_idx..];
-                    clerk::debug!("{self} matched: '{}', rest='{}'", matched, rest);
+                    clerk::debug!("{} matched: '{}', rest='{}'", self, matched, rest);
                     return (Some(matched), rest);
                 }
             } else {
-                clerk::debug!("{self} did not match: char '{}' not in set at pos {}", c, i);
+                clerk::debug!(
+                    "{} did not match: char '{}' not in set at pos {}",
+                    self,
+                    c,
+                    i
+                );
                 return (None, input);
             }
         }
 
-        clerk::debug!("{self} did not match: input too short or not enough chars in set");
+        clerk::debug!(
+            "{} did not match: input too short or not enough chars in set",
+            self
+        );
         (None, input)
     }
 }

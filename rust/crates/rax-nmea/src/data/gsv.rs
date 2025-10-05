@@ -67,7 +67,7 @@ impl INmeaData for Gsv {
 
         // Count the number of lines and satellites
         let line_count = ctx.full_str().lines().count();
-        clerk::trace!("Gsv::new: line_count={line_count}");
+        clerk::trace!("Gsv::new: line_count={}", line_count);
 
         // The first line contains the talker, number of lines, and number of satellites
         let satellite_count = ctx
@@ -77,7 +77,7 @@ impl INmeaData for Gsv {
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt::<usize>()
             .expect("Cannot get the count of satellites.");
-        clerk::trace!("Gsv::new: satellite_count={satellite_count}");
+        clerk::trace!("Gsv::new: satellite_count={}", satellite_count);
 
         // The last line may have fewer than 4 satellites, so we calculate how many
         // satellites are in the last line based on the total count.
@@ -89,7 +89,10 @@ impl INmeaData for Gsv {
                 rem
             }
         };
-        clerk::trace!("Gsv::new: last_line_satellite_count={last_line_satellite_count}");
+        clerk::trace!(
+            "Gsv::new: last_line_satellite_count={}",
+            last_line_satellite_count
+        );
 
         let mut satellites = Vec::with_capacity(satellite_count);
         // Parse all but the last line (each has 4 satellites)

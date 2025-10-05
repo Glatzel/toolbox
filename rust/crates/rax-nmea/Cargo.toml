@@ -13,7 +13,7 @@ thiserror = { version = "2.0.16", default-features = false }
 
 [dev-dependencies]
 clerk = { workspace = true, features = ["tracing"] }
-criterion = { package = "codspeed-criterion-compat", version = "3.0.0" }
+criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
 float-cmp = "0.10.0"
 mischief = { workspace = true }
 rax = { workspace = true, features = ["async"] }

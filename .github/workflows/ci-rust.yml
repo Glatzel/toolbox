@@ -16,7 +16,8 @@ jobs:
       matrix:
         machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
         args:
-          - --workspace --all-features
+          - --workspace --all-features --exclude clerk
+          - --features tracing --exclude clerk
           - --no-default-features --features macros -p mischief
           - --no-default-features -p rax -p rax-nmea
     runs-on: ${{matrix.machine}}

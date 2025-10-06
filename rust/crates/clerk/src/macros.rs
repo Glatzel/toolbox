@@ -98,44 +98,4 @@ macro_rules! error {
         $crate::defmt::error!($($arg)*);
     };
 }
-
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {
-        $crate::tracing::trace!($($arg)*);
-        $crate::defmt::trace!($($arg)*);
-    };
-}
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        $crate::tracing::debug!($($arg)*);
-        $crate::defmt::debug!($($arg)*);
-    };
-}
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        $crate::tracing::info!($($arg)*);
-        $crate::defmt::info!($($arg)*);
-    };
-}
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        $crate::tracing::warn!($($arg)*);
-        $crate::defmt::warn!($($arg)*);
-    };
-}
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        $crate::tracing::error!($($arg)*);
-        $crate::defmt::error!($($arg)*);
-    };
-}
+

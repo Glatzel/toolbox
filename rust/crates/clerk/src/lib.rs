@@ -9,5 +9,5 @@ mod log_normal;
 pub use log_normal::*;
 
 mod macros;
-#[cfg(all(feature = "defmt", feature = "tracing", not(rustdoc), not(clippy)))]
+#[cfg(all(feature = "defmt", feature = "tracing", not(doc),not(rustdoc), not(clippy)))]
 compile_error!("Features `defmt` and `tracing` cannot be enabled at the same time");

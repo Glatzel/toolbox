@@ -12,6 +12,7 @@ mod macros;
 #[cfg(all(
     feature = "defmt",
     feature = "tracing",
+    not(doctest),
     not(doc),
     not(rustdoc),
     not(clippy)

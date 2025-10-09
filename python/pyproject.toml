@@ -14,7 +14,7 @@ platforms = ["win-64", "linux-64", "osx-arm64", "linux-aarch64"]
 
 [tool.pixi.dependencies]
 python = "3.11.*"
-rattler-build = "==0.47.1"
+rattler-build = "==0.48.1"
 # test
 pyfakefs = "==5.9.2"
 pytest = "==8.4.2"

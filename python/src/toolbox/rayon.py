@@ -1,7 +1,7 @@
 import multiprocessing
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 
 def execute_processes(fn: Callable, params: Iterable[Iterable[Any]]) -> Iterable:

@@ -14,8 +14,8 @@
 		}
 	],
 	"settings": {
-		"rust-analyzer.check.features": ["log"],
-		"rust-analyzer.cargo.features": ["log"],
+		"rust-analyzer.check.features": ["tracing"],
+		"rust-analyzer.cargo.features": ["tracing"],
 		"python.analysis.extraPaths": [
 			"./python/src"
 		]

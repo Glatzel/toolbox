@@ -13,25 +13,25 @@ mischief-macros = { path = "./crates/mischief-macros/" }
 rax = { path = "./crates/rax/", default-features = false }
 serialport-ext = { path = "./crates/serialport-ext/" }
 
+async-trait = "0.1.89"
 chrono = { version = "0.4.42", default-features = false }
-owo-colors = "4.2.2"
-serde = "1.0.219"
-tracing = "0.1.41"
-tracing-core = "0.1.34"
-tracing-subscriber = "0.3.20"
+criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
 defmt = "1.0.1"
+float-cmp = "0.10.0"
+hashbrown = "0.16.0"
+owo-colors = "4.2.2"
+quote = "1.0.40"
+serde = "1.0.219"
+serialport = "4.7.3"
 supports-color = "3.0.2"
 supports-hyperlinks = "3.1.0"
 supports-unicode = "3.0.0"
+syn = "2.0.106"
 terminal_size = "0.4.3"
 textwrap = "0.16.2"
-quote = "1.0.40"
-syn = "2.0.106"
-serialport = "4.7.3"
-criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
-async-trait = "0.1.89"
+thiserror = { version = "2.0.16", default-features = false }
 tokio = { version = "1.47.1", default-features = false }
 tokio-serial = "5.4.5"
-thiserror = { version = "2.0.16", default-features = false }
-hashbrown = "0.16.0"
-float-cmp = "0.10.0"
+tracing = "0.1.41"
+tracing-core = "0.1.34"
+tracing-subscriber = "0.3.20"

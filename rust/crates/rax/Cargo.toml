@@ -4,23 +4,19 @@ name = "rax"
 version.workspace = true
 
 [dependencies]
-async-trait = { version = "0.1.89", optional = true }
+async-trait = { workspace = true, optional = true }
 clerk = { workspace = true }
-thiserror = { version = "2.0.16", default-features = false }
-tokio = { version = "1.47.1", default-features = false, optional = true }
-tokio-serial = { version = "5.4.5", optional = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, optional = true }
+tokio-serial = { workspace = true, optional = true }
 
 [dev-dependencies]
-async-trait = "0.1.89"
+async-trait = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
-criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
+criterion = { workspace = true }
 mischief = { workspace = true }
-serialport = "4.7.3"
-tokio = { version = "1.47.1", default-features = false, features = [
-  "macros",
-  "rt-multi-thread",
-  "fs",
-] }
+serialport = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
 
 [features]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]

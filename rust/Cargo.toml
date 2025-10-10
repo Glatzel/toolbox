@@ -14,7 +14,7 @@ rax = { path = "./crates/rax/", default-features = false }
 serialport-ext = { path = "./crates/serialport-ext/" }
 
 async-trait = "0.1.89"
-chrono = { version = "0.4.42", default-features = false }
+chrono = { version = "0.4.42", default-features = false, features = ["clock"] }
 criterion = { package = "codspeed-criterion-compat", version = "4.0.0" }
 defmt = "1.0.1"
 float-cmp = "0.10.0"

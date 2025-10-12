@@ -39,14 +39,14 @@ Converts Rust strings to C-compatible strings.
 | `Some(&str)` / `Some(String)` | `CString`            | ^                       |
 | `None`                        | `CString::default()` | /                       |
 
-### `ToCStrList`
+### ToVecCString
 
 Converts Rust string slices or vectors to lists of C-compatible strings.
 
-| Input Type                                  | Output                            | Notes                    |
-| ------------------------------------------- | --------------------------------- | ------------------------ |
-| `&[&str]` / `Vec<String>`                   | `Vec<CString>` / `Vec<*const i8>` | Allocates, must be freed |
-| `Option<Vec<&str>>` / `Option<Vec<String>>` | Empty if `None` or empty input    | /                        |
+| Input Type                                  | Output                         | Notes                    |
+| ------------------------------------------- | ------------------------------ | ------------------------ |
+| `&[&str]` / `Vec<String>`                   | `VecCString` / `VecCString`    | Allocates, must be freed |
+| `Option<Vec<&str>>` / `Option<Vec<String>>` | `VecCString` / Empty if `None` | /                        |
 
 ---
 

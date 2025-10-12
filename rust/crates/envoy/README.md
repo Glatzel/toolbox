@@ -54,16 +54,3 @@ Converts Rust string slices or vectors to lists of C-compatible strings.
 
 - Any pointer returned by `to_cstr()` must be reclaimed with `CString::from_raw(ptr as *mut i8)` to avoid memory leaks.
 - Lists of pointers returned by `to_cstr_list()` must be individually reclaimed.
-
----
-
-## Example
-
-```rust
-use envoy::{ToCStr, CStrToString};
-
-let ptr = "hello".to_cstr();
-assert_eq!(ptr.to_string().unwrap(), "hello");
-// SAFETY: free the memory after use
-unsafe { let _ = std::ffi::CString::from_raw(ptr as *mut i8); }
-```

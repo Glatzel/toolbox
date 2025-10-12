@@ -12,9 +12,5 @@ mod macros;
 #[cfg(all(
     feature = "defmt",
     feature = "tracing",
-    not(doctest),
-    not(doc),
-    not(rustdoc),
-    not(clippy)
 ))]
 compile_error!("Features `defmt` and `tracing` cannot be enabled at the same time");

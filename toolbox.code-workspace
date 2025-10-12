@@ -14,10 +14,17 @@
 		}
 	],
 	"settings": {
-		"rust-analyzer.check.features": ["tracing"],
-		"rust-analyzer.cargo.features": ["tracing"],
+		"rust-analyzer.check.features": [
+			"tracing"
+		],
+		"rust-analyzer.cargo.features": [
+			"tracing"
+		],
 		"python.analysis.extraPaths": [
 			"./python/src"
-		]
+		],
+		"[markdown]": {
+			"editor.wordWrap": "off"
+		}
 	}
 }

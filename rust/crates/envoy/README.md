@@ -10,10 +10,11 @@ This crate provides ergonomic conversions between Rust and C string types, inclu
 
 Converts C string pointers and slices to Rust `String`.
 
-| Input Type              | Null Pointer Handling   | Output           |
-| ----------------------- | ----------------------- | ---------------- |
-| `*const i8` / `*mut i8` | Returns `None`          | `Option<String>` |
-| `[i8]`                  | Returns `None` if empty | `Option<String>` |
+| Input Type      | Null Pointer Handling | Output           |
+| --------------- | --------------------- | ---------------- |
+| `*const c_char` | Returns `None`        | `Option<String>` |
+| `*mut c_char`   | ^                     | ^                |
+| `[c_char]`      | ^                     | ^                |
 
 ---
 
@@ -21,33 +22,22 @@ Converts C string pointers and slices to Rust `String`.
 
 Converts a null-terminated list of C string pointers to a `Vec<String>`.
 
-| Input Type                          | Null Pointer Handling | Output        |
-| ----------------------------------- | --------------------- | ------------- |
-| `*mut *mut i8` / `*const *const i8` | Returns empty `Vec`   | `Vec<String>` |
+| Input Type             | Null Pointer Handling | Output        |
+| ---------------------- | --------------------- | ------------- |
+| `*mut *mut c_char`     | Returns empty `Vec`   | `Vec<String>` |
+| `*const *const c_char` | ^                     | ^             |
 
 ---
 
-### `ToCStr`
+### `ToCString`
 
 Converts Rust strings to C-compatible strings.
-
-#### `to_cstring()`
 
 | Input Type                    | Output               | Notes                   |
 | ----------------------------- | -------------------- | ----------------------- |
 | `&str` / `String`             | `CString`            | Panics on interior null |
 | `Some(&str)` / `Some(String)` | `CString`            | ^                       |
 | `None`                        | `CString::default()` | /                       |
-
-#### `to_cstr()`
-
-| Input Type                    | Output      | Notes                    |
-| ----------------------------- | ----------- | ------------------------ |
-| `&str` / `String`             | `*const i8` | Allocates, must be freed |
-| `Some(&str)` / `Some(String)` | `*const i8` | Allocates, must be freed |
-| `None`                        | `null`      | /                        |
-
----
 
 ### `ToCStrList`
 

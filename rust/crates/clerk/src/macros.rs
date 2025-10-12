@@ -1,27 +1,3 @@
-//! Unified logging macros for `tracing`, `defmt`, or no-op fallback.
-//!
-//! These macros automatically adapt depending on which Cargo feature is
-//! enabled:
-//!
-//! - `tracing` → Uses the [`tracing`] crate’s macros.
-//! - `defmt` → Uses the [`defmt`] crate’s macros.
-//! - Neither → Expands to a no-op (empty macro).
-//!
-//! This allows your code to use `trace!`, `debug!`, `info!`, `warn!`, and
-//! `error!` consistently without needing to import feature-specific crates.
-//!
-//! # Feature Matrix
-//! | Feature combination | Behavior |
-//! |---------------------|-----------|
-//! | none                | No-op (logs are disabled) |
-//! | `tracing` only      | Uses `tracing::*` macros |
-//! | `defmt` only        | Uses `defmt::*` macros |
-//! | both `tracing` + `defmt` | Compile error (should not be enabled together) |
-
-// ============================================================================
-// No-op fallback (no logging backend enabled)
-// ============================================================================
-
 /// Logs a trace-level message (no-op if neither `tracing` nor `defmt` is
 /// enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]

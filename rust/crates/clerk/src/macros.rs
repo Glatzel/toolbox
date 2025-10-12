@@ -1,46 +1,64 @@
+/// Logs a trace-level message (no-op if neither `tracing` nor `defmt` is
+/// enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {};
 }
+
+/// Logs a debug-level message (no-op if neither `tracing` nor `defmt` is
+/// enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {};
 }
+
+/// Logs an info-level message (no-op if neither `tracing` nor `defmt` is
+/// enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {};
 }
+
+/// Logs a warning message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {};
 }
+
+/// Logs an error message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {};
 }
+
+// ============================================================================
+// tracing backend
+// ============================================================================
+
+/// Logs a trace-level message using [`tracing::trace!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
-
         $crate::tracing::trace!($($arg)*);
-
     };
 }
+
+/// Logs a debug-level message using [`tracing::debug!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
-
         $crate::tracing::debug!($($arg)*);
-
     };
 }
+
+/// Logs an info-level message using [`tracing::info!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
 #[macro_export]
 macro_rules! info {
@@ -48,6 +66,8 @@ macro_rules! info {
         $crate::tracing::info!($($arg)*);
     };
 }
+
+/// Logs a warning message using [`tracing::warn!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
 #[macro_export]
 macro_rules! warn {
@@ -55,6 +75,8 @@ macro_rules! warn {
         $crate::tracing::warn!($($arg)*);
     };
 }
+
+/// Logs an error message using [`tracing::error!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
 #[macro_export]
 macro_rules! error {
@@ -63,6 +85,11 @@ macro_rules! error {
     };
 }
 
+// ============================================================================
+// defmt backend
+// ============================================================================
+
+/// Logs a trace-level message using [`defmt::trace!`].
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! trace {
@@ -70,6 +97,8 @@ macro_rules! trace {
         $crate::defmt::trace!($($arg)*);
     };
 }
+
+/// Logs a debug-level message using [`defmt::debug!`].
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! debug {
@@ -77,6 +106,8 @@ macro_rules! debug {
         $crate::defmt::debug!($($arg)*);
     };
 }
+
+/// Logs an info-level message using [`defmt::info!`].
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! info {
@@ -84,6 +115,8 @@ macro_rules! info {
         $crate::defmt::info!($($arg)*);
     };
 }
+
+/// Logs a warning message using [`defmt::warn!`].
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! warn {
@@ -91,6 +124,8 @@ macro_rules! warn {
         $crate::defmt::warn!($($arg)*);
     };
 }
+
+/// fake log
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! error {
@@ -98,44 +133,43 @@ macro_rules! error {
         $crate::defmt::error!($($arg)*);
     };
 }
-
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// fake log
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
-        $crate::tracing::trace!($($arg)*);
         $crate::defmt::trace!($($arg)*);
     };
 }
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// fake log
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
-        $crate::tracing::debug!($($arg)*);
         $crate::defmt::debug!($($arg)*);
     };
 }
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// fake log
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
-        $crate::tracing::info!($($arg)*);
         $crate::defmt::info!($($arg)*);
     };
 }
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// fake log
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
-        $crate::tracing::warn!($($arg)*);
         $crate::defmt::warn!($($arg)*);
     };
 }
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// fake log
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
-        $crate::tracing::error!($($arg)*);
         $crate::defmt::error!($($arg)*);
     };
 }

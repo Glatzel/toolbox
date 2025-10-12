@@ -62,8 +62,13 @@ jobs:
         shell: pwsh
   cargo-doc:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        args:
+          - --workspace --all-features --exclude clerk
+          - --features tracing -p clerk
     steps:
       - uses: actions/checkout@v5
       - name: cargo-doc
-        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
+        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1 ${{matrix.args}}
         shell: pwsh

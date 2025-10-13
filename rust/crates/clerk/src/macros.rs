@@ -173,4 +173,3 @@ macro_rules! error {
         $crate::defmt::error!($($arg)*);
     };
 }
-

@@ -126,7 +126,7 @@ macro_rules! warn {
 }
 
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
@@ -134,7 +134,7 @@ macro_rules! error {
     };
 }
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
@@ -142,7 +142,7 @@ macro_rules! trace {
     };
 }
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
@@ -150,7 +150,7 @@ macro_rules! debug {
     };
 }
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
@@ -158,7 +158,7 @@ macro_rules! info {
     };
 }
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
@@ -166,10 +166,11 @@ macro_rules! warn {
     };
 }
 /// fake log
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[cfg(all(feature = "defmt", feature = "tracing"))]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
         $crate::defmt::error!($($arg)*);
     };
 }
+

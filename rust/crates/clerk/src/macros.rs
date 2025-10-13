@@ -125,8 +125,8 @@ macro_rules! warn {
     };
 }
 
-/// fake log
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// Logs a warning message using [`defmt::error!`].
+#[cfg(all(feature = "defmt", not(feature = "tracing")))]
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
@@ -173,3 +173,4 @@ macro_rules! error {
         $crate::defmt::error!($($arg)*);
     };
 }
+

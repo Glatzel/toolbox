@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.32] - 2025-10-15
+
+### Added
+
+- Add compile error on both defmt and tracing enabled by @Glatzel in [#254](https://github.com/Glatzel/toolbox/pull/254)
+- Add trait to derive by @Glatzel in [#263](https://github.com/Glatzel/toolbox/pull/263)
+
+### Removed
+
+- Remove useless ref param by @Glatzel in [#264](https://github.com/Glatzel/toolbox/pull/264)
+
 ## [0.0.31] - 2025-10-05
 
 ### Added
@@ -243,6 +254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.32]: https://github.com/Glatzel/toolbox/compare/v0.0.31..v0.0.32
 [0.0.31]: https://github.com/Glatzel/toolbox/compare/v0.0.30..v0.0.31
 [0.0.30]: https://github.com/Glatzel/toolbox/compare/v0.0.29..v0.0.30
 [0.0.29]: https://github.com/Glatzel/toolbox/compare/v0.0.28..v0.0.29

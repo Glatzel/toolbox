@@ -16,7 +16,7 @@ use crate::str_parser::rules::IRule;
 ///
 /// This rule is useful for parsing fixed-width fields or binary-like data
 /// represented as UTF-8 strings.
-#[derive(Clone,Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ByteCount<const N: usize>;
 
 impl<const N: usize> Debug for ByteCount<N> {

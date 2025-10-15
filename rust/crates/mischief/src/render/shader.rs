@@ -42,7 +42,7 @@ pub trait IShader {
         INDENT: IIndent,
         THEME: ITheme;
 }
-
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Shader;
 impl IShader for Shader {
     fn apply<T>(

@@ -10,6 +10,7 @@ pub trait IIndent {
 }
 
 /// Default implementation of `IIndent`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Indent;
 
 impl IIndent for Indent {

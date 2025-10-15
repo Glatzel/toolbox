@@ -38,7 +38,7 @@ pub trait IDiagnostic {
 /// - `Advice` — Just some guidance or a suggestion.
 /// - `Warning` — A cautionary message; something may be wrong.
 /// - `Error` — Critical failure. The default severity if none is specified.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Severity {
     /// Just some help or suggestion.
     Advice,

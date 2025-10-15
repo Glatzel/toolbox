@@ -1,4 +1,5 @@
 /// Configuration for terminal capabilities.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TerminalConfig {
     width: usize,
     support_color: bool,

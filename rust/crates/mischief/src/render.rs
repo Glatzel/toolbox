@@ -111,11 +111,11 @@ where
     fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut buffer = String::new();
         let mut chain = self.chain().peekable();
-        let mut node: Layer = Layer::Bottom;
+        let mut layer = Layer::Bottom;
 
         while let Some(diagnostic) = chain.next() {
             if chain.peek().is_none() {
-                node = Layer::Top;
+                layer = Layer::Top;
             }
             buffer.clear();
 
@@ -159,8 +159,8 @@ where
                 &self.terminal_config,
                 &self.theme,
                 &self.indent,
-                &node,
-                &Item::First,
+                layer,
+                Item::First,
             );
             f.write_str(&buffer)?;
             buffer.clear();
@@ -177,14 +177,14 @@ where
                     &self.terminal_config,
                     &self.theme,
                     &self.indent,
-                    &node,
-                    &Item::Other,
+                    layer,
+                    Item::Other,
                 );
                 f.write_str(&buffer)?;
             }
 
             writeln!(f)?;
-            node = Layer::Middle;
+            layer = Layer::Middle;
         }
 
         Ok(())

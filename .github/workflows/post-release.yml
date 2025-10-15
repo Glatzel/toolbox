@@ -13,32 +13,9 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-
+  id-token: write
 jobs:
   update-changelog:
     uses: Glatzel/template/.github/workflows/changelog.yml@main
-  upload-conda:
-    permissions:
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.1
-        with:
-          run-install: false
-
-      - run: pixi global install rattler-build
-
-      - name: download
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release download -R Glatzel/toolbox -p "*.conda"
-
-      - name: upload
-        run: |
-            foreach ($pkg_file in Get-ChildItem "./*.conda") {
-              Write-Output "::group:: upload $pkg_file"
-              rattler-build upload prefix -c glatzel $pkg_file
-              Write-Output "::endgroup::"
-            }
-        shell: pwsh
+  upload-prefix:
+    uses: Glatzel/template/.github/workflows/upload-prefix.yml@main

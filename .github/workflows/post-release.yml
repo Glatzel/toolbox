@@ -23,5 +23,3 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: Glatzel/template/.github/workflows/upload-prefix.yml@main
-        with:
-          run-install: false

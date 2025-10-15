@@ -15,6 +15,7 @@ use crate::RaxError;
 /// `StrParserContext` stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct StrParserContext {
     /// The full input string.
     full: String,

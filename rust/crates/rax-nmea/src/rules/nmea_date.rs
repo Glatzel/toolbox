@@ -4,7 +4,7 @@ use chrono::NaiveDate;
 use rax::str_parser::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDate;
 impl Display for NmeaDate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }

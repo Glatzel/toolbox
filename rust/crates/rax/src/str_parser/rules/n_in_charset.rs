@@ -21,6 +21,7 @@ use crate::str_parser::filters::{CharSetFilter, IFilter};
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Number of characters to match at the start of the input.
 /// - `M`: Size of the character set (length of the `CharSetFilter`).
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
 
 impl<'a, const N: usize, const M: usize> Debug for NInCharSet<'a, N, M> {

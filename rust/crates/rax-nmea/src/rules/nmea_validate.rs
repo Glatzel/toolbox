@@ -7,7 +7,7 @@ use alloc::string::ToString;
 use crate::RaxNmeaError;
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaValidate;
 impl Display for NmeaValidate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }

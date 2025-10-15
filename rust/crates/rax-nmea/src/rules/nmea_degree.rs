@@ -8,7 +8,7 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the coordinate to decimal degrees, applying the correct sign.
 /// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
 /// None.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDegree;
 impl Display for NmeaDegree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }

@@ -59,7 +59,7 @@ impl INmeaData for Txt {
         clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
 
         for l in ctx.full_str().lines() {
-            NMEA_VALIDATE.apply(l)?;
+            NmeaValidate.apply(l)?;
         }
 
         let mut infos = Vec::new();

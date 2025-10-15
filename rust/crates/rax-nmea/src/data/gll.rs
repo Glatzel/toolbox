@@ -36,18 +36,18 @@ impl INmeaData for Gll {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
 
         clerk::debug!("Parsing lat...");
-        let lat = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_COORD);
+        let lat = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord);
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = ctx.take(&NMEA_COORD);
+        let lon = ctx.take(&NmeaCoord);
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing utc_time...");
-        let time = ctx.take(&NMEA_TIME);
+        let time = ctx.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);
 
         let status = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();

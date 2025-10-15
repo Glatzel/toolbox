@@ -10,6 +10,7 @@ use crate::data::{Identifier, Talker};
 
 /// Dispatcher reads and groups sentences, handling both single and multi-line
 /// messages.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dispatcher {
     buffer: HashMap<(Talker, Identifier), String>, // (total count, accumulated sentence)
 }

@@ -12,6 +12,7 @@ use crate::str_parser::rules::IRule;
 ///
 /// This rule respects UTF-8 character boundaries and only examines the first
 /// character of the input.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Char<const C: char>;
 
 impl<const C: char> Debug for Char<C> {

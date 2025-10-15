@@ -21,7 +21,7 @@ readonly_struct!(
 );
 impl INmeaData for Gpq {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)

@@ -34,7 +34,7 @@ readonly_struct!(
 );
 impl INmeaData for Vlw {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
         let twd = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)

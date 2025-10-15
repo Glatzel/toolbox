@@ -39,9 +39,9 @@ readonly_struct!(
 
 impl INmeaData for Zda {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
 
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
+        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let day = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let month = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let year = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();

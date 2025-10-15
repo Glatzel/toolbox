@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add compile error on both defmt and tracing enabled by @Glatzel in [#254](https://github.com/Glatzel/toolbox/pull/254)
 - Add trait to derive by @Glatzel in [#263](https://github.com/Glatzel/toolbox/pull/263)
 
+### Fixed
+
+- Changelog ci by @Glatzel in [#269](https://github.com/Glatzel/toolbox/pull/269)
+
 ### Removed
 
 - Remove useless ref param by @Glatzel in [#264](https://github.com/Glatzel/toolbox/pull/264)

@@ -18,4 +18,10 @@ jobs:
   update-changelog:
     uses: Glatzel/template/.github/workflows/changelog.yml@main
   upload-prefix:
-    uses: Glatzel/template/.github/workflows/upload-prefix.yml@main
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Glatzel/template/.github/workflows/upload-prefix.yml@main
+        with:
+          run-install: false

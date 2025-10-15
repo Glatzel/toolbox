@@ -58,14 +58,14 @@ readonly_struct!(
 );
 impl INmeaData for Dtm {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
         let datum = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt();
         let sub_datum = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let lat = ctx.take(&NMEA_DEGREE);
-        let lon = ctx.take(&NMEA_DEGREE);
+        let lat = ctx.take(&NmeaDegree);
+        let lon = ctx.take(&NmeaDegree);
         let alt = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
 
         Ok(Dtm {

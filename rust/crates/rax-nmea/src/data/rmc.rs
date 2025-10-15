@@ -53,16 +53,16 @@ readonly_struct!(
 
 impl INmeaData for Rmc {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
 
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NMEA_TIME);
+        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let status = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let lat = ctx.take(&NMEA_COORD);
-        let lon = ctx.take(&NMEA_COORD);
+        let lat = ctx.take(&NmeaCoord);
+        let lon = ctx.take(&NmeaCoord);
         let spd = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let cog = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let date = ctx.take(&NMEA_DATE);
-        let mv = ctx.take(&NMEA_DEGREE);
+        let date = ctx.take(&NmeaDate);
+        let mv = ctx.take(&NmeaDegree);
         let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
         Ok(Rmc {
             talker,

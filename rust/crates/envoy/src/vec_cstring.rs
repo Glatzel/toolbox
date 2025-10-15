@@ -29,6 +29,7 @@ pub trait AsVecPtr {
 ///
 /// This type is especially useful for preparing argument lists (`argv`) or
 /// environment variable lists (`envp`) for C APIs.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VecCString {
     /// The owned collection of [`CString`]s.
     pub content: Vec<CString>,

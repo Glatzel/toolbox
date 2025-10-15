@@ -36,6 +36,7 @@ pub trait AsyncIRaxReader {
 ///
 /// Wraps a type implementing `AsyncBufRead` and provides utilities for
 /// reading lines individually or in batches, with optional debug logging.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AsyncRaxReader<R: AsyncBufRead + Unpin> {
     /// The inner async buffered reader.
     inner: R,

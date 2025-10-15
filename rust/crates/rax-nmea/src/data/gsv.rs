@@ -60,9 +60,9 @@ readonly_struct!(
 impl INmeaData for Gsv {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::new: sentence='{}'", ctx.full_str());
-        // Validate each line with NMEA_VALIDATE
+        // Validate each line with NmeaValidate
         for l in ctx.full_str().lines() {
-            NMEA_VALIDATE.apply(l)?;
+            NmeaValidate.apply(l)?;
         }
 
         // Count the number of lines and satellites

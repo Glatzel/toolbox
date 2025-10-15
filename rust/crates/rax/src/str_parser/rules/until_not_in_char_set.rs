@@ -25,6 +25,7 @@ use crate::str_parser::rules::UntilMode;
 /// - Returns `(None, input)` if all characters in the input are in the set.
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information at each split or if all characters are in the set.
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct UntilNotInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
     pub mode: UntilMode,

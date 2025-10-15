@@ -22,7 +22,7 @@ use core::fmt::{Debug, Display};
 pub use until_char::*;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum UntilMode {
     /// Drop the delimiter completely → result like ("a", "b")
     Discard,

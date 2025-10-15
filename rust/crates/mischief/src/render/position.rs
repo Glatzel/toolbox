@@ -1,4 +1,5 @@
 /// Represents the position of a node in a hierarchical layout.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Layer {
     /// The bottom layer (start of the tree branch).
     Bottom,
@@ -9,6 +10,7 @@ pub enum Layer {
 }
 
 /// Represents the position of an item within a layer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Item {
     /// The first item in the layer.
     First,

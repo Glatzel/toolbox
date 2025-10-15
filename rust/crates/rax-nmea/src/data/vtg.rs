@@ -37,7 +37,7 @@ readonly_struct!(
 );
 impl INmeaData for Vtg {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
 
         let cogt = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

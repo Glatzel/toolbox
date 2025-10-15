@@ -34,6 +34,7 @@ pub trait IRaxReader {
 ///
 /// Wraps a `BufRead` and provides utilities for reading lines individually
 /// or in batches, with optional debug logging.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RaxReader<R: BufRead> {
     /// The inner buffered reader.
     inner: R,

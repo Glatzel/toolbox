@@ -27,6 +27,7 @@ pub trait ITheme {
 }
 
 /// Default theme implementation using `owo_colors`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Theme;
 
 impl ITheme for Theme {

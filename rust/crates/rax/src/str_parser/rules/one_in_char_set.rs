@@ -19,6 +19,7 @@ use crate::str_parser::filters::{CharSetFilter, IFilter};
 ///
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
 
 impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {

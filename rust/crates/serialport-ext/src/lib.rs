@@ -6,7 +6,7 @@
 use serialport::{SerialPortInfo, SerialPortType};
 
 /// Enumeration of supported device types.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DeviceType {
     /// USB device
     Usb,
@@ -19,7 +19,7 @@ pub enum DeviceType {
 }
 
 /// Struct containing detailed information about a serial device.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DeviceInfo {
     /// Device name (e.g., "COM3" or "/dev/ttyUSB0")
     name: String,
@@ -161,7 +161,8 @@ where
 }
 
 /// Utility struct for common device filters.
-pub struct DeviceFilter();
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct DeviceFilter;
 
 impl DeviceFilter {
     /// Returns `true` for all devices.

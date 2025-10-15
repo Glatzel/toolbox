@@ -29,6 +29,7 @@ use crate::str_parser::rules::UntilMode;
 ///
 /// This rule respects UTF-8 character boundaries and logs trace/debug
 /// information for each operation.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilChar<const C: char> {
     pub mode: super::UntilMode,
 }

@@ -20,6 +20,7 @@ use crate::str_parser::rules::UntilMode;
 ///   to `mode`.
 /// - Returns `(None, input)` if the delimiter is not found.
 /// - Logs debug information for each split or when no match is found.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilStr {
     pub pattern: &'static str,
     pub mode: UntilMode,

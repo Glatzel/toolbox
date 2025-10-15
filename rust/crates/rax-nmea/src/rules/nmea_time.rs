@@ -9,7 +9,7 @@ use super::UNTIL_COMMA_DISCARD;
 /// Converts the time to a `DateTime<Utc>` using today's date.
 /// Returns a tuple of (DateTime<Utc>, rest_of_input) if successful, otherwise
 /// None.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
 impl Display for NmeaTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }

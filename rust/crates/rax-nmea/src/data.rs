@@ -156,7 +156,7 @@ impl Display for Identifier {
         write!(f, "{s}")
     }
 }
-#[derive(Debug, Clone, PartialEq, Copy, Hash, Eq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Talker {
     ///BeiDou (China)
@@ -201,7 +201,7 @@ impl Display for Talker {
         write!(f, "{s}")
     }
 }
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PosMode {
     Autonomous,
@@ -270,7 +270,7 @@ impl TryFrom<&char> for PosMode {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SystemId {
     GPS = 1,
@@ -292,7 +292,7 @@ impl FromStr for SystemId {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Status {
     Valid,

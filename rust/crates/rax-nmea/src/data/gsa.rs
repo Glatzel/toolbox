@@ -83,7 +83,7 @@ readonly_struct!(
 );
 impl INmeaData for Gsa {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NMEA_VALIDATE)?;
+        ctx.global(&NmeaValidate)?;
 
         let op_mode = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?

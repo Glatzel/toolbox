@@ -6,7 +6,7 @@ extern crate alloc;
 pub trait IIndent {
     /// Returns a tuple of `(prefix, continuation)` strings for the given node
     /// and element.
-    fn get(&self, node: &Layer, element: &Item) -> (&'static str, &'static str);
+    fn get(&self, node: Layer, element: Item) -> (&'static str, &'static str);
 }
 
 /// Default implementation of `IIndent`.
@@ -14,7 +14,7 @@ pub trait IIndent {
 pub struct Indent;
 
 impl IIndent for Indent {
-    fn get(&self, node: &Layer, element: &Item) -> (&'static str, &'static str) {
+    fn get(&self, node: Layer, element: Item) -> (&'static str, &'static str) {
         match (node, element) {
             (Layer::Bottom, Item::First) => ("x ", "│ "),
             (Layer::Bottom, Item::Other) => ("│ ", "│ "),

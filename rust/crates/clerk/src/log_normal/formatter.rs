@@ -36,12 +36,12 @@ pub struct ClerkFormatter {
 
 impl ClerkFormatter {
     /// Format a log [`Level`] into a string, applying color if enabled.
-    fn color_level(&self, level: &tracing::Level) -> String {
+    fn color_level(&self, level: tracing::Level) -> String {
         if !self.color {
             return format!("{}", level);
         }
 
-        match *level {
+        match level {
             Level::TRACE => "TRACE".purple().to_string(),
             Level::DEBUG => "DEBUG".blue().to_string(),
             Level::INFO => "INFO".green().to_string(),
@@ -78,7 +78,7 @@ where
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
         )?;
 
-        write!(writer, "{}]", self.color_level(event.metadata().level()))?;
+        write!(writer, "{}]", self.color_level(*event.metadata().level()))?;
 
         #[cfg(debug_assertions)]
         write!(

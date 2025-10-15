@@ -35,8 +35,8 @@ pub trait IShader {
         terminal_config: &TerminalConfig,
         theme: &THEME,
         indent: &INDENT,
-        node: &position::Layer,
-        element: &position::Item,
+        node: position::Layer,
+        element: position::Item,
     ) -> String
     where
         INDENT: IIndent,
@@ -95,8 +95,8 @@ impl IShader for Shader {
         terminal_config: &TerminalConfig,
         theme: &THEME,
         indent: &INDENT,
-        layer: &position::Layer,
-        element: &position::Item,
+        layer: position::Layer,
+        element: position::Item,
     ) -> String
     where
         INDENT: IIndent,

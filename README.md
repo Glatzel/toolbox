@@ -1,5 +1,6 @@
 # toolbox
 
+[![CI](https://github.com/Glatzel/toolbox/actions/workflows/ci.yml/badge.svg)](https://github.com/Glatzel/toolbox/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Glatzel/toolbox/graph/badge.svg?token=biKBmTxt99)](https://codecov.io/gh/Glatzel/toolbox)
 
 **toolbox** is a curated collection of utility libraries for Python and Rust, designed to support common development tasks across multiple projects.

@@ -16,7 +16,7 @@ jobs:
   cargo-bench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install cargo-codspeed --locked
       - run: ./rust/scripts/setup.ps1

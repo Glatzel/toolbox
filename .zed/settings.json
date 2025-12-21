@@ -6,4 +6,13 @@
   "terminal": {
     "env": { "PYTHONPATH": "./python/src" },
   },
+  "languages": { "Markdown": { "soft_wrap": "none" } },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": { "features": ["tracing", "fancy"] },
+        "cargo": { "features": ["tracing", "fancy"] },
+      },
+    },
+  },
 }

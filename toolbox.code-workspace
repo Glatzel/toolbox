@@ -1,0 +1,32 @@
+{
+    "folders": [
+        {
+            "name": "toolbox",
+            "path": "."
+        },
+        {
+            "name": "python",
+            "path": "python"
+        },
+        {
+            "name": "rust",
+            "path": "rust"
+        }
+    ],
+    "settings": {
+        "rust-analyzer.check.features": [
+            "tracing",
+            "fancy"
+        ],
+        "rust-analyzer.cargo.features": [
+            "tracing",
+            "fancy"
+        ],
+        "python.analysis.extraPaths": [
+            "./python/src"
+        ],
+        "[markdown]": {
+            "editor.wordWrap": "off"
+        }
+    }
+}

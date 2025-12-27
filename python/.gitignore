@@ -3,5 +3,5 @@ __pycache__
 temp
 .coverage
 build
-rattler/output
+output
 *.egg-info

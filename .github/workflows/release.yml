@@ -4,10 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g., v1.2.3)'
+        description: "Tag to release (e.g., v1.2.3)"
         type: string
-        required:  true
-
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}
@@ -24,8 +23,8 @@ jobs:
           run-install: false
 
       - name: build
-        run: ./python/rattler/ci-toolbox.ps1
-        shell: pwsh
+        run: pixi run rattler-build build
+        working-directory: ./python
 
       - name: upload
         if: ${{runner.os=='Linux'}}

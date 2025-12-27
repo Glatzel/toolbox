@@ -1,0 +1,22 @@
+package:
+  version: 0.0.33
+  name: toolbox
+build:
+  noarch: python
+  script: pwsh -c "pip install ${{'$env:RECIPE_DIR%' if win else '$RECIPE_DIR'}} -v"
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >= 3.13
+    - lazy-loader
+    - rich
+
+tests:
+  - python:
+      imports:
+        - toolbox

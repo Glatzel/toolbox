@@ -5,9 +5,6 @@ dynamic = ["version"]
 name = "toolbox"
 requires-python = ">=3.13"
 
-[tool.pyright]
-reportShadowedImports = false
-
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-arm64", "linux-aarch64"]

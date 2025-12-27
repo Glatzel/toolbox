@@ -32,7 +32,7 @@ jobs:
         with:
           name: toolbox-python
           path: |
-            ./python/rattler/output/*/*.conda
+            ./python/output/*/*.conda
           if-no-files-found: error
 
   release:

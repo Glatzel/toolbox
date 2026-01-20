@@ -2,7 +2,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::ffi::c_char;
 
-use crate::PtrToStr;
+use crate::PtrToString;
 
 /// Converts a null-terminated list of C string pointers into a `Vec<String>`.
 ///

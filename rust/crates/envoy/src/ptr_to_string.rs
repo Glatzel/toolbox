@@ -29,7 +29,7 @@ use core::str::Utf8Error;
 ///
 /// This trait is intended for FFI bindings where C APIs return raw `char *`
 /// pointers that represent UTF-8 encoded strings.
-pub trait PtrToStr {
+pub trait PtrToString {
     /// Converts the underlying C string into a Rust `String`.
     ///
     /// # Errors
@@ -43,7 +43,7 @@ pub trait PtrToStr {
 /// # Safety
 ///
 /// The pointer must reference a valid, null-terminated C string.
-impl PtrToStr for *const c_char {
+impl PtrToString for *const c_char {
     fn to_string(&self) -> Result<String, Utf8Error> {
         unsafe { Ok(CStr::from_ptr(*self).to_str()?.to_string()) }
     }
@@ -55,7 +55,7 @@ impl PtrToStr for *const c_char {
 ///
 /// The pointer must reference a valid, null-terminated C string.
 /// Mutability is ignored; the data is read-only.
-impl PtrToStr for *mut c_char {
+impl PtrToString for *mut c_char {
     fn to_string(&self) -> Result<String, Utf8Error> {
         unsafe { Ok(CStr::from_ptr(*self).to_str()?.to_string()) }
     }
@@ -71,7 +71,7 @@ impl PtrToStr for *mut c_char {
 ///
 /// - `self.as_ptr()` must point to a valid C string
 /// - The string must be null-terminated
-impl PtrToStr for [c_char] {
+impl PtrToString for [c_char] {
     fn to_string(&self) -> Result<String, Utf8Error> {
         unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_str()?.to_string()) }
     }

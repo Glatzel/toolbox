@@ -188,7 +188,7 @@ checksum = "c3e64b0cc0439b12df2fa678eae89a1c56a529fd067a9115f7827f1fffd22b32"
 
 [[package]]
 name = "clerk"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "chrono",
  "defmt",
@@ -364,7 +364,7 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "mischief",
 ]
@@ -711,7 +711,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "mischief-macros",
  "owo-colors",
@@ -724,7 +724,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "quote",
  "syn",
@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "rax"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "async-trait",
  "clerk",
@@ -903,7 +903,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "chrono",
  "clerk",
@@ -1065,7 +1065,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "clerk",
  "mischief",

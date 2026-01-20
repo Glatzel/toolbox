@@ -47,7 +47,6 @@ impl VecCString {
         }
     }
 }
-
 impl AsVecPtr for VecCString {
     /// Converts the internal vector into a list of raw pointers, terminated by
     /// a `NULL` pointer.
@@ -66,49 +65,70 @@ impl AsVecPtr for VecCString {
         vec_ptr
     }
 }
+/// Conversion trait for producing a vector of owned C strings.
+///
+/// This trait is intended for **FFI use cases** where a C API expects
+/// an array of `const char*` (typically `char**`) and requires all
+/// strings to be:
+///
+/// - NUL-terminated
+/// - Free of interior NUL bytes
+/// - Valid for the duration of the FFI call
+///
+/// ## Allocation Behavior
+///
+/// This conversion **always allocates**:
+///
+/// - Each element is converted into a [`CString`]
+/// - The resulting `Vec<CString>` owns all string buffers
+///
+/// This is required to satisfy C string invariants and lifetime rules.
+/// Zero-copy conversion from Rust strings to C strings is not possible.
+///
+/// ## Typical Use Case
+///
+/// ```c
+/// void c_api(const char** args, size_t len);
+/// ```
+///
+/// ```rust
+/// let args = ["foo", "bar", "baz"];
+/// let c_args = args.to_vec_cstring();
+///
+/// unsafe {
+///     c_api(c_args.as_ptr(), c_args.len());
+/// }
+/// ```
+///
+/// ## Safety and Lifetime
+///
+/// The returned [`VecCString`] owns all underlying `CString` values,
+/// ensuring that the pointers passed to C remain valid as long as
+/// the `VecCString` is kept alive.
+///
+/// ## Errors
+///
+/// If any element contains an interior NUL byte, conversion will fail
+/// at the [`ToCString`] level.
+///
+/// ## See Also
+///
+/// - [`CString`] for individual C string ownership
+/// - [`ToCString`] for single-value conversion
+pub trait ToVecCString {
+    /// Converts a slice into a vector of owned C strings.
+    fn to_vec_cstring(&self) -> VecCString;
+}
 
-impl<T: ToCString> From<&[T]> for VecCString {
-    /// Converts a slice of Rust string-like types into a `VecCString`.
-    ///
-    /// Each element is converted to a [`CString`] via [`ToCString`].
-    fn from(value: &[T]) -> Self {
+impl<T: ToCString> ToVecCString for [T] {
+    fn to_vec_cstring(&self) -> VecCString {
         VecCString {
-            content: value
+            content: self
                 .iter()
                 .map(|s| s.to_cstring())
                 .collect::<Vec<CString>>(),
         }
     }
-}
-
-impl<T: ToCString> From<Vec<T>> for VecCString {
-    /// Converts a vector of Rust string-like types into a `VecCString`.
-    ///
-    /// Each element is converted to a [`CString`] via [`ToCString`].
-    fn from(value: Vec<T>) -> Self {
-        VecCString {
-            content: value
-                .iter()
-                .map(|s| s.to_cstring())
-                .collect::<Vec<CString>>(),
-        }
-    }
-}
-
-impl<T: ToCString> From<Option<Vec<T>>> for VecCString {
-    /// Converts an `Option<Vec<T>>` into a `VecCString`.
-    ///
-    /// - If `Some(v)`, each element is converted into a [`CString`].
-    /// - If `None`, returns an empty `VecCString`.
-    fn from(value: Option<Vec<T>>) -> Self { value.as_deref().map_or_else(Self::new, Self::from) }
-}
-
-impl<T: ToCString> From<Option<&[T]>> for VecCString {
-    /// Converts an `Option<&[T]>` into a `VecCString`.
-    ///
-    /// - If `Some(slice)`, each element is converted into a [`CString`].
-    /// - If `None`, returns an empty `VecCString`.
-    fn from(value: Option<&[T]>) -> Self { value.map_or_else(Self::new, Self::from) }
 }
 
 #[cfg(test)]
@@ -121,7 +141,7 @@ mod tests {
     #[test]
     fn test_vec_cstring_from_slice() {
         let arr = ["foo", "bar"];
-        let vec_cstring = VecCString::from(&arr[..]);
+        let vec_cstring = &arr.to_vec_cstring();
         assert_eq!(vec_cstring.content.len(), 2);
         assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
         assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
@@ -130,49 +150,16 @@ mod tests {
     #[test]
     fn test_vec_cstring_from_vec() {
         let arr = vec![String::from("foo"), String::from("bar")];
-        let vec_cstring = VecCString::from(arr.clone());
+        let vec_cstring = arr.to_vec_cstring();
         assert_eq!(vec_cstring.content.len(), 2);
         assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
         assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
-    }
-
-    #[test]
-    fn test_vec_cstring_from_option_vec_some() {
-        let arr = Some(vec!["foo", "bar"]);
-        let vec_cstring = VecCString::from(arr);
-        assert_eq!(vec_cstring.content.len(), 2);
-        assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
-        assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
-    }
-
-    #[test]
-    fn test_vec_cstring_from_option_vec_none() {
-        let arr: Option<Vec<&str>> = None;
-        let vec_cstring = VecCString::from(arr);
-        assert_eq!(vec_cstring.content.len(), 0);
-    }
-
-    #[test]
-    fn test_vec_cstring_from_option_slice_some() {
-        let arr = ["foo", "bar"];
-        let arr_opt = Some(&arr[..]);
-        let vec_cstring = VecCString::from(arr_opt);
-        assert_eq!(vec_cstring.content.len(), 2);
-        assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
-        assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
-    }
-
-    #[test]
-    fn test_vec_cstring_from_option_slice_none() {
-        let arr: Option<&[&str]> = None;
-        let vec_cstring = VecCString::from(arr);
-        assert_eq!(vec_cstring.content.len(), 0);
     }
 
     #[test]
     fn test_as_vec_ptr_null_terminated() {
         let arr = ["foo", "bar"];
-        let vec_cstring = VecCString::from(&arr[..]);
+        let vec_cstring = arr[..].to_vec_cstring();
         let ptrs = vec_cstring.as_vec_ptr();
         assert_eq!(ptrs.len(), 3); // 2 + null
         assert!(!ptrs[0].is_null());

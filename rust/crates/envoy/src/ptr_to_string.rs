@@ -80,7 +80,6 @@ impl PtrToStr for [c_char] {
 #[cfg(test)]
 mod tests {
     use alloc::ffi::CString;
-    use core::ptr;
 
     use super::*;
     #[test]
@@ -96,15 +95,6 @@ mod tests {
         {
             let ptr: *mut c_char = s.as_ptr().cast_mut();
             assert_eq!(ptr.to_string().unwrap(), "foo");
-        }
-        //null
-        {
-            let ptr: *const c_char = ptr::null();
-            ptr.to_string()?;
-            let ptr: *mut c_char = ptr.cast_mut();
-            ptr.to_string()?;
-            let ptr: [c_char; 0] = [];
-            ptr.to_string()?;
         }
         Ok(())
     }

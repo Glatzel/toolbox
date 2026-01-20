@@ -94,13 +94,6 @@ pub trait ToVecCString {
 /// This allows ergonomic conversion from common Rust collections such as
 /// `&[String]`, `&[&str]`, or mixed types, as long as each element implements
 /// `ToCString`.
-///
-/// # Example
-///
-/// ```rust
-/// let args = ["foo", "bar", "baz"];
-/// let c_args = args.to_vec_cstring()?;
-/// ```
 impl<T: ToCString> ToVecCString for [T] {
     fn to_vec_cstring(&self) -> Result<VecCString, NulError> {
         let content = self

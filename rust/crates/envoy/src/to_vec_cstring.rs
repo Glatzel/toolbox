@@ -1,4 +1,4 @@
-use alloc::ffi::CString;
+use alloc::ffi::{CString, NulError};
 use alloc::vec::Vec;
 use core::ffi::c_char;
 use core::ptr;
@@ -65,72 +65,52 @@ impl AsVecPtr for VecCString {
         vec_ptr
     }
 }
-/// Conversion trait for producing a vector of owned C strings.
+
+/// Converts a collection of Rust string-like values into a vector of
+/// [`CString`] values.
 ///
-/// This trait is intended for **FFI use cases** where a C API expects
-/// an array of `const char*` (typically `char**`) and requires all
-/// strings to be:
+/// This trait is primarily intended for FFI use cases where a C API expects
+/// an array of `char *` / `const char *`, typically constructed from multiple
+/// Rust strings.
 ///
-/// - NUL-terminated
-/// - Free of interior NUL bytes
-/// - Valid for the duration of the FFI call
+/// All elements are converted eagerly. If any element fails conversion,
+/// the entire operation fails.
+pub trait ToVecCString {
+    /// Converts the value into a [`VecCString`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`NulError`] if **any** element contains an interior NUL
+    /// (`'\0'`) byte.
+    ///
+    /// # Notes
+    ///
+    /// Conversion stops at the first error; no partial results are returned.
+    fn to_vec_cstring(&self) -> Result<VecCString, NulError>;
+}
+
+/// Implementation for slices of values implementing [`ToCString`].
 ///
-/// ## Allocation Behavior
+/// This allows ergonomic conversion from common Rust collections such as
+/// `&[String]`, `&[&str]`, or mixed types, as long as each element implements
+/// `ToCString`.
 ///
-/// This conversion **always allocates**:
-///
-/// - Each element is converted into a [`CString`]
-/// - The resulting `Vec<CString>` owns all string buffers
-///
-/// This is required to satisfy C string invariants and lifetime rules.
-/// Zero-copy conversion from Rust strings to C strings is not possible.
-///
-/// ## Typical Use Case
-///
-/// ```c
-/// void c_api(const char** args, size_t len);
-/// ```
+/// # Example
 ///
 /// ```rust
 /// let args = ["foo", "bar", "baz"];
-/// let c_args = args.to_vec_cstring();
-///
-/// unsafe {
-///     c_api(c_args.as_ptr(), c_args.len());
-/// }
+/// let c_args = args.to_vec_cstring()?;
 /// ```
-///
-/// ## Safety and Lifetime
-///
-/// The returned [`VecCString`] owns all underlying `CString` values,
-/// ensuring that the pointers passed to C remain valid as long as
-/// the `VecCString` is kept alive.
-///
-/// ## Errors
-///
-/// If any element contains an interior NUL byte, conversion will fail
-/// at the [`ToCString`] level.
-///
-/// ## See Also
-///
-/// - [`CString`] for individual C string ownership
-/// - [`ToCString`] for single-value conversion
-pub trait ToVecCString {
-    /// Converts a slice into a vector of owned C strings.
-    fn to_vec_cstring(&self) -> VecCString;
-}
-
 impl<T: ToCString> ToVecCString for [T] {
-    fn to_vec_cstring(&self) -> VecCString {
-        VecCString {
-            content: self
-                .iter()
-                .map(|s| s.to_cstring())
-                .collect::<Vec<CString>>(),
-        }
+    fn to_vec_cstring(&self) -> Result<VecCString, NulError> {
+        let content = self
+            .iter()
+            .map(|s| s.to_cstring())
+            .collect::<Result<Vec<CString>, NulError>>()?;
+
+        Ok(VecCString { content })
     }
 }
-
 #[cfg(test)]
 mod tests {
     use alloc::string::String;
@@ -139,31 +119,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_vec_cstring_from_slice() {
+    fn test_vec_cstring_from_slice() -> mischief::Result<()> {
         let arr = ["foo", "bar"];
-        let vec_cstring = &arr.to_vec_cstring();
+        let vec_cstring = &arr.to_vec_cstring()?;
         assert_eq!(vec_cstring.content.len(), 2);
         assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
         assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
+        Ok(())
     }
 
     #[test]
-    fn test_vec_cstring_from_vec() {
+    fn test_vec_cstring_from_vec() -> mischief::Result<()> {
         let arr = vec![String::from("foo"), String::from("bar")];
-        let vec_cstring = arr.to_vec_cstring();
+        let vec_cstring = arr.to_vec_cstring()?;
         assert_eq!(vec_cstring.content.len(), 2);
         assert_eq!(vec_cstring.content[0].to_str().unwrap(), "foo");
         assert_eq!(vec_cstring.content[1].to_str().unwrap(), "bar");
+        Ok(())
     }
 
     #[test]
-    fn test_as_vec_ptr_null_terminated() {
+    fn test_as_vec_ptr_null_terminated() -> mischief::Result<()> {
         let arr = ["foo", "bar"];
-        let vec_cstring = arr[..].to_vec_cstring();
+        let vec_cstring = arr[..].to_vec_cstring()?;
         let ptrs = vec_cstring.as_vec_ptr();
         assert_eq!(ptrs.len(), 3); // 2 + null
         assert!(!ptrs[0].is_null());
         assert!(!ptrs[1].is_null());
         assert!(ptrs[2].is_null());
+        Ok(())
     }
 }

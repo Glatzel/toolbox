@@ -2,3 +2,6 @@
 edition.workspace = true
 name = "envoy"
 version.workspace = true
+
+[dev-dependencies]
+mischief.workspace = true

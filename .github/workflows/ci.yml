@@ -33,7 +33,7 @@ jobs:
     outputs:
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
         if: ${{github.event_name == 'pull_request'}}

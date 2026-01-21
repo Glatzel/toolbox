@@ -1,12 +1,14 @@
 use core::ffi::{CStr, c_char};
 
+use crate::EnvoyError;
+
 /// Extension trait for converting C-style string pointers or buffers
 /// into Rust `&str`.
 ///
 /// # Semantics
 ///
-/// - Returns `None` if the pointer is null (for raw pointers)
-/// - Returns `None` if the C string is not valid UTF-8
+/// - Returns `Err(PtrStrError::Null)` if the pointer is null (for raw pointers)
+/// - Returns `Err(PtrStrError::InvalidUtf8)` if the C string is not valid UTF-8
 /// - The returned `&str` borrows the original memory; no allocation occurs
 ///
 /// # Safety
@@ -18,32 +20,33 @@ use core::ffi::{CStr, c_char};
 ///
 /// This trait does **not** take ownership of the underlying C string.
 pub trait PtrAsStr {
-    /// Convert the underlying C string representation to `&str`.
-    ///
-    /// Returns `None` if the pointer is null or if UTF-8 validation fails.
-    fn as_str(&self) -> Option<&str>;
+    fn as_str(&self) -> Result<&str, EnvoyError>;
 }
 
 impl PtrAsStr for *const c_char {
-    fn as_str(&self) -> Option<&str> {
-        unsafe {
-            self.as_ref()
-                .and_then(|_| CStr::from_ptr(*self).to_str().ok())
+    fn as_str(&self) -> Result<&str, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
         }
+
+        unsafe { Ok(CStr::from_ptr(*self).to_str()?) }
     }
 }
 
 impl PtrAsStr for *mut c_char {
-    fn as_str(&self) -> Option<&str> {
-        unsafe {
-            self.as_ref()
-                .and_then(|_| CStr::from_ptr(*self).to_str().ok())
+    fn as_str(&self) -> Result<&str, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
         }
+
+        unsafe { Ok(CStr::from_ptr(*self).to_str()?) }
     }
 }
 
 impl PtrAsStr for [c_char] {
-    fn as_str(&self) -> Option<&str> { unsafe { CStr::from_ptr(self.as_ptr()).to_str().ok() } }
+    fn as_str(&self) -> Result<&str, EnvoyError> {
+        unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_str()?) }
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -57,14 +60,14 @@ mod tests {
         let s = CString::new("hello").unwrap();
         let ptr = s.as_ptr();
 
-        let out = ptr.as_str();
-        assert_eq!(out, Some("hello"));
+        let out = ptr.as_str().unwrap();
+        assert_eq!(out, "hello");
     }
 
     #[test]
     fn const_ptr_null() {
         let ptr: *const c_char = ptr::null();
-        assert_eq!(ptr.as_str(), None);
+        assert!(ptr.as_str().is_err());
     }
 
     #[test]
@@ -72,19 +75,16 @@ mod tests {
         let s = CString::new("world").unwrap();
         let ptr = s.as_ptr().cast_mut();
 
-        let out = ptr.as_str();
-        assert_eq!(out, Some("world"));
+        let out = ptr.as_str().unwrap();
+        assert_eq!(out, "world");
     }
 
     #[test]
-    fn invalid_utf8_returns_none() {
-        // 0xFF is invalid UTF-8
+    fn invalid_utf8_returns_error() {
         let bytes = [0xFFu8 as c_char, 0];
-        let ptr = bytes.as_ptr();
+        let ptr = bytes.as_ptr() as *const c_char;
 
-        let binding = ptr as *const c_char;
-        let out = binding.as_str();
-        assert_eq!(out, None);
+        assert!(ptr.as_str().is_err());
     }
 
     #[test]
@@ -93,7 +93,7 @@ mod tests {
         let slice: &[c_char] =
             unsafe { core::slice::from_raw_parts(bytes.as_ptr() as *const c_char, bytes.len()) };
 
-        let out = slice.as_str();
-        assert_eq!(out, Some("slice-test"));
+        let out = slice.as_str().unwrap();
+        assert_eq!(out, "slice-test");
     }
 }

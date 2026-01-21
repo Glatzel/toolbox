@@ -26,20 +26,18 @@ pub trait PtrAsStr {
 
 impl PtrAsStr for *const c_char {
     fn as_str(&self) -> Option<&str> {
-        if self.is_null() {
-            None
-        } else {
-            unsafe { CStr::from_ptr(*self).to_str().ok() }
+        unsafe {
+            self.as_ref()
+                .and_then(|_| CStr::from_ptr(*self).to_str().ok())
         }
     }
 }
 
 impl PtrAsStr for *mut c_char {
     fn as_str(&self) -> Option<&str> {
-        if self.is_null() {
-            None
-        } else {
-            unsafe { CStr::from_ptr(*self).to_str().ok() }
+        unsafe {
+            self.as_ref()
+                .and_then(|_| CStr::from_ptr(*self).to_str().ok())
         }
     }
 }

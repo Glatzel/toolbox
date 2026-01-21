@@ -1,7 +1,8 @@
 use alloc::string::{String, ToString};
-use core::ffi::{CStr, c_char};
+use core::ffi::c_char;
 use core::str::Utf8Error;
 
+use crate::PtrAsStr;
 /// Converts C-style character pointers or buffers into a Rust `String`.
 ///
 /// This trait provides a convenience method for converting null-terminated
@@ -44,9 +45,7 @@ pub trait PtrToString {
 ///
 /// The pointer must reference a valid, null-terminated C string.
 impl PtrToString for *const c_char {
-    fn to_string(&self) -> Result<String, Utf8Error> {
-        unsafe { Ok(CStr::from_ptr(*self).to_str()?.to_string()) }
-    }
+    fn to_string(&self) -> Result<String, Utf8Error> { Ok((*self).as_str()?.to_string()) }
 }
 
 /// Implementation for `*mut c_char` (e.g. `char *`).
@@ -56,9 +55,7 @@ impl PtrToString for *const c_char {
 /// The pointer must reference a valid, null-terminated C string.
 /// Mutability is ignored; the data is read-only.
 impl PtrToString for *mut c_char {
-    fn to_string(&self) -> Result<String, Utf8Error> {
-        unsafe { Ok(CStr::from_ptr(*self).to_str()?.to_string()) }
-    }
+    fn to_string(&self) -> Result<String, Utf8Error> { Ok((*self).as_str()?.to_string()) }
 }
 
 /// Implementation for a C character slice.
@@ -72,9 +69,7 @@ impl PtrToString for *mut c_char {
 /// - `self.as_ptr()` must point to a valid C string
 /// - The string must be null-terminated
 impl PtrToString for [c_char] {
-    fn to_string(&self) -> Result<String, Utf8Error> {
-        unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_str()?.to_string()) }
-    }
+    fn to_string(&self) -> Result<String, Utf8Error> { Ok((*self).as_str()?.to_string()) }
 }
 
 #[cfg(test)]

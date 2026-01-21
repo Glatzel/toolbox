@@ -2,7 +2,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::ffi::c_char;
 
-use crate::PtrToString;
+use crate::{EnvoyError, PtrToString};
 
 /// Converts a null-terminated list of C string pointers into a `Vec<String>`.
 ///
@@ -51,7 +51,7 @@ pub trait PtrListToVecString {
     /// # Panics
     ///
     /// Panics if any referenced C string contains invalid UTF-8.
-    fn to_vec_string(&self) -> Vec<String>;
+    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError>;
 }
 
 /// Implementation for `*mut *mut c_char` (e.g. `char **`).
@@ -63,9 +63,9 @@ pub trait PtrListToVecString {
 /// The pointer must reference a valid, null-terminated list of pointers,
 /// where each pointer references a valid C string.
 impl PtrListToVecString for *mut *mut c_char {
-    fn to_vec_string(&self) -> Vec<String> {
+    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
         if self.is_null() {
-            return Vec::new();
+            return Err(EnvoyError::NullPtr);
         }
 
         let mut vec_str = Vec::new();
@@ -82,7 +82,7 @@ impl PtrListToVecString for *mut *mut c_char {
             offset += 1;
         }
 
-        vec_str
+        Ok(vec_str)
     }
 }
 
@@ -93,9 +93,9 @@ impl PtrListToVecString for *mut *mut c_char {
 /// The pointer must reference a valid, null-terminated list of pointers,
 /// where each pointer references a valid C string.
 impl PtrListToVecString for *const *const c_char {
-    fn to_vec_string(&self) -> Vec<String> {
+    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
         if self.is_null() {
-            return Vec::new();
+            return Err(EnvoyError::NullPtr);
         }
 
         let mut vec_str = Vec::new();
@@ -112,7 +112,7 @@ impl PtrListToVecString for *const *const c_char {
             offset += 1;
         }
 
-        vec_str
+        Ok(vec_str)
     }
 }
 
@@ -125,7 +125,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cstr_list_to_string() {
+    fn test_cstr_list_to_string() -> mischief::Result<()> {
         //*mut *mut i8
         {
             // not null
@@ -140,7 +140,7 @@ mod tests {
                     core::ptr::null_mut(),
                 ];
                 let ptr: *const *mut c_char = arr.as_ptr();
-                let result = ptr.cast_mut().to_vec_string();
+                let result = ptr.cast_mut().to_vec_string()?;
                 assert_eq!(
                     result,
                     vec![
@@ -154,7 +154,7 @@ mod tests {
             {
                 let ptr: *mut *mut c_char = ptr::null_mut();
                 assert!(ptr.is_null());
-                assert!(ptr.to_vec_string().is_empty());
+                assert!(ptr.to_vec_string().is_err());
             }
         }
         //*const *const i8
@@ -171,7 +171,7 @@ mod tests {
                     core::ptr::null_mut(),
                 ];
                 let ptr: *const *const c_char = arr.as_ptr();
-                let result = ptr.to_vec_string();
+                let result = ptr.to_vec_string()?;
                 assert_eq!(
                     result,
                     vec![
@@ -185,8 +185,9 @@ mod tests {
             {
                 let ptr: *const *const c_char = ptr::null();
                 assert!(ptr.is_null());
-                assert!(ptr.to_vec_string().is_empty());
+                assert!(ptr.to_vec_string().is_err());
             }
+            Ok(())
         }
     }
 }

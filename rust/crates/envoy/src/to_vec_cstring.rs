@@ -1,9 +1,9 @@
-use alloc::ffi::{CString, NulError};
+use alloc::ffi::CString;
 use alloc::vec::Vec;
 use core::ffi::c_char;
 use core::ptr;
 
-use crate::ToCString;
+use crate::{EnvoyError, ToCString};
 
 /// A helper trait for exposing collections of [`CString`]s as raw pointer
 /// arrays (`*const c_char`).
@@ -86,7 +86,7 @@ pub trait ToVecCString {
     /// # Notes
     ///
     /// Conversion stops at the first error; no partial results are returned.
-    fn to_vec_cstring(&self) -> Result<VecCString, NulError>;
+    fn to_vec_cstring(&self) -> Result<VecCString, EnvoyError>;
 }
 
 /// Implementation for slices of values implementing [`ToCString`].
@@ -95,11 +95,11 @@ pub trait ToVecCString {
 /// `&[String]`, `&[&str]`, or mixed types, as long as each element implements
 /// `ToCString`.
 impl<T: ToCString> ToVecCString for [T] {
-    fn to_vec_cstring(&self) -> Result<VecCString, NulError> {
+    fn to_vec_cstring(&self) -> Result<VecCString, EnvoyError> {
         let content = self
             .iter()
             .map(|s| s.to_cstring())
-            .collect::<Result<Vec<CString>, NulError>>()?;
+            .collect::<Result<Vec<CString>, EnvoyError>>()?;
 
         Ok(VecCString { content })
     }

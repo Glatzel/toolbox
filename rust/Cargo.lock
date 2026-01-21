@@ -188,7 +188,7 @@ checksum = "c3e64b0cc0439b12df2fa678eae89a1c56a529fd067a9115f7827f1fffd22b32"
 
 [[package]]
 name = "clerk"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "chrono",
  "defmt",
@@ -201,9 +201,9 @@ dependencies = [
 
 [[package]]
 name = "codspeed"
-version = "4.2.1"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0d98d97fd75ca4489a1a0997820a6521531085e7c8a98941bd0e1264d567dd"
+checksum = "38c2eb3388ebe26b5a0ab6bf4969d9c4840143d7f6df07caa3cc851b0606cef6"
 dependencies = [
  "anyhow",
  "cc",
@@ -219,9 +219,9 @@ dependencies = [
 
 [[package]]
 name = "codspeed-criterion-compat"
-version = "4.2.1"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d16fe2db207123f7b3a3b5cfff0c22f99469f7534145f3573f57f4c8a5653c2c"
+checksum = "e1e270597a1d1e183f86d1cc9f94f0133654ee3daf201c17903ee29363555dd7"
 dependencies = [
  "clap",
  "codspeed",
@@ -232,9 +232,9 @@ dependencies = [
 
 [[package]]
 name = "codspeed-criterion-compat-walltime"
-version = "4.2.1"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b035c7f9846b143aeabb3833f5b584023eb97b43ecbff3d997db74c4372df2bd"
+checksum = "e6c2613d2fac930fe34456be76f9124ee0800bb9db2e7fd2d6c65b9ebe98a292"
 dependencies = [
  "anes",
  "cast",
@@ -364,7 +364,7 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "mischief",
 ]
@@ -711,7 +711,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "mischief-macros",
  "owo-colors",
@@ -724,7 +724,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "quote",
  "syn",
@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "rax"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "async-trait",
  "clerk",
@@ -903,7 +903,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "chrono",
  "clerk",
@@ -1065,7 +1065,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "0.0.35"
+version = "0.0.36"
 dependencies = [
  "clerk",
  "mischief",

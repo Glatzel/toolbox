@@ -64,7 +64,7 @@ mod tests {
     #[test]
     fn mut_ptr_valid_utf8() {
         let s = CString::new("world").unwrap();
-        let ptr = s.as_ptr();
+        let ptr = s.as_ptr().cast_mut();
 
         let out = ptr.as_str();
         assert_eq!(out, Some("world"));

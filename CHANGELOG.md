@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.37] - 2026-01-21
+
+### Refactor
+
+- Use result instead of option by @Glatzel in [#326](https://github.com/Glatzel/toolbox/pull/326)
+- Error handling by @Glatzel in [#327](https://github.com/Glatzel/toolbox/pull/327)
+
+## [0.0.36] - 2026-01-21
+
+### Fixed
+
+- Null pointer by @Glatzel in [#324](https://github.com/Glatzel/toolbox/pull/324)
+
 ## [0.0.35] - 2026-01-21
 
 ### Changed
@@ -284,6 +297,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.37]: https://github.com/Glatzel/toolbox/compare/v0.0.36..v0.0.37
+[0.0.36]: https://github.com/Glatzel/toolbox/compare/v0.0.35..v0.0.36
 [0.0.35]: https://github.com/Glatzel/toolbox/compare/v0.0.34..v0.0.35
 [0.0.34]: https://github.com/Glatzel/toolbox/compare/v0.0.33..v0.0.34
 [0.0.33]: https://github.com/Glatzel/toolbox/compare/v0.0.32..v0.0.33

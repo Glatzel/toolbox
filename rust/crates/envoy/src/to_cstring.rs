@@ -1,6 +1,8 @@
-use alloc::ffi::{CString, NulError};
+use alloc::ffi::CString;
 use alloc::string::String;
 use core::str::FromStr;
+
+use crate::EnvoyError;
 
 /// Converts Rust string types into a [`CString`] suitable for FFI usage.
 ///
@@ -10,7 +12,7 @@ use core::str::FromStr;
 /// # NUL Byte Handling
 ///
 /// C strings cannot contain interior NUL (`'\0'`) bytes. If the source
-/// string contains a NUL byte, conversion fails with [`NulError`].
+/// string contains a NUL byte, conversion fails with [`EnvoyError`].
 ///
 /// # Typical Use Case
 ///
@@ -21,21 +23,22 @@ pub trait ToCString {
     ///
     /// # Errors
     ///
-    /// Returns [`NulError`] if the string contains an interior NUL byte.
-    fn to_cstring(&self) -> Result<CString, NulError>;
+    /// Returns [`EnvoyError`] if the string contains an interior NUL byte.
+    fn to_cstring(&self) -> Result<CString, EnvoyError>;
 }
 
 /// Implementation for string slices.
 impl ToCString for &str {
-    fn to_cstring(&self) -> Result<CString, NulError> { CString::from_str(self) }
+    fn to_cstring(&self) -> Result<CString, EnvoyError> { Ok(CString::from_str(self)?) }
 }
 
 /// Implementation for owned `String` values.
 impl ToCString for String {
-    fn to_cstring(&self) -> Result<CString, NulError> { CString::from_str(self) }
+    fn to_cstring(&self) -> Result<CString, EnvoyError> { Ok(CString::from_str(self)?) }
 }
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]

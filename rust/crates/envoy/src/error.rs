@@ -1,3 +1,4 @@
+use alloc::ffi::NulError;
 use core::str::Utf8Error;
 
 use thiserror::Error;
@@ -8,4 +9,6 @@ pub enum EnvoyError {
     NullPtr,
     #[error(transparent)]
     InvalidUtf8(#[from] Utf8Error),
+    #[error(transparent)]
+    NulError(#[from] NulError),
 }

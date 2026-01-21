@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.35] - 2026-01-21
+
+### Changed
+
+- Envoy as str by @Glatzel in [#322](https://github.com/Glatzel/toolbox/pull/322)
+
 ## [0.0.34] - 2026-01-20
 
 ### Changed
@@ -278,6 +284,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[0.0.35]: https://github.com/Glatzel/toolbox/compare/v0.0.34..v0.0.35
 [0.0.34]: https://github.com/Glatzel/toolbox/compare/v0.0.33..v0.0.34
 [0.0.33]: https://github.com/Glatzel/toolbox/compare/v0.0.32..v0.0.33
 [0.0.32]: https://github.com/Glatzel/toolbox/compare/v0.0.31..v0.0.32

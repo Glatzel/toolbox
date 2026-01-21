@@ -367,6 +367,7 @@ name = "envoy"
 version = "0.0.36"
 dependencies = [
  "mischief",
+ "thiserror",
 ]
 
 [[package]]

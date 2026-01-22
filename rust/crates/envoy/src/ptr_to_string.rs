@@ -1,64 +1,118 @@
 use alloc::string::{String, ToString};
-use core::ffi::c_char;
+use core::ffi::{CStr, c_char};
 
-use crate::{EnvoyError, PtrAsStr};
+use crate::EnvoyError;
 
-/// Extension trait for converting C-style string pointers or buffers
-/// into an owned Rust [`String`].
+/// Converts C-style strings (`char *`) into owned Rust [`String`] values.
 ///
-/// # Semantics
+/// This trait is intended for **FFI boundaries**, where string data is
+/// represented as null-terminated C strings. Implementations perform
+/// null checks where applicable and convert the underlying bytes into
+/// a Rust-owned [`String`].
 ///
-/// - For raw pointers:
-///   - Returns an error if the pointer is null
-///   - Returns an error if the C string is not valid UTF-8
-/// - For slices:
-///   - Returns an error if the C string is not valid UTF-8
+/// ## UTF-8 handling
 ///
-/// On success, a new [`String`] is allocated and populated by copying
-/// the contents of the C string.
+/// All implementations use **lossy UTF-8 conversion**
+/// ([`CStr::to_string_lossy`]):
 ///
-/// # Ownership
+/// * Invalid UTF-8 sequences are replaced with `U+FFFD` (`�`)
+/// * Conversion **never fails due to encoding**
 ///
-/// This trait does **not** take ownership of the underlying C string.
-/// The returned [`String`] is fully owned and independent of the source
-/// memory.
+/// This design avoids platform-specific UTF-8 failures commonly observed
+/// on Linux and macOS when consuming foreign C APIs.
 ///
-/// # Relation to `PtrAsStr`
+/// ## Errors
 ///
-/// This trait is a convenience layer built on top of [`PtrAsStr`].
-/// It performs UTF-8 validation and allocation, and therefore should
-/// be preferred when the returned value must outlive the source buffer.
+/// Implementations that operate on raw pointers return:
 ///
-/// # Errors
+/// * [`EnvoyError::NullPtr`] if the pointer is null
 ///
-/// The exact error variants depend on [`EnvoyError`], but typically include:
+/// ## Safety
 ///
-/// - Null pointer
-/// - Invalid UTF-8 sequence
+/// Implementations using raw pointers assume:
 ///
-/// [`PtrAsStr`]: crate::PtrAsStr
+/// * The pointer is valid
+/// * The memory is null-terminated
+/// * The memory remains valid for the duration of the call
+///
+/// Violating these assumptions results in **undefined behavior**.
 pub trait PtrToString {
-    /// Convert the underlying C string representation into an owned
-    /// Rust [`String`].
+    /// Converts the underlying C string into an owned [`String`].
     ///
     /// # Errors
     ///
-    /// Returns an error if the pointer is null (for raw pointers) or if
-    /// UTF-8 validation fails.
+    /// Returns [`EnvoyError::NullPtr`] if the underlying pointer is null
+    /// (for pointer-based implementations).
     fn to_string(&self) -> Result<String, EnvoyError>;
 }
 
+/// Conversion from `*const c_char`.
+///
+/// This implementation:
+///
+/// * Checks for null
+/// * Treats the pointer as a null-terminated C string
+/// * Performs lossy UTF-8 conversion
 impl PtrToString for *const c_char {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        // SAFETY:
+        // - `self` is non-null (checked above)
+        // - Caller guarantees a valid, null-terminated C string
+        unsafe { Ok(CStr::from_ptr(*self).to_string_lossy().to_string()) }
+    }
 }
 
+/// Conversion from `*mut c_char`.
+///
+/// Semantically identical to the `*const c_char` implementation.
+/// Mutability is ignored; the data is treated as read-only.
+///
+/// This exists for convenience when consuming C APIs that return
+/// mutable string pointers.
 impl PtrToString for *mut c_char {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        // SAFETY:
+        // - `self` is non-null
+        // - Caller guarantees valid, null-terminated memory
+        unsafe { Ok(CStr::from_ptr(*self).to_string_lossy().to_string()) }
+    }
 }
 
+/// Conversion from a C character slice (`[c_char]`).
+///
+/// The slice **must** contain a null terminator (`\0`).
+/// The conversion reads from the slice's pointer until the first
+/// null byte is encountered.
+///
+/// ## Safety
+///
+/// This implementation assumes:
+///
+/// * The slice points to valid memory
+/// * The slice is null-terminated
+///
+/// Failure to meet these conditions results in undefined behavior.
+///
+/// ## Note
+///
+/// No null-pointer check is performed because slices are always non-null.
 impl PtrToString for [c_char] {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        // SAFETY:
+        // - Slice pointer is non-null by construction
+        // - Caller guarantees a terminating NUL byte
+        unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_string_lossy().to_string()) }
+    }
 }
+
 #[cfg(test)]
 mod tests {
 
@@ -90,13 +144,6 @@ mod tests {
     #[test]
     fn null_ptr_returns_none() {
         let ptr: *const c_char = ptr::null();
-        assert!(ptr.to_string().is_err());
-    }
-
-    #[test]
-    fn invalid_utf8_returns_none() {
-        let bytes = [0xFFu8 as c_char, 0];
-        let ptr = bytes.as_ptr() as *const c_char;
         assert!(ptr.to_string().is_err());
     }
 

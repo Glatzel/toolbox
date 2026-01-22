@@ -1,7 +1,7 @@
 use alloc::string::{String, ToString};
-use core::ffi::c_char;
+use core::ffi::{CStr, c_char};
 
-use crate::{EnvoyError, PtrAsStr};
+use crate::EnvoyError;
 
 /// Extension trait for converting C-style string pointers or buffers
 /// into an owned Rust [`String`].
@@ -49,15 +49,29 @@ pub trait PtrToString {
 }
 
 impl PtrToString for *const c_char {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        unsafe { Ok(CStr::from_ptr(*self).to_string_lossy().to_string()) }
+    }
 }
 
 impl PtrToString for *mut c_char {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        unsafe { Ok(CStr::from_ptr(*self).to_string_lossy().to_string()) }
+    }
 }
 
 impl PtrToString for [c_char] {
-    fn to_string(&self) -> Result<String, EnvoyError> { (*self).as_str().map(ToString::to_string) }
+    fn to_string(&self) -> Result<String, EnvoyError> {
+        unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_string_lossy().to_string()) }
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -90,13 +104,6 @@ mod tests {
     #[test]
     fn null_ptr_returns_none() {
         let ptr: *const c_char = ptr::null();
-        assert!(ptr.to_string().is_err());
-    }
-
-    #[test]
-    fn invalid_utf8_returns_none() {
-        let bytes = [0xFFu8 as c_char, 0];
-        let ptr = bytes.as_ptr() as *const c_char;
         assert!(ptr.to_string().is_err());
     }
 

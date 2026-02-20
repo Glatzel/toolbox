@@ -1016,6 +1016,7 @@ dependencies = [
  "codspeed-criterion-compat",
  "float-cmp",
  "hashbrown 0.16.1",
+ "insta",
  "mischief",
  "rax",
  "serde",

@@ -103,13 +103,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let dhv = Dhv::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{dhv:?}");
-        assert_eq!(dhv.talker, Talker::GN);
-        assert!(dhv.time.unwrap().to_string().contains("02:11:50"));
-        assert_eq!(dhv.speed3d.unwrap(), 0.03);
-        assert_eq!(dhv.speed_x.unwrap(), 0.006);
-        assert_eq!(dhv.speed_y.unwrap(), -0.042);
-        assert_eq!(dhv.speed_z.unwrap(), -0.026);
-        assert_eq!(dhv.gdspd.unwrap(), 0.06);
+        insta::assert_debug_snapshot!(dhv.talker);
         Ok(())
     }
 }

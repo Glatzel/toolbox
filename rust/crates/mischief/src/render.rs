@@ -1,14 +1,12 @@
 use crate::IDiagnostic;
 extern crate alloc;
+use alloc::string::String;
 #[cfg(feature = "fancy")]
 mod shader;
 #[cfg(feature = "fancy")]
 mod theme;
-
 #[cfg(feature = "fancy")]
 use alloc::format;
-#[cfg(feature = "fancy")]
-use alloc::string::String;
 #[cfg(feature = "fancy")]
 use core::fmt::Write;
 
@@ -26,7 +24,7 @@ pub trait IRender {
 }
 
 /// Wrapper struct to render diagnostics.
-pub struct Render<T: ITheme> {
+pub struct Render<#[cfg(feature = "fancy")] T: ITheme> {
     #[cfg(feature = "fancy")]
     shader: Shader,
     #[cfg(feature = "fancy")]
@@ -54,10 +52,10 @@ impl<T: ITheme> Render<T> {
     }
 }
 
-impl<T: ITheme> IRender for Render<T> {
+impl<#[cfg(feature = "fancy")] T: ITheme> IRender for Render<T> {
     fn render(&self, s: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         #[cfg(not(feature = "fancy"))]
-        self.render_plain(f)?;
+        self.render_plain(s)?;
 
         #[cfg(feature = "fancy")]
         {

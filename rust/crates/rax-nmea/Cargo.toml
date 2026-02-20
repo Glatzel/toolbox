@@ -18,6 +18,7 @@ float-cmp = { workspace = true }
 mischief = { workspace = true }
 rax = { workspace = true, features = ["async"] }
 serialport = { workspace = true }
+insta = { workspace = true, features = ["filters"] }
 
 [features]
 serde = ["std", "dep:serde", "chrono/serde"]

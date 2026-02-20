@@ -126,6 +126,10 @@ impl<T: ITheme> Render<T> {
         }
         Ok(())
     }
+    /// Produces an iterator over the diagnostic chain.
+    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
+    }
     fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         let mut chain = Self::chain(diagnostic);
 
@@ -147,8 +151,6 @@ impl<T: ITheme> Render<T> {
 #[cfg(not(feature = "fancy"))]
 impl Render {
     pub fn new() -> Self { Self }
-}
-impl Render {
     /// Produces an iterator over the diagnostic chain.
     fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
         core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
@@ -173,16 +175,16 @@ impl Render {
 }
 #[cfg(feature = "fancy")]
 impl<T: ITheme> IRender for Render<T> {
-    fn render(&self, s: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+    fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         if self.terminal_config.supports_unicode() {
-            self.render_fancy(s, diagnostic)
+            self.render_fancy(text, diagnostic)
         } else {
-            self.render_plain(s, diagnostic)
+            self.render_plain(text, diagnostic)
         }
     }
 }
 #[cfg(not(feature = "fancy"))]
-impl IRender for Render {
+impl IRender for Render<T> {
     fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         self.render_plain(text, diagnostic)
     }

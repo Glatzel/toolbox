@@ -1,0 +1,30 @@
+---
+source: crates/rax-nmea/src/data/gsv.rs
+expression: gsv
+---
+GSV {
+    talker: GP,
+    count: 4,
+    satellites: [
+        Satellite {
+            id: 2,
+            elevation_degrees: 35,
+            azimuth_degree: 291,
+        },
+        Satellite {
+            id: 3,
+            elevation_degrees: 9,
+            azimuth_degree: 129,
+        },
+        Satellite {
+            id: 5,
+            elevation_degrees: 14,
+            azimuth_degree: 305,
+        },
+        Satellite {
+            id: 6,
+            elevation_degrees: 38,
+            azimuth_degree: 226,
+        },
+    ],
+}

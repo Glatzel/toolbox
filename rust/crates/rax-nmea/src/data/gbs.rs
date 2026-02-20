@@ -137,11 +137,7 @@ mod tests {
         let mut ctx = StrParserContext::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();
         println!("{gbs:?}");
-        assert_eq!(gbs.talker(), &Talker::GP);
-        assert!(gbs.time().unwrap().to_string().contains("12:50:27"));
-        assert_eq!(gbs.err_lat().unwrap(), 23.43);
-        assert_eq!(gbs.err_alt().unwrap(), 13.91);
-        assert_eq!(gbs.prob().unwrap(), 34.01);
+        insta::assert_debug_snapshot!(gbs);
     }
     #[test]
     fn test_gbs_4_1() {
@@ -150,15 +146,6 @@ mod tests {
         let mut ctx = StrParserContext::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();
         println!("{gbs:?}");
-        assert_eq!(gbs.talker(), &Talker::GP);
-        assert!(gbs.time().unwrap().to_string().contains("23:54:58"));
-        assert_eq!(gbs.err_lat().unwrap(), 1.4);
-        assert_eq!(gbs.err_lon().unwrap(), 1.3);
-        assert_eq!(gbs.err_alt().unwrap(), 3.1);
-        assert_eq!(gbs.svid().unwrap(), 3);
-        assert_eq!(gbs.bias().unwrap(), -21.4);
-        assert_eq!(gbs.std_dev().unwrap(), 3.8);
-        assert_eq!(gbs.system_id().unwrap(), SystemId::GPS);
-        assert_eq!(gbs.signal_id().unwrap(), 0);
+        insta::assert_debug_snapshot!(gbs);
     }
 }

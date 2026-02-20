@@ -1,0 +1,16 @@
+---
+source: crates/rax-nmea/src/data/rmc.rs
+expression: rmc
+---
+RMC {
+    talker: GN,
+    time: 11:01:25,
+    status: Valid,
+    lat: 55.088959666666675,
+    lon: 38.9775611,
+    spd: 148.8,
+    cog: 84.6,
+    date: 2017-03-31,
+    mv: 8.9,
+    pos_mode: Differential,
+}

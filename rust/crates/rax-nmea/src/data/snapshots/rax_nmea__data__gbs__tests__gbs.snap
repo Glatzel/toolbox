@@ -1,0 +1,11 @@
+---
+source: crates/rax-nmea/src/data/gbs.rs
+expression: gbs
+---
+GBS {
+    talker: GP,
+    time: 12:50:27,
+    err_lat: 23.43,
+    err_alt: 13.91,
+    prob: 34.01,
+}

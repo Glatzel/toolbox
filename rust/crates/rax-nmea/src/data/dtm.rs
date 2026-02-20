@@ -118,13 +118,9 @@ mod test {
         init_log_with_level(LogLevel::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
         let mut ctx = StrParserContext::new();
-        let dhv = Dtm::new(ctx.init(s.to_string()), Talker::GP)?;
-        println!("{dhv:?}");
-        assert_eq!(dhv.talker, Talker::GP);
-        assert_eq!(dhv.datum.unwrap(), DtmDatum::UserDefined);
-        assert_eq!(dhv.lat.unwrap(), 0.08);
-        assert_eq!(dhv.lon.unwrap(), 0.07);
-        assert_eq!(dhv.alt.unwrap(), -47.7);
+        let dtm = Dtm::new(ctx.init(s.to_string()), Talker::GP)?;
+        println!("{dtm:?}");
+        insta::assert_debug_snapshot!(dtm);
         Ok(())
     }
 }

@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/data/vlw.rs
+expression: vlw
+---
+DHV {
+    talker: GP,
+    tgd: "15.8 N",
+    gd: "1.2 N",
+}

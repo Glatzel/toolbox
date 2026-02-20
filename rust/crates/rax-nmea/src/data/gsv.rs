@@ -170,51 +170,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gsv:?}");
-        assert_eq!(gsv.talker, Talker::GP);
-        assert_eq!(gsv.satellites.len(), 10);
-        // line 1
-        assert_eq!(gsv.satellites[0].svid, Some(25));
-        assert_eq!(gsv.satellites[0].elv, Some(68));
-        assert_eq!(gsv.satellites[0].az, Some(53));
-        assert_eq!(gsv.satellites[0].cno, Some(47));
-        assert_eq!(gsv.satellites[1].svid, Some(21));
-        assert_eq!(gsv.satellites[1].elv, Some(59));
-        assert_eq!(gsv.satellites[1].az, Some(306));
-        assert_eq!(gsv.satellites[1].cno, Some(49));
-        assert_eq!(gsv.satellites[2].svid, Some(29));
-        assert_eq!(gsv.satellites[2].elv, Some(56));
-        assert_eq!(gsv.satellites[2].az, Some(161));
-        assert_eq!(gsv.satellites[2].cno, Some(49));
-        assert_eq!(gsv.satellites[3].svid, Some(31));
-        assert_eq!(gsv.satellites[3].elv, Some(36));
-        assert_eq!(gsv.satellites[3].az, Some(265));
-        assert_eq!(gsv.satellites[3].cno, Some(49));
-        // line 2
-        assert_eq!(gsv.satellites[4].svid, Some(12));
-        assert_eq!(gsv.satellites[4].elv, Some(29));
-        assert_eq!(gsv.satellites[4].az, Some(48));
-        assert_eq!(gsv.satellites[4].cno, Some(49));
-        assert_eq!(gsv.satellites[5].svid, Some(5));
-        assert_eq!(gsv.satellites[5].elv, Some(22));
-        assert_eq!(gsv.satellites[5].az, Some(123));
-        assert_eq!(gsv.satellites[5].cno, Some(49));
-        assert_eq!(gsv.satellites[6].svid, Some(18));
-        assert_eq!(gsv.satellites[6].elv, Some(13));
-        assert_eq!(gsv.satellites[6].az, Some(0));
-        assert_eq!(gsv.satellites[6].cno, Some(49));
-        assert_eq!(gsv.satellites[7].svid, Some(1));
-        assert_eq!(gsv.satellites[7].elv, Some(0));
-        assert_eq!(gsv.satellites[7].az, Some(0));
-        assert_eq!(gsv.satellites[7].cno, Some(49));
-        // line 3
-        assert_eq!(gsv.satellites[8].svid, Some(14));
-        assert_eq!(gsv.satellites[8].elv, Some(0));
-        assert_eq!(gsv.satellites[8].az, Some(0));
-        assert_eq!(gsv.satellites[8].cno, Some(3));
-        assert_eq!(gsv.satellites[9].svid, Some(16));
-        assert_eq!(gsv.satellites[9].elv, Some(0));
-        assert_eq!(gsv.satellites[9].az, Some(0));
-        assert_eq!(gsv.satellites[9].cno, Some(27));
+        insta::assert_debug_snapshot!(gsv);
         Ok(())
     }
 
@@ -225,24 +181,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gsv:?}");
-        assert_eq!(gsv.talker, Talker::GP);
-        assert_eq!(gsv.satellites.len(), 4);
-        assert_eq!(gsv.satellites[0].svid, Some(2));
-        assert_eq!(gsv.satellites[0].elv, Some(35));
-        assert_eq!(gsv.satellites[0].az, Some(291));
-        assert!(gsv.satellites[0].cno.is_none());
-        assert_eq!(gsv.satellites[1].svid, Some(3));
-        assert_eq!(gsv.satellites[1].elv, Some(9));
-        assert_eq!(gsv.satellites[1].az, Some(129));
-        assert!(gsv.satellites[1].cno.is_none());
-        assert_eq!(gsv.satellites[2].svid, Some(5));
-        assert_eq!(gsv.satellites[2].elv, Some(14));
-        assert_eq!(gsv.satellites[2].az, Some(305));
-        assert!(gsv.satellites[2].cno.is_none());
-        assert_eq!(gsv.satellites[3].svid, Some(6));
-        assert_eq!(gsv.satellites[3].elv, Some(38));
-        assert_eq!(gsv.satellites[3].az, Some(226));
-        assert!(gsv.satellites[3].cno.is_none());
+        insta::assert_debug_snapshot!(gsv);
         Ok(())
     }
 
@@ -276,8 +215,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gsv:?}");
-        assert_eq!(gsv.talker, Talker::GP);
-        assert_eq!(gsv.satellites.len(), 0);
+        insta::assert_debug_snapshot!(gsv);
         Ok(())
     }
 }

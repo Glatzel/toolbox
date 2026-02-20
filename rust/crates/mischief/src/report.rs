@@ -2,10 +2,12 @@ use core::error::Error;
 use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 
 use crate::error::MischiefError;
-use crate::render;
+#[cfg(feature = "fancy")]
+use crate::render::DefaultTheme;
+use crate::render::{IRender, Render};
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
@@ -16,16 +18,29 @@ pub struct Report {
 impl Report {
     /// Creates a new `Report` from a `MischiefError`.
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
+    pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render::Render::new(&self.inner).fmt(f)
+        let mut s = String::new();
+        Render::new(
+            #[cfg(feature = "fancy")]
+            DefaultTheme,
+        )
+        .render(&mut s, &self.inner)?;
+        f.write_str(&s)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render::Render::new(&self.inner).fmt(f)
+        let mut s = String::new();
+        Render::new(
+            #[cfg(feature = "fancy")]
+            DefaultTheme,
+        )
+        .render(&mut s, &self.inner)?;
+        f.write_str(&s)
     }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively

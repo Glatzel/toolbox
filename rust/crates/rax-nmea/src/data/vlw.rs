@@ -100,8 +100,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let vlw = Vlw::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{vlw:?}");
-        assert_eq!(vlw.tgd.unwrap(), 15.8);
-        assert_eq!(vlw.gd.unwrap(), 1.2);
+        insta::assert_debug_snapshot!(vlw);
         Ok(())
     }
 }

@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/data/gll.rs
+expression: gll
+---
+GLL {
+    talker: GN,
+    lat: -29.999874999999996,
+    lon: 120.00015,
+    time: 23:53:16,
+    status: Valid,
+    pos_mode: Autonomous,
+}

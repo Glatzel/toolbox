@@ -15,6 +15,7 @@ thiserror = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
 criterion = { workspace = true }
 float-cmp = { workspace = true }
+insta = { workspace = true, features = ["filters"] }
 mischief = { workspace = true }
 rax = { workspace = true, features = ["async"] }
 serialport = { workspace = true }

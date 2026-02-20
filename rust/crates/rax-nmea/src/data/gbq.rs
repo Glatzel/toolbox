@@ -60,8 +60,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gbq = Gbq::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gbq:?}");
-        assert_eq!(gbq.talker, Talker::GP);
-        assert_eq!(gbq.msg_id.unwrap(), "RMC");
+        insta::assert_debug_snapshot!(gbq);
         Ok(())
     }
 }

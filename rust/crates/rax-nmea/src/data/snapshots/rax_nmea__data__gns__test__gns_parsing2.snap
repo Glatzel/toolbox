@@ -1,0 +1,14 @@
+---
+source: crates/rax-nmea/src/data/gns.rs
+expression: gns
+---
+GNS {
+    talker: GN,
+    time: 18:16:04,
+    pos_mode: [
+        NotValid,
+        NotValid,
+    ],
+    num_sv: 0,
+    hdop: 99.99,
+}

@@ -44,7 +44,6 @@ fn render_report(report: &Report) -> String {
     let render = Render::new();
     #[cfg(not(feature = "fancy"))]
     render.render(&mut result, report.diagnostic()).unwrap();
-
     result
 }
 fn snapshot_file_name(name: &str) -> String {

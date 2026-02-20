@@ -18,7 +18,7 @@ pub struct Report {
 impl Report {
     /// Creates a new `Report` from a `MischiefError`.
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
-    pub fn diagnostic<'a>(&'a self) -> &'a MischiefError { &self.inner }
+    pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 }
 
 impl Debug for Report {

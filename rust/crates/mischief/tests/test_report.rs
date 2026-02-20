@@ -2,7 +2,7 @@ use std::fs::File;
 
 use mischief::render::{ColorPalette, IRender, Render, Theme};
 use mischief::{IntoMischief, Report, WrapErr, mischief};
-fn render_report(report: &Report) -> String {
+fn render_report(report: &Report) ->String{
     let mut result = String::new();
     let theme = Theme::new(
         (
@@ -37,7 +37,7 @@ fn report_error() {
         .wrap_err_with(|| "Third error");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
+        Err(report) => insta::assert_snapshot!(render_report(&report)),
     }
 }
 #[test]
@@ -57,7 +57,7 @@ fn report_error_long() {
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
+        Err(report) => insta::assert_snapshot!(render_report(&report)),
     }
 }
 #[test]
@@ -73,7 +73,7 @@ fn report_from_error() -> mischief::Result<()> {
     let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
+        Err(report) => insta::assert_snapshot!(render_report(&report)),
     }
     Ok(())
 }

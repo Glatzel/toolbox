@@ -2,4 +2,7 @@
 source: crates/mischief/tests/test_report.rs
 expression: render_report(&report)
 ---
-"x Third error\n├─▶ Second error\n╰─▶ Warning[E404]\u{1b}]8;;https://github.com/Glatzel/toolbox\u{1b}\\(link)\u{1b}]8;;\u{1b}\\: first error\n    help: Try again.\n"
+x Third error
+├─▶ Second error
+╰─▶ Warning[E404]]8;;https://github.com/Glatzel/toolbox\(link)]8;;\: first error
+    help: Try again.

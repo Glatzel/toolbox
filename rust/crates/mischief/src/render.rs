@@ -184,7 +184,7 @@ impl<T: ITheme> IRender for Render<T> {
     }
 }
 #[cfg(not(feature = "fancy"))]
-impl IRender for Render<T> {
+impl IRender for Render {
     fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         self.render_plain(text, diagnostic)
     }

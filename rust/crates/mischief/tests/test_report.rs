@@ -39,12 +39,17 @@ impl IStyle for Theme {
 fn render_report(report: &Report) -> String {
     let mut result = String::new();
     #[cfg(feature = "fancy")]
-    let render = Render::new(Theme);
+    {
+        let render = Render::new(Theme);
+        render.render(&mut result, report.diagnostic()).unwrap();
+        result
+    }
     #[cfg(not(feature = "fancy"))]
-    let render = Render::new();
-    #[cfg(feature = "fancy")]
-    render.render(&mut result, report.diagnostic()).unwrap();
-    result
+    {
+        let render = Render::new();
+        render.render(&mut result, report.diagnostic()).unwrap();
+        result
+    }
 }
 fn snapshot_file_name(name: &str) -> String {
     if cfg!(feature = "fancy") {

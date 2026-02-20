@@ -1,0 +1,8 @@
+---
+source: crates/rax-nmea/src/data/gbq.rs
+expression: gbq
+---
+DHV {
+    talker: GP,
+    msg_id: "RMC",
+}

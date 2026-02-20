@@ -1,14 +1,13 @@
 use crate::IDiagnostic;
 extern crate alloc;
 use alloc::string::String;
+use core::fmt::Write;
 #[cfg(feature = "fancy")]
 mod shader;
 #[cfg(feature = "fancy")]
 mod theme;
 #[cfg(feature = "fancy")]
 use alloc::format;
-#[cfg(feature = "fancy")]
-use core::fmt::Write;
 
 #[cfg(feature = "fancy")]
 pub use shader::*;
@@ -18,13 +17,11 @@ pub use theme::*;
 /// Trait defining rendering behavior for diagnostic types.
 pub trait IRender {
     fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
-    #[cfg(feature = "fancy")]
-    fn render_fancy(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
-    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
 }
 
 /// Wrapper struct to render diagnostics.
-pub struct Render<#[cfg(feature = "fancy")] T: ITheme> {
+#[cfg(feature = "fancy")]
+pub struct Render<T: ITheme> {
     #[cfg(feature = "fancy")]
     shader: Shader,
     #[cfg(feature = "fancy")]
@@ -32,10 +29,13 @@ pub struct Render<#[cfg(feature = "fancy")] T: ITheme> {
     #[cfg(feature = "fancy")]
     theme: T,
 }
-
+#[cfg(not(feature = "fancy"))]
+pub struct Render;
+#[cfg(feature = "fancy")]
 impl<T: ITheme> Render<T> {
     /// Creates a new render wrapper for a diagnostic.
     pub fn new(#[cfg(feature = "fancy")] theme: T) -> Self {
+        #[cfg(feature = "fancy")]
         let terminal_config = TerminalConfig::init();
         Self {
             #[cfg(feature = "fancy")]
@@ -44,26 +44,6 @@ impl<T: ITheme> Render<T> {
             terminal_config,
             #[cfg(feature = "fancy")]
             theme,
-        }
-    }
-    /// Produces an iterator over the diagnostic chain.
-    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
-        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
-    }
-}
-
-impl<#[cfg(feature = "fancy")] T: ITheme> IRender for Render<T> {
-    fn render(&self, s: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
-        #[cfg(not(feature = "fancy"))]
-        self.render_plain(s)?;
-
-        #[cfg(feature = "fancy")]
-        {
-            if self.terminal_config.supports_unicode() {
-                self.render_fancy(s, diagnostic)
-            } else {
-                self.render_plain(s, diagnostic)
-            }
         }
     }
     #[cfg(feature = "fancy")]
@@ -146,7 +126,6 @@ impl<#[cfg(feature = "fancy")] T: ITheme> IRender for Render<T> {
         }
         Ok(())
     }
-
     fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         let mut chain = Self::chain(diagnostic);
 
@@ -163,5 +142,48 @@ impl<#[cfg(feature = "fancy")] T: ITheme> IRender for Render<T> {
             writeln!(text, "    {}", diagnostic.description())?;
         }
         Ok(())
+    }
+}
+#[cfg(not(feature = "fancy"))]
+impl Render {
+    pub fn new() -> Self { Self }
+}
+impl Render {
+    /// Produces an iterator over the diagnostic chain.
+    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
+    }
+    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        let mut chain = Self::chain(diagnostic);
+
+        if let Some(first) = chain.next() {
+            writeln!(text, "Error: {}", first.description())?;
+        }
+
+        let mut first = true;
+        for diagnostic in chain {
+            if first {
+                writeln!(text, "\nCaused by:")?;
+                first = false;
+            }
+            writeln!(text, "    {}", diagnostic.description())?;
+        }
+        Ok(())
+    }
+}
+#[cfg(feature = "fancy")]
+impl<T: ITheme> IRender for Render<T> {
+    fn render(&self, s: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        if self.terminal_config.supports_unicode() {
+            self.render_fancy(s, diagnostic)
+        } else {
+            self.render_plain(s, diagnostic)
+        }
+    }
+}
+#[cfg(not(feature = "fancy"))]
+impl IRender for Render {
+    fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        self.render_plain(text, diagnostic)
     }
 }

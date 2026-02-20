@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/data/ths.rs
+assertion_line: 69
+expression: ths
+---
+DHV {
+    talker: GP,
+    headt: 77.52,
+    mi: Estimated,
+}

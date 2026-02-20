@@ -239,20 +239,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gga = Gga::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gga:?}");
-        assert_eq!(gga.talker, Talker::GN);
-        assert!(gga.time.unwrap().to_string().contains("11:02:56"));
-        assert_approx_eq!(f64, gga.lat.unwrap(), 55.0946166);
-        assert_approx_eq!(f64, gga.lon.unwrap(), 38.93381473333333);
-        assert_eq!(
-            gga.quality.unwrap(),
-            GgaQualityIndicator::DifferentialGpsFix
-        );
-        assert_eq!(gga.num_sv.unwrap(), 8);
-        assert_approx_eq!(f64, gga.hdop.unwrap(), 0.7);
-        assert_approx_eq!(f64, gga.alt.unwrap(), 2135.0);
-        assert_approx_eq!(f64, gga.sep.unwrap(), 14.0);
-        assert!(gga.diff_age.is_none());
-        assert!(gga.diff_station.is_none());
+  insta::assert_debug_snapshot!(gga);
         Ok(())
     }
 }

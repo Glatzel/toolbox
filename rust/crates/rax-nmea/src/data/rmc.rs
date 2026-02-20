@@ -132,16 +132,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{rmc:?}");
-        assert_eq!(rmc.talker, Talker::GN);
-        assert!(rmc.time.unwrap().to_string().contains("11:01:25"));
-        assert_eq!(rmc.status.unwrap(), Status::Valid);
-        assert_approx_eq!(f64, rmc.lat.unwrap(), 55.088959666666675);
-        assert_approx_eq!(f64, rmc.lon.unwrap(), 38.9775611);
-        assert_approx_eq!(f64, rmc.spd.unwrap(), 148.8);
-        assert_approx_eq!(f64, rmc.cog.unwrap(), 84.6);
-        assert_eq!(rmc.date.unwrap().to_string(), "2017-03-31");
-        assert_approx_eq!(f64, rmc.mv.unwrap(), 8.9);
-        assert_eq!(rmc.pos_mode.unwrap(), PosMode::Differential);
+        insta::assert_debug_snapshot!(rmc);
         Ok(())
     }
     #[test]
@@ -151,16 +142,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{rmc:?}");
-        assert_eq!(rmc.talker, Talker::GN);
-        assert!(rmc.time.is_none());
-        assert_eq!(rmc.status, Some(Status::Invalid));
-        assert!(rmc.lat.is_none());
-        assert!(rmc.lon.is_none());
-        assert!(rmc.spd.is_none());
-        assert!(rmc.cog.is_none());
-        assert!(rmc.date.is_none());
-        assert!(rmc.mv.is_none());
-        assert_eq!(rmc.pos_mode, Some(PosMode::NotValid));
+        insta::assert_debug_snapshot!(rmc);
         Ok(())
     }
 }

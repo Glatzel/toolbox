@@ -122,15 +122,7 @@ mod test {
         let vtg = Gst::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{vtg:?}");
         assert_eq!(vtg.talker, Talker::GN);
-        assert!(vtg.time.unwrap().to_string().contains("18:21:41"));
-        assert_eq!(vtg.rms.unwrap(), 15.5);
-        assert_eq!(vtg.std_major.unwrap(), 15.3);
-        assert_eq!(vtg.std_minor.unwrap(), 7.2);
-        assert_eq!(vtg.orient.unwrap(), 21.8);
-        assert_eq!(vtg.std_lat.unwrap(), 0.9);
-        assert_eq!(vtg.std_lon.unwrap(), 0.5);
-        assert_eq!(vtg.std_alt.unwrap(), 0.8);
-
+        insta::assert_debug_snapshot!(vtg);
         Ok(())
     }
 }

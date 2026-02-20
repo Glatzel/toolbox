@@ -106,12 +106,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gll = Gll::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gll:?}");
-        assert_eq!(gll.talker, Talker::GN);
-        assert_approx_eq!(f64, gll.lat.unwrap(), -29.999874999999996);
-        assert_approx_eq!(f64, gll.lon.unwrap(), 120.00015);
-        assert!(gll.time.unwrap().to_string().contains("23:53:16"));
-        assert_eq!(gll.status.unwrap(), Status::Valid);
-        assert_eq!(gll.pos_mode.unwrap(), PosMode::Autonomous);
+         insta::assert_debug_snapshot!(gll);
         Ok(())
     }
 }

@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/data/rmc.rs
+assertion_line: 145
+expression: rmc
+---
+RMC {
+    talker: GN,
+    status: Invalid,
+    pos_mode: NotValid,
+}

@@ -66,8 +66,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let ths = Ths::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{ths:?}");
-        assert_eq!(ths.headt.unwrap(), 77.52);
-        assert_eq!(ths.mi.unwrap(), PosMode::Estimated);
+        insta::assert_debug_snapshot!(ths);
         Ok(())
     }
 }

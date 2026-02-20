@@ -214,17 +214,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gns:?}");
-        assert_eq!(gns.talker, Talker::GN);
-        assert!(gns.time.unwrap().to_string().contains("11:22:57"));
-        assert_eq!(gns.lat.unwrap(), 38.73733516666667);
-        assert_eq!(gns.lon.unwrap(), -9.140638);
-        assert_eq!(gns.pos_mode, [PosMode::Autonomous, PosMode::NotValid]);
-        assert_eq!(gns.num_sv.unwrap(), 3);
-        assert_eq!(gns.hdop.unwrap(), 10.5);
-        assert!(gns.alt.is_none());
-        assert!(gns.sep.is_none());
-        assert!(gns.diff_age.is_none());
-        assert!(gns.diff_station.is_none());
+  insta::assert_debug_snapshot!(gns);
 
         Ok(())
     }
@@ -235,18 +225,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gns:?}");
-        assert_eq!(gns.talker, Talker::GN);
-        assert!(gns.time.unwrap().to_string().contains("18:16:04"));
-        assert!(gns.lat.is_none());
-        assert!(gns.lon.is_none());
-        assert_eq!(gns.pos_mode, [PosMode::NotValid, PosMode::NotValid]);
-        assert_eq!(gns.num_sv.unwrap(), 0);
-        assert_approx_eq!(f64, gns.hdop.unwrap(), 99.99);
-        assert!(gns.alt.is_none());
-        assert!(gns.sep.is_none());
-        assert!(gns.diff_age.is_none());
-        assert!(gns.diff_station.is_none());
-        assert!(gns.nav_status.is_none());
+     insta::assert_debug_snapshot!(gns);
         Ok(())
     }
 }

@@ -134,20 +134,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let grs = Grs::new(ctx.init(input.to_string()), Talker::GP)?;
         println!("{grs:?}");
-
-        assert_eq!(grs.talker, Talker::GP);
-        assert!(grs.time.unwrap().to_string().contains("22:03:20"));
-        assert_eq!(grs.mode.unwrap(), GrsResidualMode::UsedInGga);
-        assert_eq!(grs.residual.len(), 6);
-        assert_approx_eq!(f64, grs.residual[0], -0.8);
-        assert_approx_eq!(f64, grs.residual[1], -0.2);
-        assert_approx_eq!(f64, grs.residual[2], -0.1);
-        assert_approx_eq!(f64, grs.residual[3], -0.2);
-        assert_approx_eq!(f64, grs.residual[4], 0.8);
-        assert_approx_eq!(f64, grs.residual[5], 0.6);
-        assert!(grs.system_id.is_none());
-        assert!(grs.signal_id.is_none());
-
+        insta::assert_debug_snapshot!(grs);
         Ok(())
     }
 }

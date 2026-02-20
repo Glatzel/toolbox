@@ -1,0 +1,71 @@
+---
+source: crates/rax-nmea/src/data/gsv.rs
+assertion_line: 173
+expression: gsv
+---
+GSV {
+    talker: GP,
+    count: 10,
+    satellites: [
+        Satellite {
+            id: 25,
+            elevation_degrees: 68,
+            azimuth_degree: 53,
+            snr: 47,
+        },
+        Satellite {
+            id: 21,
+            elevation_degrees: 59,
+            azimuth_degree: 306,
+            snr: 49,
+        },
+        Satellite {
+            id: 29,
+            elevation_degrees: 56,
+            azimuth_degree: 161,
+            snr: 49,
+        },
+        Satellite {
+            id: 31,
+            elevation_degrees: 36,
+            azimuth_degree: 265,
+            snr: 49,
+        },
+        Satellite {
+            id: 12,
+            elevation_degrees: 29,
+            azimuth_degree: 48,
+            snr: 49,
+        },
+        Satellite {
+            id: 5,
+            elevation_degrees: 22,
+            azimuth_degree: 123,
+            snr: 49,
+        },
+        Satellite {
+            id: 18,
+            elevation_degrees: 13,
+            azimuth_degree: 0,
+            snr: 49,
+        },
+        Satellite {
+            id: 1,
+            elevation_degrees: 0,
+            azimuth_degree: 0,
+            snr: 49,
+        },
+        Satellite {
+            id: 14,
+            elevation_degrees: 0,
+            azimuth_degree: 0,
+            snr: 3,
+        },
+        Satellite {
+            id: 16,
+            elevation_degrees: 0,
+            azimuth_degree: 0,
+            snr: 27,
+        },
+    ],
+}

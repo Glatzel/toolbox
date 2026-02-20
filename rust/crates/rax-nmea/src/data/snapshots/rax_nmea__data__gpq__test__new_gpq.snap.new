@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/data/gpq.rs
+assertion_line: 63
+expression: gpq
+---
+DHV {
+    talker: GP,
+    msg_id: "RMC",
+}

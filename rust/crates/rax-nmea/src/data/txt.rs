@@ -131,14 +131,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let txt = Txt::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{txt:?}");
-        assert_eq!(txt.talker, Talker::GP);
-        assert_eq!(txt.message.len(), 3);
-        assert_eq!(txt.message[0].0, Some(TxtType::Info));
-        assert_eq!(txt.message[0].1, Some("MA=CASIC".to_string()));
-        assert_eq!(txt.message[1].0, Some(TxtType::Info));
-        assert_eq!(txt.message[1].1, Some("IC=ATGB03+ATGR201".to_string()));
-        assert_eq!(txt.message[2].0, Some(TxtType::Info));
-        assert_eq!(txt.message[2].1, Some("SW=URANUS2,V2.2.1.0".to_string()));
+        insta::assert_debug_snapshot!(txt);
         Ok(())
     }
 }

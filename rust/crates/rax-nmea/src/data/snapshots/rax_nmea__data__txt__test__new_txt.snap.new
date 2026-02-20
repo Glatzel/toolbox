@@ -1,0 +1,13 @@
+---
+source: crates/rax-nmea/src/data/txt.rs
+assertion_line: 134
+expression: txt
+---
+TXT {
+    talker: GP,
+    message: [
+        "Info: MA=CASIC",
+        "Info: IC=ATGB03+ATGR201",
+        "Info: SW=URANUS2,V2.2.1.0",
+    ],
+}

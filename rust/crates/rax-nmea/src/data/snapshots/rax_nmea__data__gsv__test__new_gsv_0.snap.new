@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/data/gsv.rs
+assertion_line: 218
+expression: gsv
+---
+GSV {
+    talker: GP,
+    count: 0,
+    satellites: [],
+}

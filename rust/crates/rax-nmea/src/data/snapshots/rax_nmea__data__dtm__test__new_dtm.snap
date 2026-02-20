@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/data/dtm.rs
+expression: dtm
+---
+DHV {
+    talker: GP,
+    datum: UserDefined,
+    sub_datum: "",
+    lat: 0.08,
+    lon: 0.07,
+    alt: -47.7,
+}

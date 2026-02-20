@@ -103,7 +103,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let dhv = Dhv::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{dhv:?}");
-        insta::assert_debug_snapshot!(dhv.talker);
+        insta::assert_debug_snapshot!(dhv);
         Ok(())
     }
 }

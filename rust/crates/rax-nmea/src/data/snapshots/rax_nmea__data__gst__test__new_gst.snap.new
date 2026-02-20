@@ -1,0 +1,16 @@
+---
+source: crates/rax-nmea/src/data/gst.rs
+assertion_line: 125
+expression: vtg
+---
+GST {
+    talker: GN,
+    time: 18:21:41,
+    rms: 15.5,
+    std_major: 15.3,
+    std_minor: 7.2,
+    orient: 21.8,
+    std_lat: 0.9,
+    std_lon: 0.5,
+    std_alt: 0.8,
+}

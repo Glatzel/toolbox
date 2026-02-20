@@ -116,12 +116,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let vtg = Vtg::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{vtg:?}");
-        assert_eq!(vtg.talker, Talker::GN);
-        assert_approx_eq!(f64, vtg.cogt.unwrap(), 83.7);
-        assert_approx_eq!(f64, vtg.cogm.unwrap(), 83.7);
-        assert_approx_eq!(f64, vtg.sogn.unwrap(), 146.3);
-        assert_approx_eq!(f64, vtg.sogk.unwrap(), 271.0);
-        assert_eq!(vtg.pos_mode.unwrap(), PosMode::Differential);
+        insta::assert_debug_snapshot!(vtg);
         Ok(())
     }
 }

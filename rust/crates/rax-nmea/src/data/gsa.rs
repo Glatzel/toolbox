@@ -176,14 +176,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gsa:?}");
-        assert_eq!(gsa.talker, Talker::GN);
-        assert_eq!(gsa.op_mode.unwrap(), GsaOperationMode::Automatic);
-        assert_eq!(gsa.nav_mode.unwrap(), GsaNavigationMode::Fix3D);
-        assert_eq!(gsa.svid, vec![5, 7, 13, 14, 15, 17, 19, 23, 24]);
-        assert_approx_eq!(f64, gsa.pdop.unwrap(), 1.0);
-        assert_approx_eq!(f64, gsa.hdop.unwrap(), 0.7);
-        assert_approx_eq!(f64, gsa.vdop.unwrap(), 0.7);
-        assert_eq!(gsa.system_id, Some(SystemId::GPS));
+        insta::assert_debug_snapshot!(gsa);
 
         Ok(())
     }
@@ -194,15 +187,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gsa:?}");
-        assert_eq!(gsa.talker, Talker::GP);
-        assert_eq!(gsa.op_mode.unwrap(), GsaOperationMode::Automatic);
-        assert_eq!(gsa.nav_mode.unwrap(), GsaNavigationMode::Fix3D);
-        assert_eq!(gsa.svid, vec![5, 7, 8, 10, 15, 17, 18, 19, 30]);
-        assert_approx_eq!(f64, gsa.pdop.unwrap(), 1.2);
-        assert_approx_eq!(f64, gsa.hdop.unwrap(), 0.9);
-        assert_approx_eq!(f64, gsa.vdop.unwrap(), 0.8);
-        assert_eq!(gsa.system_id, None);
-
+        insta::assert_debug_snapshot!(gsa);
         Ok(())
     }
 }

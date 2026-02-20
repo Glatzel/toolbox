@@ -1,0 +1,18 @@
+---
+source: crates/rax-nmea/src/data/grs.rs
+assertion_line: 137
+expression: grs
+---
+GSA {
+    talker: GP,
+    time: 22:03:20,
+    mode: UsedInGga,
+    residual: [
+        -0.8,
+        -0.2,
+        -0.1,
+        -0.2,
+        0.8,
+        0.6,
+    ],
+}

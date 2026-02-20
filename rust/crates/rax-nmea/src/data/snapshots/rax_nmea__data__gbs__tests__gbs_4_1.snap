@@ -1,0 +1,16 @@
+---
+source: crates/rax-nmea/src/data/gbs.rs
+expression: gbs
+---
+GBS {
+    talker: GP,
+    time: 23:54:58,
+    err_lat: 1.4,
+    err_lon: 1.3,
+    err_alt: 3.1,
+    svid: 3,
+    bias: -21.4,
+    std_dev: 3.8,
+    system_id: GPS,
+    signal_id: 0,
+}

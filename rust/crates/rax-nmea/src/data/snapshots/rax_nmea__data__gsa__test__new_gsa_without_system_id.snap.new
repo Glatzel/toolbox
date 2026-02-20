@@ -1,0 +1,24 @@
+---
+source: crates/rax-nmea/src/data/gsa.rs
+assertion_line: 190
+expression: gsa
+---
+GSA {
+    talker: GP,
+    op_mode: Automatic,
+    nav_mode: Fix3D,
+    svid: [
+        5,
+        7,
+        8,
+        10,
+        15,
+        17,
+        18,
+        19,
+        30,
+    ],
+    svid: 1.2,
+    hdop: 0.9,
+    vdop: 0.8,
+}

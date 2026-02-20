@@ -1,0 +1,13 @@
+---
+source: crates/rax-nmea/src/data/vtg.rs
+assertion_line: 119
+expression: vtg
+---
+VTG {
+    talker: GN,
+    cogt: "83.7 Degrees",
+    cogm: "83.7 Degrees",
+    sogn: "146.3 Knots",
+    sogk: "271 Kph",
+    pos_mode: Differential,
+}

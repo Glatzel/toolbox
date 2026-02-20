@@ -1,9 +1,8 @@
 use std::fs::File;
 
 #[cfg(feature = "fancy")]
-use mischief::render::{
-    DefaultIndent, HyperlinkFormat, IIndent, IRender, IStyle, ITheme, NoColorStyle, Render,
-};
+use mischief::render::{DefaultIndent, HyperlinkFormat, IIndent, IStyle, ITheme, NoColorStyle};
+use mischief::render::{IRender, Render};
 use mischief::{IntoMischief, Report, WrapErr, mischief};
 #[cfg(feature = "fancy")]
 struct Theme;
@@ -36,13 +35,24 @@ impl IStyle for Theme {
         (None, HyperlinkFormat::Plain)
     }
 }
-#[cfg(feature = "fancy")]
+
 fn render_report(report: &Report) -> String {
     let mut result = String::new();
+    #[cfg(feature = "fancy")]
     let render = Render::new(Theme);
+    #[cfg(not(feature = "fancy"))]
+    let render = Render::new();
+    #[cfg(not(feature = "fancy"))]
     render.render(&mut result, report.diagnostic()).unwrap();
 
     result
+}
+fn snapshot_file_name(name: &str) -> String {
+    if cfg!(feature = "fancy") {
+        format!("{name}_fancy")
+    } else {
+        format!("{name}_no_fancy")
+    }
 }
 #[test]
 fn report_error() {
@@ -62,12 +72,11 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            println!("{report:?}");
-            #[cfg(feature = "fancy")]
-            insta::assert_snapshot!(render_report(&report))
+            insta::assert_snapshot!(snapshot_file_name("report_error"), render_report(&report))
         }
     }
 }
+
 #[test]
 fn report_error_long() {
     let e: Result<i32, mischief::Report> = Err("Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct interpretation of the settings provided.")
@@ -86,9 +95,10 @@ fn report_error_long() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            println!("{report:?}");
-            #[cfg(feature = "fancy")]
-            insta::assert_snapshot!(render_report(&report))
+            insta::assert_snapshot!(
+                snapshot_file_name("report_error_long"),
+                render_report(&report)
+            )
         }
     }
 }
@@ -98,9 +108,10 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
-            println!("{report:?}");
-            #[cfg(feature = "fancy")]
-            insta::assert_snapshot!(render_report(&report))
+            insta::assert_snapshot!(
+                snapshot_file_name("report_from_error"),
+                render_report(&report)
+            )
         }
     }
     Ok(())

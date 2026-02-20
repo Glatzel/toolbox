@@ -1,13 +1,17 @@
 use std::fs::File;
 
+#[cfg(feature = "fancy")]
 use mischief::render::{
     DefaultIndent, HyperlinkFormat, IIndent, IRender, IStyle, ITheme, NoColorStyle, Render,
 };
 use mischief::{IntoMischief, Report, WrapErr, mischief};
+#[cfg(feature = "fancy")]
 struct Theme;
+#[cfg(feature = "fancy")]
 impl ITheme for Theme {
     fn width(&self) -> Option<usize> { Some(80) }
 }
+#[cfg(feature = "fancy")]
 impl IIndent for Theme {
     fn get_indent(
         &self,
@@ -17,6 +21,7 @@ impl IIndent for Theme {
         DefaultIndent.get_indent(layer, element)
     }
 }
+#[cfg(feature = "fancy")]
 impl IStyle for Theme {
     fn default_style(&self) -> Option<owo_colors::Style> { NoColorStyle.default_style() }
     fn indent_style(&self) -> Option<owo_colors::Style> { NoColorStyle.indent_style() }
@@ -31,11 +36,12 @@ impl IStyle for Theme {
         (None, HyperlinkFormat::Plain)
     }
 }
+#[cfg(feature = "fancy")]
 fn render_report(report: &Report) -> String {
     let mut result = String::new();
     let render = Render::new(Theme);
     render.render(&mut result, report.diagnostic()).unwrap();
-    println!("{report:?}");
+
     result
 }
 #[test]
@@ -55,7 +61,11 @@ fn report_error() {
         .wrap_err_with(|| "Third error");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_snapshot!(render_report(&report)),
+        Err(report) => {
+            println!("{report:?}");
+            #[cfg(feature = "fancy")]
+            insta::assert_snapshot!(render_report(&report))
+        }
     }
 }
 #[test]
@@ -75,7 +85,11 @@ fn report_error_long() {
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_snapshot!(render_report(&report)),
+        Err(report) => {
+            println!("{report:?}");
+            #[cfg(feature = "fancy")]
+            insta::assert_snapshot!(render_report(&report))
+        }
     }
 }
 #[test]
@@ -83,7 +97,11 @@ fn report_from_error() -> mischief::Result<()> {
     let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => unreachable!(),
-        Err(report) => insta::assert_snapshot!(render_report(&report)),
+        Err(report) => {
+            println!("{report:?}");
+            #[cfg(feature = "fancy")]
+            insta::assert_snapshot!(render_report(&report))
+        }
     }
     Ok(())
 }

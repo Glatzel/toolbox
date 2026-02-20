@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/gll.rs
-assertion_line: 109
 expression: gll
 ---
 GLL {

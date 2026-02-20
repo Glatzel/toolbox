@@ -1,25 +1,23 @@
 ---
 source: crates/rax-nmea/src/data/gsa.rs
-assertion_line: 179
 expression: gsa
 ---
 GSA {
-    talker: GN,
+    talker: GP,
     op_mode: Automatic,
     nav_mode: Fix3D,
     svid: [
         5,
         7,
-        13,
-        14,
+        8,
+        10,
         15,
         17,
+        18,
         19,
-        23,
-        24,
+        30,
     ],
-    svid: 1.0,
-    hdop: 0.7,
-    vdop: 0.7,
-    system_id: GPS,
+    svid: 1.2,
+    hdop: 0.9,
+    vdop: 0.8,
 }

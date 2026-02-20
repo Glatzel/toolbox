@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/gns.rs
-assertion_line: 217
 expression: gns
 ---
 GNS {

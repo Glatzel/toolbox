@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/gsv.rs
-assertion_line: 184
 expression: gsv
 ---
 GSV {

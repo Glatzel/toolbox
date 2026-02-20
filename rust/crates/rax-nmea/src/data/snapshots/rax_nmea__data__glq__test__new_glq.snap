@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/glq.rs
-assertion_line: 62
 expression: glq
 ---
 DHV {

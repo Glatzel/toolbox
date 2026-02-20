@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/txt.rs
-assertion_line: 134
 expression: txt
 ---
 TXT {

@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/vtg.rs
-assertion_line: 119
 expression: vtg
 ---
 VTG {

@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/zda.rs
-assertion_line: 106
 expression: zda
 ---
 ZDA {

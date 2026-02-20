@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/grs.rs
-assertion_line: 137
 expression: grs
 ---
 GSA {

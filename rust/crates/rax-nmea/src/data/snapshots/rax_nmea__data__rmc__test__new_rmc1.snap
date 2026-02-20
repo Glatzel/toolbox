@@ -1,6 +1,5 @@
 ---
 source: crates/rax-nmea/src/data/rmc.rs
-assertion_line: 135
 expression: rmc
 ---
 RMC {

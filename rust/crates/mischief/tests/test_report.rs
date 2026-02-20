@@ -42,7 +42,7 @@ fn render_report(report: &Report) -> String {
     let render = Render::new(Theme);
     #[cfg(not(feature = "fancy"))]
     let render = Render::new();
-    #[cfg(not(feature = "fancy"))]
+    #[cfg(feature = "fancy")]
     render.render(&mut result, report.diagnostic()).unwrap();
     result
 }

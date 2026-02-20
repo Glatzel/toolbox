@@ -3,4 +3,4 @@ source: crates/mischief/tests/test_report.rs
 expression: render_report(&report)
 ---
 x error wrapper
-╰─▶ No such file or directory (os error 2)
+╰─▶ 系统找不到指定的文件。 (os error 2)

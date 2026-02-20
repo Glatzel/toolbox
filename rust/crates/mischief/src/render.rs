@@ -1,15 +1,7 @@
 use crate::IDiagnostic;
 extern crate alloc;
-use core::fmt::Debug;
-
-#[cfg(feature = "fancy")]
-mod indent;
-#[cfg(feature = "fancy")]
-mod position;
 #[cfg(feature = "fancy")]
 mod shader;
-#[cfg(feature = "fancy")]
-mod terminal_config;
 #[cfg(feature = "fancy")]
 mod theme;
 
@@ -21,96 +13,65 @@ use alloc::string::String;
 use core::fmt::Write;
 
 #[cfg(feature = "fancy")]
-pub use indent::{IIndent, Indent};
+pub use shader::*;
 #[cfg(feature = "fancy")]
-pub use position::{Item, Layer};
-#[cfg(feature = "fancy")]
-pub use shader::{IShader, Shader};
-#[cfg(feature = "fancy")]
-pub use terminal_config::TerminalConfig;
-#[cfg(feature = "fancy")]
-pub use theme::{DefaultTheme, ITheme, NoColorTheme};
+pub use theme::*;
 
 /// Trait defining rendering behavior for diagnostic types.
-pub trait IRender: Debug {
+pub trait IRender {
+    fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
     #[cfg(feature = "fancy")]
-    fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
-
-    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result;
+    fn render_fancy(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
+    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result;
 }
 
 /// Wrapper struct to render diagnostics.
-pub struct Render<'a, T>
-where
-    T: IDiagnostic,
-{
-    diagnostic: &'a T,
-    #[cfg(feature = "fancy")]
-    indent: Indent,
+pub struct Render<T: ITheme> {
     #[cfg(feature = "fancy")]
     shader: Shader,
     #[cfg(feature = "fancy")]
     terminal_config: TerminalConfig,
     #[cfg(feature = "fancy")]
-    theme: DefaultTheme,
+    theme: T,
 }
 
-impl<'a, T> Render<'a, T>
-where
-    T: IDiagnostic,
-{
+impl<T: ITheme> Render<T> {
     /// Creates a new render wrapper for a diagnostic.
-    pub fn new(diagnostic: &'a T) -> Self {
-        #[cfg(feature = "fancy")]
+    pub fn new(#[cfg(feature = "fancy")] theme: T) -> Self {
         let terminal_config = TerminalConfig::init();
         Self {
-            diagnostic,
-            #[cfg(feature = "fancy")]
-            indent: Indent,
             #[cfg(feature = "fancy")]
             shader: Shader,
             #[cfg(feature = "fancy")]
             terminal_config,
             #[cfg(feature = "fancy")]
-            theme: DefaultTheme,
+            theme,
         }
     }
-
     /// Produces an iterator over the diagnostic chain.
-    fn chain(&self) -> impl Iterator<Item = &dyn IDiagnostic> {
-        core::iter::successors(Some(self.diagnostic as &dyn IDiagnostic), |r| r.source())
+    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
     }
 }
 
-impl<'a, T> Debug for Render<'a, T>
-where
-    T: IDiagnostic,
-{
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl<T: ITheme> IRender for Render<T> {
+    fn render(&self, s: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         #[cfg(not(feature = "fancy"))]
         self.render_plain(f)?;
 
         #[cfg(feature = "fancy")]
         {
             if self.terminal_config.supports_unicode() {
-                self.render_fancy(f)?
+                self.render_fancy(s, diagnostic)
             } else {
-                self.render_plain(f)?
+                self.render_plain(s, diagnostic)
             }
         }
-
-        Ok(())
     }
-}
-
-impl<'a, T> IRender for Render<'a, T>
-where
-    T: IDiagnostic,
-{
     #[cfg(feature = "fancy")]
-    fn render_fancy(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn render_fancy(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         let mut buffer = String::new();
-        let mut chain = self.chain().peekable();
+        let mut chain = Self::chain(diagnostic).peekable();
         let mut layer = Layer::Bottom;
 
         while let Some(diagnostic) = chain.next() {
@@ -119,16 +80,17 @@ where
             }
             buffer.clear();
 
-            let severity_theme = self.theme.severity_theme(diagnostic.severity());
+            let severity_color = self.theme.severity_color(diagnostic.severity());
             if let Some(s) = diagnostic.severity() {
                 self.shader
-                    .apply(&mut buffer, s, &severity_theme, &self.terminal_config)?
+                    .apply(&mut buffer, s, &severity_color, &self.terminal_config)?
             }
+
             if let Some(s) = diagnostic.code() {
                 self.shader.apply(
                     &mut buffer,
                     format!("[{}]", s),
-                    &severity_theme,
+                    &severity_color,
                     &self.terminal_config,
                 )?
             }
@@ -137,7 +99,7 @@ where
                     &mut buffer,
                     s,
                     "(link)",
-                    &self.theme.url_theme(),
+                    &self.theme.url_color(),
                     &self.terminal_config,
                 )?
             }
@@ -151,61 +113,57 @@ where
             self.shader.apply(
                 &mut buffer,
                 diagnostic.description(),
-                &self.theme.description_theme(),
+                &self.theme.description_color(),
                 &self.terminal_config,
             )?;
-            buffer = self.shader.write_wrapped(
+            buffer = self.shader.wrap_string(
                 &buffer,
                 &self.terminal_config,
                 &self.theme,
-                &self.indent,
                 layer,
                 Item::First,
             );
-            f.write_str(&buffer)?;
+            text.write_str(&buffer)?;
             buffer.clear();
 
             if let Some(s) = diagnostic.help() {
-                writeln!(f)?;
-                let help_theme = self.theme.help_theme();
+                writeln!(text)?;
+                let help_theme = self.theme.help_color();
                 self.shader
                     .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)?;
                 self.shader
                     .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)?;
-                buffer = self.shader.write_wrapped(
+                buffer = self.shader.wrap_string(
                     &buffer,
                     &self.terminal_config,
                     &self.theme,
-                    &self.indent,
                     layer,
                     Item::Other,
                 );
-                f.write_str(&buffer)?;
+                text.write_str(&buffer)?;
             }
 
-            writeln!(f)?;
+            writeln!(text)?;
             layer = Layer::Middle;
         }
-
         Ok(())
     }
 
-    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut chain = self.chain();
+    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        let mut chain = Self::chain(diagnostic);
 
         if let Some(first) = chain.next() {
-            writeln!(f, "Error: {}", first.description())?;
+            writeln!(text, "Error: {}", first.description())?;
         }
 
         let mut first = true;
         for diagnostic in chain {
             if first {
-                writeln!(f, "\nCaused by:")?;
+                writeln!(text, "\nCaused by:")?;
                 first = false;
             }
-            writeln!(f, "    {}", diagnostic.description())?;
+            writeln!(text, "    {}", diagnostic.description())?;
         }
-
         Ok(())
     }
 }

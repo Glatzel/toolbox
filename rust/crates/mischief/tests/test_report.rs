@@ -1,6 +1,25 @@
 use std::fs::File;
 
-use mischief::{IntoMischief, WrapErr, mischief};
+use mischief::render::{ColorPalette, IRender, Render, Theme};
+use mischief::{IntoMischief, Report, WrapErr, mischief};
+fn render_report(report: &Report) -> String {
+    let mut result = String::new();
+    let theme = Theme::new(
+        (
+            ("x ", "│ "),
+            ("│ ", "│ "),
+            ("├─▶ ", "│   "),
+            ("│   ", "│   "),
+            ("╰─▶ ", "    "),
+            ("    ", "    "),
+        ),
+        ColorPalette::new(),
+    );
+    let render = Render::new(theme);
+    render.render(&mut result, report.diagnostic()).unwrap();
+    println!("{report:?}");
+    result
+}
 #[test]
 fn report_error() {
     let e: Result<i32, mischief::Report> = Err("first error")
@@ -18,17 +37,7 @@ fn report_error() {
         .wrap_err_with(|| "Third error");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => {
-            let mut settings = insta::Settings::clone_current();
-            settings.add_filter(
-                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
-                "",
-            );
-            settings.add_filter(r"8;;", "");
-            settings.bind(|| {
-                insta::assert_debug_snapshot!(report);
-            });
-        }
+        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
     }
 }
 #[test]
@@ -48,17 +57,7 @@ fn report_error_long() {
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
     match e {
         Ok(_) => unreachable!(),
-        Err(report) => {
-            let mut settings = insta::Settings::clone_current();
-            settings.add_filter(
-                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
-                "",
-            );
-            settings.add_filter(r"8;;", "");
-            settings.bind(|| {
-                insta::assert_debug_snapshot!(report);
-            });
-        }
+        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
     }
 }
 #[test]
@@ -74,17 +73,7 @@ fn report_from_error() -> mischief::Result<()> {
     let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => unreachable!(),
-        Err(report) => {
-            let mut settings = insta::Settings::clone_current();
-            settings.add_filter(
-                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
-                "",
-            );
-            settings.add_filter(r"8;;", "");
-            settings.bind(|| {
-                insta::assert_debug_snapshot!(report);
-            });
-        }
+        Err(report) => insta::assert_debug_snapshot!(render_report(&report)),
     }
     Ok(())
 }

@@ -5,83 +5,133 @@ use core::fmt::{Display, Write};
 
 use owo_colors::OwoColorize;
 
-use crate::render::indent::IIndent;
-use crate::render::position;
-use crate::render::terminal_config::TerminalConfig;
-use crate::render::theme::ITheme;
+use crate::render::ITheme;
+
+/// Represents the position of a layer in a hierarchical layout.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Layer {
+    /// The bottom layer (start of the tree branch).
+    Bottom,
+    /// A middle layer (continuation of a branch).
+    Middle,
+    /// The top layer (end of a branch).
+    Top,
+}
+
+/// Represents the position of an item within a layer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Item {
+    /// The first item in the layer.
+    First,
+    /// Any subsequent item in the layer.
+    Other,
+}
+/// Configuration for terminal capabilities.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TerminalConfig {
+    width: usize,
+    support_color: bool,
+    support_hyperlinks: bool,
+    supports_unicode: bool,
+}
+
+impl TerminalConfig {
+    /// Initializes a new `TerminalConfig` with detected terminal capabilities.
+    pub fn init() -> Self {
+        Self {
+            width: Self::get_terminal_width(),
+            support_color: supports_color::on(supports_color::Stream::Stdout).is_some(),
+            support_hyperlinks: supports_hyperlinks::supports_hyperlinks(),
+            supports_unicode: supports_unicode::supports_unicode(),
+        }
+    }
+
+    /// Returns the width of the terminal in columns.
+    fn get_terminal_width() -> usize {
+        if let Some((terminal_size::Width(w), _)) = terminal_size::terminal_size() {
+            w as usize
+        } else {
+            80
+        }
+    }
+
+    /// Returns the detected terminal width.
+    pub fn width(&self) -> usize { self.width }
+
+    /// Returns whether the terminal supports color output.
+    pub fn support_color(&self) -> bool { self.support_color }
+
+    /// Returns whether the terminal supports hyperlinks.
+    pub fn support_hyperlinks(&self) -> bool { self.support_hyperlinks }
+
+    /// Returns whether the terminal supports Unicode characters.
+    pub fn supports_unicode(&self) -> bool { self.supports_unicode }
+}
+
 pub trait IShader {
-    fn apply<T>(
+    fn apply<S: Display>(
         &self,
         buffer: &mut String,
-        s: T,
-        style: &owo_colors::Style,
+        text: S,
+        style: &Option<owo_colors::Style>,
         terminal_config: &TerminalConfig,
-    ) -> core::fmt::Result
-    where
-        T: Display;
-    fn apply_hyperlink<T>(
+    ) -> core::fmt::Result;
+    fn apply_hyperlink<S: Display>(
         &self,
         buffer: &mut String,
-        hyperlink: T,
-        text: T,
-        style: &owo_colors::Style,
+        hyperlink: S,
+        text: S,
+        style: &Option<owo_colors::Style>,
         terminal_config: &TerminalConfig,
-    ) -> core::fmt::Result
-    where
-        T: Display;
-    fn write_wrapped<INDENT, THEME>(
+    ) -> core::fmt::Result;
+
+    fn wrap_string<T: ITheme>(
         &self,
         buffer: &str,
         terminal_config: &TerminalConfig,
-        theme: &THEME,
-        indent: &INDENT,
-        node: position::Layer,
-        element: position::Item,
-    ) -> String
-    where
-        INDENT: IIndent,
-        THEME: ITheme;
+        theme: &T,
+        layer: Layer,
+        element: Item,
+    ) -> String;
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Shader;
 impl IShader for Shader {
-    fn apply<T>(
+    fn apply<S: Display>(
         &self,
         buffer: &mut String,
-        s: T,
-        style: &owo_colors::Style,
+        text: S,
+        style: &Option<owo_colors::Style>,
         terminal_config: &TerminalConfig,
-    ) -> core::fmt::Result
-    where
-        T: Display,
-    {
-        if terminal_config.support_color() {
-            buffer.write_str(&s.style(*style).to_string())
+    ) -> core::fmt::Result {
+        if terminal_config.support_color()
+            && let Some(style) = style
+        {
+            buffer.write_str(&text.style(*style).to_string())
         } else {
-            buffer.write_str(&s.to_string())
+            buffer.write_str(&text.to_string())
         }
     }
-    fn apply_hyperlink<T>(
+    fn apply_hyperlink<S: Display>(
         &self,
         buffer: &mut String,
-        hyperlink: T,
-        text: T,
-        style: &owo_colors::Style,
+        hyperlink: S,
+        text: S,
+        style: &Option<owo_colors::Style>,
         terminal_config: &TerminalConfig,
-    ) -> core::fmt::Result
-    where
-        T: Display,
-    {
+    ) -> core::fmt::Result {
         match (
-            terminal_config.support_color(),
+            terminal_config.support_color() && style.is_some(),
             terminal_config.support_hyperlinks(),
         ) {
             (true, true) => buffer.write_str(
                 &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
-                    .style(*style)
+                    .style(style.unwrap())
                     .to_string(),
             ),
-            (true, false) => buffer.write_str(&format!("{}", hyperlink).style(*style).to_string()),
+            (true, false) => {
+                buffer.write_str(&format!("{}", hyperlink).style(style.unwrap()).to_string())
+            }
             (false, true) => buffer.write_str(&format!(
                 "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
                 hyperlink, text
@@ -89,28 +139,27 @@ impl IShader for Shader {
             (false, false) => Ok(()),
         }
     }
-    fn write_wrapped<INDENT, THEME>(
+    fn wrap_string<T: ITheme>(
         &self,
         buffer: &str,
         terminal_config: &TerminalConfig,
-        theme: &THEME,
-        indent: &INDENT,
-        layer: position::Layer,
-        element: position::Item,
-    ) -> String
-    where
-        INDENT: IIndent,
-        THEME: ITheme,
-    {
+        theme: &T,
+        layer: Layer,
+        element: Item,
+    ) -> String {
         let (indent, sub_indent): (String, String) = if terminal_config.support_color() {
-            let (indent, sub_indent) = indent.get(layer, element);
+            let (indent, sub_indent) = theme.get_indent(layer, element);
             // let indent_theme = theme.indent_theme().clone();
-            let indent = indent.style(theme.indent_theme()).to_string();
-            let sub_indent = sub_indent.style(theme.indent_theme()).to_string();
-
-            (indent, sub_indent)
+            match theme.indent_color() {
+                Some(indent_color) => {
+                    let indent = indent.style(indent_color).to_string();
+                    let sub_indent = sub_indent.style(indent_color).to_string();
+                    (indent, sub_indent)
+                }
+                None => (indent.to_string(), sub_indent.to_string()),
+            }
         } else {
-            let (indent, sub_indent) = indent.get(layer, element);
+            let (indent, sub_indent) = theme.get_indent(layer, element);
             (indent.to_string(), sub_indent.to_string())
         };
         let opt = textwrap::Options::new(terminal_config.width())

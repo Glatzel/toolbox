@@ -29,7 +29,7 @@ pub use shader::{IShader, Shader};
 #[cfg(feature = "fancy")]
 pub use terminal_config::TerminalConfig;
 #[cfg(feature = "fancy")]
-pub use theme::{ITheme, Theme};
+pub use theme::{DefaultTheme, ITheme, NoColorTheme};
 
 /// Trait defining rendering behavior for diagnostic types.
 pub trait IRender: Debug {
@@ -52,7 +52,7 @@ where
     #[cfg(feature = "fancy")]
     terminal_config: TerminalConfig,
     #[cfg(feature = "fancy")]
-    theme: Theme,
+    theme: DefaultTheme,
 }
 
 impl<'a, T> Render<'a, T>
@@ -72,7 +72,7 @@ where
             #[cfg(feature = "fancy")]
             terminal_config,
             #[cfg(feature = "fancy")]
-            theme: Theme,
+            theme: DefaultTheme,
         }
     }
 

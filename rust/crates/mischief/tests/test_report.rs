@@ -1,7 +1,6 @@
 use std::fs::File;
 
 use mischief::{IntoMischief, WrapErr, mischief};
-
 #[test]
 fn report_error() {
     let e: Result<i32, mischief::Report> = Err("first error")
@@ -18,8 +17,18 @@ fn report_error() {
         .wrap_err("Second error")
         .wrap_err_with(|| "Third error");
     match e {
-        Ok(_) => panic!(),
-        Err(report) => println!("{:?}", report),
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            let mut settings = insta::Settings::clone_current();
+            settings.add_filter(
+                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
+                "",
+            );
+            settings.add_filter(r"8;;", "");
+            settings.bind(|| {
+                insta::assert_debug_snapshot!(report);
+            });
+        }
     }
 }
 #[test]
@@ -38,8 +47,18 @@ fn report_error_long() {
         help="Network resource unavailable. Please check your connection or file permissions, and try again. Contact support with code 404-B.",severity = mischief::Severity::Error, code = "E502",))
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
     match e {
-        Ok(_) => panic!(),
-        Err(report) => println!("{:?}", report),
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            let mut settings = insta::Settings::clone_current();
+            settings.add_filter(
+                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
+                "",
+            );
+            settings.add_filter(r"8;;", "");
+            settings.bind(|| {
+                insta::assert_debug_snapshot!(report);
+            });
+        }
     }
 }
 #[test]
@@ -54,8 +73,18 @@ fn report_ok() -> mischief::Result<()> {
 fn report_from_error() -> mischief::Result<()> {
     let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
-        Ok(_) => panic!(),
-        Err(e) => println!("{e:?}"),
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            let mut settings = insta::Settings::clone_current();
+            settings.add_filter(
+                r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x1B]*\x1B\\)",
+                "",
+            );
+            settings.add_filter(r"8;;", "");
+            settings.bind(|| {
+                insta::assert_debug_snapshot!(report);
+            });
+        }
     }
     Ok(())
 }

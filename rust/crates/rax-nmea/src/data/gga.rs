@@ -239,7 +239,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gga = Gga::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gga:?}");
-  insta::assert_debug_snapshot!(gga);
+        insta::assert_debug_snapshot!(gga);
         Ok(())
     }
 }

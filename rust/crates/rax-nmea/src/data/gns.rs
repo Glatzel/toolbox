@@ -214,7 +214,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gns:?}");
-  insta::assert_debug_snapshot!(gns);
+        insta::assert_debug_snapshot!(gns);
 
         Ok(())
     }
@@ -225,7 +225,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gns:?}");
-     insta::assert_debug_snapshot!(gns);
+        insta::assert_debug_snapshot!(gns);
         Ok(())
     }
 }

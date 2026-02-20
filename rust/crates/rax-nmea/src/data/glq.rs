@@ -59,7 +59,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let glq = Glq::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{glq:?}");
-      insta::assert_debug_snapshot!(glq);
+        insta::assert_debug_snapshot!(glq);
         Ok(())
     }
 }

@@ -106,7 +106,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gll = Gll::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gll:?}");
-         insta::assert_debug_snapshot!(gll);
+        insta::assert_debug_snapshot!(gll);
         Ok(())
     }
 }

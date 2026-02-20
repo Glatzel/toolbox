@@ -60,7 +60,7 @@ mod test {
         let mut ctx = StrParserContext::new();
         let gbq = Gbq::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gbq:?}");
-      insta::assert_debug_snapshot!(gbq);
+        insta::assert_debug_snapshot!(gbq);
         Ok(())
     }
 }

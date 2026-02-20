@@ -4,4 +4,5 @@ expression: render_report(&report)
 ---
 Error: error wrapper
 
-The system cannot find the file specified.
+Caused by:
+    fake error

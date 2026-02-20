@@ -1,5 +1,3 @@
-use std::fs::File;
-
 #[cfg(feature = "fancy")]
 use mischief::render::{DefaultIndent, HyperlinkFormat, IIndent, IStyle, ITheme, NoColorStyle};
 use mischief::render::{IRender, Render};
@@ -108,7 +106,18 @@ fn report_error_long() {
 }
 #[test]
 fn report_from_error() -> mischief::Result<()> {
-    let f = File::open("fake").into_mischief().wrap_err("error wrapper");
+    use std::fmt;
+
+    #[derive(Debug)]
+    pub struct FakeError;
+
+    impl fmt::Display for FakeError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "fake error") }
+    }
+
+    impl std::error::Error for FakeError {}
+    let f: Result<(), FakeError> = Err(FakeError);
+    let f = f.into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {

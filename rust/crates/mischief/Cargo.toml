@@ -13,7 +13,7 @@ terminal_size = { workspace = true, optional = true }
 textwrap = { workspace = true, optional = true }
 
 [dev-dependencies]
-insta= { workspace = true, features = ["filters"]}
+insta = { workspace = true, features = ["filters"] }
 
 [features]
 default = ["macros"]

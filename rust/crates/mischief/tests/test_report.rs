@@ -2,7 +2,7 @@ use std::fs::File;
 
 use mischief::render::{ColorPalette, IRender, Render, Theme};
 use mischief::{IntoMischief, Report, WrapErr, mischief};
-fn render_report(report: &Report) ->String{
+fn render_report(report: &Report) -> String {
     let mut result = String::new();
     let theme = Theme::new(
         (

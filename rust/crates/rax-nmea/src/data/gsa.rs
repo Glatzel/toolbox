@@ -161,11 +161,10 @@ impl fmt::Debug for Gsa {
 #[cfg(test)]
 mod test {
     extern crate std;
+    use std::println;
     use std::string::ToString;
-    use std::{println};
 
     use clerk::{LogLevel, init_log_with_level};
-
 
     use super::*;
 

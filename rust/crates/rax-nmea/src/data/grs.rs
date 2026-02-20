@@ -125,7 +125,6 @@ mod test {
 
     use clerk::{LogLevel, init_log_with_level};
 
-
     use super::*;
     #[test]
     fn test_grs() -> mischief::Result<()> {

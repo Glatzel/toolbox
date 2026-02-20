@@ -124,7 +124,7 @@ mod test {
     use std::string::ToString;
 
     use clerk::{LogLevel, init_log_with_level};
-    use float_cmp::assert_approx_eq;
+
 
     use super::*;
     #[test]

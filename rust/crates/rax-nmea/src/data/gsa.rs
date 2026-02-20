@@ -162,10 +162,10 @@ impl fmt::Debug for Gsa {
 mod test {
     extern crate std;
     use std::string::ToString;
-    use std::{println, vec};
+    use std::{println};
 
     use clerk::{LogLevel, init_log_with_level};
-    use float_cmp::assert_approx_eq;
+
 
     use super::*;
 

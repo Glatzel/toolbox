@@ -6,7 +6,7 @@ use alloc::string::{String, ToString};
 
 use crate::error::MischiefError;
 #[cfg(feature = "fancy")]
-use crate::render::Theme;
+use crate::render::DefaultTheme;
 use crate::render::{IRender, Render};
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
@@ -26,7 +26,7 @@ impl Debug for Report {
         let mut s = String::new();
         Render::new(
             #[cfg(feature = "fancy")]
-            Theme::default(),
+            DefaultTheme,
         )
         .render(&mut s, &self.inner)?;
         f.write_str(&s)
@@ -37,7 +37,7 @@ impl Display for Report {
         let mut s = String::new();
         Render::new(
             #[cfg(feature = "fancy")]
-            Theme::default(),
+            DefaultTheme,
         )
         .render(&mut s, &self.inner)?;
         f.write_str(&s)

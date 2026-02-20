@@ -4,5 +4,5 @@ expression: render_report(&report)
 ---
 x Third error
 ├─▶ Second error
-╰─▶ Warning[E404]]8;;https://github.com/Glatzel/toolbox\(link)]8;;\: first error
+╰─▶ Warning[E404]<https://github.com/Glatzel/toolbox>: first error
     help: Try again.

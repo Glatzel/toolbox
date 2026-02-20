@@ -1,21 +1,39 @@
 use std::fs::File;
 
-use mischief::render::{ColorPalette, IRender, Render, Theme};
+use mischief::render::{
+    DefaultIndent, HyperlinkFormat, IIndent, IRender, IStyle, ITheme, NoColorStyle, Render,
+};
 use mischief::{IntoMischief, Report, WrapErr, mischief};
+struct Theme;
+impl ITheme for Theme {
+    fn width(&self) -> Option<usize> { Some(80) }
+}
+impl IIndent for Theme {
+    fn get_indent(
+        &self,
+        layer: mischief::render::Layer,
+        element: mischief::render::Item,
+    ) -> (&'static str, &'static str) {
+        DefaultIndent.get_indent(layer, element)
+    }
+}
+impl IStyle for Theme {
+    fn default_style(&self) -> Option<owo_colors::Style> { NoColorStyle.default_style() }
+    fn indent_style(&self) -> Option<owo_colors::Style> { NoColorStyle.indent_style() }
+    fn description_style(&self) -> Option<owo_colors::Style> { NoColorStyle.description_style() }
+    fn severity_style(&self, severity: Option<mischief::Severity>) -> Option<owo_colors::Style> {
+        NoColorStyle.severity_style(severity)
+    }
+    fn help_style(&self) -> (Option<owo_colors::Style>, Option<owo_colors::Style>) {
+        NoColorStyle.help_style()
+    }
+    fn hyperlink_style(&self) -> (Option<owo_colors::Style>, mischief::render::HyperlinkFormat) {
+        (None, HyperlinkFormat::Plain)
+    }
+}
 fn render_report(report: &Report) -> String {
     let mut result = String::new();
-    let theme = Theme::new(
-        (
-            ("x ", "│ "),
-            ("│ ", "│ "),
-            ("├─▶ ", "│   "),
-            ("│   ", "│   "),
-            ("╰─▶ ", "    "),
-            ("    ", "    "),
-        ),
-        ColorPalette::new(),
-    );
-    let render = Render::new(theme);
+    let render = Render::new(Theme);
     render.render(&mut result, report.diagnostic()).unwrap();
     println!("{report:?}");
     result
@@ -61,19 +79,19 @@ fn report_error_long() {
     }
 }
 #[test]
-fn report_ok() -> mischief::Result<()> {
-    Ok::<i32, mischief::Result<()>>(2i32)
-        .map_err(|e| mischief!("{:?}", e))
-        .wrap_err("Second error")
-        .wrap_err_with(|| "Third error")?;
-    Ok(())
-}
-#[test]
 fn report_from_error() -> mischief::Result<()> {
     let f = File::open("fake").into_mischief().wrap_err("error wrapper");
     match f {
         Ok(_) => unreachable!(),
         Err(report) => insta::assert_snapshot!(render_report(&report)),
     }
+    Ok(())
+}
+#[test]
+fn report_ok() -> mischief::Result<()> {
+    Ok::<i32, mischief::Result<()>>(2i32)
+        .map_err(|e| mischief!("{:?}", e))
+        .wrap_err("Second error")
+        .wrap_err_with(|| "Third error")?;
     Ok(())
 }

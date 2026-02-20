@@ -80,7 +80,7 @@ impl<T: ITheme> IRender for Render<T> {
             }
             buffer.clear();
 
-            let severity_color = self.theme.severity_color(diagnostic.severity());
+            let severity_color = self.theme.severity_style(diagnostic.severity());
             if let Some(s) = diagnostic.severity() {
                 self.shader
                     .apply(&mut buffer, s, &severity_color, &self.terminal_config)?
@@ -99,7 +99,7 @@ impl<T: ITheme> IRender for Render<T> {
                     &mut buffer,
                     s,
                     "(link)",
-                    &self.theme.url_color(),
+                    &self.theme,
                     &self.terminal_config,
                 )?
             }
@@ -113,7 +113,7 @@ impl<T: ITheme> IRender for Render<T> {
             self.shader.apply(
                 &mut buffer,
                 diagnostic.description(),
-                &self.theme.description_color(),
+                &self.theme.description_style(),
                 &self.terminal_config,
             )?;
             buffer = self.shader.wrap_string(
@@ -128,7 +128,7 @@ impl<T: ITheme> IRender for Render<T> {
 
             if let Some(s) = diagnostic.help() {
                 writeln!(text)?;
-                let help_theme = self.theme.help_color();
+                let help_theme = self.theme.help_style();
                 self.shader
                     .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)?;
                 self.shader

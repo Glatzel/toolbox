@@ -2,12 +2,18 @@
 source: crates/mischief/tests/test_report.rs
 expression: render_report(&report)
 ---
-x Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted
-│ permissions, or an incorrect build target.
-├─▶ Error[E502]: Connection to the database server timed out after multiple retries, possibly caused by network instability, firewall restrictions,
-│   or an unreachable endpoint.
-│   help: Network resource unavailable. Please check your connection or file permissions, and try again. Contact support with code 404-B.
-╰─▶ Warning[E404]]8;;https://github.com/Glatzel/toolbox\(link)]8;;\: Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct
-    interpretation of the settings provided.
-    help: To resolve this issue, please ensure all required dependencies are installed, network connectivity is stable, and configuration files are
-    correctly formatted; you can enable verbose logging for more detailed diagnostic information.
+x Attempted to access a resource that is not available in the current execution
+│ environment, which may indicate missing dependencies, restricted permissions,
+│ or an incorrect build target.
+├─▶ Error[E502]: Connection to the database server timed out after multiple
+│   retries, possibly caused by network instability, firewall restrictions, or
+│   an unreachable endpoint.
+│   help: Network resource unavailable. Please check your connection or file
+│   permissions, and try again. Contact support with code 404-B.
+╰─▶ Warning[E404]<https://github.com/Glatzel/toolbox>: Failed to parse
+    configuration file due to invalid syntax near line 42; unexpected token
+    found that prevents correct interpretation of the settings provided.
+    help: To resolve this issue, please ensure all required dependencies are
+    installed, network connectivity is stable, and configuration files are
+    correctly formatted; you can enable verbose logging for more detailed
+    diagnostic information.

@@ -1,24 +1,15 @@
-#[cfg(feature = "fancy")]
-use mischief::render::{DefaultIndent, HyperlinkFormat, IIndent, IStyle, ITheme, NoColorStyle};
-use mischief::render::{IRender, Render};
+use mischief::render_presets::*;
+use mischief::render_protocol::*;
 use mischief::{IntoMischief, Report, WrapErr, mischief};
-#[cfg(feature = "fancy")]
 struct Theme;
-#[cfg(feature = "fancy")]
 impl ITheme for Theme {
     fn width(&self) -> Option<usize> { Some(80) }
 }
-#[cfg(feature = "fancy")]
 impl IIndent for Theme {
-    fn get_indent(
-        &self,
-        layer: mischief::render::Layer,
-        element: mischief::render::Item,
-    ) -> (&'static str, &'static str) {
+    fn get_indent(&self, layer: Layer, element: Item) -> (&'static str, &'static str) {
         DefaultIndent.get_indent(layer, element)
     }
 }
-#[cfg(feature = "fancy")]
 impl IStyle for Theme {
     fn default_style(&self) -> Option<owo_colors::Style> { NoColorStyle.default_style() }
     fn indent_style(&self) -> Option<owo_colors::Style> { NoColorStyle.indent_style() }
@@ -29,33 +20,23 @@ impl IStyle for Theme {
     fn help_style(&self) -> (Option<owo_colors::Style>, Option<owo_colors::Style>) {
         NoColorStyle.help_style()
     }
-    fn hyperlink_style(&self) -> (Option<owo_colors::Style>, mischief::render::HyperlinkFormat) {
+    fn hyperlink_style(
+        &self,
+    ) -> (
+        Option<owo_colors::Style>,
+        mischief::render_protocol::HyperlinkFormat,
+    ) {
         (None, HyperlinkFormat::Plain)
     }
 }
 
 fn render_report(report: &Report) -> String {
     let mut result = String::new();
-    #[cfg(feature = "fancy")]
-    {
-        let render = Render::new(Theme);
-        render.render(&mut result, report.diagnostic()).unwrap();
-        result
-    }
-    #[cfg(not(feature = "fancy"))]
-    {
-        let render = Render::new();
-        render.render(&mut result, report.diagnostic()).unwrap();
-        result
-    }
+    let render = DefaultRender::new(DefaultShader, Theme, TerminalConfig::default());
+    render.render(&mut result, report.diagnostic()).unwrap();
+    result
 }
-fn snapshot_file_name(name: &str) -> String {
-    if cfg!(feature = "fancy") {
-        format!("{name}_fancy")
-    } else {
-        format!("{name}_no_fancy")
-    }
-}
+
 #[test]
 fn report_error() {
     let e: Result<i32, mischief::Report> = Err("first error")
@@ -74,7 +55,7 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(snapshot_file_name("report_error"), render_report(&report))
+            insta::assert_snapshot!(render_report(&report))
         }
     }
 }
@@ -97,10 +78,7 @@ fn report_error_long() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(
-                snapshot_file_name("report_error_long"),
-                render_report(&report)
-            )
+            insta::assert_snapshot!(render_report(&report))
         }
     }
 }
@@ -121,10 +99,7 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(
-                snapshot_file_name("report_from_error"),
-                render_report(&report)
-            )
+            insta::assert_snapshot!(render_report(&report))
         }
     }
     Ok(())

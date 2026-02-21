@@ -15,9 +15,10 @@ mod error;
 pub(crate) mod report;
 pub use error::MischiefError;
 mod protocol;
-pub mod render;
+pub mod render_presets;
 pub use protocol::{IDiagnostic, Severity};
 #[cfg(feature = "macros")]
 mod macros;
+pub mod render_protocol;
 #[cfg(feature = "macros")]
 pub use macros::mischief;

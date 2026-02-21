@@ -5,9 +5,8 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
 use crate::error::MischiefError;
-#[cfg(feature = "fancy")]
-use crate::render::DefaultTheme;
-use crate::render::{IRender, Render};
+use crate::render_presets::{DefaultRender, DefaultShader, DefaultTheme, TerminalConfig};
+use crate::render_protocol::IRender;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
@@ -24,22 +23,16 @@ impl Report {
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut s = String::new();
-        Render::new(
-            #[cfg(feature = "fancy")]
-            DefaultTheme,
-        )
-        .render(&mut s, &self.inner)?;
+        DefaultRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
+            .render(&mut s, &self.inner)?;
         f.write_str(&s)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut s = String::new();
-        Render::new(
-            #[cfg(feature = "fancy")]
-            DefaultTheme,
-        )
-        .render(&mut s, &self.inner)?;
+        DefaultRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
+            .render(&mut s, &self.inner)?;
         f.write_str(&s)
     }
 }

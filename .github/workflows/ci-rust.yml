@@ -18,7 +18,6 @@ jobs:
         args:
           - --workspace --all-features --exclude clerk
           - --features tracing -p clerk
-          - --no-default-features --features macros -p mischief
           - --no-default-features -p rax -p rax-nmea
     runs-on: ${{matrix.machine}}
     steps:

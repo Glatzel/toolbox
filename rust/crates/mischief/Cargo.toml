@@ -5,12 +5,12 @@ version.workspace = true
 
 [dependencies]
 mischief-macros = { workspace = true, optional = true }
-owo-colors.workspace=true
-supports-color .workspace=true
-supports-hyperlinks.workspace=true
-supports-unicode.workspace=true
-terminal_size.workspace=true
-textwrap.workspace=true
+owo-colors.workspace = true
+supports-color.workspace = true
+supports-hyperlinks.workspace = true
+supports-unicode.workspace = true
+terminal_size.workspace = true
+textwrap.workspace = true
 
 [dev-dependencies]
 insta = { workspace = true, features = ["filters"] }

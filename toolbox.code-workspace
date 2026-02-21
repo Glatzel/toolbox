@@ -16,11 +16,11 @@
     "settings": {
         "rust-analyzer.check.features": [
             "tracing",
-            // "fancy"
+            "fancy"
         ],
         "rust-analyzer.cargo.features": [
             "tracing",
-            // "fancy"
+            "fancy"
         ],
         "python.analysis.extraPaths": [
             "./python/src"

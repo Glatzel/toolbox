@@ -60,26 +60,16 @@ impl<T: ITheme> Render<T> {
 
             let severity_color = self.theme.severity_style(diagnostic.severity());
             if let Some(s) = diagnostic.severity() {
-                self.shader
-                    .apply(&mut buffer, s, &severity_color, &self.terminal_config)?
+                self.shader.apply(&mut buffer, s, &severity_color)?
             }
 
             if let Some(s) = diagnostic.code() {
-                self.shader.apply(
-                    &mut buffer,
-                    format!("[{}]", s),
-                    &severity_color,
-                    &self.terminal_config,
-                )?
+                self.shader
+                    .apply(&mut buffer, format!("[{}]", s), &severity_color)?
             }
             if let Some(s) = diagnostic.url() {
-                self.shader.apply_hyperlink(
-                    &mut buffer,
-                    s,
-                    "(link)",
-                    &self.theme,
-                    &self.terminal_config,
-                )?
+                self.shader
+                    .apply_hyperlink(&mut buffer, s, "(link)", &self.theme)?
             }
             if diagnostic.severity().is_some()
                 || diagnostic.code().is_some()
@@ -92,7 +82,6 @@ impl<T: ITheme> Render<T> {
                 &mut buffer,
                 diagnostic.description(),
                 &self.theme.description_style(),
-                &self.terminal_config,
             )?;
             buffer = self.shader.wrap_string(
                 &buffer,
@@ -107,10 +96,8 @@ impl<T: ITheme> Render<T> {
             if let Some(s) = diagnostic.help() {
                 writeln!(text)?;
                 let help_theme = self.theme.help_style();
-                self.shader
-                    .apply(&mut buffer, "help: ", &help_theme.0, &self.terminal_config)?;
-                self.shader
-                    .apply(&mut buffer, s, &help_theme.1, &self.terminal_config)?;
+                self.shader.apply(&mut buffer, "help: ", &help_theme.0)?;
+                self.shader.apply(&mut buffer, s, &help_theme.1)?;
                 buffer = self.shader.wrap_string(
                     &buffer,
                     &self.terminal_config,
@@ -176,7 +163,10 @@ impl Render {
 #[cfg(feature = "fancy")]
 impl<T: ITheme> IRender for Render<T> {
     fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
-        if self.terminal_config.supports_unicode() {
+        if self.terminal_config.supports_unicode()
+            && self.terminal_config.support_color()
+            && self.terminal_config.support_hyperlinks()
+        {
             self.render_fancy(text, diagnostic)
         } else {
             self.render_plain(text, diagnostic)

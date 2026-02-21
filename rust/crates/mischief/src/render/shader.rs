@@ -45,7 +45,6 @@ impl TerminalConfig {
             supports_unicode: supports_unicode::supports_unicode(),
         }
     }
-
     /// Returns the width of the terminal in columns.
     fn terminal_width() -> Option<usize> {
         if let Some((terminal_size::Width(w), _)) = terminal_size::terminal_size() {
@@ -54,13 +53,10 @@ impl TerminalConfig {
             None
         }
     }
-
     /// Returns whether the terminal supports color output.
     pub fn support_color(&self) -> bool { self.support_color }
-
     /// Returns whether the terminal supports hyperlinks.
     pub fn support_hyperlinks(&self) -> bool { self.support_hyperlinks }
-
     /// Returns whether the terminal supports Unicode characters.
     pub fn supports_unicode(&self) -> bool { self.supports_unicode }
 }
@@ -71,7 +67,6 @@ pub trait IShader {
         buffer: &mut String,
         text: S,
         style: &Option<owo_colors::Style>,
-        terminal_config: &TerminalConfig,
     ) -> core::fmt::Result;
     fn apply_hyperlink<S: Display, T: ITheme>(
         &self,
@@ -79,7 +74,6 @@ pub trait IShader {
         hyperlink: S,
         text: S,
         theme: &T,
-        terminal_config: &TerminalConfig,
     ) -> core::fmt::Result;
 
     fn wrap_string<T: ITheme>(
@@ -99,11 +93,8 @@ impl IShader for Shader {
         buffer: &mut String,
         text: S,
         style: &Option<owo_colors::Style>,
-        terminal_config: &TerminalConfig,
     ) -> core::fmt::Result {
-        if terminal_config.support_color()
-            && let Some(style) = style
-        {
+        if let Some(style) = style {
             buffer.write_str(&text.style(*style).to_string())
         } else {
             buffer.write_str(&text.to_string())
@@ -115,12 +106,10 @@ impl IShader for Shader {
         hyperlink: S,
         text: S,
         theme: &T,
-        terminal_config: &TerminalConfig,
     ) -> core::fmt::Result {
         match (
-            terminal_config.support_color() && theme.hyperlink_style().0.is_some(),
-            terminal_config.support_hyperlinks()
-                && theme.hyperlink_style().1 == HyperlinkFormat::Link,
+            theme.hyperlink_style().0.is_some(),
+            theme.hyperlink_style().1 == HyperlinkFormat::Link,
         ) {
             (true, true) => buffer.write_str(
                 &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
@@ -147,9 +136,8 @@ impl IShader for Shader {
         layer: Layer,
         element: Item,
     ) -> String {
-        let (indent, sub_indent): (String, String) = if terminal_config.support_color() {
+        let (indent, sub_indent): (String, String) = {
             let (indent, sub_indent) = theme.get_indent(layer, element);
-            // let indent_theme = theme.indent_theme().clone();
             match theme.indent_style() {
                 Some(indent_color) => {
                     let indent = indent.style(indent_color).to_string();
@@ -158,15 +146,11 @@ impl IShader for Shader {
                 }
                 None => (indent.to_string(), sub_indent.to_string()),
             }
-        } else {
-            let (indent, sub_indent) = theme.get_indent(layer, element);
-            (indent.to_string(), sub_indent.to_string())
         };
         let width = match (terminal_config.width, theme.width()) {
             (None, None) => 80,
-            (None, Some(w)) => w,
+            (_, Some(w)) => w,
             (Some(w), None) => w,
-            (Some(_), Some(w)) => w,
         };
         let opt = textwrap::Options::new(width)
             .initial_indent(&indent)

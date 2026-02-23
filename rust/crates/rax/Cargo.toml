@@ -5,17 +5,17 @@ version.workspace = true
 
 [dependencies]
 async-trait = { workspace = true, optional = true }
-clerk .workspace=true
-thiserror .workspace=true
+clerk.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 tokio-serial = { workspace = true, optional = true }
 
 [dev-dependencies]
-async-trait .workspace=true
+async-trait.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
-criterion .workspace=true
-mischief .workspace=true
-serialport .workspace=true
+criterion.workspace = true
+mischief.workspace = true
+serialport.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
 
 [features]

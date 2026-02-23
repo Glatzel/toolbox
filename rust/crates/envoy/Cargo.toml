@@ -3,6 +3,6 @@ edition.workspace = true
 name = "envoy"
 version.workspace = true
 [dependencies]
-thiserror = { workspace = true }
+thiserror .workspace=true
 [dev-dependencies]
 mischief.workspace = true

@@ -215,7 +215,7 @@ impl<S: IShader, T: ITheme, TC: ITerminalConfig> DefaultRender<S, T, TC> {
     /// Creates a new render wrapper for a diagnostic.
     pub fn new(shader: S, theme: T, terminal_config: TC) -> Self {
         Self {
-            shader: shader,
+            shader,
             theme,
             terminal_config,
         }

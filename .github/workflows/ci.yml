@@ -9,16 +9,12 @@ on:
         default: false
   push:
     branches: [main]
-    paths-ignore:
-      - "*.md"
   pull_request:
     types:
       - opened
       - edited
       - synchronize
       - ready_for_review
-    paths-ignore:
-      - "*.md"
   schedule:
     - cron: 0 16 * * *
 

@@ -78,7 +78,7 @@ impl PtrListToVecString for *mut *mut c_char {
                 break;
             }
 
-            vec_str.push(current_ptr.cast_const().to_string().unwrap());
+            vec_str.push(current_ptr.cast_const().to_string_lossy().unwrap());
             offset += 1;
         }
 
@@ -108,7 +108,7 @@ impl PtrListToVecString for *const *const c_char {
                 break;
             }
 
-            vec_str.push(current_ptr.to_string().unwrap());
+            vec_str.push(current_ptr.to_string_lossy().unwrap());
             offset += 1;
         }
 

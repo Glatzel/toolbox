@@ -29,8 +29,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lefthook:
+    uses: ./.github/workflows/ci-lefthook.yml
+    with:
+      cache-rust: true
   changed:
     outputs:
+      changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
     runs-on: ubuntu-slim
@@ -42,6 +47,9 @@ jobs:
         if: ${{github.event_name == 'pull_request'}}
         with:
           files_yaml: |
+            benchmark:
+              - ./rust/**
+              - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
               - ./.github/workflows/ci-python.yml
@@ -58,3 +66,13 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
     uses: ./.github/workflows/ci-rust.yml
+  benchmark:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
+    uses: ./.github/workflows/benchmark.yml
+  check-point:
+    if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
+    needs: [lefthook,changed,python-ci,rust-ci,benchmark]
+    runs-on: ubuntu-slim
+    steps:
+      - run: exit 1

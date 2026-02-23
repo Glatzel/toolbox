@@ -42,24 +42,17 @@ impl MischiefError {
             url: url.map(|s| s.to_string()),
         }
     }
-
     /// Returns the description as an optional string slice.
     pub fn description(&self) -> Option<&str> { Some(&self.description) }
-
     /// Returns the source error, if any.
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
 }
 
 impl IDiagnostic for MischiefError {
     fn description(&self) -> &str { &self.description }
-
     fn source(&self) -> Option<&dyn IDiagnostic> { self.source().map(|f| f as &dyn IDiagnostic) }
-
     fn code(&self) -> Option<&str> { self.code.as_deref() }
-
     fn severity(&self) -> Option<crate::Severity> { self.severity }
-
     fn help(&self) -> Option<&str> { self.help.as_deref() }
-
     fn url(&self) -> Option<&str> { self.url.as_deref() }
 }

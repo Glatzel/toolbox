@@ -4,13 +4,13 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::fmt::Write;
 
+use derive_getters::Getters;
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -43,16 +43,14 @@ impl core::fmt::Display for TxtType {
         write!(f, "{s}")
     }
 }
-readonly_struct!(
-    Txt ,
-    "Text transmission",
-    {talker: Talker},
-
-    {
-        message : Vec<( Option<TxtType>,Option<String>)>,
-        "Text information"
-    }
-);
+///Text transmission
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Txt {
+    talker: Talker,
+    /// Text information
+    message: Vec<(Option<TxtType>, Option<String>)>,
+}
 
 impl INmeaData for Txt {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {

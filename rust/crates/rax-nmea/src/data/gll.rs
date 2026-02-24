@@ -1,37 +1,29 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
-readonly_struct!(
-    Gll ,
-    "Latitude and longitude, with time of position fix and status",
-    {talker: Talker},
-
-    {
-        lat: Option<f64>,
-        "Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes. Positive values indicate North, negative values indicate South."
-    },
-    {
-        lon: Option<f64>,
-        "Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes. Positive values indicate East, negative values indicate West."
-    },
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        status: Option<Status>,
-        "Status of the data"
-    },
-    {
-        pos_mode: Option<PosMode>,
-        "FAA mode"
-    }
-);
+/// Latitude and longitude, with time of position fix and status
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gll {
+    talker: Talker,
+    /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
+    /// Positive values indicate North, negative values indicate South.
+    lat: Option<f64>,
+    ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
+    /// Positive values indicate East, negative values indicate West.
+    lon: Option<f64>,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// Status of the data
+    status: Option<Status>,
+    /// FAA mode
+    pos_mode: Option<PosMode>,
+}
 impl INmeaData for Gll {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());

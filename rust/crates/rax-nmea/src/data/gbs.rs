@@ -1,59 +1,41 @@
 use core::fmt::Debug;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
-readonly_struct!(
-    Gbs,
-    "GNSS satellite fault detection"
-    "# References"
-    "* <https://gpsd.gitlab.io/gpsd/NMEA.html#_gbs_gps_satellite_fault_detection>"
-    ,
-   {talker: Talker},
-
-   {
-       time:  Option<chrono::NaiveTime>,
-       "UTC time to which this RAIM sentence belongs. See section UTC representation in the integration manual for details."
-   },
-   {
-       err_lat:Option<f64>,
-       "Expected 1-sigma error in latitude (meters)"
-   },
-   {
-       err_lon:Option<f64>,
-       "Expected 1-sigma error in longitude (meters)"
-   },
-   {
-       err_alt:Option<f64>,
-       "Expected 1-sigma error in altitude (meters)"
-   },
-   {
-       svid:Option<u16>,
-       "Satellite ID of most likely failed satellite."
-   },
-   {
-       prob:Option<f64>,
-       "Probability of missed detection."
-   },
-   {
-       bias:Option<f64>,
-       " Estimated bias of most likely failed satellite (a priori residual)"
-   },
-   {
-       std_dev:Option<f64>,
-       "Standard deviation of bias estimate"
-   },
-   {
-    system_id:Option<SystemId>
-   },
-   {
-    signal_id:Option<u16>
-   }
-);
+/// GNSS satellite fault detection
+///
+/// # References
+///
+/// * <https://gpsd.gitlab.io/gpsd/NMEA.html#_gbs_gps_satellite_fault_detection>
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gbs {
+    talker: Talker,
+    /// UTC time to which this RAIM sentence belongs. See section UTC
+    /// representation in the integration manual for details.
+    time: Option<chrono::NaiveTime>,
+    /// Expected 1-sigma error in latitude (meters)
+    err_lat: Option<f64>,
+    /// Expected 1-sigma error in longitude (meters)
+    err_lon: Option<f64>,
+    /// Expected 1-sigma error in altitude (meters)
+    err_alt: Option<f64>,
+    /// Satellite ID of most likely failed satellite.
+    svid: Option<u16>,
+    /// Probability of missed detection.
+    prob: Option<f64>,
+    /// Estimated bias of most likely failed satellite (a priori residual)
+    bias: Option<f64>,
+    /// Standard deviation of bias estimate
+    std_dev: Option<f64>,
+    system_id: Option<SystemId>,
+    signal_id: Option<u16>,
+}
 
 impl INmeaData for Gbs {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {

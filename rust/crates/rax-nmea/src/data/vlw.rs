@@ -3,35 +3,28 @@ extern crate alloc;
 use alloc::string::String;
 use core::fmt::Write;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
-readonly_struct!(
-    Vlw ,
-    "Poll a standard message (Talker ID GL)",
-    {talker: Talker},
+///Poll a standard message (Talker ID GL)
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Vlw {
+    talker: Talker,
+    /// Total cumulative water distance
+    twd: Option<f64>,
+    /// Water distance since reset
+    wd: Option<f64>,
+    /// Total cumulative ground distance
+    tgd: Option<f64>,
+    /// Ground distance since reset
+    gd: Option<f64>,
+}
 
-    {
-        twd: Option<f64>,
-        "Total cumulative water distance"
-    },
-    {
-        wd: Option<f64>,
-        "Water distance since reset"
-    },
-    {
-        tgd: Option<f64>,
-        "Total cumulative ground distance"
-    },
-    {
-        gd: Option<f64>,
-        "Ground distance since reset"
-    }
-);
 impl INmeaData for Vlw {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

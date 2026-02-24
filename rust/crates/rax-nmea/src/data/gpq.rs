@@ -2,23 +2,21 @@ use core::fmt;
 extern crate alloc;
 use alloc::string::String;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
-readonly_struct!(
-    Gpq ,
-    "Poll a standard message (Talker ID GL)",
-    {talker: Talker},
-
-    {
-        msg_id: Option<String>,
-        "Message ID of the message to be polled"
-    }
-);
+///Poll a standard message (Talker ID GL)
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gpq {
+    talker: Talker,
+    /// Message ID of the message to be polled
+    msg_id: Option<String>,
+}
 impl INmeaData for Gpq {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

@@ -4,13 +4,13 @@ extern crate alloc;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -47,40 +47,27 @@ impl FromStr for GsaNavigationMode {
         }
     }
 }
-readonly_struct!(
-    Gsa ,
-    " GNSS DOP and active satellites",
-    {talker: Talker},
+///GNSS DOP and active satellites
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gsa {
+    talker: Talker,
+    /// Operation mode
+    op_mode: Option<GsaOperationMode>,
+    /// Navigation Mode
+    nav_mode: Option<GsaNavigationMode>,
+    /// Satellite IDs
+    svid: Vec<u8>,
+    /// Position dilution of precision
+    pdop: Option<f64>,
+    /// Horizontal dilution of precision
+    hdop: Option<f64>,
+    /// Vertical dilution of precision
+    vdop: Option<f64>,
+    /// System ID
+    system_id: Option<SystemId>,
+}
 
-    {
-        op_mode: Option<GsaOperationMode>,
-        "Operation mode"
-    },
-    {
-        nav_mode : Option<GsaNavigationMode>,
-        "Navigation Mode"
-    },
-    {
-        svid:Vec<u8>,
-        "Satellite IDs"
-    },
-    {
-        pdop: Option<f64>,
-        "Position dilution of precision"
-    },
-    {
-        hdop: Option<f64>,
-        "Horizontal dilution of precision"
-    },
-    {
-        vdop: Option<f64>,
-        "Vertical dilution of precision"
-    },
-    {
-        system_id:Option<SystemId>,
-        "System ID"
-    }
-);
 impl INmeaData for Gsa {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

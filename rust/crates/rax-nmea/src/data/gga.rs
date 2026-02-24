@@ -4,13 +4,13 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 use core::fmt::Write;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -59,56 +59,41 @@ impl Display for GgaQualityIndicator {
         write!(f, "{s}")
     }
 }
-readonly_struct!(
-    Gga ,
-    "Global Positioning System Fix Data."
-    "This is one of the sentences commonly emitted by GPS units. Time, Position and fix related data for a GPS receiver."
-    "# References"
-    "* <https://gpsd.gitlab.io/gpsd/NMEA.html#_gga_global_positioning_system_fix_data>",
-
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC of this position report, hh is hours, mm is minutes, ss.ss is seconds."
-    },
-    {
-        lat: Option<f64>,
-        "Latitude, dd is degrees, mm.mm is minutes"
-    },
-    {
-        lon: Option<f64>,
-        "Longitude, dd is degrees, mm.mm is minutes"
-    },
-    {
-        quality: Option<GgaQualityIndicator>,
-        " Quality indicator for position fix"
-    },
-    {
-        num_sv: Option<u8>,
-        "Number of satellites used (range: 0-12)"
-    },
-    {
-        hdop: Option<f64>,
-        "Horizontal Dilution of precision (meters)"
-    },
-    {
-        alt: Option<f64>,
-        "Antenna Altitude above/below mean-sea-level (geoid) (in meters)"
-    },
-    {
-        sep: Option<f64>,
-        "Geoidal separation, the difference between the WGS-84 earth ellipsoid and mean-sea-level (geoid), `-` means mean-sea-level below ellipsoid"
-    },
-    {
-        diff_age: Option<f64>,
-        "Age of differential GPS data, time in seconds since last SC104 type 1 or 9 update, null field when DGPS is not used"
-    },
-    {
-        diff_station: Option<u16>,
-        "Differential reference station ID, 0000-1023"
-    }
-);
+/// Global Positioning System Fix Data.
+///
+/// This is one of the sentences commonly emitted by GPS units. Time, Position
+/// and fix related data for a GPS receiver.
+///
+/// # References
+///
+/// * <https://gpsd.gitlab.io/gpsd/NMEA.html#_gga_global_positioning_system_fix_data>
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gga {
+    talker: Talker,
+    time: Option<chrono::NaiveTime>,
+    /// Latitude, dd is degrees, mm.mm is minutes
+    lat: Option<f64>,
+    /// Longitude, dd is degrees, mm.mm is minutes
+    lon: Option<f64>,
+    /// Quality indicator for position fix
+    quality: Option<GgaQualityIndicator>,
+    /// Number of satellites used (range: 0-12)
+    num_sv: Option<u8>,
+    /// Horizontal Dilution of precision (meters)
+    hdop: Option<f64>,
+    /// Antenna Altitude above/below mean-sea-level (geoid) (in meters)
+    alt: Option<f64>,
+    /// Geoidal separation, the difference between the WGS-84 earth ellipsoid
+    /// and mean-sea-level (geoid), `-` means mean-sea-level below ellipsoid (in
+    /// meters)
+    sep: Option<f64>,
+    /// Age of differential GPS data, time in seconds since last SC104 type 1 or
+    /// 9 update, null field when DGPS is not used
+    diff_age: Option<f64>,
+    /// Differential reference station ID, 0000-1023
+    diff_station: Option<u16>,
+}
 impl INmeaData for Gga {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());

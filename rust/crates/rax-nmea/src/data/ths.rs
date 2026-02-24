@@ -1,26 +1,22 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
-readonly_struct!(
-    Ths ,
-    "Poll a standard message (Talker ID GL)",
-    {talker: Talker},
-
-    {
-        headt: Option<f64>,
-        "Heading of vehicle (true)"
-    },
-    {
-        mi: Option<PosMode>,
-        "Mode indicator"
-    }
-);
+#[doc = "Poll a standard message (Talker ID GL)"]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Ths {
+    talker: Talker,
+    /// Heading of vehicle (true)
+    headt: Option<f64>,
+    /// Mode indicator
+    mi: Option<PosMode>,
+}
 impl INmeaData for Ths {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

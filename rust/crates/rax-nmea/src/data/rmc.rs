@@ -1,55 +1,37 @@
 use core::fmt;
 
 use chrono::NaiveDate;
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
-readonly_struct!(
-    Rmc ,
-    "Recommended minimum data",
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        status: Option<Status>,
-        "Status"
-    },
-    {
-        lat: Option<f64>,
-        "Latitude"
-    },
-    {
-        lon: Option<f64>,
-        "Longitude"
-    },
-    {
-        spd: Option<f64>,
-        "Speed over ground"
-    },
-    {
-        cog: Option<f64>,
-        "Track made good"
-    },
-    {
-        date: Option<NaiveDate>,
-        "Date"
-    },
-    {
-        mv: Option<f64>,
-        "Magnetic variation"
-    },
-    {
-        pos_mode: Option<PosMode>,
-        "FAA mode"
-    }
-);
+#[doc = "Recommended minimum data"]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Rmc {
+    talker: Talker,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// Status
+    status: Option<Status>,
+    /// Latitude
+    lat: Option<f64>,
+    /// Longitude
+    lon: Option<f64>,
+    /// Speed over ground
+    spd: Option<f64>,
+    /// Track made good
+    cog: Option<f64>,
+    /// Date
+    date: Option<NaiveDate>,
+    /// Magnetic variation
+    mv: Option<f64>,
+    /// FAA mode
+    pos_mode: Option<PosMode>,
+}
 
 impl INmeaData for Rmc {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {

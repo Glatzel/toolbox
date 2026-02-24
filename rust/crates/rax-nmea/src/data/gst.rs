@@ -1,49 +1,33 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
-readonly_struct!(
-    Gst ,
-    "GNSS pseudorange error statistics",
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        rms: Option<f64>,
-        "Root mean square"
-    },
-    {
-        std_major: Option<f64>,
-        "Standard deviation semi-major"
-    },
-    {
-        std_minor: Option<f64>,
-        "Standard deviation semi-minor"
-    },
-    {
-        orient: Option<f64>,
-        "Orientation"
-    },
-    {
-        std_lat: Option<f64>,
-        "Standard deviation semi-latitude"
-    },
-    {
-        std_lon: Option<f64>,
-        "Standard deviation semi-longitude"
-    },
-    {
-        std_alt: Option<f64>,
-        "Standard deviation semi-altitude"
-    }
-);
+///GNSS pseudorange error statistics
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gst {
+    talker: Talker,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// Root mean square
+    rms: Option<f64>,
+    /// Standard deviation semi-major
+    std_major: Option<f64>,
+    /// Standard deviation semi-minor
+    std_minor: Option<f64>,
+    /// Orientation    orient: Option<f64>,
+    orient: Option<f64>,
+    /// Standard deviation semi-latitude
+    std_lat: Option<f64>,
+    /// Standard deviation semi-longitude
+    std_lon: Option<f64>,
+    /// Standard deviation semi-altitude
+    std_alt: Option<f64>,
+}
 impl INmeaData for Gst {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

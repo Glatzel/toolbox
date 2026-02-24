@@ -5,7 +5,10 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
 use crate::error::MischiefError;
-use crate::render_presets::{DefaultRender, DefaultShader, DefaultTheme, TerminalConfig};
+#[cfg(not(feature = "fancy"))]
+use crate::render_presets::DefaultRender;
+#[cfg(feature = "fancy")]
+use crate::render_presets::{DefaultFancyRender, DefaultShader, DefaultTheme, TerminalConfig};
 use crate::render_protocol::IRender;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
@@ -23,16 +26,22 @@ impl Report {
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut s = String::new();
-        DefaultRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
+        #[cfg(feature = "fancy")]
+        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
             .render(&mut s, &self.inner)?;
+        #[cfg(not(feature = "fancy"))]
+        DefaultRender.render(&mut s, &self.inner)?;
         f.write_str(&s)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut s = String::new();
-        DefaultRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
+        #[cfg(feature = "fancy")]
+        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
             .render(&mut s, &self.inner)?;
+        #[cfg(not(feature = "fancy"))]
+        DefaultRender.render(&mut s, &self.inner)?;
         f.write_str(&s)
     }
 }

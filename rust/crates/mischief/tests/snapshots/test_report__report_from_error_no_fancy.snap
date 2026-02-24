@@ -1,0 +1,8 @@
+---
+source: crates/mischief/tests/test_report.rs
+expression: render_report(&report)
+---
+Error: error wrapper
+
+Caused by:
+    fake error

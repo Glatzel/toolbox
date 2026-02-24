@@ -1,14 +1,20 @@
 use crate::IDiagnostic;
 use crate::render_protocol::*;
 extern crate alloc;
+#[cfg(feature = "fancy")]
 use alloc::format;
-use alloc::string::{String, ToString};
-use core::fmt::{Display, Write};
+use alloc::string::String;
+#[cfg(feature = "fancy")]
+use alloc::string::ToString;
+#[cfg(feature = "fancy")]
+use core::fmt::Display;
+use core::fmt::Write;
 
+#[cfg(feature = "fancy")]
 use owo_colors::{OwoColorize, Style};
 
+#[cfg(feature = "fancy")]
 use crate::Severity;
-use crate::render_protocol::{HyperlinkFormat, ITheme, Item, Layer};
 /// Trait for computing indentation strings based on layer layers and elements.
 pub struct DefaultIndent;
 impl IIndent for DefaultIndent {
@@ -25,9 +31,10 @@ impl IIndent for DefaultIndent {
 }
 
 /// Default theme implementation using `owo_colors`.
+#[cfg(feature = "fancy")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct DefaultStyle;
-
+#[cfg(feature = "fancy")]
 impl IStyle for DefaultStyle {
     fn default_style(&self) -> Option<Style> { Some(Style::default()) }
     fn indent_style(&self) -> Option<Style> { Some(Style::new().red()) }
@@ -47,9 +54,10 @@ impl IStyle for DefaultStyle {
         (Some(Style::new().blue()), HyperlinkFormat::Link)
     }
 }
-
+#[cfg(feature = "fancy")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct NoColorStyle;
+#[cfg(feature = "fancy")]
 impl IStyle for NoColorStyle {
     fn default_style(&self) -> Option<Style> { None }
     fn indent_style(&self) -> Option<Style> { None }
@@ -60,16 +68,20 @@ impl IStyle for NoColorStyle {
 }
 
 /// Default theme implementation using `owo_colors`.
+#[cfg(feature = "fancy")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct DefaultTheme;
+#[cfg(feature = "fancy")]
 impl ITheme for DefaultTheme {
     fn width(&self) -> Option<usize> { None }
 }
+#[cfg(feature = "fancy")]
 impl IIndent for DefaultTheme {
     fn get_indent(&self, layer: Layer, element: Item) -> (&'static str, &'static str) {
         DefaultIndent.get_indent(layer, element)
     }
 }
+#[cfg(feature = "fancy")]
 impl IStyle for DefaultTheme {
     fn default_style(&self) -> Option<Style> { DefaultStyle.default_style() }
     fn indent_style(&self) -> Option<Style> { DefaultStyle.indent_style() }
@@ -89,7 +101,7 @@ pub struct TerminalConfig {
     support_hyperlinks: bool,
     supports_unicode: bool,
 }
-
+#[cfg(feature = "fancy")]
 impl Default for TerminalConfig {
     /// Initializes a new `TerminalConfig` with detected terminal capabilities.
     fn default() -> Self {
@@ -118,9 +130,10 @@ impl ITerminalConfig for TerminalConfig {
     /// Returns whether the terminal supports Unicode characters.
     fn supports_unicode(&self) -> bool { self.supports_unicode }
 }
-
+#[cfg(feature = "fancy")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DefaultShader;
+#[cfg(feature = "fancy")]
 impl IShader for DefaultShader {
     fn apply<D: Display, TC: ITerminalConfig>(
         &self,
@@ -203,15 +216,43 @@ impl IShader for DefaultShader {
     }
 }
 
-/// Wrapper struct to render diagnostics.
+pub struct DefaultRender;
+impl DefaultRender {
+    /// Produces an iterator over the diagnostic chain.
+    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
+    }
+    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        let mut chain = Self::chain(diagnostic);
 
-pub struct DefaultRender<S: IShader, T: ITheme, TC: ITerminalConfig> {
+        if let Some(first) = chain.next() {
+            writeln!(text, "Error: {}", first.description())?;
+        }
+        let mut first = true;
+        for diagnostic in chain {
+            if first {
+                writeln!(text, "\nCaused by:")?;
+                first = false;
+            }
+            writeln!(text, "    {}", diagnostic.description())?;
+        }
+        Ok(())
+    }
+}
+impl IRender for DefaultRender {
+    fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
+        self.render_plain(text, diagnostic)
+    }
+}
+/// Wrapper struct to render diagnostics.
+#[cfg(feature = "fancy")]
+pub struct DefaultFancyRender<S: IShader, T: ITheme, TC: ITerminalConfig> {
     shader: S,
     terminal_config: TC,
     theme: T,
 }
-
-impl<S: IShader, T: ITheme, TC: ITerminalConfig> DefaultRender<S, T, TC> {
+#[cfg(feature = "fancy")]
+impl<S: IShader, T: ITheme, TC: ITerminalConfig> DefaultFancyRender<S, T, TC> {
     /// Creates a new render wrapper for a diagnostic.
     pub fn new(shader: S, theme: T, terminal_config: TC) -> Self {
         Self {
@@ -223,7 +264,7 @@ impl<S: IShader, T: ITheme, TC: ITerminalConfig> DefaultRender<S, T, TC> {
 
     fn render_fancy(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         let mut buffer = String::new();
-        let mut chain = Self::chain(diagnostic).peekable();
+        let mut chain = DefaultRender::chain(diagnostic).peekable();
         let mut layer = Layer::Bottom;
 
         while let Some(diagnostic) = chain.next() {
@@ -300,35 +341,14 @@ impl<S: IShader, T: ITheme, TC: ITerminalConfig> DefaultRender<S, T, TC> {
         }
         Ok(())
     }
-    /// Produces an iterator over the diagnostic chain.
-    fn chain(diagnostic: &impl IDiagnostic) -> impl Iterator<Item = &dyn IDiagnostic> {
-        core::iter::successors(Some(diagnostic as &dyn IDiagnostic), |r| r.source())
-    }
-    fn render_plain(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
-        let mut chain = Self::chain(diagnostic);
-
-        if let Some(first) = chain.next() {
-            writeln!(text, "Error: {}", first.description())?;
-        }
-
-        let mut first = true;
-        for diagnostic in chain {
-            if first {
-                writeln!(text, "\nCaused by:")?;
-                first = false;
-            }
-            writeln!(text, "    {}", diagnostic.description())?;
-        }
-        Ok(())
-    }
 }
-
-impl<S: IShader, T: ITheme, TC: ITerminalConfig> IRender for DefaultRender<S, T, TC> {
+#[cfg(feature = "fancy")]
+impl<S: IShader, T: ITheme, TC: ITerminalConfig> IRender for DefaultFancyRender<S, T, TC> {
     fn render(&self, text: &mut String, diagnostic: &impl IDiagnostic) -> core::fmt::Result {
         if self.terminal_config.supports_unicode() {
             self.render_fancy(text, diagnostic)
         } else {
-            self.render_plain(text, diagnostic)
+            DefaultRender.render_plain(text, diagnostic)
         }
     }
 }

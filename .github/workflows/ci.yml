@@ -36,10 +36,10 @@ jobs:
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
     runs-on: ubuntu-slim
     steps:
-      - if: ${{github.event_name != 'schedule'}}
+      - if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
         uses: actions/checkout@v6
       - id: main
-        if: ${{github.event_name != 'schedule'}}
+        if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
         uses: tj-actions/changed-files@v47
         with:
           files_yaml: |

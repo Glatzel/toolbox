@@ -46,7 +46,7 @@ impl fmt::Debug for Satellite {
 
 ///GNSS satellites in view
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone,Getters)]
+#[derive(Clone, Getters)]
 pub struct Gsv {
     talker: Talker,
     /// Satellite data

@@ -1,5 +1,6 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 extern crate alloc;
 use alloc::string::String;
@@ -7,34 +8,24 @@ use core::fmt::Write;
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
-readonly_struct!(
-    Vtg ,
-    "Course over ground and ground speed",
-    {talker: Talker},
+///Course over ground and ground speed
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Vtg {
+    talker: Talker,
+    /// Course over ground (true)
+    cogt: Option<f64>,
+    /// Course over ground (magnetic)
+    cogm: Option<f64>,
+    /// Speed over ground (knots)
+    sogn: Option<f64>,
+    /// Speed over ground (kph)
+    sogk: Option<f64>,
+    /// Mode
+    pos_mode: Option<PosMode>,
+}
 
-    {
-        cogt: Option<f64>,
-        "Course over ground (true)"
-    },
-    {
-        cogm: Option<f64>,
-        "Course over ground (magnetic)"
-    },
-    {
-        sogn: Option<f64>,
-        "Speed over ground (knots)"
-    },
-    {
-        sogk: Option<f64>,
-        "Speed over ground (kph)"
-    },
-    {
-        pos_mode: Option<PosMode>,
-        "Mode"
-    }
-);
 impl INmeaData for Vtg {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

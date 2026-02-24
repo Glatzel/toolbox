@@ -4,13 +4,13 @@ extern crate alloc;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -33,56 +33,36 @@ impl FromStr for NavigationStatus {
         }
     }
 }
-readonly_struct!(
-    Gns,
-    "GNSS fix data",
-    {talker: Talker},
-
-    {
-        time:Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        lat: Option<f64>,
-        "Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes. Positive values indicate North, negative values indicate South."
-    },
-    {
-        lon: Option<f64>,
-        "Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes. Positive values indicate East, negative values indicate West."
-    },
-    {
-        pos_mode: Vec<PosMode>,
-        "FAA mode"
-    },
-    {
-        num_sv :Option<u8>,
-        "Number of satellites in use"
-    },
-    {
-        hdop:Option<f64>,
-        "Horizontal dilution of precision"
-    },
-    {
-        alt:Option<f64>,
-        "Altitude"
-    },
-    {
-        sep:Option<f64>,
-        "Geoidal separation"
-    },
-    {
-        diff_age:Option<f64>,
-        "Differential data age"
-    },
-    {
-        diff_station:Option<u16>,
-        "Differential reference station ID"
-    },
-    {
-        nav_status:Option<NavigationStatus>,
-        "Navigational status"
-    }
-);
+///GNSS fix data
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Gns {
+    talker: Talker,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
+    /// Positive values indicate North, negative values indicate South.
+    lat: Option<f64>,
+    ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
+    /// Positive values indicate East, negative values indicate West.
+    lon: Option<f64>,
+    /// FAA mode
+    pos_mode: Vec<PosMode>,
+    /// Number of satellites in use
+    num_sv: Option<u8>,
+    /// Horizontal dilution of precision
+    hdop: Option<f64>,
+    /// Altitude
+    alt: Option<f64>,
+    /// Geoidal separation
+    sep: Option<f64>,
+    /// Differential data age
+    diff_age: Option<f64>,
+    /// Differential reference station ID
+    diff_station: Option<u16>,
+    /// Navigational status
+    nav_status: Option<NavigationStatus>,
+}
 
 impl INmeaData for Gns {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {

@@ -3,13 +3,13 @@ use core::str::FromStr;
 extern crate alloc;
 use alloc::string::{String, ToString};
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -30,32 +30,22 @@ impl FromStr for DtmDatum {
         }
     }
 }
-readonly_struct!(
-    Dtm ,
-    "Datum reference",
-    {talker: Talker},
-
-    {
-        datum: Option<DtmDatum>,
-        "Local datum"
-    },
-    {
-        sub_datum: Option<String>,
-        "sub datum"
-    },
-    {
-        lat:Option<f64>,
-        "Offset in Latitude"
-    },
-    {
-        lon:Option<f64>,
-        "Offset in Longitude"
-    },
-    {
-        alt:Option<f64>,
-        "Offset in altitude"
-    }
-);
+/// Datum reference
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Dtm {
+    talker: Talker,
+    /// Local datum
+    datum: Option<DtmDatum>,
+    /// sub datum
+    sub_datum: Option<String>,
+    /// Offset in Latitude
+    lat: Option<f64>,
+    /// Offset in Longitude
+    lon: Option<f64>,
+    /// Offset in altitude
+    alt: Option<f64>,
+}
 impl INmeaData for Dtm {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

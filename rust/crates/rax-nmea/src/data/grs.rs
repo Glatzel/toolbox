@@ -4,13 +4,13 @@ extern crate alloc;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -29,32 +29,22 @@ impl FromStr for GrsResidualMode {
         }
     }
 }
-readonly_struct!(
-    Grs ,
-    "GNSS range residuals",
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        mode : Option<GrsResidualMode>,
-        "GRS residual mode"
-    },
-    {
-        residual:Vec<f64>,
-        "Satellite residuals"
-    },
-    {
-        system_id: Option<SystemId>,
-        "System ID"
-    },
-    {
-        signal_id: Option<u16>,
-        "Signal ID"
-    }
-);
+/// GNSS range residuals
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Grs {
+    talker: Talker,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// GRS residual mode
+    mode: Option<GrsResidualMode>,
+    /// Satellite residuals
+    residual: Vec<f64>,
+    /// System ID
+    system_id: Option<SystemId>,
+    /// Signal ID
+    signal_id: Option<u16>,
+}
 impl INmeaData for Grs {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

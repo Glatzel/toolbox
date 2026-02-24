@@ -1,42 +1,29 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
-
-readonly_struct!(
-    Dhv ,
-    "Dhv",
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the DHV fix associated with this sentence."
-    },
-    {
-        speed3d : Option<f64>,
-        "3D speed (meters/second)"
-    },
-    {
-        speed_x: Option<f64>,
-        "Speed in X direction (meters/second)"
-    },
-    {
-        speed_y: Option<f64>,
-        "Speed in Y direction (meters/second)"
-    },
-    {
-        speed_z: Option<f64>,
-        "Speed in Z direction (meters/second)"
-    },
-    {
-        gdspd: Option<f64>,
-        "Ground speed (meters/second)"
-    }
-);
+/// Dhv - Velocity in 3 dimensions
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Dhv {
+    talker: Talker,
+    /// UTC time of the DHV fix associated with this sentence.
+    time: Option<chrono::NaiveTime>,
+    /// 3D speed (meters/second)
+    speed3d: Option<f64>,
+    /// Speed in X direction (meters/second)
+    speed_x: Option<f64>,
+    /// Speed in Y direction (meters/second)
+    speed_y: Option<f64>,
+    /// Speed in Z direction (meters/second)
+    speed_z: Option<f64>,
+    /// Ground speed (meters/second)
+    gdspd: Option<f64>,
+}
 impl INmeaData for Dhv {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;

@@ -2,13 +2,13 @@ use core::fmt;
 extern crate alloc;
 use alloc::vec::Vec;
 
+use derive_getters::Getters;
 use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
 
 /// Represents a single satellite's data in a GSV sentence.
@@ -44,19 +44,16 @@ impl fmt::Debug for Satellite {
     }
 }
 
-readonly_struct!(
-    Gsv,
-    "GNSS satellites in view",
-    {talker: Talker},
-    {
-        satellites: Vec<Satellite>,
-        "Satellite data"
-    },
-    {
-        signal_id:Option<u16>
-    }
-);
-
+///GNSS satellites in view
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone,Getters)]
+pub struct Gsv {
+    talker: Talker,
+    /// Satellite data
+    satellites: Vec<Satellite>,
+    /// Signal ID
+    signal_id: Option<u16>,
+}
 impl INmeaData for Gsv {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::new: sentence='{}'", ctx.full_str());

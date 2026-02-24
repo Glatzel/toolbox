@@ -1,41 +1,29 @@
 use core::fmt;
 
+use derive_getters::Getters;
 use rax::str_parser::{ParseOptExt, StrParserContext};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
-use crate::macros::readonly_struct;
 use crate::rules::*;
-readonly_struct!(
-    Zda ,
-    "Time and date",
-    {talker: Talker},
-
-    {
-        time: Option<chrono::NaiveTime>,
-        "UTC time of the position fix"
-    },
-    {
-        day: Option<u8>,
-        "Day of the month"
-    },
-    {
-        month: Option<u8>,
-        "Month of the year"
-    },
-    {
-        year: Option<u16>,
-        "Year"
-    },
-    {
-        ltzh: Option<i8>,
-        "Local zone description"
-    },
-    {
-        ltzn: Option<u8>,
-        "Local zone minutes description"
-    }
-);
+///Time and date
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Getters)]
+pub struct Zda {
+    talker: Talker,
+    /// UTC time of the position fix
+    time: Option<chrono::NaiveTime>,
+    /// Day of the month
+    day: Option<u8>,
+    /// Month of the year
+    month: Option<u8>,
+    /// Year
+    year: Option<u16>,
+    /// Local zone description
+    ltzh: Option<i8>,
+    /// Local zone minutes description
+    ltzn: Option<u8>,
+}
 
 impl INmeaData for Zda {
     fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {

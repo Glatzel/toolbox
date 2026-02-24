@@ -7,3 +7,8 @@ fn main() -> mischief::Result<()> {
         .wrap_err("error wrapper")?;
     Ok(())
 }
+#[test]
+fn test() {
+    let result = main();
+    assert!(result.is_err())
+}

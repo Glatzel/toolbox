@@ -5,16 +5,24 @@ version.workspace = true
 
 [dependencies]
 mischief-macros = { workspace = true, optional = true }
-owo-colors.workspace = true
-supports-color.workspace = true
-supports-hyperlinks.workspace = true
-supports-unicode.workspace = true
-terminal_size.workspace = true
-textwrap.workspace = true
+owo-colors = { workspace = true, optional = true }
+supports-color = { workspace = true, optional = true }
+supports-hyperlinks = { workspace = true, optional = true }
+supports-unicode = { workspace = true, optional = true }
+terminal_size = { workspace = true, optional = true }
+textwrap = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta = { workspace = true, features = ["filters"] }
 
 [features]
 default = ["macros"]
+fancy = [
+    "owo-colors",
+    "supports-color",
+    "supports-hyperlinks",
+    "supports-unicode",
+    "terminal_size",
+    "textwrap",
+]
 macros = ["mischief-macros"]

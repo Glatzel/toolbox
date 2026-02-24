@@ -1,11 +1,14 @@
+#[cfg(feature = "fancy")]
 use core::fmt::Display;
 extern crate alloc;
 use alloc::string::String;
 
+#[cfg(feature = "fancy")]
 use owo_colors::Style;
 
-use crate::{IDiagnostic, Severity};
-
+use crate::IDiagnostic;
+#[cfg(feature = "fancy")]
+use crate::Severity;
 /// Represents the position of a layer in a hierarchical layout.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Layer {
@@ -36,6 +39,7 @@ pub trait IIndent {
     fn get_indent(&self, layer: Layer, element: Item) -> (&'static str, &'static str);
 }
 /// Trait defining styling for different components of diagnostic output.
+#[cfg(feature = "fancy")]
 pub trait IStyle {
     /// Style for default text.
     fn default_style(&self) -> Option<Style>;
@@ -50,6 +54,7 @@ pub trait IStyle {
     /// Style for URLs.
     fn hyperlink_style(&self) -> (Option<Style>, HyperlinkFormat);
 }
+#[cfg(feature = "fancy")]
 pub trait ITheme: IIndent + IStyle {
     fn width(&self) -> Option<usize>;
 }
@@ -63,6 +68,7 @@ pub trait ITerminalConfig {
     /// Returns whether the terminal supports Unicode characters.
     fn supports_unicode(&self) -> bool;
 }
+#[cfg(feature = "fancy")]
 pub trait IShader {
     fn apply<D: Display, TC: ITerminalConfig>(
         &self,

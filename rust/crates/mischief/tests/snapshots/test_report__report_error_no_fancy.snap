@@ -1,0 +1,9 @@
+---
+source: crates/mischief/tests/test_report.rs
+expression: render_report(&report)
+---
+Error: Third error
+
+Caused by:
+    Second error
+    first error

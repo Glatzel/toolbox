@@ -5,13 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.38] - 2026-02-23
+## [0.0.38] - 2026-02-24
 
 ### Changed
 
 - Use insta test by @Glatzel in [#338](https://github.com/Glatzel/toolbox/pull/338)
 - Mischief auto fancy by @Glatzel in [#340](https://github.com/Glatzel/toolbox/pull/340)
 - Distinguish to_string and to_string_lossy by @Glatzel in [#345](https://github.com/Glatzel/toolbox/pull/345)
+
+### Revert
+
+- Add fancy feature back by @Glatzel in [#348](https://github.com/Glatzel/toolbox/pull/348)
 
 ## [0.0.37] - 2026-01-22
 

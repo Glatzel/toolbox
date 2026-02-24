@@ -21,5 +21,4 @@ mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
 mod render;
-pub use render::render_presets;
-pub use render::render_protocol;
+pub use render::{render_presets, render_protocol};

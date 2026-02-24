@@ -18,11 +18,11 @@ insta = { workspace = true, features = ["filters"] }
 [features]
 default = ["macros"]
 fancy = [
-    "owo-colors",
-    "supports-color",
-    "supports-hyperlinks",
-    "supports-unicode",
-    "terminal_size",
-    "textwrap",
+  "owo-colors",
+  "supports-color",
+  "supports-hyperlinks",
+  "supports-unicode",
+  "terminal_size",
+  "textwrap",
 ]
 macros = ["mischief-macros"]

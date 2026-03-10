@@ -12,7 +12,7 @@ on:
   pull_request:
     types:
       - opened
-      - edited
+      - synchronize
       - ready_for_review
   schedule:
     - cron: 0 16 * * *

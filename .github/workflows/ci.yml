@@ -12,7 +12,6 @@ on:
   pull_request:
     types:
       - opened
-      - edited
       - synchronize
       - ready_for_review
   schedule:
@@ -26,6 +25,7 @@ concurrency:
 
 jobs:
   lefthook:
+    if: ${{ github.event_name != 'schedule' }}
     uses: ./.github/workflows/ci-lefthook.yml
     with:
       cache-rust: true

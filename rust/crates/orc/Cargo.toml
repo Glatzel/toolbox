@@ -1,0 +1,7 @@
+[package]
+edition.workspace = true
+name = "orc"
+version.workspace = true
+
+[dependencies]
+goblin = "0.10.5"

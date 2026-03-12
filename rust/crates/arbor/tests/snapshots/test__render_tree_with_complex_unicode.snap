@@ -4,6 +4,7 @@ expression: "format!(\"{}\", render)"
 ---
 node 1
 ├─▶ node 1.1
+│   root
 ├─▶ node 1.2
 ├─▶ node 1.3
 │   ├─▶ node 1.3.1

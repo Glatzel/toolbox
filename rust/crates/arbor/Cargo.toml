@@ -1,0 +1,13 @@
+[package]
+edition.workspace = true
+name = "arbor"
+version.workspace = true
+
+[dependencies]
+textwrap = { workspace = true, optional = true }
+
+[dev-dependencies]
+insta.workspace = true
+
+[features]
+std = ["textwrap"]

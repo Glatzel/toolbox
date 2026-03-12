@@ -54,6 +54,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbor"
+version = "0.0.38"
+dependencies = [
+ "insta",
+ "textwrap",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"

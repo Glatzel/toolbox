@@ -13,10 +13,10 @@ rstest.workspace = true
 
 [features]
 default = [
-    "textwrap",
-    "textwrap-smawk",
-    "textwrap-unicode-linebreak",
-    "textwrap-unicode-width",
+  "textwrap",
+  "textwrap-smawk",
+  "textwrap-unicode-linebreak",
+  "textwrap-unicode-width",
 ]
 textwrap = ["dep:textwrap", "dep:hashbrown"]
 textwrap-hyphenation = ["textwrap/hyphenation"]

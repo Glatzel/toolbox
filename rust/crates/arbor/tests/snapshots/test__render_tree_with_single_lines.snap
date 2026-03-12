@@ -2,6 +2,8 @@
 source: crates/arbor/tests/test.rs
 expression: "format!(\"{}\", render)"
 ---
-foofoo
-├─▶ barbar
+foo
+│   foo
+├─▶ bar
+│   bar
 ╰─▶ baz

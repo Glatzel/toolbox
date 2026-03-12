@@ -8,6 +8,7 @@ fn render_tree_root() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
+        single_line: false,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -19,6 +20,7 @@ fn render_tree_with_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
+        single_line: false,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -29,16 +31,29 @@ fn render_tree_with_multiple_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
+        single_line: false,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
 }
 #[test]
 fn render_tree_with_multiple_lines() {
-    let tree = Tree::new("foo").with_leaves(["foo\nbar", "baz"]);
+       let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
+        single_line: true,
+    };
+    println!("{}", render);
+    insta::assert_snapshot!(format!("{}", render));
+}
+#[test]
+fn render_tree_with_single_lines() {
+    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar", "baz"]);
+    let render = Render {
+        tree: &tree,
+        indent: &UnicodeIndent,
+        single_line: false,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -51,7 +66,7 @@ fn render_tree_with_complex() {
         Tree::new("node 1.3").with_leaves([
             Tree::new("node 1.3.1").with_leaves(["node 1.3.1.1"]),
             Tree::new("node 1.3.2"),
-            Tree::new("node 1.3.3").with_leaves(["node 1.3.3.1", "node 1.3.3.2"]),
+            Tree::new("node 1.3.3").with_leaves(["node\n1.3.3.1", "node 1.3.3.2"]),
         ]),
         Tree::new("node 1.4").with_leaves([
             Tree::new("node 1.4.1"),
@@ -62,6 +77,7 @@ fn render_tree_with_complex() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
+        single_line: false,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));

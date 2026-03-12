@@ -9,6 +9,7 @@ extern crate alloc;
 pub struct Render<'a, I, T> {
     pub tree: &'a T,
     pub indent: &'a I,
+    pub single_line: bool,
 }
 impl<'a, I, T> Display for Render<'a, I, T>
 where
@@ -16,15 +17,71 @@ where
     I: IIndent,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{}", self.indent.get_indent(Layer::Root, Line::First))?;
-        writeln!(f, "{}", self.tree.content())?;
+        let lines = self.tree.content().lines();
+        let line_count = lines.clone().count();
+        for (line_index, text) in lines.enumerate() {
+            match (self.single_line, line_index) {
+                (true, 0) => {
+                    f.write_str(self.indent.get_indent(Layer::Root, Line::First))?;
+                    f.write_str(text)?;
+                    if line_index == line_count - 1 {
+                        writeln!(f)?;
+                    }
+                }
+                (true, _) => {
+                    f.write_str(text)?;
+                    if line_index == line_count - 1 {
+                        writeln!(f)?;
+                    }
+                }
+                (false, 0) => {
+                    f.write_str(self.indent.get_indent(Layer::Root, Line::First))?;
+                    f.write_str(text)?;
+                    writeln!(f)?;
+                }
+                (false, _) => {
+                    f.write_str(self.indent.get_indent(Layer::Root, Line::Other))?;
+                    f.write_str(text)?;
+                    writeln!(f)?;
+                }
+            }
+        }
         let mut queue: VecDeque<(&T, Layer, Arc<String>)> = VecDeque::new();
         enqueue(&mut queue, self.tree, Arc::new(String::new()));
         while let Some((leaf, layer, s)) = queue.pop_front() {
-            f.write_str(&s)?;
-            f.write_str(self.indent.get_indent(layer, crate::protocol::Line::First))?;
-            f.write_str(leaf.content())?;
-            writeln!(f)?;
+            let lines = leaf.content().lines();
+            let line_count = lines.clone().count();
+            for (line_index, text) in lines.enumerate() {
+                match (self.single_line, line_index) {
+                    (true, 0) => {
+                        f.write_str(&s)?;
+                        f.write_str(self.indent.get_indent(layer, Line::First))?;
+                        f.write_str(text)?;
+                        if line_index == line_count - 1 {
+                            writeln!(f)?;
+                        }
+                    }
+                    (true, _) => {
+                        f.write_str(&s)?;
+                        f.write_str(text)?;
+                        if line_index == line_count - 1 {
+                            writeln!(f)?;
+                        }
+                    }
+                    (false, 0) => {
+                        f.write_str(&s)?;
+                        f.write_str(self.indent.get_indent(layer, Line::First))?;
+                        f.write_str(text)?;
+                        writeln!(f)?;
+                    }
+                    (false, _) => {
+                        f.write_str(&s)?;
+                        f.write_str(self.indent.get_indent(layer, Line::Other))?;
+                        f.write_str(text)?;
+                        writeln!(f)?;
+                    }
+                }
+            }
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));

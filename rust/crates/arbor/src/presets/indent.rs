@@ -42,14 +42,14 @@ pub struct DebugIndent;
 impl IIndent for DebugIndent {
     fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
         match (layer, line) {
-            (Layer::Root, Line::First) => "(Root:First)",
-            (Layer::Root, Line::Other) => "(Root:Other)",
-            (Layer::Top, Line::First) => "(Top:First)",
-            (Layer::Top, Line::Other) => "(Top:Other)",
-            (Layer::Middle, Line::First) => "(Middle:First)",
-            (Layer::Middle, Line::Other) => "(Middle:Other)",
-            (Layer::Bottom, Line::First) => "(Bottom:First)",
-            (Layer::Bottom, Line::Other) => "(Bottom:Other)",
+            (Layer::Root, Line::First) => "[RF]",
+            (Layer::Root, Line::Other) => "[RO]",
+            (Layer::Top, Line::First) => "[TF]",
+            (Layer::Top, Line::Other) => "[TO]",
+            (Layer::Middle, Line::First) => "[MF]",
+            (Layer::Middle, Line::Other) => "[MO]",
+            (Layer::Bottom, Line::First) => "[BF]",
+            (Layer::Bottom, Line::Other) => "[BO]",
         }
     }
 }

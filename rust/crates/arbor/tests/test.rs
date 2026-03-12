@@ -1,7 +1,7 @@
 use arbor::Render;
 use arbor::presets::indent::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeIndent};
 use arbor::presets::tree::Tree;
-use arbor::protocol::{IIndent, WrapMode};
+use arbor::protocol::IIndent;
 use rstest::rstest;
 
 #[test]

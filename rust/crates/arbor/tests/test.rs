@@ -37,6 +37,21 @@ fn render_tree_with_multiple_leaves() {
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
 }
+#[test]
+fn render_tree_with_fixed_line() {
+    let tree = Tree::new("textwrap1: an efficient and powerful library for wrapping text.")
+        .with_leaves([
+            "textwrap2: an efficient and powerful library for wrapping text.",
+            "textwrap3: an efficient and powerful library for wrapping text.",
+        ]);
+    let render = Render {
+        tree: &tree,
+        indent: &UnicodeIndent,
+        wrap_mode: WrapMode::FixedWidth(28),
+    };
+    println!("{}", render);
+    insta::assert_snapshot!(format!("{}", render));
+}
 #[rstest]
 #[case("single_line", WrapMode::SingleLine)]
 #[case("multiline", WrapMode::MultiLine)]

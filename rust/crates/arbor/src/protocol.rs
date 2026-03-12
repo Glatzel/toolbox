@@ -23,6 +23,7 @@ pub enum Line {
 pub enum WrapMode {
     SingleLine,
     MultiLine,
+    #[cfg(feature = "textwrap")]
     FixedWidth(usize),
 }
 pub trait IIndent {

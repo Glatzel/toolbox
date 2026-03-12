@@ -31,7 +31,7 @@ supports-hyperlinks = "3.2.0"
 supports-unicode = "3.0.0"
 syn = "2.0.111"
 terminal_size = "0.4.3"
-textwrap = "0.16.2"
+textwrap = { git = "https://github.com/Glatzel/textwrap.git", default-features = false } # if official no_std released, change to official crate
 thiserror = { version = "2.0.16", default-features = false }
 tokio = { version = "1.48.0", default-features = false }
 tokio-serial = "5.4.5"

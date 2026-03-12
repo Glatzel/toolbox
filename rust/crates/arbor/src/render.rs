@@ -77,11 +77,19 @@ where
                     f.write_str(text)?;
                     writeln!(f)?;
                 }
-                (WrapMode::FixedWidth(_width), 0) => {
-                    todo!()
+                #[cfg(feature = "textwrap")]
+                (WrapMode::FixedWidth(width), 0) => {
+                    let wrap_option = textwrap::Options::new(width)
+                        .initial_indent(self.indent.get_indent(layer, Line::First))
+                        .subsequent_indent(self.indent.get_indent(layer, Line::Other));
+                    writeln!(f, "{}", textwrap::fill(text, &wrap_option))?;
                 }
-                (WrapMode::FixedWidth(_width), _) => {
-                    todo!()
+                #[cfg(feature = "textwrap")]
+                (WrapMode::FixedWidth(width), _) => {
+                    let wrap_option = textwrap::Options::new(width)
+                        .initial_indent(self.indent.get_indent(layer, Line::Other))
+                        .subsequent_indent(self.indent.get_indent(layer, Line::Other));
+                    writeln!(f, "{}", textwrap::fill(text, &wrap_option))?;
                 }
             }
         }

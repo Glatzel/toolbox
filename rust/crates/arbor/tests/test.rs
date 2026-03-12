@@ -34,6 +34,16 @@ fn render_tree_with_multiple_leaves() {
     insta::assert_snapshot!(format!("{}", render));
 }
 #[test]
+fn render_tree_with_multiple_lines() {
+    let tree = Tree::new("foo").with_leaves(["foo\nbar", "baz"]);
+    let render = Render {
+        tree: &tree,
+        indent: &UnicodeIndent,
+    };
+    println!("{}", render);
+    insta::assert_snapshot!(format!("{}", render));
+}
+#[test]
 fn render_tree_with_complex() {
     let tree = Tree::new("node 1").with_leaves([
         Tree::new("node 1.1"),

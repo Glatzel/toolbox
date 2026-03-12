@@ -57,6 +57,7 @@ dependencies = [
 name = "arbor"
 version = "0.0.38"
 dependencies = [
+ "hashbrown 0.16.1",
  "insta",
  "rstest",
  "textwrap",

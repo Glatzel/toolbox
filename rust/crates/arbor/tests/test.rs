@@ -1,8 +1,8 @@
 use arbor::Render;
-use arbor::presets::indent::UnicodeIndent;
+use arbor::presets::indent::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeIndent};
 use arbor::presets::tree::Tree;
-use arbor::protocol::WrapMode;
-
+use arbor::protocol::{IIndent, WrapMode};
+use rstest::rstest;
 #[test]
 fn render_tree_root() {
     let tree = Tree::new("foo");
@@ -59,8 +59,12 @@ fn render_tree_with_single_lines() {
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
 }
-#[test]
-fn render_tree_with_complex() {
+#[rstest]
+#[case("unicode", UnicodeIndent)]
+#[case("ascii", AsciiIndent)]
+#[case("space", SpaceIndent)]
+#[case("debug", DebugIndent)]
+fn render_tree_with_complex(#[case] name: &str, #[case] indent: impl IIndent) {
     let tree = Tree::new("node 1").with_leaves([
         Tree::new("node 1.1"),
         Tree::new("node 1.2"),
@@ -77,9 +81,12 @@ fn render_tree_with_complex() {
     ]);
     let render = Render {
         tree: &tree,
-        indent: &UnicodeIndent,
+        indent: &indent,
         wrap_mode: WrapMode::MultiLine,
     };
     println!("{}", render);
-    insta::assert_snapshot!(format!("{}", render));
+    insta::assert_snapshot!(
+        format!("render_tree_with_complex_{name}",),
+        format!("{}", render)
+    );
 }

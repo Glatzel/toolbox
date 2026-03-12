@@ -26,6 +26,7 @@ pub enum WrapMode {
     FixedWidth(usize),
 }
 pub trait IIndent {
+
     /// Returns a tuple of `(prefix, continuation)` strings for the given layer
     /// and element.
     fn get_indent(&self, layer: Layer, line: Line) -> &str;

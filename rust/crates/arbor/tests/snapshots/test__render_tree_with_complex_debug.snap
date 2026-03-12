@@ -1,0 +1,21 @@
+---
+source: crates/arbor/tests/test.rs
+expression: "format!(\"{}\", render)"
+---
+<Root:First>node 1
+<Top:First>node 1.1
+<Middle:First>node 1.2
+<Middle:First>node 1.3
+<Middle:Other><Top:First>node 1.3.1
+<Middle:Other><Top:Other><Bottom:First>node 1.3.1.1
+<Middle:Other><Middle:First>node 1.3.2
+<Middle:Other><Bottom:First>node 1.3.3
+<Middle:Other><Bottom:Other><Top:First>node
+<Middle:Other><Bottom:Other><Top:Other>1.3.3.1
+<Middle:Other><Bottom:Other><Bottom:First>node 1.3.3.2
+<Bottom:First>node 1.4
+<Bottom:Other><Top:First>node 1.4.1
+<Bottom:Other><Middle:First>node 1.4.2
+<Bottom:Other><Bottom:First>node 1.4.3
+<Bottom:Other><Bottom:Other><Top:First>node 1.4.3.1
+<Bottom:Other><Bottom:Other><Bottom:First>node 1.4.3.2

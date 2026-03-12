@@ -8,6 +8,6 @@ textwrap = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta.workspace = true
-
+rstest.workspace = true
 [features]
 std = ["textwrap"]

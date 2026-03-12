@@ -23,3 +23,33 @@ impl IIndent for SpaceIndent {
         }
     }
 }
+pub struct AsciiIndent;
+impl IIndent for AsciiIndent {
+    fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
+        match (layer, line) {
+            (Layer::Root, _) => "",
+            (Layer::Middle | Layer::Top, Line::First) => "|-- ",
+            (Layer::Bottom, Line::First) => "`-- ",
+            (Layer::Bottom, Line::Other) => "    ",
+            (_, Line::Other) => "|   ",
+        }
+    }
+}
+#[cfg(debug_assertions)]
+pub struct DebugIndent;
+
+#[cfg(debug_assertions)]
+impl IIndent for DebugIndent {
+    fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
+        match (layer, line) {
+            (Layer::Root, Line::First) => "(Root:First)",
+            (Layer::Root, Line::Other) => "(Root:Other)",
+            (Layer::Top, Line::First) => "(Top:First)",
+            (Layer::Top, Line::Other) => "(Top:Other)",
+            (Layer::Middle, Line::First) => "(Middle:First)",
+            (Layer::Middle, Line::Other) => "(Middle:Other)",
+            (Layer::Bottom, Line::First) => "(Bottom:First)",
+            (Layer::Bottom, Line::Other) => "(Bottom:Other)",
+        }
+    }
+}

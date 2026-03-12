@@ -48,7 +48,6 @@ where
 
         for (line_index, text) in lines.enumerate() {
             let last = line_index == line_count - 1;
-
             match (self.wrap_mode, line_index) {
                 (WrapMode::SingleLine, 0) => {
                     f.write_str(prefix)?;
@@ -93,7 +92,6 @@ where
                 }
             }
         }
-
         Ok(())
     }
 }

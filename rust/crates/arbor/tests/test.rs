@@ -65,8 +65,8 @@ fn render_tree_with_single_lines() {
 #[case("space", SpaceIndent)]
 #[case("debug", DebugIndent)]
 fn render_tree_with_complex(#[case] name: &str, #[case] indent: impl IIndent) {
-    let tree = Tree::new("node 1").with_leaves([
-        Tree::new("node 1.1\nroot"),
+    let tree = Tree::new("node 1\nroot").with_leaves([
+        Tree::new("node 1.1"),
         Tree::new("node 1.2"),
         Tree::new("node 1.3").with_leaves([
             Tree::new("node 1.3.1").with_leaves(["node 1.3.1.1"]),

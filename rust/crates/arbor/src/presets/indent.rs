@@ -11,7 +11,6 @@ impl IIndent for UnicodeIndent {
             (_, Line::Other) => "│   ",
         }
     }
-
 }
 
 pub struct SpaceIndent;
@@ -22,6 +21,4 @@ impl IIndent for SpaceIndent {
             _ => "    ",
         }
     }
-
-  
 }

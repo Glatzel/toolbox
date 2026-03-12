@@ -78,9 +78,13 @@ where
                 writeln!(f)?;
             }
         } else {
+            let initial_indent =
+                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::First));
+            let subsequent_indent =
+                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::Other));
             let wrap_option = textwrap::Options::new(self.width)
-                .initial_indent(self.indent.get_indent(layer, Line::First))
-                .subsequent_indent(self.indent.get_indent(layer, Line::Other));
+                .initial_indent(&initial_indent)
+                .subsequent_indent(&subsequent_indent);
             writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
         }
 

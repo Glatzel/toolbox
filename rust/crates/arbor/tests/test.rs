@@ -75,10 +75,10 @@ fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: usize) {
 #[case("ascii0", AsciiIndent, 0)]
 #[case("space0", SpaceIndent, 0)]
 #[case("debug0", DebugIndent, 0)]
-#[case("unicode12", UnicodeIndent, 12)]
-#[case("ascii12", AsciiIndent, 12)]
-#[case("space12", SpaceIndent, 12)]
-#[case("debug12", DebugIndent, 12)]
+#[case("unicode1", UnicodeIndent, 20)]
+#[case("ascii1", AsciiIndent, 20)]
+#[case("space1", SpaceIndent, 20)]
+#[case("debug1", DebugIndent, 20)]
 fn render_tree_with_complex(
     #[case] name: &str,
     #[case] indent: impl IIndent,

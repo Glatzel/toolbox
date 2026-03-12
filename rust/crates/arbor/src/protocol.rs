@@ -23,7 +23,6 @@ pub trait IIndent {
     /// Returns a tuple of `(prefix, continuation)` strings for the given layer
     /// and element.
     fn get_indent(&self, layer: Layer, line: Line) -> &str;
-    fn space(&self) -> &str;
 }
 /// Trait defining rendering behavior for diagnostic types.
 pub trait ITree {

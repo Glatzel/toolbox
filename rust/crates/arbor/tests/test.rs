@@ -39,7 +39,7 @@ fn render_tree_with_multiple_leaves() {
 }
 #[test]
 fn render_tree_with_multiple_lines() {
-    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar", "baz"]);
+    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
@@ -50,7 +50,7 @@ fn render_tree_with_multiple_lines() {
 }
 #[test]
 fn render_tree_with_single_lines() {
-    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar", "baz"]);
+    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,

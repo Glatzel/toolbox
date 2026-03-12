@@ -3,6 +3,7 @@ use arbor::presets::indent::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeInden
 use arbor::presets::tree::Tree;
 use arbor::protocol::{IIndent, WrapMode};
 use rstest::rstest;
+
 #[test]
 fn render_tree_root() {
     let tree = Tree::new("foo");

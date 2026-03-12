@@ -16,7 +16,7 @@ impl<D: AsRef<str>> ITree for Tree<D> {
 impl<D: AsRef<str>> Tree<D> {
     pub fn new(content: D) -> Self {
         Self {
-            content: content,
+            content,
             leaves: Vec::new(),
         }
     }

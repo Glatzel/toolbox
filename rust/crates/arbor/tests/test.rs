@@ -55,8 +55,9 @@ fn render_tree_with_fixed_line() {
 #[rstest]
 #[case("single_line", WrapMode::SingleLine)]
 #[case("multiline", WrapMode::MultiLine)]
+#[case("fixed_width", WrapMode::FixedWidth(12))]
 fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: WrapMode) {
-    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar", "baz"]);
+    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar\nbar bar bar bar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,

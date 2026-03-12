@@ -9,13 +9,13 @@ textwrap = { workspace = true, optional = true }
 [dev-dependencies]
 insta.workspace = true
 rstest.workspace = true
+
 [features]
 default = [
   "textwrap",
   "textwrap-smawk",
   "textwrap-unicode-linebreak",
   "textwrap-unicode-width",
-  "textwrap-hyphenation",
 ]
 textwrap = ["dep:textwrap"]
 textwrap-hyphenation = ["textwrap/hyphenation"]

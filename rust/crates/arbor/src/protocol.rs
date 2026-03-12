@@ -19,6 +19,12 @@ pub enum Line {
     /// Any subsequent item in the layer.
     Other,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum WrapMode {
+    SingleLine,
+    MultiLine,
+    FixedWidth(usize),
+}
 pub trait IIndent {
     /// Returns a tuple of `(prefix, continuation)` strings for the given layer
     /// and element.

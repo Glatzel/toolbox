@@ -1,6 +1,7 @@
 use arbor::Render;
 use arbor::presets::indent::UnicodeIndent;
 use arbor::presets::tree::Tree;
+use arbor::protocol::WrapMode;
 
 #[test]
 fn render_tree_root() {
@@ -8,7 +9,7 @@ fn render_tree_root() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: false,
+        wrap_mode: WrapMode::SingleLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -20,7 +21,7 @@ fn render_tree_with_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: false,
+        wrap_mode: WrapMode::SingleLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -31,7 +32,7 @@ fn render_tree_with_multiple_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: false,
+        wrap_mode: WrapMode::SingleLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -42,7 +43,7 @@ fn render_tree_with_multiple_lines() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: true,
+        wrap_mode: WrapMode::SingleLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -53,7 +54,7 @@ fn render_tree_with_single_lines() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: false,
+        wrap_mode: WrapMode::MultiLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -77,7 +78,7 @@ fn render_tree_with_complex() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        single_line: false,
+        wrap_mode: WrapMode::MultiLine,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));

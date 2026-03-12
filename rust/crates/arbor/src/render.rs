@@ -9,6 +9,7 @@ extern crate alloc;
 pub struct Render<'a, I, T> {
     pub tree: &'a T,
     pub indent: &'a I,
+    #[cfg(feature = "textwrap")]
     pub width: usize,
 }
 impl<'a, I, T> Display for Render<'a, I, T>
@@ -43,31 +44,46 @@ where
         layer: Layer,
         prefix: &str,
     ) -> fmt::Result {
-        match self.width {
-            0 => {
-                let lines = content.lines();
-                for (line_index, text) in lines.enumerate() {
-                    f.write_str(prefix)?;
-                    f.write_str(self.indent.get_indent(
-                        layer,
-                        if line_index == 0 {
-                            Line::First
-                        } else {
-                            Line::Other
-                        },
-                    ))?;
-                    f.write_str(text)?;
-                    writeln!(f)?;
-                }
-            }
-            #[cfg(feature = "textwrap")]
-            width => {
-                let wrap_option = textwrap::Options::new(width)
-                    .initial_indent(self.indent.get_indent(layer, Line::First))
-                    .subsequent_indent(self.indent.get_indent(layer, Line::Other));
-                writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
+        #[cfg(not(feature = "textwrap"))]
+        {
+            let lines = content.lines();
+            for (line_index, text) in lines.enumerate() {
+                f.write_str(prefix)?;
+                f.write_str(self.indent.get_indent(
+                    layer,
+                    if line_index == 0 {
+                        Line::First
+                    } else {
+                        Line::Other
+                    },
+                ))?;
+                f.write_str(text)?;
+                writeln!(f)?;
             }
         }
+        #[cfg(feature = "textwrap")]
+        if self.width == 0 {
+            let lines = content.lines();
+            for (line_index, text) in lines.enumerate() {
+                f.write_str(prefix)?;
+                f.write_str(self.indent.get_indent(
+                    layer,
+                    if line_index == 0 {
+                        Line::First
+                    } else {
+                        Line::Other
+                    },
+                ))?;
+                f.write_str(text)?;
+                writeln!(f)?;
+            }
+        } else {
+            let wrap_option = textwrap::Options::new(self.width)
+                .initial_indent(self.indent.get_indent(layer, Line::First))
+                .subsequent_indent(self.indent.get_indent(layer, Line::Other));
+            writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
+        }
+
         Ok(())
     }
 }

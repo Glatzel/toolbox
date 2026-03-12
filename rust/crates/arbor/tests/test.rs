@@ -71,11 +71,19 @@ fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: usize) {
 }
 
 #[rstest]
-#[case("unicode", UnicodeIndent)]
-#[case("ascii", AsciiIndent)]
-#[case("space", SpaceIndent)]
-#[case("debug", DebugIndent)]
-fn render_tree_with_complex(#[case] name: &str, #[case] indent: impl IIndent) {
+#[case("unicode0", UnicodeIndent, 0)]
+#[case("ascii0", AsciiIndent, 0)]
+#[case("space0", SpaceIndent, 0)]
+#[case("debug0", DebugIndent, 0)]
+#[case("unicode12", UnicodeIndent, 12)]
+#[case("ascii12", AsciiIndent, 12)]
+#[case("space12", SpaceIndent, 12)]
+#[case("debug12", DebugIndent, 12)]
+fn render_tree_with_complex(
+    #[case] name: &str,
+    #[case] indent: impl IIndent,
+    #[case] width: usize,
+) {
     let tree = Tree::new("node 1\nroot").with_leaves([
         Tree::new("node 1.1"),
         Tree::new("node 1.2"),
@@ -93,7 +101,7 @@ fn render_tree_with_complex(#[case] name: &str, #[case] indent: impl IIndent) {
     let render = Render {
         tree: &tree,
         indent: &indent,
-        width: 0,
+        width: width,
     };
     println!("{}", render);
     insta::assert_snapshot!(

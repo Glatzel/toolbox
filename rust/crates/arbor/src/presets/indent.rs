@@ -5,8 +5,7 @@ impl IIndent for UnicodeIndent {
     fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
         match (layer, line) {
             (Layer::Root, Line::First) => "",
-            (Layer::Top, Line::First) => "├─▶ ",
-            (Layer::Middle, Line::First) => "├─▶ ",
+            (Layer::Middle | Layer::Top, Line::First) => "├─▶ ",
             (Layer::Bottom, Line::First) => "╰─▶ ",
             (Layer::Bottom, Line::Other) => "    ",
             (_, Line::Other) => "│   ",

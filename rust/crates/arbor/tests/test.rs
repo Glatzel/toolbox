@@ -10,7 +10,7 @@ fn render_tree_root() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: WrapMode::SingleLine,
+        width: 0,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -22,7 +22,7 @@ fn render_tree_with_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: WrapMode::SingleLine,
+        width: 0,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -33,7 +33,7 @@ fn render_tree_with_multiple_leaves() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: WrapMode::SingleLine,
+        width: 0,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
@@ -48,21 +48,20 @@ fn render_tree_with_fixed_line() {
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: WrapMode::FixedWidth(28),
+        width: 28,
     };
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
 }
 #[rstest]
-#[case("single_line", WrapMode::SingleLine)]
-#[case("multiline", WrapMode::MultiLine)]
-#[case("fixed_width", WrapMode::FixedWidth(12))]
-fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: WrapMode) {
+#[case("normal", 0)]
+#[case("fixed_width", 12)]
+fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: usize) {
     let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar\nbar bar bar bar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: mode,
+        width: mode,
     };
     println!("{}", render);
     insta::assert_snapshot!(
@@ -94,7 +93,7 @@ fn render_tree_with_complex(#[case] name: &str, #[case] indent: impl IIndent) {
     let render = Render {
         tree: &tree,
         indent: &indent,
-        wrap_mode: WrapMode::MultiLine,
+        width: 0,
     };
     println!("{}", render);
     insta::assert_snapshot!(

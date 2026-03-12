@@ -3,13 +3,13 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use core::fmt::{self, Display};
 
-use crate::protocol::{IIndent, ITree, Layer, Line, WrapMode};
+use crate::protocol::{IIndent, ITree, Layer, Line};
 extern crate alloc;
 
 pub struct Render<'a, I, T> {
     pub tree: &'a T,
     pub indent: &'a I,
-    pub wrap_mode: WrapMode,
+    pub width: usize,
 }
 impl<'a, I, T> Display for Render<'a, I, T>
 where
@@ -43,53 +43,29 @@ where
         layer: Layer,
         prefix: &str,
     ) -> fmt::Result {
-        let lines = content.lines();
-        let line_count = lines.clone().count();
-
-        for (line_index, text) in lines.enumerate() {
-            let last = line_index == line_count - 1;
-            match (self.wrap_mode, line_index) {
-                (WrapMode::SingleLine, 0) => {
+        match self.width {
+            0 => {
+                let lines = content.lines();
+                for (line_index, text) in lines.enumerate() {
                     f.write_str(prefix)?;
-                    f.write_str(self.indent.get_indent(layer, Line::First))?;
-                    f.write_str(text)?;
-                    if last {
-                        writeln!(f)?;
-                    }
-                }
-                (WrapMode::SingleLine, _) => {
-                    f.write_str(prefix)?;
-                    f.write_str(text)?;
-                    if last {
-                        writeln!(f)?;
-                    }
-                }
-                (WrapMode::MultiLine, 0) => {
-                    f.write_str(prefix)?;
-                    f.write_str(self.indent.get_indent(layer, Line::First))?;
+                    f.write_str(self.indent.get_indent(
+                        layer,
+                        if line_index == 0 {
+                            Line::First
+                        } else {
+                            Line::Other
+                        },
+                    ))?;
                     f.write_str(text)?;
                     writeln!(f)?;
                 }
-                (WrapMode::MultiLine, _) => {
-                    f.write_str(prefix)?;
-                    f.write_str(self.indent.get_indent(layer, Line::Other))?;
-                    f.write_str(text)?;
-                    writeln!(f)?;
-                }
-                #[cfg(feature = "textwrap")]
-                (WrapMode::FixedWidth(width), 0) => {
-                    let wrap_option = textwrap::Options::new(width)
-                        .initial_indent(self.indent.get_indent(layer, Line::First))
-                        .subsequent_indent(self.indent.get_indent(layer, Line::Other));
-                    writeln!(f, "{}", textwrap::fill(text, &wrap_option))?;
-                }
-                #[cfg(feature = "textwrap")]
-                (WrapMode::FixedWidth(width), _) => {
-                    let wrap_option = textwrap::Options::new(width)
-                        .initial_indent(self.indent.get_indent(layer, Line::Other))
-                        .subsequent_indent(self.indent.get_indent(layer, Line::Other));
-                    writeln!(f, "{}", textwrap::fill(text, &wrap_option))?;
-                }
+            }
+            #[cfg(feature = "textwrap")]
+            width => {
+                let wrap_option = textwrap::Options::new(width)
+                    .initial_indent(self.indent.get_indent(layer, Line::First))
+                    .subsequent_indent(self.indent.get_indent(layer, Line::Other));
+                writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
             }
         }
         Ok(())

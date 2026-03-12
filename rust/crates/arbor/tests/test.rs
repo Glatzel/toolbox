@@ -37,28 +37,23 @@ fn render_tree_with_multiple_leaves() {
     println!("{}", render);
     insta::assert_snapshot!(format!("{}", render));
 }
-#[test]
-fn render_tree_with_multiple_lines() {
+#[rstest]
+#[case("single_line", WrapMode::SingleLine)]
+#[case("multiline", WrapMode::MultiLine)]
+fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: WrapMode) {
     let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar", "baz"]);
     let render = Render {
         tree: &tree,
         indent: &UnicodeIndent,
-        wrap_mode: WrapMode::SingleLine,
+        wrap_mode: mode,
     };
     println!("{}", render);
-    insta::assert_snapshot!(format!("{}", render));
+    insta::assert_snapshot!(
+        format!("render_tree_with_multiple_lines_{name}",),
+        format!("{}", render)
+    );
 }
-#[test]
-fn render_tree_with_single_lines() {
-    let tree = Tree::new("foo\nfoo").with_leaves(["bar\nbar\nbar", "baz"]);
-    let render = Render {
-        tree: &tree,
-        indent: &UnicodeIndent,
-        wrap_mode: WrapMode::MultiLine,
-    };
-    println!("{}", render);
-    insta::assert_snapshot!(format!("{}", render));
-}
+
 #[rstest]
 #[case("unicode", UnicodeIndent)]
 #[case("ascii", AsciiIndent)]

@@ -17,15 +17,15 @@ where
     T: ITree<Leave = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut queue: VecDeque<(&T, Layer, Rc<String>)> = VecDeque::new();
+        let mut queue = VecDeque::new();
         self.render_content(f, self.tree, Layer::Root, "")?;
-        self.enqueue(&mut queue, self.tree, Rc::new(String::new()));
-        while let Some((leaf, layer, s)) = queue.pop_front() {
+        enqueue(&mut queue, self.tree, Rc::new(String::new()), &self.indent);
+        while let Some((leaf, layer, s, _)) = queue.pop_front() {
             self.render_content(f, leaf, layer, &s)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
-                self.enqueue(&mut queue, leaf, Rc::new(leave_spaces));
+                enqueue(&mut queue, leaf, Rc::new(leave_spaces), &self.indent);
             }
         }
         Ok(())
@@ -47,7 +47,7 @@ where
         self.render_content_no_wrap(f, content, layer, prefix)?;
         #[cfg(feature = "textwrap")]
         if self.width == 0 {
-            self.render_content_no_wrap(f, node, layer, prefix)?;
+            render_content_no_wrap(f, node, layer, prefix, &self.indent)?;
         } else {
             let initial_indent =
                 alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::First));
@@ -58,55 +58,7 @@ where
                 .subsequent_indent(&subsequent_indent);
             writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
         }
-
         Ok(())
-    }
-    fn render_content_no_wrap(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        node: &impl ITree,
-        layer: Layer,
-        prefix: &str,
-    ) -> fmt::Result {
-        let lines = node.content().lines();
-        for (line_index, text) in lines.enumerate() {
-            f.write_str(prefix)?;
-            f.write_str(self.indent.get_indent(
-                layer,
-                if line_index == 0 {
-                    Line::First
-                } else {
-                    Line::Other
-                },
-            ))?;
-            f.write_str(text)?;
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-    fn enqueue(
-        &self,
-        queue: &mut VecDeque<(&'a T, Layer, Rc<String>)>,
-        tree: &'a T,
-        spaces: Rc<String>,
-    ) where
-        I: IIndent,
-        T: ITree<Leave = T>,
-    {
-        let children_count_index = tree.leaves().len().saturating_sub(1);
-        for (i, leaf) in tree.leaves().iter().rev().enumerate() {
-            let layer = match i {
-                0 => Layer::Bottom,
-                i => {
-                    if i == children_count_index {
-                        Layer::Top
-                    } else {
-                        Layer::Middle
-                    }
-                }
-            };
-            queue.push_front((leaf, layer, spaces.clone()));
-        }
     }
 }
 
@@ -121,19 +73,17 @@ where
     T: IComplexTree<Indent = I, Leave = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut queue: VecDeque<(&T, Layer, Rc<String>, I)> = VecDeque::new();
-        {
-            let indent = self.tree.indent().clone().unwrap_or_default();
-            self.render_content(f, self.tree, Layer::Root, "", &indent)?;
-            self.enqueue(&mut queue, self.tree, Rc::new(String::new()), indent);
-        }
+        let mut queue = VecDeque::new();
+        let indent = self.tree.indent().clone().unwrap_or_default();
+        self.render_content(f, self.tree, Layer::Root, "", &indent)?;
+        enqueue(&mut queue, self.tree, Rc::new(String::new()), &indent);
         while let Some((leaf, layer, s, indent)) = queue.pop_front() {
             self.render_content(f, leaf, layer, &s, &indent)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
-                let leaf_indent = leaf.indent().clone().unwrap_or(indent.clone());
+                let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
                 leave_spaces.push_str(indent.get_indent(layer, Line::Other));
-                self.enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
+                enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
             }
         }
         Ok(())
@@ -153,10 +103,10 @@ where
         indent: &I,
     ) -> fmt::Result {
         #[cfg(not(feature = "textwrap"))]
-        self.render_content_no_wrap(f, content, layer, prefix)?;
+        render_content_no_wrap(f, content, layer, prefix)?;
         #[cfg(feature = "textwrap")]
         if self.width == 0 {
-            self.render_content_no_wrap(f, node, layer, prefix, indent)?;
+            render_content_no_wrap(f, node, layer, prefix, indent)?;
         } else {
             let initial_indent =
                 alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::First));
@@ -170,53 +120,54 @@ where
 
         Ok(())
     }
-    fn render_content_no_wrap(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        node: &impl IComplexTree,
-        layer: Layer,
-        prefix: &str,
-        indent: &I,
-    ) -> fmt::Result {
-        let lines = node.content().lines();
-        for (line_index, text) in lines.enumerate() {
-            f.write_str(prefix)?;
-            f.write_str(indent.get_indent(
-                layer,
-                if line_index == 0 {
-                    Line::First
+}
+fn enqueue<'a, I, T>(
+    queue: &mut VecDeque<(&'a T, Layer, Rc<String>, &'a I)>,
+    tree: &'a T,
+    spaces: Rc<String>,
+    indent: &'a I,
+) where
+    I: IIndent,
+    T: ITree<Leave = T>,
+{
+    let children_count_index = tree.leaves().len().saturating_sub(1);
+    for (i, leaf) in tree.leaves().iter().rev().enumerate() {
+        let layer = match i {
+            0 => Layer::Bottom,
+            i => {
+                if i == children_count_index {
+                    Layer::Top
                 } else {
-                    Line::Other
-                },
-            ))?;
-            f.write_str(text)?;
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-    fn enqueue(
-        &self,
-        queue: &mut VecDeque<(&'a T, Layer, Rc<String>, I)>,
-        tree: &'a T,
-        spaces: Rc<String>,
-        indent: I,
-    ) where
-        I: IIndent,
-        T: IComplexTree<Indent = I, Leave = T>,
-    {
-        let children_count_index = tree.leaves().len().saturating_sub(1);
-        for (i, leaf) in tree.leaves().iter().rev().enumerate() {
-            let layer = match i {
-                0 => Layer::Bottom,
-                i => {
-                    if i == children_count_index {
-                        Layer::Top
-                    } else {
-                        Layer::Middle
-                    }
+                    Layer::Middle
                 }
-            };
-            queue.push_front((leaf, layer, spaces.clone(), indent.clone()));
-        }
+            }
+        };
+        queue.push_front((leaf, layer, spaces.clone(), indent));
     }
+}
+fn render_content_no_wrap<I>(
+    f: &mut fmt::Formatter<'_>,
+    node: &impl ITree,
+    layer: Layer,
+    prefix: &str,
+    indent: &I,
+) -> fmt::Result
+where
+    I: IIndent,
+{
+    let lines = node.content().lines();
+    for (line_index, text) in lines.enumerate() {
+        f.write_str(prefix)?;
+        f.write_str(indent.get_indent(
+            layer,
+            if line_index == 0 {
+                Line::First
+            } else {
+                Line::Other
+            },
+        ))?;
+        f.write_str(text)?;
+        writeln!(f)?;
+    }
+    Ok(())
 }

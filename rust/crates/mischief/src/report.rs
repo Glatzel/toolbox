@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
 use arbor::ComplexRender;
-use arbor::protocol::IComplexTree;
+use arbor::protocol::{IComplexTree, ITree};
 use terminal_size::terminal_size;
 
 use crate::error::MischiefError;
@@ -24,7 +24,7 @@ impl Report {
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let render = ComplexRender {
+        let render = Render {
             tree: self,
             width: match terminal_size() {
                 Some((w, _)) => w.0 as usize,
@@ -36,7 +36,7 @@ impl Debug for Report {
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let render = ComplexRender {
+        let render = Render {
             tree: self,
             width: match terminal_size() {
                 Some((w, _)) => w.0 as usize,
@@ -46,12 +46,10 @@ impl Display for Report {
         write!(f, "{}", render)
     }
 }
-impl IComplexTree for Report {
-    type Leave;
-    type Indent;
+impl ITree for Report {
+    type Leave = MischiefError;
     fn content(&self) -> &str { todo!() }
     fn leaves(&self) -> &[Self::Leave] { todo!() }
-    fn indent(&self) -> &Option<Self::Indent> { todo!() }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively
 /// converting source errors into `MischiefError`.

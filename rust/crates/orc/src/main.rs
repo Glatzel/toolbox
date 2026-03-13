@@ -1,8 +1,8 @@
-use goblin::pe::PE;
 use std::collections::HashSet;
-use std::env;
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{env, fs};
+
+use goblin::pe::PE;
 
 fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
     let candidate = base.join(name);

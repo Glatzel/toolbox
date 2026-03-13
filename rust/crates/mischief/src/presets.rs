@@ -1,6 +1,14 @@
+use core::fmt;
+
 use arbor::protocol::{IIndent, Layer, Line};
+use arbor::renders::Render;
+use arbor::trees::Tree;
 #[cfg(feature = "fancy")]
 use owo_colors::Style;
+
+use crate::Report;
+#[cfg(feature = "fancy")]
+use crate::Severity;
 
 #[derive(Debug, Clone)]
 pub struct MischiefIndent {
@@ -65,7 +73,20 @@ pub enum HyperlinkFormat {
     Plain,
     Link,
 }
-
+/// Trait defining styling for different components of diagnostic output.
+#[cfg(feature = "fancy")]
+pub trait ITheme {
+    /// Style for default text.
+    fn default_style(&self) -> &Option<Style>;
+    /// Style for error or diagnostic descriptions.
+    fn description_style(&self) -> &Option<Style>;
+    /// Style for severity labels.
+    fn severity_style(&self, severity: Option<Severity>) -> &Option<Style>;
+    /// Style for help text: returns a tuple of `(prefix_style, message_style)`.
+    fn help_style(&self) -> &(Option<Style>, Option<Style>);
+    /// Style for URLs.
+    fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat);
+}
 /// Default theme implementation using `owo_colors`.
 #[cfg(feature = "fancy")]
 #[derive(Debug, Clone)]
@@ -78,6 +99,7 @@ pub struct MischiefTheme {
     pub help_style: (Option<Style>, Option<Style>),
     pub hyperlink_style: (Option<Style>, HyperlinkFormat),
 }
+#[cfg(feature = "fancy")]
 impl Default for MischiefTheme {
     fn default() -> Self {
         if supports_color::on(supports_color::Stream::Stdout).is_some() {
@@ -108,5 +130,65 @@ impl Default for MischiefTheme {
                 hyperlink_style: (None, HyperlinkFormat::Plain),
             }
         }
+    }
+}
+#[cfg(feature = "fancy")]
+impl ITheme for MischiefTheme {
+    fn default_style(&self) -> &Option<Style> { &self.default_style }
+    fn description_style(&self) -> &Option<Style> { &self.description_style }
+    fn severity_style(&self, severity: Option<Severity>) -> &Option<Style> {
+        match severity {
+            Some(Severity::Advice) => &self.severity_advice_style,
+            Some(Severity::Warning) => &self.severity_warning_style,
+            Some(Severity::Error) => &self.severity_error_style,
+            None => &None,
+        }
+    }
+    fn help_style(&self) -> &(Option<Style>, Option<Style>) { &self.help_style }
+    fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat) { &self.hyperlink_style }
+}
+pub struct RenderBundle<'a, I, #[cfg(feature = "fancy")] T> {
+    pub report: &'a Report,
+    #[cfg(feature = "fancy")]
+    pub theme: T,
+    pub indent: I,
+    #[cfg(feature = "fancy")]
+    pub width: usize,
+}
+#[cfg(feature = "fancy")]
+impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        #[cfg(feature = "fancy")]
+        let mut tree = Tree::new(self.report.inner.render_text(&self.theme));
+        let mut source = &self.report.inner.source;
+        while let Some(e) = source {
+            tree.push(e.render_text(&self.theme));
+            source = &e.source
+        }
+        let render = Render {
+            tree: &tree,
+            indent: self.indent.clone(),
+
+            width: self.width,
+        };
+        write!(f, "{}", render)
+    }
+}
+#[cfg(not(feature = "fancy"))]
+impl<I: IIndent> fmt::Display for RenderBundle<'_, I> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut tree = Tree::new(self.report.inner.render_text());
+        let mut source = &self.report.inner.source;
+        while let Some(e) = source {
+            tree.push(e.render_text());
+            source = &e.source
+        }
+        let render = Render {
+            tree: &tree,
+            indent: self.indent.clone(),
+            #[cfg(feature = "fancy")]
+            width: self.width,
+        };
+        write!(f, "{}", render)
     }
 }

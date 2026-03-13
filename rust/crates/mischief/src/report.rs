@@ -4,15 +4,13 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use arbor::protocol::IIndent;
-use arbor::renders::Render;
-use arbor::trees::Tree;
+#[cfg(feature = "fancy")]
 use terminal_size::terminal_size;
 
 use crate::error::MischiefError;
-use crate::presets::MischiefIndent;
 #[cfg(feature = "fancy")]
 use crate::presets::MischiefTheme;
+use crate::presets::{MischiefIndent, RenderBundle};
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
@@ -24,61 +22,38 @@ impl Report {
     /// Creates a new `Report` from a `MischiefError`.
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
-    pub fn render(
-        &self,
-        f: &mut core::fmt::Formatter<'_>,
-        style: MischiefTheme,
-        indent: impl IIndent,
-        #[cfg(feature = "fancy")] width: usize,
-    ) -> core::fmt::Result {
-        #[cfg(not(feature = "fancy"))]
-        let tree = Tree::new(self.inner.render_text());
-        #[cfg(feature = "fancy")]
-        let mut tree = Tree::new(self.inner.render_text(&style));
-        let mut source = &self.inner.source;
-        while let Some(e) = source {
-            #[cfg(not(feature = "fancy"))]
-            tree.push(e.render_text());
-            #[cfg(feature = "fancy")]
-            tree.push(e.render_text(&style));
-            source = &e.source
-        }
-        let render = Render {
-            tree: &tree,
-            indent: indent,
-            #[cfg(feature = "fancy")]
-            width: width,
-        };
-        write!(f, "{}", render)
-    }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.render(
-            f,
-            MischiefTheme::default(),
-            MischiefIndent::default(),
+        let bundle = RenderBundle {
+            report: self,
             #[cfg(feature = "fancy")]
-            match terminal_size() {
+            theme: MischiefTheme::default(),
+            indent: MischiefIndent::default(),
+            #[cfg(feature = "fancy")]
+            width: match terminal_size() {
                 Some((w, _)) => w.0 as usize,
                 None => 0,
             },
-        )
+        };
+        write!(f, "{}", bundle)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.render(
-            f,
-            MischiefTheme::default(),
-            MischiefIndent::default(),
+        let bundle = RenderBundle {
+            report: self,
             #[cfg(feature = "fancy")]
-            match terminal_size() {
+            theme: MischiefTheme::default(),
+            indent: MischiefIndent::default(),
+            #[cfg(feature = "fancy")]
+            width: match terminal_size() {
                 Some((w, _)) => w.0 as usize,
                 None => 0,
             },
-        )
+        };
+        write!(f, "{}", bundle)
     }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively

@@ -1,6 +1,7 @@
 ---
 source: crates/mischief/tests/test_report.rs
+assertion_line: 148
 expression: "format!(\"{}\", bundle)"
 ---
-x error wrapper
-╰─▶ fake error
+error wrapper
+    fake error

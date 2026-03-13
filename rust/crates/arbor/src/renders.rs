@@ -18,10 +18,26 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
-        render_content(f, self.tree, Layer::Root, "", &self.indent, self.width)?;
+        render_content(
+            f,
+            self.tree,
+            Layer::Root,
+            "",
+            &self.indent,
+            #[cfg(feature = "textwrap")]
+            self.width,
+        )?;
         enqueue(&mut queue, self.tree, Rc::new(String::new()), &self.indent);
         while let Some((leaf, layer, s, _)) = queue.pop_front() {
-            render_content(f, leaf, layer, &s, &self.indent, self.width)?;
+            render_content(
+                f,
+                leaf,
+                layer,
+                &s,
+                &self.indent,
+                #[cfg(feature = "textwrap")]
+                self.width,
+            )?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
@@ -45,10 +61,26 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
         let indent = self.tree.indent().clone().unwrap_or_default();
-        render_content(f, self.tree, Layer::Root, "", &indent, self.width)?;
+        render_content(
+            f,
+            self.tree,
+            Layer::Root,
+            "",
+            &indent,
+            #[cfg(feature = "textwrap")]
+            self.width,
+        )?;
         enqueue(&mut queue, self.tree, Rc::new(String::new()), &indent);
         while let Some((leaf, layer, s, indent)) = queue.pop_front() {
-            render_content(f, leaf, layer, &s, indent, self.width)?;
+            render_content(
+                f,
+                leaf,
+                layer,
+                &s,
+                indent,
+                #[cfg(feature = "textwrap")]
+                self.width,
+            )?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
@@ -116,13 +148,13 @@ fn render_content<I>(
     layer: Layer,
     prefix: &str,
     indent: &I,
-    width: usize,
+    #[cfg(feature = "textwrap")] width: usize,
 ) -> fmt::Result
 where
     I: IIndent,
 {
     #[cfg(not(feature = "textwrap"))]
-    render_content_no_wrap(f, content, layer, prefix)?;
+    render_content_no_wrap(f, node, layer, prefix, indent)?;
     #[cfg(feature = "textwrap")]
     if width == 0 {
         render_content_no_wrap(f, node, layer, prefix, indent)?;

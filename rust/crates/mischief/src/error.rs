@@ -1,13 +1,20 @@
 extern crate alloc;
 use alloc::boxed::Box;
+#[cfg(feature = "fancy")]
 use alloc::format;
 use alloc::string::{String, ToString};
-use core::fmt::{Display, Write};
+use core::fmt::Display;
+#[cfg(feature = "fancy")]
+use core::fmt::Write;
 
+#[cfg(feature = "fancy")]
 use owo_colors::{OwoColorize, Style};
 
-use crate::presets::{HyperlinkFormat, MischiefTheme};
-use crate::{IDiagnostic, Severity};
+use crate::IDiagnostic;
+#[cfg(feature = "fancy")]
+use crate::presets::HyperlinkFormat;
+#[cfg(feature = "fancy")]
+use crate::presets::ITheme;
 
 /// Represents a structured error with optional metadata such as source, code,
 /// severity, help message, and URL.
@@ -51,17 +58,12 @@ impl MischiefError {
     /// Returns the source error, if any.
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
     #[cfg(not(feature = "fancy"))]
-    pub fn render_text(&self) -> String { diagnostic.description().to_string() }
+    pub fn render_text(&self) -> String { self.description().unwrap_or_default().to_string() }
     #[cfg(feature = "fancy")]
-    pub fn render_text(&self, theme: &MischiefTheme) -> String {
+    pub fn render_text(&self, theme: &impl ITheme) -> String {
         use core::fmt::Write;
         let mut buffer = String::new();
-        let severity_color = match self.severity() {
-            Some(Severity::Advice) => theme.severity_advice_style,
-            Some(Severity::Warning) => theme.severity_warning_style,
-            Some(Severity::Error) => theme.severity_error_style,
-            None => None,
-        };
+        let severity_color = *theme.severity_style(self.severity());
         if let Some(s) = self.severity() {
             self.apply_style(&mut buffer, &s.to_string(), &severity_color)
                 .unwrap()
@@ -71,23 +73,22 @@ impl MischiefError {
                 .unwrap()
         }
         if let Some(s) = self.url() {
-            self.apply_hyperlink_style(&mut buffer, s, "(link)", &theme.hyperlink_style)
+            self.apply_hyperlink_style(&mut buffer, s, "(link)", theme.hyperlink_style())
                 .unwrap();
         }
         if self.severity().is_some() || self.code().is_some() || self.url().is_some() {
             buffer.write_str(": ").unwrap();
         }
         if let Some(s) = self.description() {
-            self.apply_style(&mut buffer, s, &theme.description_style)
+            self.apply_style(&mut buffer, s, theme.description_style())
                 .unwrap();
         }
 
         if let Some(s) = self.help() {
             writeln!(buffer).unwrap();
-
-            self.apply_style(&mut buffer, "help: ", &theme.help_style.0)
+            self.apply_style(&mut buffer, "help: ", &theme.help_style().0)
                 .unwrap();
-            self.apply_style(&mut buffer, s, &theme.help_style.1)
+            self.apply_style(&mut buffer, s, &theme.help_style().1)
                 .unwrap();
         }
         buffer
@@ -107,6 +108,7 @@ impl MischiefError {
             buffer.write_str(text)
         }
     }
+    #[cfg(feature = "fancy")]
     fn apply_hyperlink_style(
         &self,
         buffer: &mut String,

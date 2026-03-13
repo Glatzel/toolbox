@@ -1,12 +1,5 @@
 use mischief::presets::*;
 use mischief::{IntoMischief, WrapErr, mischief};
-fn snapshot_file_name(name: &str) -> String {
-    if cfg!(feature = "fancy") {
-        format!("{name}_fancy")
-    } else {
-        format!("{name}_no_fancy")
-    }
-}
 #[cfg(feature = "fancy")]
 struct NoTheme;
 #[cfg(feature = "fancy")]
@@ -46,24 +39,23 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: MischiefTheme::default(),
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            println!("{}", bundle);
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: NoTheme,
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            insta::assert_snapshot!(snapshot_file_name("report_error"), format!("{}", bundle))
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
+            }
         }
     }
 }
@@ -86,27 +78,23 @@ fn report_error_long() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: MischiefTheme::default(),
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            println!("{}", bundle);
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: NoTheme,
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            insta::assert_snapshot!(
-                snapshot_file_name("report_error_long"),
-                format!("{}", bundle)
-            )
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
+            }
         }
     }
 }
@@ -128,27 +116,23 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: MischiefTheme::default(),
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            println!("{}", bundle);
-            let bundle = RenderBundle {
-                report: &report,
-                #[cfg(feature = "fancy")]
-                theme: NoTheme,
-                indent: MischiefIndent::default(),
-                #[cfg(feature = "fancy")]
-                width: 80,
-            };
-            insta::assert_snapshot!(
-                snapshot_file_name("report_from_error"),
-                format!("{}", bundle)
-            )
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
+            }
         }
     }
     Ok(())

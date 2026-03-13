@@ -147,7 +147,8 @@ impl ITheme for MischiefTheme {
     fn help_style(&self) -> &(Option<Style>, Option<Style>) { &self.help_style }
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat) { &self.hyperlink_style }
 }
-pub struct RenderBundle<'a, I, #[cfg(feature = "fancy")] T> {
+#[cfg(feature = "fancy")]
+pub struct RenderBundle<'a, I, T> {
     pub report: &'a Report,
     #[cfg(feature = "fancy")]
     pub theme: T,
@@ -158,7 +159,6 @@ pub struct RenderBundle<'a, I, #[cfg(feature = "fancy")] T> {
 #[cfg(feature = "fancy")]
 impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        #[cfg(feature = "fancy")]
         let mut tree = Tree::new(self.report.inner.render_text(&self.theme));
         let mut source = &self.report.inner.source;
         while let Some(e) = source {
@@ -169,24 +169,6 @@ impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
             tree: &tree,
             indent: self.indent.clone(),
 
-            width: self.width,
-        };
-        write!(f, "{}", render)
-    }
-}
-#[cfg(not(feature = "fancy"))]
-impl<I: IIndent> fmt::Display for RenderBundle<'_, I> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = Tree::new(self.report.inner.render_text());
-        let mut source = &self.report.inner.source;
-        while let Some(e) = source {
-            tree.push(e.render_text());
-            source = &e.source
-        }
-        let render = Render {
-            tree: &tree,
-            indent: self.indent.clone(),
-            #[cfg(feature = "fancy")]
             width: self.width,
         };
         write!(f, "{}", render)

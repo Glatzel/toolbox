@@ -57,8 +57,6 @@ impl MischiefError {
     pub fn description(&self) -> Option<&str> { Some(&self.description) }
     /// Returns the source error, if any.
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
-    #[cfg(not(feature = "fancy"))]
-    pub fn render_text(&self) -> String { self.description().unwrap_or_default().to_string() }
     #[cfg(feature = "fancy")]
     pub fn render_text(&self, theme: &impl ITheme) -> String {
         use core::fmt::Write;

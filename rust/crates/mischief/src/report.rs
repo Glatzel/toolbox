@@ -26,34 +26,36 @@ impl Report {
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let bundle = RenderBundle {
-            report: self,
-            #[cfg(feature = "fancy")]
-            theme: MischiefTheme::default(),
-            indent: MischiefIndent::default(),
-            #[cfg(feature = "fancy")]
-            width: match terminal_size() {
-                Some((w, _)) => w.0 as usize,
-                None => 0,
-            },
-        };
-        write!(f, "{}", bundle)
+        #[cfg(feature = "fancy")]
+        {
+            let bundle = RenderBundle {
+                report: self,
+                theme: MischiefTheme::default(),
+                indent: MischiefIndent::default(),
+                width: match terminal_size() {
+                    Some((w, _)) => w.0 as usize,
+                    None => 0,
+                },
+            };
+            write!(f, "{}", bundle)
+        }
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let bundle = RenderBundle {
-            report: self,
-            #[cfg(feature = "fancy")]
-            theme: MischiefTheme::default(),
-            indent: MischiefIndent::default(),
-            #[cfg(feature = "fancy")]
-            width: match terminal_size() {
-                Some((w, _)) => w.0 as usize,
-                None => 0,
-            },
-        };
-        write!(f, "{}", bundle)
+        #[cfg(feature = "fancy")]
+        {
+            let bundle = RenderBundle {
+                report: self,
+                theme: MischiefTheme::default(),
+                indent: MischiefIndent::default(),
+                width: match terminal_size() {
+                    Some((w, _)) => w.0 as usize,
+                    None => 0,
+                },
+            };
+            write!(f, "{}", bundle)
+        }
     }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively

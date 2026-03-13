@@ -1,3 +1,4 @@
+#[cfg(feature = "fancy")]
 use mischief::presets::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 #[cfg(feature = "fancy")]
@@ -56,6 +57,11 @@ fn report_error() {
                 };
                 insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
             }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_no_fancy"), format!("{}", report))
+            }
         }
     }
 }
@@ -95,6 +101,11 @@ fn report_error_long() {
                 };
                 insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
             }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_long_no_fancy"), format!("{}", report))
+            }
         }
     }
 }
@@ -132,6 +143,11 @@ fn report_from_error() -> mischief::Result<()> {
                     width: 80,
                 };
                 insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_from_error_no_fancy"), format!("{}", report))
             }
         }
     }

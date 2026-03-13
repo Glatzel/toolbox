@@ -3,12 +3,9 @@ use core::fmt;
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::Render;
 use arbor::trees::Tree;
-#[cfg(feature = "fancy")]
 use owo_colors::Style;
 
-use crate::Report;
-#[cfg(feature = "fancy")]
-use crate::Severity;
+use crate::{Report, Severity};
 
 #[derive(Debug, Clone)]
 pub struct MischiefIndent {
@@ -32,18 +29,6 @@ impl IIndent for MischiefIndent {
     }
 }
 impl Default for MischiefIndent {
-    #[cfg(not(feature = "fancy"))]
-    fn default() -> Self {
-        Self {
-            root_first: "",
-            root_other: "",
-            top_middle_first: "    ",
-            bottom_first: "    ",
-            bottom_other: "    ",
-            other: "    ",
-        }
-    }
-    #[cfg(feature = "fancy")]
     fn default() -> Self {
         {
             if supports_unicode::on(supports_unicode::Stream::Stdout) {
@@ -74,7 +59,7 @@ pub enum HyperlinkFormat {
     Link,
 }
 /// Trait defining styling for different components of diagnostic output.
-#[cfg(feature = "fancy")]
+
 pub trait ITheme {
     /// Style for default text.
     fn default_style(&self) -> &Option<Style>;
@@ -88,7 +73,7 @@ pub trait ITheme {
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat);
 }
 /// Default theme implementation using `owo_colors`.
-#[cfg(feature = "fancy")]
+
 #[derive(Debug, Clone)]
 pub struct MischiefTheme {
     pub default_style: Option<Style>,
@@ -99,7 +84,7 @@ pub struct MischiefTheme {
     pub help_style: (Option<Style>, Option<Style>),
     pub hyperlink_style: (Option<Style>, HyperlinkFormat),
 }
-#[cfg(feature = "fancy")]
+
 impl Default for MischiefTheme {
     fn default() -> Self {
         if supports_color::on(supports_color::Stream::Stdout).is_some() {
@@ -132,7 +117,7 @@ impl Default for MischiefTheme {
         }
     }
 }
-#[cfg(feature = "fancy")]
+
 impl ITheme for MischiefTheme {
     fn default_style(&self) -> &Option<Style> { &self.default_style }
     fn description_style(&self) -> &Option<Style> { &self.description_style }
@@ -147,16 +132,16 @@ impl ITheme for MischiefTheme {
     fn help_style(&self) -> &(Option<Style>, Option<Style>) { &self.help_style }
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat) { &self.hyperlink_style }
 }
-#[cfg(feature = "fancy")]
+
 pub struct RenderBundle<'a, I, T> {
     pub report: &'a Report,
-    #[cfg(feature = "fancy")]
+
     pub theme: T,
     pub indent: I,
-    #[cfg(feature = "fancy")]
+
     pub width: usize,
 }
-#[cfg(feature = "fancy")]
+
 impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut tree = Tree::new(self.report.inner.render_text(&self.theme));

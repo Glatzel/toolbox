@@ -1,7 +1,8 @@
 ---
 source: crates/mischief/tests/test_report.rs
-expression: "format!(\"{}\", bundle)"
+expression: "format!(\"{}\", report)"
 ---
 Third error
-    Second error
-    first error
+
+Caused by:
+    Second error    first error

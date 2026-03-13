@@ -6,11 +6,9 @@ use alloc::string::ToString;
 
 #[cfg(feature = "fancy")]
 use terminal_size::terminal_size;
-
 use crate::error::MischiefError;
 #[cfg(feature = "fancy")]
-use crate::presets::MischiefTheme;
-use crate::presets::{MischiefIndent, RenderBundle};
+use crate::presets::*;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
@@ -23,7 +21,33 @@ impl Report {
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 }
+#[cfg(not(feature = "fancy"))]
+impl Report {
+    /// Produces an iterator over the diagnostic chain.
+    fn chain(
+        diagnostic: &impl crate::IDiagnostic,
+    ) -> impl Iterator<Item = &dyn crate::IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn crate::IDiagnostic), |r| r.source())
+    }
+    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut chain = Self::chain(&self.inner);
 
+        if let Some(first) = chain.next() {
+            f.write_str(first.description())?;
+            writeln!(f)?;
+        }
+        let mut first = true;
+        for diagnostic in chain {
+            if first {
+                f.write_str("\nCaused by:")?;
+                writeln!(f)?;
+                first = false;
+            }
+            f.write_str(&alloc::format!("    {}", diagnostic.description()))?;
+        }
+        Ok(())
+    }
+}
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[cfg(feature = "fancy")]
@@ -39,6 +63,8 @@ impl Debug for Report {
             };
             write!(f, "{}", bundle)
         }
+        #[cfg(not(feature = "fancy"))]
+        self.render_plain(f)
     }
 }
 impl Display for Report {
@@ -56,6 +82,8 @@ impl Display for Report {
             };
             write!(f, "{}", bundle)
         }
+        #[cfg(not(feature = "fancy"))]
+        self.render_plain(f)
     }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively

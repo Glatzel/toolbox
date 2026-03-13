@@ -1,8 +1,8 @@
 ---
 source: crates/mischief/tests/test_report.rs
-expression: render_report(&report)
+expression: "format!(\"{}\", report)"
 ---
 x Third error
 ├─▶ Second error
-╰─▶ Warning[E404]<https://github.com/Glatzel/toolbox>: first error
+╰─▶ [33mWarning[0m[33m[E404][0m[34m]8;;https://github.com/Glatzel/toolbox\(link)]8;;\[0m: first error
     help: Try again.

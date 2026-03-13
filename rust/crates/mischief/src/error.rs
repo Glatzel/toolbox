@@ -121,7 +121,7 @@ impl MischiefError {
                     .to_string(),
             ),
             (Some(s), HyperlinkFormat::Plain) => {
-                buffer.write_str(&format!("<{}>", hyperlink.style(*s).to_string()))
+                buffer.write_str(&format!("<{}>", hyperlink.style(*s)))
             }
             (None, HyperlinkFormat::Link) => buffer.write_str(&format!(
                 "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",

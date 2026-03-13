@@ -24,6 +24,7 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
+            println!("{}", report);
             insta::assert_snapshot!(snapshot_file_name("report_error"), format!("{}", report))
         }
     }
@@ -47,6 +48,7 @@ fn report_error_long() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
+            println!("{}", report);
             insta::assert_snapshot!(
                 snapshot_file_name("report_error_long"),
                 format!("{}", report)
@@ -71,6 +73,7 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
+            println!("{}", report);
             insta::assert_snapshot!(
                 snapshot_file_name("report_from_error"),
                 format!("{}", report)

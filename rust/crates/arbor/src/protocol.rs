@@ -32,7 +32,6 @@ pub trait ITree {
 }
 
 /// Trait defining rendering behavior for diagnostic types.
-
 pub trait IComplexTree: ITree {
     type Indent: IIndent;
     fn indent(&self) -> &Option<Self::Indent>;

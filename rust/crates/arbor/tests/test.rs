@@ -75,18 +75,18 @@ fn render_tree_with_different_indent() {
     let indent2 = UniversalIndent {
         root_first: "",
         root_other: "",
-        top_first: "xxx>",
-        top_other: "    ",
-        mid_first: "===>",
-        mid_other: "    ",
-        bottom_first: "ooo>",
+        top_first: "~~> ",
+        top_other: "l   ",
+        mid_first: "~~> ",
+        mid_other: "l   ",
+        bottom_first: "==> ",
         bottom_other: "    ",
     };
     let tree = Tree::new_with_indent("node 1\nroot", indent1).with_leaves([
         Tree::new("node 1.1"),
         Tree::new("node 1.2"),
-        Tree::new("node 1.3").with_leaves([
-            Tree::new_with_indent("node 1.3.1", indent2).with_leaves(["node 1.3.1.1"]),
+        Tree::new_with_indent("node 1.3", indent2).with_leaves([
+            Tree::new("node 1.3.1").with_leaves(["node 1.3.1.1"]),
             Tree::new("node 1.3.2"),
             Tree::new("node 1.3.3").with_leaves(["node\n1.3.3.1", "node 1.3.3.2"]),
         ]),

@@ -31,9 +31,9 @@ impl Default for UniversalIndent {
             root_other: "",
             top_first: "|-- ",
             top_other: "|   ",
-            mid_first: "`-- ",
+            mid_first: "|-- ",
             mid_other: "|   ",
-            bottom_first: "    ",
+            bottom_first: "`-- ",
             bottom_other: "    ",
         }
     }

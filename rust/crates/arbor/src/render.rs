@@ -12,28 +12,34 @@ pub struct Render<'a, T> {
     #[cfg(feature = "textwrap")]
     pub width: usize,
 }
-impl<'a, T> Display for Render<'a, T>
+impl<'a, T, I> Display for Render<'a, T>
 where
-    T: ITree<Leave = T>,
+    I: IIndent,
+    T: ITree<Indent = I, Leave = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.render_content(f, self.tree, Layer::Root, "")?;
-        let mut queue: VecDeque<(&T, Layer, Rc<String>)> = VecDeque::new();
-        enqueue(&mut queue, self.tree, Rc::new(String::new()));
-        while let Some((leaf, layer, s)) = queue.pop_front() {
-            self.render_content(f, leaf, layer, &s)?;
+        let mut queue: VecDeque<(&T, Layer, Rc<String>, I)> = VecDeque::new();
+        {
+            let indent = self.tree.indent().clone().unwrap_or_default();
+            self.render_content(f, self.tree, Layer::Root, "", &indent)?;
+            enqueue(&mut queue, self.tree, Rc::new(String::new()), indent);
+        }
+        while let Some((leaf, layer, s, indent)) = queue.pop_front() {
+            self.render_content(f, leaf, layer, &s, &indent)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
-                leave_spaces.push_str(leaf.indent().get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Rc::new(leave_spaces));
+                let leaf_indent = leaf.indent().clone().unwrap_or(indent.clone());
+                leave_spaces.push_str(indent.get_indent(layer, Line::Other));
+                enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
             }
         }
         Ok(())
     }
 }
-impl<'a, T> Render<'a, T>
+impl<'a, T, I> Render<'a, T>
 where
-    T: ITree<Leave = T>,
+    I: IIndent,
+    T: ITree<Indent = I, Leave = T>,
 {
     fn render_content(
         &self,
@@ -41,17 +47,18 @@ where
         node: &impl ITree,
         layer: Layer,
         prefix: &str,
+        indent: &I,
     ) -> fmt::Result {
         #[cfg(not(feature = "textwrap"))]
         self.render_content_no_wrap(f, content, layer, prefix)?;
         #[cfg(feature = "textwrap")]
         if self.width == 0 {
-            self.render_content_no_wrap(f, node, layer, prefix)?;
+            self.render_content_no_wrap(f, node, layer, prefix, indent)?;
         } else {
             let initial_indent =
-                alloc::format!("{}{}", prefix, node.indent().get_indent(layer, Line::First));
+                alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::First));
             let subsequent_indent =
-                alloc::format!("{}{}", prefix, node.indent().get_indent(layer, Line::Other));
+                alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::Other));
             let wrap_option = textwrap::Options::new(self.width)
                 .initial_indent(&initial_indent)
                 .subsequent_indent(&subsequent_indent);
@@ -66,11 +73,12 @@ where
         node: &impl ITree,
         layer: Layer,
         prefix: &str,
+        indent: &I,
     ) -> fmt::Result {
         let lines = node.content().lines();
         for (line_index, text) in lines.enumerate() {
             f.write_str(prefix)?;
-            f.write_str(node.indent().get_indent(
+            f.write_str(indent.get_indent(
                 layer,
                 if line_index == 0 {
                     Line::First
@@ -84,9 +92,14 @@ where
         Ok(())
     }
 }
-fn enqueue<'a, T>(queue: &mut VecDeque<(&'a T, Layer, Rc<String>)>, tree: &'a T, spaces: Rc<String>)
-where
-    T: ITree<Leave = T>,
+fn enqueue<'a, T, I>(
+    queue: &mut VecDeque<(&'a T, Layer, Rc<String>, I)>,
+    tree: &'a T,
+    spaces: Rc<String>,
+    indent: I,
+) where
+    I: IIndent,
+    T: ITree<Indent = I, Leave = T>,
 {
     let children_count_index = tree.leaves().len().saturating_sub(1);
     for (i, leaf) in tree.leaves().iter().rev().enumerate() {
@@ -100,6 +113,6 @@ where
                 }
             }
         };
-        queue.push_front((leaf, layer, spaces.clone()));
+        queue.push_front((leaf, layer, spaces.clone(), indent.clone()));
     }
 }

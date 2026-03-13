@@ -19,7 +19,7 @@ pub enum Line {
     /// Any subsequent item in the layer.
     Other,
 }
-pub trait IIndent {
+pub trait IIndent: Default + Clone {
     /// Returns a tuple of `(prefix, continuation)` strings for the given layer
     /// and element.
     fn get_indent(&self, layer: Layer, line: Line) -> &str;
@@ -30,5 +30,5 @@ pub trait ITree {
     type Indent: IIndent;
     fn content(&self) -> &str;
     fn leaves(&self) -> &[Self::Leave];
-    fn indent(&self) -> &Self::Indent;
+    fn indent(&self) -> &Option<Self::Indent>;
 }

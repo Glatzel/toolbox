@@ -6,41 +6,39 @@ use core::fmt::{self, Display};
 use crate::protocol::{IIndent, ITree, Layer, Line};
 extern crate alloc;
 
-pub struct Render<'a, I, T> {
+pub struct Render<'a, T> {
     pub tree: &'a T,
-    pub indent: &'a I,
+
     #[cfg(feature = "textwrap")]
     pub width: usize,
 }
-impl<'a, I, T> Display for Render<'a, I, T>
+impl<'a, T> Display for Render<'a, T>
 where
     T: ITree<Leave = T>,
-    I: IIndent,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.render_content(f, self.tree.content(), Layer::Root, "")?;
+        self.render_content(f, self.tree, Layer::Root, "")?;
         let mut queue: VecDeque<(&T, Layer, Rc<String>)> = VecDeque::new();
         enqueue(&mut queue, self.tree, Rc::new(String::new()));
         while let Some((leaf, layer, s)) = queue.pop_front() {
-            self.render_content(f, leaf.content(), layer, &s)?;
+            self.render_content(f, leaf, layer, &s)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
-                leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
+                leave_spaces.push_str(leaf.indent().get_indent(layer, Line::Other));
                 enqueue(&mut queue, leaf, Rc::new(leave_spaces));
             }
         }
         Ok(())
     }
 }
-impl<'a, I, T> Render<'a, I, T>
+impl<'a, T> Render<'a, T>
 where
     T: ITree<Leave = T>,
-    I: IIndent,
 {
     fn render_content(
         &self,
         f: &mut fmt::Formatter<'_>,
-        content: &str,
+        node: &impl ITree,
         layer: Layer,
         prefix: &str,
     ) -> fmt::Result {
@@ -48,16 +46,16 @@ where
         self.render_content_no_wrap(f, content, layer, prefix)?;
         #[cfg(feature = "textwrap")]
         if self.width == 0 {
-            self.render_content_no_wrap(f, content, layer, prefix)?;
+            self.render_content_no_wrap(f, node, layer, prefix)?;
         } else {
             let initial_indent =
-                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::First));
+                alloc::format!("{}{}", prefix, node.indent().get_indent(layer, Line::First));
             let subsequent_indent =
-                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::Other));
+                alloc::format!("{}{}", prefix, node.indent().get_indent(layer, Line::Other));
             let wrap_option = textwrap::Options::new(self.width)
                 .initial_indent(&initial_indent)
                 .subsequent_indent(&subsequent_indent);
-            writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
+            writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
         }
 
         Ok(())
@@ -65,14 +63,14 @@ where
     fn render_content_no_wrap(
         &self,
         f: &mut fmt::Formatter<'_>,
-        content: &str,
+        node: &impl ITree,
         layer: Layer,
         prefix: &str,
     ) -> fmt::Result {
-        let lines = content.lines();
+        let lines = node.content().lines();
         for (line_index, text) in lines.enumerate() {
             f.write_str(prefix)?;
-            f.write_str(self.indent.get_indent(
+            f.write_str(node.indent().get_indent(
                 layer,
                 if line_index == 0 {
                     Line::First

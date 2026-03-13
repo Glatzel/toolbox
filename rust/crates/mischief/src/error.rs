@@ -1,12 +1,13 @@
 extern crate alloc;
 use alloc::boxed::Box;
+use alloc::format;
 use alloc::string::{String, ToString};
-use core::fmt::Display;
-use core::slice;
+use core::fmt::{Display, Write};
 
-use arbor::protocol::ITree;
+use owo_colors::{OwoColorize, Style};
 
-use crate::IDiagnostic;
+use crate::presets::{HyperlinkFormat, MischiefTheme};
+use crate::{IDiagnostic, Severity};
 
 /// Represents a structured error with optional metadata such as source, code,
 /// severity, help message, and URL.
@@ -49,6 +50,86 @@ impl MischiefError {
     pub fn description(&self) -> Option<&str> { Some(&self.description) }
     /// Returns the source error, if any.
     pub fn source(&self) -> Option<&MischiefError> { self.source.as_deref() }
+    #[cfg(not(feature = "fancy"))]
+    pub fn render_text(&self) -> String { diagnostic.description().to_string() }
+    #[cfg(feature = "fancy")]
+    pub fn render_text(&self, theme: &MischiefTheme) -> String {
+        use core::fmt::Write;
+        let mut buffer = String::new();
+        let severity_color = match self.severity() {
+            Some(Severity::Advice) => theme.severity_advice_style,
+            Some(Severity::Warning) => theme.severity_warning_style,
+            Some(Severity::Error) => theme.severity_error_style,
+            None => None,
+        };
+        if let Some(s) = self.severity() {
+            self.apply_style(&mut buffer, &s.to_string(), &severity_color)
+                .unwrap()
+        }
+        if let Some(s) = self.code() {
+            self.apply_style(&mut buffer, &format!("[{}]", s), &severity_color)
+                .unwrap()
+        }
+        if let Some(s) = self.url() {
+            self.apply_hyperlink_style(&mut buffer, s, "(link)", &theme.hyperlink_style)
+                .unwrap();
+        }
+        if self.severity().is_some() || self.code().is_some() || self.url().is_some() {
+            buffer.write_str(": ").unwrap();
+        }
+        if let Some(s) = self.description() {
+            self.apply_style(&mut buffer, s, &theme.description_style)
+                .unwrap();
+        }
+
+        if let Some(s) = self.help() {
+            writeln!(buffer).unwrap();
+
+            self.apply_style(&mut buffer, "help: ", &theme.help_style.0)
+                .unwrap();
+            self.apply_style(&mut buffer, s, &theme.help_style.1)
+                .unwrap();
+        }
+        buffer
+    }
+    #[cfg(feature = "fancy")]
+    pub fn apply_style(
+        &self,
+        buffer: &mut String,
+        text: &str,
+        style: &Option<owo_colors::Style>,
+    ) -> core::fmt::Result {
+        use core::fmt::Write;
+        if let Some(style) = style {
+            use owo_colors::OwoColorize;
+            buffer.write_str(&text.style(*style).to_string())
+        } else {
+            buffer.write_str(text)
+        }
+    }
+    fn apply_hyperlink_style(
+        &self,
+        buffer: &mut String,
+        hyperlink: &str,
+        text: &str,
+        style: &(Option<Style>, HyperlinkFormat),
+    ) -> core::fmt::Result {
+        match style {
+            (Some(s), HyperlinkFormat::Link) => buffer.write_str(
+                &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
+                    .style(*s)
+                    .to_string(),
+            ),
+            (Some(s), HyperlinkFormat::Plain) => {
+                buffer.write_str(&format!("<{}>", hyperlink.style(*s).to_string()))
+            }
+            (None, HyperlinkFormat::Link) => buffer.write_str(&format!(
+                "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
+                hyperlink, text
+            )),
+            (None, HyperlinkFormat::Plain) => buffer.write_str(&format!("<{}>", hyperlink)),
+        }
+    }
 }
 
 impl IDiagnostic for MischiefError {
@@ -58,14 +139,4 @@ impl IDiagnostic for MischiefError {
     fn severity(&self) -> Option<crate::Severity> { self.severity }
     fn help(&self) -> Option<&str> { self.help.as_deref() }
     fn url(&self) -> Option<&str> { self.url.as_deref() }
-}
-impl ITree for MischiefError {
-    type Leave = MischiefError;
-    fn content(&self) -> &str { todo!() }
-    fn leaves(&self) -> &[Self::Leave] {
-        match &self.source {
-            Some(e) => slice::from_ref(e.as_ref()),
-            None => &[],
-        }
-    }
 }

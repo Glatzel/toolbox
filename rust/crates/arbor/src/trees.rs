@@ -24,6 +24,10 @@ impl<D: AsRef<str>> Tree<D> {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
+    pub fn push(&mut self, leaf: impl Into<Tree<D>>) -> &mut Self {
+        self.leaves.push(leaf.into());
+        self
+    }
 }
 impl<D: AsRef<str>> From<D> for Tree<D> {
     fn from(value: D) -> Self { Tree::new(value) }
@@ -69,6 +73,10 @@ impl<D: AsRef<str>, I: IIndent + Clone> ComplexTree<D, I> {
     }
     pub fn with_indent(mut self, indent: I) -> Self {
         self.indent = Some(indent);
+        self
+    }
+    pub fn push(&mut self, leaf: impl Into<ComplexTree<D, I>>) -> &mut Self {
+        self.leaves.push(leaf.into());
         self
     }
 }

@@ -69,7 +69,7 @@ pub enum HyperlinkFormat {
 /// Default theme implementation using `owo_colors`.
 #[cfg(feature = "fancy")]
 #[derive(Debug, Clone)]
-pub struct MischiefStyle {
+pub struct MischiefTheme {
     pub default_style: Option<Style>,
     pub description_style: Option<Style>,
     pub severity_advice_style: Option<Style>,
@@ -78,7 +78,7 @@ pub struct MischiefStyle {
     pub help_style: (Option<Style>, Option<Style>),
     pub hyperlink_style: (Option<Style>, HyperlinkFormat),
 }
-impl Default for MischiefStyle {
+impl Default for MischiefTheme {
     fn default() -> Self {
         if supports_color::on(supports_color::Stream::Stdout).is_some() {
             Self {

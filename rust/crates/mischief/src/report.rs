@@ -5,10 +5,13 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 
 use arbor::renders::Render;
+use arbor::trees::Tree;
 use terminal_size::terminal_size;
 
 use crate::error::MischiefError;
 use crate::presets::MischiefIndent;
+#[cfg(feature = "fancy")]
+use crate::presets::MischiefTheme;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
@@ -17,6 +20,8 @@ pub struct Report {
     pub indent: MischiefIndent,
     #[cfg(feature = "fancy")]
     pub width: usize,
+    #[cfg(feature = "fancy")]
+    style: MischiefTheme,
 }
 
 impl Report {
@@ -34,6 +39,8 @@ impl Report {
             indent: MischiefIndent::default(),
             #[cfg(feature = "fancy")]
             width: Self::default_width(),
+            #[cfg(feature = "fancy")]
+            style: MischiefTheme::default(),
         }
     }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
@@ -41,8 +48,20 @@ impl Report {
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        #[cfg(not(feature = "fancy"))]
+        let tree = Tree::new(self.inner.render_text());
+        #[cfg(feature = "fancy")]
+        let mut tree = Tree::new(self.inner.render_text(&self.style));
+        let mut source = &self.inner.source;
+        while let Some(e) = source {
+            #[cfg(not(feature = "fancy"))]
+            tree.push(e.render_text());
+            #[cfg(feature = "fancy")]
+            tree.push(e.render_text(&self.style));
+            source = &e.source
+        }
         let render = Render {
-            tree: &self.inner,
+            tree: &tree,
             indent: self.indent.clone(),
             #[cfg(feature = "fancy")]
             width: self.width,
@@ -52,13 +71,24 @@ impl Debug for Report {
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        #[cfg(not(feature = "fancy"))]
+        let tree = Tree::new(self.inner.render_text());
+        #[cfg(feature = "fancy")]
+        let mut tree = Tree::new(self.inner.render_text(&self.style));
+        let mut source = &self.inner.source;
+        while let Some(e) = source {
+            #[cfg(not(feature = "fancy"))]
+            tree.push(e.render_text());
+            #[cfg(feature = "fancy")]
+            tree.push(e.render_text(&self.style));
+            source = &e.source
+        }
         let render = Render {
-            tree: &self.inner,
+            tree: &tree,
             indent: self.indent.clone(),
             #[cfg(feature = "fancy")]
             width: self.width,
         };
-
         write!(f, "{}", render)
     }
 }
@@ -86,6 +116,8 @@ where
             indent: MischiefIndent::default(),
             #[cfg(feature = "fancy")]
             width: Self::default_width(),
+            #[cfg(feature = "fancy")]
+            style: MischiefTheme::default(),
         }
     }
 }

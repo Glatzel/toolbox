@@ -44,7 +44,7 @@ impl Display for Report {
             },
         };
         write!(f, "{}", render)
-    } 
+    }
 }
 impl ITree for Report {
     type Leave = MischiefError;

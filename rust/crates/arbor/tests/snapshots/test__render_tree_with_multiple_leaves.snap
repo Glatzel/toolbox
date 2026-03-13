@@ -1,0 +1,7 @@
+---
+source: crates/arbor/tests/test.rs
+expression: "format!(\"{}\", render)"
+---
+foo
+├─▶ bar
+╰─▶ baz

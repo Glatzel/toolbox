@@ -11,7 +11,7 @@ pub struct Tree<D: AsRef<str>, I: IIndent> {
 }
 impl<D: AsRef<str>, I: IIndent> ITree for Tree<D, I> {
     type Leave = Tree<D, I>;
-     type Indent =  I;
+    type Indent = I;
     fn content(&self) -> &str { self.content.as_ref() }
     fn leaves(&self) -> &[Self::Leave] { &self.leaves }
     fn indent(&self) -> &Option<I> { &self.indent }

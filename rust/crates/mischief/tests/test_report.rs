@@ -1,50 +1,4 @@
-use mischief::render_presets::*;
-use mischief::render_protocol::*;
-use mischief::{IntoMischief, Report, WrapErr, mischief};
-#[cfg(feature = "fancy")]
-struct Theme;
-#[cfg(feature = "fancy")]
-impl ITheme for Theme {
-    fn width(&self) -> Option<usize> { Some(80) }
-}
-#[cfg(feature = "fancy")]
-impl IIndent for Theme {
-    fn get_indent(&self, layer: Layer, element: Item) -> (&'static str, &'static str) {
-        DefaultIndent.get_indent(layer, element)
-    }
-}
-#[cfg(feature = "fancy")]
-impl IStyle for Theme {
-    fn default_style(&self) -> Option<owo_colors::Style> { NoColorStyle.default_style() }
-    fn indent_style(&self) -> Option<owo_colors::Style> { NoColorStyle.indent_style() }
-    fn description_style(&self) -> Option<owo_colors::Style> { NoColorStyle.description_style() }
-    fn severity_style(&self, severity: Option<mischief::Severity>) -> Option<owo_colors::Style> {
-        NoColorStyle.severity_style(severity)
-    }
-    fn help_style(&self) -> (Option<owo_colors::Style>, Option<owo_colors::Style>) {
-        NoColorStyle.help_style()
-    }
-    fn hyperlink_style(&self) -> (Option<owo_colors::Style>, HyperlinkFormat) {
-        (None, HyperlinkFormat::Plain)
-    }
-}
-
-fn render_report(report: &Report) -> String {
-    let mut result = String::new();
-    #[cfg(feature = "fancy")]
-    {
-        let render = DefaultFancyRender::new(DefaultShader, Theme, TerminalConfig::default());
-        render.render(&mut result, report.diagnostic()).unwrap();
-        result
-    }
-    #[cfg(not(feature = "fancy"))]
-    {
-        DefaultRender
-            .render(&mut result, report.diagnostic())
-            .unwrap();
-        result
-    }
-}
+use mischief::{IntoMischief, WrapErr, mischief};
 fn snapshot_file_name(name: &str) -> String {
     if cfg!(feature = "fancy") {
         format!("{name}_fancy")
@@ -70,7 +24,7 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(snapshot_file_name("report_error"), render_report(&report))
+            insta::assert_snapshot!(snapshot_file_name("report_error"), format!("{}", report))
         }
     }
 }
@@ -95,7 +49,7 @@ fn report_error_long() {
         Err(report) => {
             insta::assert_snapshot!(
                 snapshot_file_name("report_error_long"),
-                render_report(&report)
+                format!("{}", report)
             )
         }
     }
@@ -119,7 +73,7 @@ fn report_from_error() -> mischief::Result<()> {
         Err(report) => {
             insta::assert_snapshot!(
                 snapshot_file_name("report_from_error"),
-                render_report(&report)
+                format!("{}", report)
             )
         }
     }

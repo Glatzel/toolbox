@@ -1,6 +1,6 @@
 #![no_std]
 
-pub mod indent;
+pub mod indents;
 pub mod protocol;
-pub mod render;
-pub mod tree;
+pub mod renders;
+pub mod trees;

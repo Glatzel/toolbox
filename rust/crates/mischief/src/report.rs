@@ -2,34 +2,50 @@ use core::error::Error;
 use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 
-use arbor::ComplexRender;
-use arbor::protocol::{IComplexTree, ITree};
+use arbor::renders::Render;
 use terminal_size::terminal_size;
 
 use crate::error::MischiefError;
+use crate::presets::MischiefIndent;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
 pub struct Report {
-    inner: MischiefError,
+    pub inner: MischiefError,
+    pub indent: MischiefIndent,
+    #[cfg(feature = "fancy")]
+    pub width: usize,
 }
 
 impl Report {
+    #[cfg(feature = "fancy")]
+    pub fn default_width() -> usize {
+        match terminal_size() {
+            Some((w, _)) => w.0 as usize,
+            None => 0,
+        }
+    }
     /// Creates a new `Report` from a `MischiefError`.
-    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
+    pub fn new(error: MischiefError) -> Self {
+        Report {
+            inner: error,
+            indent: MischiefIndent::default(),
+            #[cfg(feature = "fancy")]
+            width: Self::default_width(),
+        }
+    }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 }
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let render = Render {
-            tree: self,
-            width: match terminal_size() {
-                Some((w, _)) => w.0 as usize,
-                None => 0,
-            },
+            tree: &self.inner,
+            indent: self.indent.clone(),
+            #[cfg(feature = "fancy")]
+            width: self.width,
         };
         write!(f, "{}", render)
     }
@@ -37,19 +53,14 @@ impl Debug for Report {
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let render = Render {
-            tree: self,
-            width: match terminal_size() {
-                Some((w, _)) => w.0 as usize,
-                None => 0,
-            },
+            tree: &self.inner,
+            indent: self.indent.clone(),
+            #[cfg(feature = "fancy")]
+            width: self.width,
         };
+
         write!(f, "{}", render)
     }
-}
-impl ITree for Report {
-    type Leave = MischiefError;
-    fn content(&self) -> &str { todo!() }
-    fn leaves(&self) -> &[Self::Leave] { todo!() }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively
 /// converting source errors into `MischiefError`.
@@ -70,9 +81,11 @@ where
                         None,
                     )
                 }
-
                 convert(&value)
             },
+            indent: MischiefIndent::default(),
+            #[cfg(feature = "fancy")]
+            width: Self::default_width(),
         }
     }
 }

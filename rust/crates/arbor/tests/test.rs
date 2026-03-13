@@ -1,7 +1,7 @@
-use arbor::indent::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeIndent, UniversalIndent};
+use arbor::indents::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeIndent, UniversalIndent};
 use arbor::protocol::IIndent;
-use arbor::render::{ComplexRender, Render};
-use arbor::tree::{ComplexTree, Tree};
+use arbor::renders::{ComplexRender, Render};
+use arbor::trees::{ComplexTree, Tree};
 use rstest::rstest;
 
 #[test]

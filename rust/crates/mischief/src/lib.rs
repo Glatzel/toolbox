@@ -20,3 +20,4 @@ pub use protocol::{IDiagnostic, Severity};
 mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
+pub mod presets;

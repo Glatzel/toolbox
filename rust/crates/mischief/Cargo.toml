@@ -18,6 +18,7 @@ insta = { workspace = true, features = ["filters"] }
 [features]
 default = ["fancy", "arbor/default", "macros"]
 fancy = [
+  "textwrap",
   "owo-colors",
   "supports-color",
   "supports-hyperlinks",
@@ -26,7 +27,7 @@ fancy = [
 ]
 macros = ["mischief-macros"]
 textwrap = ["arbor/textwrap"]
-textwrap-hyphenation = ["arbor/textwrap-hyphenation"]
-textwrap-smawk = ["arbor/textwrap-smawk"]
-textwrap-unicode-linebreak = ["arbor/textwrap-unicode-linebreak"]
-textwrap-unicode-width = ["arbor/textwrap-unicode-width"]
+textwrap-hyphenation = ["textwrap", "arbor/textwrap-hyphenation"]
+textwrap-smawk = ["textwrap", "arbor/textwrap-smawk"]
+textwrap-unicode-linebreak = ["textwrap", "arbor/textwrap-unicode-linebreak"]
+textwrap-unicode-width = ["textwrap", "arbor/textwrap-unicode-width"]

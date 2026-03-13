@@ -2,6 +2,9 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use core::fmt::Display;
+use core::slice;
+
+use arbor::protocol::ITree;
 
 use crate::IDiagnostic;
 
@@ -55,4 +58,14 @@ impl IDiagnostic for MischiefError {
     fn severity(&self) -> Option<crate::Severity> { self.severity }
     fn help(&self) -> Option<&str> { self.help.as_deref() }
     fn url(&self) -> Option<&str> { self.url.as_deref() }
+}
+impl ITree for MischiefError {
+    type Leave = MischiefError;
+    fn content(&self) -> &str { todo!() }
+    fn leaves(&self) -> &[Self::Leave] {
+        match &self.source {
+            Some(e) => slice::from_ref(e.as_ref()),
+            None => &[],
+        }
+    }
 }

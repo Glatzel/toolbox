@@ -2,19 +2,16 @@ use core::error::Error;
 use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 
 use crate::error::MischiefError;
-#[cfg(not(feature = "fancy"))]
-use crate::render_presets::DefaultRender;
 #[cfg(feature = "fancy")]
-use crate::render_presets::{DefaultFancyRender, DefaultShader, DefaultTheme, TerminalConfig};
-use crate::render_protocol::IRender;
+use crate::presets::*;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
 pub struct Report {
-    inner: MischiefError,
+    pub inner: MischiefError,
 }
 
 impl Report {
@@ -22,27 +19,70 @@ impl Report {
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 }
+#[cfg(not(feature = "fancy"))]
+impl Report {
+    /// Produces an iterator over the diagnostic chain.
+    fn chain(
+        diagnostic: &impl crate::IDiagnostic,
+    ) -> impl Iterator<Item = &dyn crate::IDiagnostic> {
+        core::iter::successors(Some(diagnostic as &dyn crate::IDiagnostic), |r| r.source())
+    }
+    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut chain = Self::chain(&self.inner);
 
+        if let Some(first) = chain.next() {
+            f.write_str(&alloc::format!("Error: {}", first.description()))?;
+            writeln!(f)?;
+        }
+        let mut first = true;
+        for diagnostic in chain {
+            if first {
+                f.write_str("\nCaused by:")?;
+                writeln!(f)?;
+                first = false;
+            }
+            f.write_str(&alloc::format!("    {}", diagnostic.description()))?;
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut s = String::new();
         #[cfg(feature = "fancy")]
-        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
-            .render(&mut s, &self.inner)?;
+        {
+            let bundle = RenderBundle {
+                report: self,
+                theme: MischiefTheme::default(),
+                indent: MischiefIndent::default(),
+                width: match terminal_size::terminal_size() {
+                    Some((w, _)) => w.0 as usize,
+                    None => 0,
+                },
+            };
+            write!(f, "{}", bundle)
+        }
         #[cfg(not(feature = "fancy"))]
-        DefaultRender.render(&mut s, &self.inner)?;
-        f.write_str(&s)
+        self.render_plain(f)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut s = String::new();
         #[cfg(feature = "fancy")]
-        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
-            .render(&mut s, &self.inner)?;
+        {
+            let bundle = RenderBundle {
+                report: self,
+                theme: MischiefTheme::default(),
+                indent: MischiefIndent::default(),
+                width: match terminal_size::terminal_size() {
+                    Some((w, _)) => w.0 as usize,
+                    None => 0,
+                },
+            };
+            write!(f, "{}", bundle)
+        }
         #[cfg(not(feature = "fancy"))]
-        DefaultRender.render(&mut s, &self.inner)?;
-        f.write_str(&s)
+        self.render_plain(f)
     }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively
@@ -64,7 +104,6 @@ where
                         None,
                     )
                 }
-
                 convert(&value)
             },
         }

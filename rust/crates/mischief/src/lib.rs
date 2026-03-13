@@ -20,5 +20,5 @@ pub use protocol::{IDiagnostic, Severity};
 mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
-mod render;
-pub use render::{render_presets, render_protocol};
+#[cfg(feature = "fancy")]
+pub mod presets;

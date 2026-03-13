@@ -59,7 +59,6 @@ pub enum HyperlinkFormat {
     Link,
 }
 /// Trait defining styling for different components of diagnostic output.
-
 pub trait ITheme {
     /// Style for default text.
     fn default_style(&self) -> &Option<Style>;

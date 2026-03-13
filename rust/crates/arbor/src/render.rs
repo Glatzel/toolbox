@@ -45,38 +45,10 @@ where
         prefix: &str,
     ) -> fmt::Result {
         #[cfg(not(feature = "textwrap"))]
-        {
-            let lines = content.lines();
-            for (line_index, text) in lines.enumerate() {
-                f.write_str(prefix)?;
-                f.write_str(self.indent.get_indent(
-                    layer,
-                    if line_index == 0 {
-                        Line::First
-                    } else {
-                        Line::Other
-                    },
-                ))?;
-                f.write_str(text)?;
-                writeln!(f)?;
-            }
-        }
+        self.render_content_no_wrap(f, content, layer, prefix)?;
         #[cfg(feature = "textwrap")]
         if self.width == 0 {
-            let lines = content.lines();
-            for (line_index, text) in lines.enumerate() {
-                f.write_str(prefix)?;
-                f.write_str(self.indent.get_indent(
-                    layer,
-                    if line_index == 0 {
-                        Line::First
-                    } else {
-                        Line::Other
-                    },
-                ))?;
-                f.write_str(text)?;
-                writeln!(f)?;
-            }
+            self.render_content_no_wrap(f, content, layer, prefix)?;
         } else {
             let initial_indent =
                 alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::First));
@@ -88,6 +60,29 @@ where
             writeln!(f, "{}", textwrap::fill(content, &wrap_option))?;
         }
 
+        Ok(())
+    }
+    fn render_content_no_wrap(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        content: &str,
+        layer: Layer,
+        prefix: &str,
+    ) -> fmt::Result {
+        let lines = content.lines();
+        for (line_index, text) in lines.enumerate() {
+            f.write_str(prefix)?;
+            f.write_str(self.indent.get_indent(
+                layer,
+                if line_index == 0 {
+                    Line::First
+                } else {
+                    Line::Other
+                },
+            ))?;
+            f.write_str(text)?;
+            writeln!(f)?;
+        }
         Ok(())
     }
 }

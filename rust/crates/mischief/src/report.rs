@@ -6,6 +6,7 @@ use alloc::string::ToString;
 
 #[cfg(feature = "fancy")]
 use terminal_size::terminal_size;
+
 use crate::error::MischiefError;
 #[cfg(feature = "fancy")]
 use crate::presets::*;

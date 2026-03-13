@@ -4,9 +4,6 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-#[cfg(feature = "fancy")]
-use terminal_size::terminal_size;
-
 use crate::error::MischiefError;
 #[cfg(feature = "fancy")]
 use crate::presets::*;
@@ -58,7 +55,7 @@ impl Debug for Report {
                 report: self,
                 theme: MischiefTheme::default(),
                 indent: MischiefIndent::default(),
-                width: match terminal_size() {
+                width: match terminal_size::terminal_size() {
                     Some((w, _)) => w.0 as usize,
                     None => 0,
                 },
@@ -77,7 +74,7 @@ impl Display for Report {
                 report: self,
                 theme: MischiefTheme::default(),
                 indent: MischiefIndent::default(),
-                width: match terminal_size() {
+                width: match terminal_size::terminal_size() {
                     Some((w, _)) => w.0 as usize,
                     None => 0,
                 },

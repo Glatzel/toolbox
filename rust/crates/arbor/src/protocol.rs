@@ -27,8 +27,13 @@ pub trait IIndent: Default + Clone {
 /// Trait defining rendering behavior for diagnostic types.
 pub trait ITree {
     type Leave: ITree;
-    type Indent: IIndent;
     fn content(&self) -> &str;
     fn leaves(&self) -> &[Self::Leave];
+}
+
+/// Trait defining rendering behavior for diagnostic types.
+
+pub trait IComplexTree: ITree {
+    type Indent: IIndent;
     fn indent(&self) -> &Option<Self::Indent>;
 }

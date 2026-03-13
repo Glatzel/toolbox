@@ -4,6 +4,10 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
+use arbor::ComplexRender;
+use arbor::protocol::IComplexTree;
+use terminal_size::terminal_size;
+
 use crate::error::MischiefError;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
@@ -20,25 +24,34 @@ impl Report {
 
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut s = String::new();
-        #[cfg(feature = "fancy")]
-        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
-            .render(&mut s, &self.inner)?;
-        #[cfg(not(feature = "fancy"))]
-        DefaultRender.render(&mut s, &self.inner)?;
-        f.write_str(&s)
+        let render = ComplexRender {
+            tree: self,
+            width: match terminal_size() {
+                Some((w, _)) => w.0 as usize,
+                None => 0,
+            },
+        };
+        write!(f, "{}", render)
     }
 }
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut s = String::new();
-        #[cfg(feature = "fancy")]
-        DefaultFancyRender::new(DefaultShader, DefaultTheme, TerminalConfig::default())
-            .render(&mut s, &self.inner)?;
-        #[cfg(not(feature = "fancy"))]
-        DefaultRender.render(&mut s, &self.inner)?;
-        f.write_str(&s)
+        let render = ComplexRender {
+            tree: self,
+            width: match terminal_size() {
+                Some((w, _)) => w.0 as usize,
+                None => 0,
+            },
+        };
+        write!(f, "{}", render)
     }
+}
+impl IComplexTree for Report {
+    type Leave;
+    type Indent;
+    fn content(&self) -> &str { todo!() }
+    fn leaves(&self) -> &[Self::Leave] { todo!() }
+    fn indent(&self) -> &Option<Self::Indent> { todo!() }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively
 /// converting source errors into `MischiefError`.

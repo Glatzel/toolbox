@@ -45,6 +45,7 @@ impl Report {
                 first = false;
             }
             f.write_str(&alloc::format!("    {}", diagnostic.description()))?;
+            writeln!(f)?;
         }
         Ok(())
     }

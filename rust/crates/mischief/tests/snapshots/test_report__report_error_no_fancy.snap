@@ -5,4 +5,5 @@ expression: "format!(\"{}\", report)"
 Error: Third error
 
 Caused by:
-    Second error    first error
+    Second error
+    first error

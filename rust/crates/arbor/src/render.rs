@@ -1,6 +1,6 @@
 use alloc::collections::vec_deque::VecDeque;
+use alloc::rc::Rc;
 use alloc::string::String;
-use alloc::sync::Arc;
 use core::fmt::{self, Display};
 
 use crate::protocol::{IIndent, ITree, Layer, Line};
@@ -19,14 +19,14 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.render_content(f, self.tree.content(), Layer::Root, "")?;
-        let mut queue: VecDeque<(&T, Layer, Arc<String>)> = VecDeque::new();
-        enqueue(&mut queue, self.tree, Arc::new(String::new()));
+        let mut queue: VecDeque<(&T, Layer, Rc<String>)> = VecDeque::new();
+        enqueue(&mut queue, self.tree, Rc::new(String::new()));
         while let Some((leaf, layer, s)) = queue.pop_front() {
             self.render_content(f, leaf.content(), layer, &s)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Arc::new(leave_spaces));
+                enqueue(&mut queue, leaf, Rc::new(leave_spaces));
             }
         }
         Ok(())
@@ -91,11 +91,8 @@ where
         Ok(())
     }
 }
-fn enqueue<'a, T>(
-    queue: &mut VecDeque<(&'a T, Layer, Arc<String>)>,
-    tree: &'a T,
-    spaces: Arc<String>,
-) where
+fn enqueue<'a, T>(queue: &mut VecDeque<(&'a T, Layer, Rc<String>)>, tree: &'a T, spaces: Rc<String>)
+where
     T: ITree<Leave = T>,
 {
     let children_count_index = tree.leaves().len().saturating_sub(1);

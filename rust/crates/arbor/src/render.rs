@@ -18,45 +18,15 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
-        self.render_content(f, self.tree, Layer::Root, "")?;
+        render_content(f, self.tree, Layer::Root, "", &self.indent, self.width)?;
         enqueue(&mut queue, self.tree, Rc::new(String::new()), &self.indent);
         while let Some((leaf, layer, s, _)) = queue.pop_front() {
-            self.render_content(f, leaf, layer, &s)?;
+            render_content(f, leaf, layer, &s, &self.indent, self.width)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
                 enqueue(&mut queue, leaf, Rc::new(leave_spaces), &self.indent);
             }
-        }
-        Ok(())
-    }
-}
-impl<'a, I, T> Render<'a, I, T>
-where
-    I: IIndent,
-    T: ITree<Leave = T>,
-{
-    fn render_content(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        node: &impl ITree,
-        layer: Layer,
-        prefix: &str,
-    ) -> fmt::Result {
-        #[cfg(not(feature = "textwrap"))]
-        self.render_content_no_wrap(f, content, layer, prefix)?;
-        #[cfg(feature = "textwrap")]
-        if self.width == 0 {
-            render_content_no_wrap(f, node, layer, prefix, &self.indent)?;
-        } else {
-            let initial_indent =
-                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::First));
-            let subsequent_indent =
-                alloc::format!("{}{}", prefix, self.indent.get_indent(layer, Line::Other));
-            let wrap_option = textwrap::Options::new(self.width)
-                .initial_indent(&initial_indent)
-                .subsequent_indent(&subsequent_indent);
-            writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
         }
         Ok(())
     }
@@ -75,10 +45,10 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
         let indent = self.tree.indent().clone().unwrap_or_default();
-        self.render_content(f, self.tree, Layer::Root, "", &indent)?;
+        render_content(f, self.tree, Layer::Root, "", &indent, self.width)?;
         enqueue(&mut queue, self.tree, Rc::new(String::new()), &indent);
         while let Some((leaf, layer, s, indent)) = queue.pop_front() {
-            self.render_content(f, leaf, layer, &s, &indent)?;
+            render_content(f, leaf, layer, &s, indent, self.width)?;
             if !leaf.leaves().is_empty() {
                 let mut leave_spaces = (*s).clone();
                 let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
@@ -89,38 +59,7 @@ where
         Ok(())
     }
 }
-impl<'a, I, T> ComplexRender<'a, T>
-where
-    I: IIndent,
-    T: IComplexTree<Indent = I, Leave = T>,
-{
-    fn render_content(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        node: &impl IComplexTree,
-        layer: Layer,
-        prefix: &str,
-        indent: &I,
-    ) -> fmt::Result {
-        #[cfg(not(feature = "textwrap"))]
-        render_content_no_wrap(f, content, layer, prefix)?;
-        #[cfg(feature = "textwrap")]
-        if self.width == 0 {
-            render_content_no_wrap(f, node, layer, prefix, indent)?;
-        } else {
-            let initial_indent =
-                alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::First));
-            let subsequent_indent =
-                alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::Other));
-            let wrap_option = textwrap::Options::new(self.width)
-                .initial_indent(&initial_indent)
-                .subsequent_indent(&subsequent_indent);
-            writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
-        }
 
-        Ok(())
-    }
-}
 fn enqueue<'a, I, T>(
     queue: &mut VecDeque<(&'a T, Layer, Rc<String>, &'a I)>,
     tree: &'a T,
@@ -169,5 +108,33 @@ where
         f.write_str(text)?;
         writeln!(f)?;
     }
+    Ok(())
+}
+fn render_content<I>(
+    f: &mut fmt::Formatter<'_>,
+    node: &impl ITree,
+    layer: Layer,
+    prefix: &str,
+    indent: &I,
+    width: usize,
+) -> fmt::Result
+where
+    I: IIndent,
+{
+    #[cfg(not(feature = "textwrap"))]
+    render_content_no_wrap(f, content, layer, prefix)?;
+    #[cfg(feature = "textwrap")]
+    if width == 0 {
+        render_content_no_wrap(f, node, layer, prefix, indent)?;
+    } else {
+        let initial_indent = alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::First));
+        let subsequent_indent =
+            alloc::format!("{}{}", prefix, indent.get_indent(layer, Line::Other));
+        let wrap_option = textwrap::Options::new(width)
+            .initial_indent(&initial_indent)
+            .subsequent_indent(&subsequent_indent);
+        writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
+    }
+
     Ok(())
 }

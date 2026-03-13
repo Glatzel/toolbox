@@ -5,11 +5,6 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
 use crate::error::MischiefError;
-#[cfg(not(feature = "fancy"))]
-use crate::render_presets::DefaultRender;
-#[cfg(feature = "fancy")]
-use crate::render_presets::{DefaultFancyRender, DefaultShader, DefaultTheme, TerminalConfig};
-use crate::render_protocol::IRender;
 
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]

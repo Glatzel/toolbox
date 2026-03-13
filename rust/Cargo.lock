@@ -872,6 +872,7 @@ dependencies = [
 name = "mischief"
 version = "0.0.38"
 dependencies = [
+ "arbor",
  "insta",
  "mischief-macros",
  "owo-colors",
@@ -879,7 +880,6 @@ dependencies = [
  "supports-hyperlinks",
  "supports-unicode",
  "terminal_size",
- "textwrap",
 ]
 
 [[package]]

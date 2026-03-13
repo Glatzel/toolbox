@@ -1,6 +1,5 @@
 ---
 source: crates/mischief/tests/test_report.rs
-assertion_line: 66
 expression: "format!(\"{}\", bundle)"
 ---
 Third error

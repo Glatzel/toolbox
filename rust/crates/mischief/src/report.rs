@@ -34,7 +34,7 @@ impl Report {
         let mut chain = Self::chain(&self.inner);
 
         if let Some(first) = chain.next() {
-            f.write_str(first.description())?;
+            f.write_str(&alloc::format!("Error: {}", first.description()))?;
             writeln!(f)?;
         }
         let mut first = true;

@@ -44,4 +44,3 @@ jobs:
         with:
           report_type: test_results
           fail_ci_if_error: true
-

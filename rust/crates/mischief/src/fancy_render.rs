@@ -147,7 +147,7 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
         let mut buffer = String::new();
         let severity_color = *theme.severity_style(diagnostic.severity());
         if let Some(s) = diagnostic.severity() {
-            self.apply_style(&mut buffer, &(&s).to_string(), &severity_color)
+            self.apply_style(&mut buffer, &(s).to_string(), &severity_color)
                 .unwrap()
         }
         if let Some(s) = diagnostic.code() {

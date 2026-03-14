@@ -25,23 +25,23 @@ These tools are generally **low-level and infrastructure-oriented**, focusing on
 
 Projects in this repository typically follow a few consistent principles:
 
-**Small and composable**
+### Small and composable
 
 Libraries are designed to solve a narrow problem well rather than becoming large frameworks.
 
-**Explicit over implicit**
+### Explicit over implicit
 
 APIs favor predictable behavior and explicit control over hidden automation.
 
-**Minimal dependencies**
+### Minimal dependencies
 
 External dependencies are kept small whenever possible to reduce build complexity and improve portability.
 
-**Systems-oriented**
+### Systems-oriented
 
 Performance, memory behavior, and clear control flow are considered important aspects of design.
 
-**Cross-language experimentation**
+### Cross-language experimentation
 
 Although many components are written in Rust, the repository may also contain utilities written in other languages where appropriate.
 

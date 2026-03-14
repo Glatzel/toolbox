@@ -57,7 +57,6 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
     uses: ./.github/workflows/ci-python.yml
-
   rust-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
@@ -66,6 +65,7 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
     uses: ./.github/workflows/benchmark.yml
+
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs: [lefthook,changed,python-ci,rust-ci,benchmark]

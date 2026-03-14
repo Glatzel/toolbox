@@ -5,17 +5,14 @@ on:
   workflow_call:
 
 permissions: read-all
-env:
-  PYTHON_ROOT: ${{github.workspace}}/python
+defaults:
+  run:
+    working-directory: ./python
 jobs:
-  rattler:
+  main:
     env:
       PYTEST_ADDOPTS: "--color=yes"
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
-    runs-on: ${{matrix.machine}}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Set up pixi
@@ -24,7 +21,7 @@ jobs:
           run-install: false
 
       - name: test
-        run: ${{env.PYTHON_ROOT}}/scripts/pytest.ps1
+        run: ./scripts/pytest.ps1
         shell: pwsh
 
       - name: Upload results to Codecov

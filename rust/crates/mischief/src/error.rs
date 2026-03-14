@@ -1,20 +1,9 @@
 extern crate alloc;
 use alloc::boxed::Box;
-#[cfg(feature = "fancy")]
-use alloc::format;
 use alloc::string::{String, ToString};
 use core::fmt::Display;
-#[cfg(feature = "fancy")]
-use core::fmt::Write;
-
-#[cfg(feature = "fancy")]
-use owo_colors::{OwoColorize, Style};
 
 use crate::IDiagnostic;
-#[cfg(feature = "fancy")]
-use crate::presets::HyperlinkFormat;
-#[cfg(feature = "fancy")]
-use crate::presets::ITheme;
 
 /// Represents a structured error with optional metadata such as source, code,
 /// severity, help message, and URL.

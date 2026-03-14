@@ -9,16 +9,44 @@ use crate::error::MischiefError;
 use crate::fancy_render::*;
 #[cfg(not(feature = "fancy"))]
 use crate::no_fancy_render::*;
-/// Wrapper around a `MischiefError` for ergonomic error handling.
+
+/// High-level wrapper around [`MischiefError`] used for ergonomic error
+/// handling.
+///
+/// `Report` acts as the primary error type exposed by the crate. It wraps a
+/// [`MischiefError`] and provides convenient conversions, formatting, and
+/// utilities for integrating with Rust’s standard error ecosystem.
+///
+/// The type is designed to behave similarly to application-oriented error
+/// containers such as `anyhow::Error`, while preserving structured diagnostic
+/// information compatible with [`IDiagnostic`].
+///
+/// Formatting a `Report` will render the full diagnostic chain. If the
+/// `fancy` feature is enabled, a structured tree-based renderer is used.
+/// Otherwise a minimal textual fallback renderer is used.
 #[derive(Clone)]
 pub struct Report {
+    /// Inner structured diagnostic.
     pub inner: MischiefError,
 }
 
 impl Report {
-    /// Creates a new `Report` from a `MischiefError`.
+    /// Creates a new `Report` from a [`MischiefError`].
+    ///
+    /// This function wraps the provided diagnostic as the root error
+    /// contained by the report.
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
+
+    /// Returns a reference to the underlying diagnostic.
+    ///
+    /// This allows callers to inspect structured metadata such as
+    /// error codes, severity levels, and help messages.
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
+
+    /// Renders the report using the configured rendering backend.
+    ///
+    /// If the `fancy` feature is enabled, a themed tree renderer based
+    /// on `arbor` is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[cfg(feature = "fancy")]
         {
@@ -41,14 +69,24 @@ impl Report {
     }
 }
 
+/// Formats the report using the configured diagnostic renderer.
+///
+/// The `Debug` representation intentionally matches the `Display`
+/// representation to produce readable diagnostic output.
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
+
+/// Formats the report using the configured diagnostic renderer.
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
-/// Converts any type implementing `Error` into a `Report`, recursively
-/// converting source errors into `MischiefError`.
+
+/// Converts any type implementing [`Error`] into a [`Report`].
+///
+/// During conversion the full error source chain is recursively
+/// transformed into a hierarchy of [`MischiefError`] values,
+/// preserving the causal structure of the original error.
 impl<E> From<E> for Report
 where
     E: Error,
@@ -72,11 +110,18 @@ where
     }
 }
 
-/// Convenient `Result` type with `Report` as the default error.
+/// Convenient `Result` alias using [`Report`] as the default error type.
+///
+/// This alias simplifies function signatures when working with
+/// diagnostic-aware errors.
 pub type Result<T, E = Report> = core::result::Result<T, E>;
 
-/// Converts results or other error types into `Report`.
+/// Trait providing conversion into [`Report`].
+///
+/// This trait enables ergonomic conversion of existing `Result` values
+/// whose error types implement [`Error`] into results using [`Report`].
 pub trait IntoMischief<T> {
+    /// Converts the error type into a [`Report`].
     fn into_mischief(self) -> Result<T, Report>;
 }
 
@@ -89,15 +134,25 @@ impl<T, E: Error> IntoMischief<T> for Result<T, E> {
     }
 }
 
-/// Adds context to existing `Report` errors.
+/// Trait for attaching additional diagnostic context to existing errors.
+///
+/// These methods allow callers to extend an error chain with
+/// higher-level context while preserving the original cause.
 pub trait WrapErr<D, T> {
+    /// Attaches a context message to the error if the result is `Err`.
+    ///
+    /// The message becomes a new diagnostic layer above the original error.
     fn wrap_err(self, msg: D) -> Result<T, Report>;
+
+    /// Lazily attaches a context message to the error if the result is `Err`.
+    ///
+    /// The provided closure is evaluated only when an error occurs.
     fn wrap_err_with<F>(self, msg: F) -> Result<T, Report>
     where
         F: FnOnce() -> D;
 }
 
-///TODO: use specialization to impl for [`Report`]
+/// Internal helper used to attach contextual diagnostics.
 fn wrap_inner<D>(e: Report, msg: D) -> Report
 where
     D: Display + 'static,

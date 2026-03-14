@@ -47,12 +47,12 @@ Although many components are written in Rust, the repository may also contain ut
 
 ## Organization
 
-The repository is organized as a collection of independent subprojects.  
+The repository is organized as a collection of independent subprojects.
 Each directory typically represents a standalone tool or library with its own documentation and build configuration.
 
 ## Status
 
-This repository is primarily a **development workspace and experimentation ground**.  
+This repository is primarily a **development workspace and experimentation ground**.
 Some components may be early-stage, evolving, or subject to significant redesign as ideas are explored.
 
 Stable components will generally have clearer documentation and versioning, while experimental modules may change more rapidly.

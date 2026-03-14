@@ -4,9 +4,10 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "0.0.38"
+version = "2026.3.14"
 
 [workspace.dependencies]
+arbor = { path = "./crates/arbor/", default-features = false }
 clerk = { path = "./crates/clerk/", default-features = false }
 mischief = { path = "./crates/mischief/" }
 mischief-macros = { path = "./crates/mischief-macros/" }

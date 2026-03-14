@@ -1,55 +1,25 @@
-use mischief::render_presets::*;
-use mischief::render_protocol::*;
-use mischief::{IntoMischief, Report, WrapErr, mischief};
 #[cfg(feature = "fancy")]
-struct Theme;
+use mischief::fancy_render::*;
+use mischief::{IntoMischief, WrapErr, mischief};
 #[cfg(feature = "fancy")]
-impl ITheme for Theme {
-    fn width(&self) -> Option<usize> { Some(80) }
-}
+struct NoTheme;
 #[cfg(feature = "fancy")]
-impl IIndent for Theme {
-    fn get_indent(&self, layer: Layer, element: Item) -> (&'static str, &'static str) {
-        DefaultIndent.get_indent(layer, element)
+impl ITheme for NoTheme {
+    fn default_style(&self) -> &Option<owo_colors::Style> { &None }
+    fn description_style(&self) -> &Option<owo_colors::Style> { &None }
+    fn severity_style(&self, _severity: Option<mischief::Severity>) -> &Option<owo_colors::Style> {
+        &None
     }
-}
-#[cfg(feature = "fancy")]
-impl IStyle for Theme {
-    fn default_style(&self) -> Option<owo_colors::Style> { NoColorStyle.default_style() }
-    fn indent_style(&self) -> Option<owo_colors::Style> { NoColorStyle.indent_style() }
-    fn description_style(&self) -> Option<owo_colors::Style> { NoColorStyle.description_style() }
-    fn severity_style(&self, severity: Option<mischief::Severity>) -> Option<owo_colors::Style> {
-        NoColorStyle.severity_style(severity)
+    fn help_style(&self) -> &(Option<owo_colors::Style>, Option<owo_colors::Style>) {
+        &(None, None)
     }
-    fn help_style(&self) -> (Option<owo_colors::Style>, Option<owo_colors::Style>) {
-        NoColorStyle.help_style()
-    }
-    fn hyperlink_style(&self) -> (Option<owo_colors::Style>, HyperlinkFormat) {
-        (None, HyperlinkFormat::Plain)
-    }
-}
-
-fn render_report(report: &Report) -> String {
-    let mut result = String::new();
-    #[cfg(feature = "fancy")]
-    {
-        let render = DefaultFancyRender::new(DefaultShader, Theme, TerminalConfig::default());
-        render.render(&mut result, report.diagnostic()).unwrap();
-        result
-    }
-    #[cfg(not(feature = "fancy"))]
-    {
-        DefaultRender
-            .render(&mut result, report.diagnostic())
-            .unwrap();
-        result
-    }
-}
-fn snapshot_file_name(name: &str) -> String {
-    if cfg!(feature = "fancy") {
-        format!("{name}_fancy")
-    } else {
-        format!("{name}_no_fancy")
+    fn hyperlink_style(
+        &self,
+    ) -> &(
+        Option<owo_colors::Style>,
+        mischief::fancy_render::HyperlinkFormat,
+    ) {
+        &(None, HyperlinkFormat::Plain)
     }
 }
 #[test]
@@ -70,7 +40,28 @@ fn report_error() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(snapshot_file_name("report_error"), render_report(&report))
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_no_fancy"), format!("{}", report))
+            }
         }
     }
 }
@@ -93,13 +84,32 @@ fn report_error_long() {
     match e {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(
-                snapshot_file_name("report_error_long"),
-                render_report(&report)
-            )
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_long_no_fancy"), format!("{}", report))
+            }
         }
     }
 }
+
 #[test]
 fn report_from_error() -> mischief::Result<()> {
     use std::fmt;
@@ -117,10 +127,28 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
-            insta::assert_snapshot!(
-                snapshot_file_name("report_from_error"),
-                render_report(&report)
-            )
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: MischiefTheme::default(),
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                println!("{}", bundle);
+                let bundle = RenderBundle {
+                    report: &report,
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_from_error_no_fancy"), format!("{}", report))
+            }
         }
     }
     Ok(())

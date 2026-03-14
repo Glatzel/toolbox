@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.3.14] - 2026-03-14
+
+### Changed
+
+- Use community macro to generate read-only struct by @Glatzel in [#350](https://github.com/Glatzel/toolbox/pull/350)
+- Arbor by @Glatzel in [#362](https://github.com/Glatzel/toolbox/pull/362)
+- "ci: Update ci.yml" by @Glatzel in [#366](https://github.com/Glatzel/toolbox/pull/366)
+
+### Documentation
+
+- Add arbor and mischief doc by @Glatzel in [#370](https://github.com/Glatzel/toolbox/pull/370)
+
+### Refactor
+
+- Mischief by @Glatzel in [#368](https://github.com/Glatzel/toolbox/pull/368)
+
 ## [0.0.38] - 2026-02-24
 
 ### Changed
@@ -313,6 +329,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.3.14]: https://github.com/Glatzel/toolbox/compare/v0.0.38..v2026.3.14
 [0.0.38]: https://github.com/Glatzel/toolbox/compare/v0.0.37..v0.0.38
 [0.0.37]: https://github.com/Glatzel/toolbox/compare/v0.0.36..v0.0.37
 [0.0.36]: https://github.com/Glatzel/toolbox/compare/v0.0.35..v0.0.36

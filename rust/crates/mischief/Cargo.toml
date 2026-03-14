@@ -4,25 +4,29 @@ name = "mischief"
 version.workspace = true
 
 [dependencies]
+arbor.workspace = true
 mischief-macros = { workspace = true, optional = true }
 owo-colors = { workspace = true, optional = true }
 supports-color = { workspace = true, optional = true }
 supports-hyperlinks = { workspace = true, optional = true }
 supports-unicode = { workspace = true, optional = true }
 terminal_size = { workspace = true, optional = true }
-textwrap = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["macros"]
+default = ["fancy", "arbor/default", "macros"]
 fancy = [
+  "arbor/textwrap",
   "owo-colors",
   "supports-color",
   "supports-hyperlinks",
   "supports-unicode",
   "terminal_size",
-  "textwrap",
 ]
 macros = ["mischief-macros"]
+textwrap-hyphenation = ["fancy", "arbor/textwrap-hyphenation"]
+textwrap-smawk = ["fancy", "arbor/textwrap-smawk"]
+textwrap-unicode-linebreak = ["fancy", "arbor/textwrap-unicode-linebreak"]
+textwrap-unicode-width = ["fancy", "arbor/textwrap-unicode-width"]

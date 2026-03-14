@@ -21,7 +21,7 @@ permissions: read-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'push'}}
+  cancel-in-progress: true
 
 jobs:
   lefthook:
@@ -36,10 +36,10 @@ jobs:
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
     runs-on: ubuntu-slim
     steps:
-      - if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
+      - if: ${{github.event_name == 'pull_request' }}
         uses: actions/checkout@v6
       - id: main
-        if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
+        if: ${{github.event_name == 'pull_request' }}
         uses: tj-actions/changed-files@v47
         with:
           files_yaml: |

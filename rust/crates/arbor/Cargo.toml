@@ -18,7 +18,7 @@ default = [
   "textwrap-unicode-width",
 ]
 textwrap = ["dep:textwrap"]
-textwrap-hyphenation = ["textwrap/hyphenation"]
-textwrap-smawk = ["textwrap/smawk"]
-textwrap-unicode-linebreak = ["textwrap/unicode-linebreak"]
-textwrap-unicode-width = ["textwrap/unicode-width"]
+textwrap-hyphenation = ["textwrap", "textwrap/hyphenation"]
+textwrap-smawk = ["textwrap", "textwrap/smawk"]
+textwrap-unicode-linebreak = ["textwrap", "textwrap/unicode-linebreak"]
+textwrap-unicode-width = ["textwrap", "textwrap/unicode-width"]

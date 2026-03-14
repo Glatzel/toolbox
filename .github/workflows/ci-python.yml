@@ -10,8 +10,6 @@ defaults:
     working-directory: ./python
 jobs:
   main:
-    env:
-      PYTEST_ADDOPTS: "--color=yes"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

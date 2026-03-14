@@ -21,4 +21,6 @@ mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
 #[cfg(feature = "fancy")]
-pub mod presets;
+pub mod fancy_render;
+#[cfg(not(feature = "fancy"))]
+pub mod no_fancy_render;

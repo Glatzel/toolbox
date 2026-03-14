@@ -6,8 +6,9 @@ use alloc::string::ToString;
 
 use crate::error::MischiefError;
 #[cfg(feature = "fancy")]
-use crate::presets::*;
-
+use crate::fancy_render::*;
+#[cfg(not(feature = "fancy"))]
+use crate::no_fancy_render::*;
 /// Wrapper around a `MischiefError` for ergonomic error handling.
 #[derive(Clone)]
 pub struct Report {
@@ -18,37 +19,7 @@ impl Report {
     /// Creates a new `Report` from a `MischiefError`.
     pub fn new(error: MischiefError) -> Self { Report { inner: error } }
     pub fn diagnostic(&self) -> &MischiefError { &self.inner }
-}
-#[cfg(not(feature = "fancy"))]
-impl Report {
-    /// Produces an iterator over the diagnostic chain.
-    fn chain(
-        diagnostic: &impl crate::IDiagnostic,
-    ) -> impl Iterator<Item = &dyn crate::IDiagnostic> {
-        core::iter::successors(Some(diagnostic as &dyn crate::IDiagnostic), |r| r.source())
-    }
-    fn render_plain(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut chain = Self::chain(&self.inner);
-
-        if let Some(first) = chain.next() {
-            f.write_str(&alloc::format!("Error: {}", first.description()))?;
-            writeln!(f)?;
-        }
-        let mut first = true;
-        for diagnostic in chain {
-            if first {
-                f.write_str("\nCaused by:")?;
-                writeln!(f)?;
-                first = false;
-            }
-            f.write_str(&alloc::format!("    {}", diagnostic.description()))?;
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-}
-impl Debug for Report {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[cfg(feature = "fancy")]
         {
             let bundle = RenderBundle {
@@ -62,28 +33,19 @@ impl Debug for Report {
             };
             write!(f, "{}", bundle)
         }
+
         #[cfg(not(feature = "fancy"))]
-        self.render_plain(f)
+        {
+            render_diagnostic(&self.inner, f)
+        }
     }
+}
+
+impl Debug for Report {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
 impl Display for Report {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        #[cfg(feature = "fancy")]
-        {
-            let bundle = RenderBundle {
-                report: self,
-                theme: MischiefTheme::default(),
-                indent: MischiefIndent::default(),
-                width: match terminal_size::terminal_size() {
-                    Some((w, _)) => w.0 as usize,
-                    None => 0,
-                },
-            };
-            write!(f, "{}", bundle)
-        }
-        #[cfg(not(feature = "fancy"))]
-        self.render_plain(f)
-    }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
 /// Converts any type implementing `Error` into a `Report`, recursively
 /// converting source errors into `MischiefError`.
@@ -136,45 +98,34 @@ pub trait WrapErr<D, T> {
 }
 
 ///TODO: use specialization to impl for [`Report`]
+fn wrap_inner<D>(e: Report, msg: D) -> Report
+where
+    D: Display + 'static,
+{
+    let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
+        let mut r = r.clone();
+        r.inner.source = Some(Box::new(e.inner));
+        r.inner
+    } else {
+        MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
+    };
+
+    Report::new(new_inner)
+}
+
 impl<D, T> WrapErr<D, T> for Result<T, Report>
 where
     D: Display + 'static,
 {
-    fn wrap_err(self, msg: D) -> Result<T, Report> {
-        match self {
-            Err(e) => {
-                let new_inner =
-                    if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-                        let mut r = r.clone();
-                        r.inner.source = Some(Box::new(e.inner));
-                        r.inner
-                    } else {
-                        MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
-                    };
-                Err(Report::new(new_inner))
-            }
-            ok => ok,
-        }
-    }
+    fn wrap_err(self, msg: D) -> Result<T, Report> { self.wrap_err_with(|| msg) }
 
     fn wrap_err_with<F>(self, msg: F) -> Result<T, Report>
     where
         F: FnOnce() -> D,
     {
         match self {
-            Err(e) => {
-                let msg = msg();
-                let new_inner =
-                    if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-                        let mut r = r.clone();
-                        r.inner.source = Some(Box::new(e.inner));
-                        r.inner
-                    } else {
-                        MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
-                    };
-                Err(Report::new(new_inner))
-            }
-            ok => ok,
+            Err(e) => Err(wrap_inner(e, msg())),
+            Ok(v) => Ok(v),
         }
     }
 }

@@ -1,11 +1,14 @@
-use core::fmt;
+use core::fmt::{self, Write};
+extern crate alloc;
+use alloc::format;
+use alloc::string::{String, ToString};
 
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::Render;
 use arbor::trees::Tree;
-use owo_colors::Style;
+use owo_colors::{OwoColorize, Style};
 
-use crate::{Report, Severity};
+use crate::{IDiagnostic, Report, Severity};
 
 #[derive(Debug, Clone)]
 pub struct MischiefIndent {
@@ -134,19 +137,96 @@ impl ITheme for MischiefTheme {
 
 pub struct RenderBundle<'a, I, T> {
     pub report: &'a Report,
-
     pub theme: T,
     pub indent: I,
-
     pub width: usize,
 }
+impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
+    pub fn render_diagnostic<D: IDiagnostic>(&self, diagnostic: &D, theme: &impl ITheme) -> String {
+        use core::fmt::Write;
+        let mut buffer = String::new();
+        let severity_color = *theme.severity_style(diagnostic.severity());
+        if let Some(s) = diagnostic.severity() {
+            self.apply_style(&mut buffer, &(&s).to_string(), &severity_color)
+                .unwrap()
+        }
+        if let Some(s) = diagnostic.code() {
+            self.apply_style(&mut buffer, &format!("[{}]", s), &severity_color)
+                .unwrap()
+        }
+        if let Some(s) = diagnostic.url() {
+            self.apply_hyperlink_style(&mut buffer, s, "(link)", theme.hyperlink_style())
+                .unwrap();
+        }
+        if diagnostic.severity().is_some()
+            || diagnostic.code().is_some()
+            || diagnostic.url().is_some()
+        {
+            buffer.write_str(": ").unwrap();
+        }
 
+        self.apply_style(
+            &mut buffer,
+            diagnostic.description(),
+            theme.description_style(),
+        )
+        .unwrap();
+
+        if let Some(s) = diagnostic.help() {
+            writeln!(buffer).unwrap();
+            self.apply_style(&mut buffer, "help: ", &theme.help_style().0)
+                .unwrap();
+            self.apply_style(&mut buffer, s, &theme.help_style().1)
+                .unwrap();
+        }
+        buffer
+    }
+
+    pub fn apply_style(
+        &self,
+        buffer: &mut String,
+        text: &str,
+        style: &Option<owo_colors::Style>,
+    ) -> core::fmt::Result {
+        use core::fmt::Write;
+        if let Some(style) = style {
+            use owo_colors::OwoColorize;
+            buffer.write_str(&text.style(*style).to_string())
+        } else {
+            buffer.write_str(text)
+        }
+    }
+
+    fn apply_hyperlink_style(
+        &self,
+        buffer: &mut String,
+        hyperlink: &str,
+        text: &str,
+        style: &(Option<Style>, HyperlinkFormat),
+    ) -> core::fmt::Result {
+        match style {
+            (Some(s), HyperlinkFormat::Link) => buffer.write_str(
+                &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
+                    .style(*s)
+                    .to_string(),
+            ),
+            (Some(s), HyperlinkFormat::Plain) => {
+                buffer.write_str(&format!("<{}>", hyperlink.style(*s)))
+            }
+            (None, HyperlinkFormat::Link) => buffer.write_str(&format!(
+                "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
+                hyperlink, text
+            )),
+            (None, HyperlinkFormat::Plain) => buffer.write_str(&format!("<{}>", hyperlink)),
+        }
+    }
+}
 impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = Tree::new(self.report.inner.render_text(&self.theme));
+        let mut tree = Tree::new(self.render_diagnostic(&self.report.inner, &self.theme));
         let mut source = &self.report.inner.source;
         while let Some(e) = source {
-            tree.push(e.render_text(&self.theme));
+            tree.push(self.render_diagnostic(e.as_ref(), &self.theme));
             source = &e.source
         }
         let render = Render {

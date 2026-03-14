@@ -1,5 +1,5 @@
 #[cfg(feature = "fancy")]
-use mischief::presets::*;
+use mischief::fancy_render::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 #[cfg(feature = "fancy")]
 struct NoTheme;
@@ -17,7 +17,7 @@ impl ITheme for NoTheme {
         &self,
     ) -> &(
         Option<owo_colors::Style>,
-        mischief::presets::HyperlinkFormat,
+        mischief::fancy_render::HyperlinkFormat,
     ) {
         &(None, HyperlinkFormat::Plain)
     }

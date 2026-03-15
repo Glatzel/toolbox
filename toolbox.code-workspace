@@ -11,6 +11,10 @@
         {
             "name": "rust",
             "path": "rust"
+        },
+        {
+            "name": "tools",
+            "path": "tools"
         }
     ],
     "settings": {

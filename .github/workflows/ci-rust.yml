@@ -7,6 +7,8 @@ permissions: read-all
 defaults:
   run:
     working-directory: ./rust
+env:
+  WORKDIR: ./rust
 jobs:
   cargo-test:
     strategy:
@@ -27,20 +29,10 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.4
         with:
           run-install: false
-      - name: cargo-test
-        run: ./scripts/cargo-test.ps1 ${{matrix.args}}
-        shell: pwsh
-
-      - name: Upload results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
-
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+      - uses: ./.github/actions/rust/cargo-test
         with:
-          report_type: test_results
-          fail_ci_if_error: true
+          working-directory: ${{env.WORKDIR}}
+          args: ${{matrix.args}}
 
   cargo-miri:
     strategy:
@@ -54,10 +46,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: "miri"
-
-      - name: cargo-miri
-        run: ./scripts/cargo-miri.ps1
-        shell: pwsh
+      - uses: ./.github/actions/rust/cargo-miri
+        with:
+          working-directory: ${{env.WORKDIR}}
   cargo-doc:
     runs-on: ubuntu-latest
     strategy:
@@ -67,6 +58,8 @@ jobs:
           - --features tracing -p clerk
     steps:
       - uses: actions/checkout@v6
-      - name: cargo-doc
-        run: ./scripts/cargo-doc.ps1 ${{matrix.args}}
-        shell: pwsh
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: ./.github/actions/rust/cargo-test
+        with:
+          working-directory: ${{env.WORKDIR}}
+          args: ${{matrix.args}}

@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
-      - uses: ./.github/actions/rust/cargo-test
+      - uses: ./.github/actions/rust/cargo-bench
         with:
           working-directory: ./rust
           args: -p rax -p rax-nmea

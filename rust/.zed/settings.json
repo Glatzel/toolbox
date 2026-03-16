@@ -1,14 +1,4 @@
 {
-  "terminal": {
-    "env": {
-      "PYTHONPATH": "${PYTHONPATH};./python/src"
-    }
-  },
-  "languages": {
-    "Markdown": {
-      "soft_wrap": "none"
-    }
-  },
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {

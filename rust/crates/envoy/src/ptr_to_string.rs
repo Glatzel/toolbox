@@ -33,7 +33,32 @@ pub trait PtrToString {
 }
 
 impl PtrToString for *const c_char {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::CString;
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let s = CString::new("hello").unwrap();
+    /// let ptr = s.as_ptr();
+    ///
+    /// assert_eq!(ptr.to_string().unwrap(), "hello");
+    /// ```
     fn to_string(&self) -> Result<String, EnvoyError> { Ok(self.as_str()?.to_string()) }
+    /// # Examples
+    ///
+    /// ```
+    /// use core::ffi::c_char;
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let bytes = [0xFFu8 as c_char, 0];
+    /// let ptr = bytes.as_ptr();
+    ///
+    /// let s = ptr.to_string_lossy().unwrap();
+    /// assert!(s.contains('\u{FFFD}'));
+    /// ```
     fn to_string_lossy(&self) -> Result<String, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
@@ -43,7 +68,32 @@ impl PtrToString for *const c_char {
 }
 
 impl PtrToString for *mut c_char {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::{CString, c_char};
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let s = CString::new("world").unwrap();
+    /// let ptr = s.as_ptr() as *mut c_char;
+    ///
+    /// assert_eq!(ptr.to_string().unwrap(), "world");
+    /// ```
     fn to_string(&self) -> Result<String, EnvoyError> { Ok(self.as_str()?.to_string()) }
+    /// # Examples
+    ///
+    /// ```
+    /// use core::ffi::c_char;
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let bytes = [0xFFu8 as c_char, 0];
+    /// let ptr = bytes.as_ptr() as *mut c_char;
+    ///
+    /// let s = ptr.to_string_lossy().unwrap();
+    /// assert!(s.contains('\u{FFFD}'));
+    /// ```
     fn to_string_lossy(&self) -> Result<String, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
@@ -53,8 +103,33 @@ impl PtrToString for *mut c_char {
 }
 
 impl PtrToString for [c_char] {
+    /// # Examples
+    ///
+    /// ```
+    /// use core::ffi::c_char;
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let bytes = b"slice\0";
+    /// let slice =
+    ///     unsafe { core::slice::from_raw_parts(bytes.as_ptr() as *const c_char, bytes.len()) };
+    ///
+    /// assert_eq!(slice.to_string().unwrap(), "slice");
+    /// ```
     fn to_string(&self) -> Result<String, EnvoyError> { Ok(self.as_str()?.to_string()) }
-
+    /// # Examples
+    ///
+    /// ```
+    /// use core::ffi::c_char;
+    ///
+    /// use envoy::PtrToString;
+    ///
+    /// let bytes = [0xFFu8 as c_char, 0];
+    /// let slice = &bytes[..];
+    ///
+    /// let s = slice.to_string_lossy().unwrap();
+    /// assert!(s.contains('\u{FFFD}'));
+    /// ```
     fn to_string_lossy(&self) -> Result<String, EnvoyError> {
         unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_string_lossy().to_string()) }
     }

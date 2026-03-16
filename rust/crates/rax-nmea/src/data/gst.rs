@@ -19,7 +19,7 @@ pub struct Gst {
     std_major: Option<f64>,
     /// Standard deviation semi-minor
     std_minor: Option<f64>,
-    /// Orientation    orient: Option<f64>,
+    /// Orientation
     orient: Option<f64>,
     /// Standard deviation semi-latitude
     std_lat: Option<f64>,

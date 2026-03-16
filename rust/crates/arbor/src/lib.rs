@@ -105,6 +105,20 @@
 //!
 //! The crate aims to provide a clean and predictable foundation for building
 //! these systems without imposing unnecessary complexity.
+//!
+//!  # examples
+//！ ```
+//！ use arbor::indents::UnicodeIndent;
+//！ use arbor::renders::Render;
+//！ use arbor::trees::Tree;
+//！ let tree = Tree::new("foo").with_leaves(["bar", "baz"]);
+//！ let render = Render {
+//！     tree: &tree,
+//！     indent: UnicodeIndent,
+//！     width: 0,
+//！ };
+//！ println!("{}", render);
+//！ ```
 #![no_std]
 pub mod indents;
 pub mod protocol;

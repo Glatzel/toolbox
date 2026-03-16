@@ -41,6 +41,15 @@ impl Default for VecCString {
 
 impl VecCString {
     /// Creates a new, empty `VecCString`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use envoy::VecCString;
+    ///
+    /// let v = VecCString::new();
+    /// assert!(v.content.is_empty());
+    /// ```
     pub fn new() -> Self {
         Self {
             content: Vec::new(),
@@ -55,6 +64,17 @@ impl AsVecPtr for VecCString {
     ///
     /// - The returned pointers must not outlive the `VecCString` itself.
     /// - Dropping `VecCString` invalidates the returned pointers.
+    /// # Examples
+    ///
+    /// ```
+    /// use envoy::{AsVecPtr, ToVecCString};
+    ///
+    /// let args = ["a", "b"];
+    /// let v = args.to_vec_cstring().unwrap();
+    ///
+    /// let ptrs = v.as_vec_ptr();
+    /// assert!(ptrs.last().unwrap().is_null());
+    /// ```
     fn as_vec_ptr(&self) -> Vec<*const c_char> {
         let mut vec_ptr = self
             .content
@@ -95,6 +115,16 @@ pub trait ToVecCString {
 /// `&[String]`, `&[&str]`, or mixed types, as long as each element implements
 /// `ToCString`.
 impl<T: ToCString> ToVecCString for [T] {
+    /// # Examples
+    ///
+    /// ```
+    /// use envoy::ToVecCString;
+    ///
+    /// let args = ["foo", "bar"];
+    /// let v = args.to_vec_cstring().unwrap();
+    ///
+    /// assert_eq!(v.content.len(), 2);
+    /// ```
     fn to_vec_cstring(&self) -> Result<VecCString, EnvoyError> {
         let content = self
             .iter()

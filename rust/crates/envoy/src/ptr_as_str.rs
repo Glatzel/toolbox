@@ -24,6 +24,16 @@ pub trait PtrAsStr {
 }
 
 impl PtrAsStr for *const c_char {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::CString;
+    ///
+    /// use envoy::PtrAsStr;
+    /// let s = CString::new("hello").unwrap();
+    /// let ptr = s.as_ptr();
+    /// assert_eq!(ptr.as_str().unwrap(), "hello");
+    /// ```
     fn as_str(&self) -> Result<&str, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
@@ -34,6 +44,16 @@ impl PtrAsStr for *const c_char {
 }
 
 impl PtrAsStr for *mut c_char {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::{CString, c_char};
+    ///
+    /// use envoy::PtrAsStr;
+    /// let s = CString::new("world").unwrap();
+    /// let ptr = s.as_ptr() as *mut c_char;
+    /// assert_eq!(ptr.as_str().unwrap(), "world");
+    /// ```
     fn as_str(&self) -> Result<&str, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
@@ -44,6 +64,17 @@ impl PtrAsStr for *mut c_char {
 }
 
 impl PtrAsStr for [c_char] {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::c_char;
+    ///
+    /// use envoy::PtrAsStr;
+    /// let bytes = b"slice\0";
+    /// let slice: &[c_char] =
+    ///     unsafe { core::slice::from_raw_parts(bytes.as_ptr() as *const c_char, bytes.len()) };
+    /// assert_eq!(slice.as_str().unwrap(), "slice");
+    /// ```
     fn as_str(&self) -> Result<&str, EnvoyError> {
         unsafe { Ok(CStr::from_ptr(self.as_ptr()).to_str()?) }
     }

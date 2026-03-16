@@ -29,11 +29,31 @@ pub trait ToCString {
 
 /// Implementation for string slices.
 impl ToCString for &str {
+    /// # Examples
+    ///
+    /// ```
+    /// use envoy::ToCString;
+    ///
+    /// let s = "hello";
+    /// let c = s.to_cstring().unwrap();
+    ///
+    /// assert_eq!(c.to_str().unwrap(), "hello");
+    /// ```
     fn to_cstring(&self) -> Result<CString, EnvoyError> { Ok(CString::from_str(self)?) }
 }
 
 /// Implementation for owned `String` values.
 impl ToCString for String {
+    /// # Examples
+    ///
+    /// ```
+    /// use envoy::ToCString;
+    ///
+    /// let s = String::from("world");
+    /// let c = s.to_cstring().unwrap();
+    ///
+    /// assert_eq!(c.to_str().unwrap(), "world");
+    /// ```
     fn to_cstring(&self) -> Result<CString, EnvoyError> { Ok(CString::from_str(self)?) }
 }
 #[cfg(test)]

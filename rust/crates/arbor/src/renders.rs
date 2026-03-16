@@ -17,6 +17,20 @@ use crate::protocol::{IComplexTree, IIndent, ITree, Layer, Line};
 /// and constructs prefix spacing dynamically while walking the tree.
 ///
 /// The indentation style is applied uniformly across the entire tree.
+///
+/// # examples
+/// ```
+/// use arbor::indents::UnicodeIndent;
+/// use arbor::renders::Render;
+/// use arbor::trees::Tree;
+/// let tree = Tree::new("foo").with_leaves(["bar", "baz"]);
+/// let render = Render {
+///     tree: &tree,
+///     indent: UnicodeIndent,
+///     width: 0,
+/// };
+/// println!("{}", render);
+/// ```
 pub struct Render<'a, I, T> {
     /// Root tree node to render.
     pub tree: &'a T,
@@ -81,6 +95,19 @@ where
 ///
 /// When a node does not provide an indentation style, the renderer inherits
 /// the indentation configuration from its parent.
+///
+/// # examples
+/// ```
+/// use arbor::indents::UnicodeIndent;
+/// use arbor::renders::ComplexRender;
+/// use arbor::trees::ComplexTree;
+/// let tree = ComplexTree::new_with_indent("foo", UnicodeIndent).with_leaves(["bar", "baz"]);
+/// let render = ComplexRender {
+///     tree: &tree,
+///     width: 0,
+/// };
+/// println!("{}", render);
+/// ```
 pub struct ComplexRender<'a, T> {
     /// Root tree node to render.
     pub tree: &'a T,

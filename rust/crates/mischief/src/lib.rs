@@ -87,7 +87,47 @@
 //! `mischief` is suitable for applications and libraries that require
 //! structured diagnostics while retaining a straightforward error handling
 //! model.
-
+//!
+//! # Examples
+//!
+//! ```should_panic
+//! use mischief::mischief;
+//!
+//! use crate::mischief::WrapErr;
+//! fn foo() -> std::result::Result<i32, &'static str> { Err("fake error") }
+//! fn main() -> mischief::Result<()> {
+//!     foo()
+//!         .map_err(|e| mischief!("{}", e))
+//!         .wrap_err("error wrapper")?;
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ```should_panic
+//! use mischief::{WrapErr, mischief};
+//!
+//! fn foo() -> std::result::Result<i32, &'static str> { Err("fake error") }
+//! fn main() -> mischief::Result<()> {
+//!     foo()
+//!         .map_err(|e| mischief!("{}", e))
+//!         .wrap_err("error wrapper")?;
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ```should_panic
+//! use std::fs::File;
+//!
+//! use mischief::{IntoMischief, WrapErr};
+//!
+//! fn main() -> mischief::Result<()> {
+//!     let _ = File::open("fake")
+//!         .into_mischief()
+//!         .wrap_err(mischief::mischief!("mischief wrapper", help = "some help"))
+//!         .wrap_err("error wrapper")?;
+//!     Ok(())
+//! }
+//! ```
 #![no_std]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]

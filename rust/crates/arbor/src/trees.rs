@@ -20,6 +20,20 @@ use crate::protocol::{IComplexTree, IIndent, ITree};
 /// - `&'static str`
 /// - `String`
 /// - `Cow<'_, str>`
+///
+/// # examples
+/// ```
+/// use arbor::indents::UnicodeIndent;
+/// use arbor::renders::Render;
+/// use arbor::trees::Tree;
+/// let tree = Tree::new("foo").with_leaves(["bar", "baz"]);
+/// let render = Render {
+///     tree: &tree,
+///     indent: UnicodeIndent,
+///     width: 0,
+/// };
+/// println!("{}", render);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Tree<D: AsRef<str>> {
     content: D,
@@ -77,6 +91,19 @@ impl<D: AsRef<str>> From<D> for Tree<D> {
 ///
 /// This is useful when different sections of a diagnostic tree should
 /// use different visual formats.
+///
+/// # examples
+/// ```
+/// use arbor::indents::UnicodeIndent;
+/// use arbor::renders::ComplexRender;
+/// use arbor::trees::ComplexTree;
+/// let tree = ComplexTree::new_with_indent("foo", UnicodeIndent).with_leaves(["bar", "baz"]);
+/// let render = ComplexRender {
+///     tree: &tree,
+///     width: 0,
+/// };
+/// println!("{}", render);
+/// ```
 #[derive(Debug, Clone)]
 pub struct ComplexTree<D: AsRef<str>, I: IIndent> {
     content: D,

@@ -3,5 +3,5 @@
     "env": {
       "PYTHONPATH": "${PYTHONPATH};./python/src"
     }
-  },
+  }
 }

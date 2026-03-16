@@ -50,6 +50,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-miri
         with:
           working-directory: ${{env.WORKDIR}}
+          args: -p envoy
   cargo-doc:
     runs-on: ubuntu-latest
     strategy:

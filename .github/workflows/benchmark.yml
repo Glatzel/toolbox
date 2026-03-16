@@ -10,18 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-codspeed --locked
-      - run: ./rust/scripts/setup.ps1
-        shell: pwsh
-
-      - name: Build the benchmark target(s)
-        run: cargo codspeed build -p rax -p rax-nmea
-        working-directory: ./rust
-
-      - name: Run the benchmarks
-        uses: CodSpeedHQ/action@v4
+      - uses: ./.github/actions/rust/cargo-test
         with:
-          run: cargo codspeed run
-          token: ${{ secrets.CODSPEED_TOKEN }}
           working-directory: ./rust
-          mode: simulation
+          args: -p rax -p rax-nmea

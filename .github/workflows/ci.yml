@@ -32,6 +32,7 @@ jobs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
+      changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
     runs-on: ubuntu-slim
     steps:
       - if: ${{github.event_name == 'pull_request' }}
@@ -51,6 +52,9 @@ jobs:
               - ./rust/**
               - ./.github/workflows/ci-rust.yml
 
+            tools-orc:
+              - ./tools/orc/**
+
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
@@ -59,6 +63,16 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
     uses: ./.github/workflows/ci-rust.yml
+  tools-orc:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-tools-orc != 'false' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/rust/cargo-build
+        with:
+          working-directory: ./tools/orc
   benchmark:
     needs: changed
     if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
@@ -66,7 +80,7 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook,changed,python-ci,rust-ci,benchmark]
+    needs: [lefthook, changed, python-ci, rust-ci, benchmark, tools-orc]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

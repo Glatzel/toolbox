@@ -13,8 +13,8 @@ Write-Host "Updated rust version to $version"
 
 $cargoTomlPath = "./tools/orc/Cargo.toml"
 (Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
-Write-Host "Updated rust version to $version"$cargoTomlPath = "./tools/Cargo.toml"
+Write-Host "Updated orc version to $version"
 
 $cargoTomlPath = "./tools/vinaya/Cargo.toml"
 (Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
-Write-Host "Updated rust version to $version"$cargoTomlPath = "./tools/Cargo.toml"
+Write-Host "Updated vinaya version to $version"

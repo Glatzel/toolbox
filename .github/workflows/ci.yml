@@ -54,6 +54,8 @@ jobs:
 
             tools-orc:
               - ./tools/orc/**
+            tools-orc:
+              - ./tools/vinaya/**
 
   python-ci:
     needs: changed
@@ -76,6 +78,19 @@ jobs:
       - uses: ./.github/actions/rust/cargo-build
         with:
           working-directory: ./tools/orc
+  tools-vinaya:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/rust/cargo-clippy
+        with:
+          working-directory: ./tools/vinaya
+      - uses: ./.github/actions/rust/cargo-test
+        with:
+          working-directory: ./tools/vinaya
   benchmark:
     needs: changed
     if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}

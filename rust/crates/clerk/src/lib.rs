@@ -4,9 +4,9 @@
 pub use defmt;
 
 #[cfg(feature = "tracing")]
-mod log_normal;
+mod log_tracing;
 #[cfg(feature = "tracing")]
-pub use log_normal::*;
+pub use log_tracing::*;
 
 mod macros;
 #[cfg(all(feature = "defmt", feature = "tracing"))]

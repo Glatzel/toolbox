@@ -52,11 +52,14 @@ jobs:
               - ./.github/workflows/ci-python.yml
             rust:
               - ./rust/**
+              - ./.github/actions/rust/**
               - ./.github/workflows/ci-rust.yml
 
             tools-orc:
+              - ./.github/actions/rust/**
               - ./tools/orc/**
             tools-vinaya:
+              - ./.github/actions/rust/**
               - ./tools/vinaya/**
   benchmark:
     needs: changed
@@ -102,6 +105,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/vinaya
+          skip-doc: true
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'

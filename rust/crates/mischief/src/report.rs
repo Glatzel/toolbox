@@ -166,7 +166,18 @@ where
         r.inner.source = Some(Box::new(e.inner));
         r.inner
     } else {
-        MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
+        MischiefError::new(
+            &msg,
+            Some(Box::new(e.inner)),
+            #[cfg(feature = "fancy")]
+            None,
+            #[cfg(feature = "fancy")]
+            None,
+            #[cfg(feature = "fancy")]
+            None,
+            #[cfg(feature = "fancy")]
+            None,
+        )
     };
 
     Report::new(new_inner)

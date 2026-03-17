@@ -112,13 +112,12 @@ impl HoudiniInstance {
         }
         Ok(())
     }
-    pub fn to_string(&self, patch: bool) -> String {
-        let str_version = if patch {
+    pub fn version_string(&self, patch: bool) -> String {
+        if patch {
             format!("{}.{}.{}", self.major, self.minor, self.patch)
         } else {
             format!("{}.{}", self.major, self.minor)
-        };
-        str_version
+        }
     }
 
     pub fn hfs(&self) -> PathBuf {
@@ -149,7 +148,7 @@ impl HoudiniInstance {
         let hython = self.hfs().join("bin/hython.exe");
         clerk::debug!("hython: {}", hython.to_slash_lossy());
         if !hython.exists() {
-            mischief::bail!("Hython is not found. Houdini{}", self.to_string(true))
+            mischief::bail!("Hython is not found. Houdini{}", self.version_string(true))
         }
 
         // get script

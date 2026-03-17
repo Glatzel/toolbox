@@ -29,7 +29,7 @@ pub fn execute(args: Args) -> mischief::Result<()> {
         Commands::Major {} => println!("{}", hinstance.major),
         Commands::Minor {} => println!("{}", hinstance.minor),
         Commands::Patch {} => println!("{}", hinstance.patch),
-        Commands::Version { no_patch } => println!("{}", hinstance.to_string(!no_patch)),
+        Commands::Version { no_patch } => println!("{}", hinstance.version_string(!no_patch)),
     };
     Ok(())
 }

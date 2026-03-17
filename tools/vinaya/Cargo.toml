@@ -1,11 +1,11 @@
 [package]
 edition = "2021"
-version = "0.1.0"
 name = "vinaya"
+version = "0.1.0"
 
 [dependencies]
-clerk = { path="../../rust/crates/clerk", features = ["tracing"] }
-mischief = { path="../../rust/crates/mischief", features = ["fancy"] }
+clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
+mischief = { path = "../../rust/crates/mischief", features = ["fancy"] }
 
 base64 = "0.22.1"
 clap = { version = "4.6.0", features = ["derive"] }

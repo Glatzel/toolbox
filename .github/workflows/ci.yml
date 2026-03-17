@@ -58,7 +58,10 @@ jobs:
               - ./tools/orc/**
             tools-vinaya:
               - ./tools/vinaya/**
-
+  benchmark:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
+    uses: ./.github/workflows/benchmark.yml
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
@@ -67,6 +70,7 @@ jobs:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
     uses: ./.github/workflows/ci-rust.yml
+
   tools-orc:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-orc != 'false' }}
@@ -80,6 +84,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-build
         with:
           working-directory: ./tools/orc
+
   tools-vinaya:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}
@@ -90,13 +95,13 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/vinaya
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/vinaya
-  benchmark:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
-    uses: ./.github/workflows/benchmark.yml
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'

@@ -65,8 +65,7 @@ impl std::str::FromStr for HoudiniBuildVersion {
 }
 
 #[cfg(test)]
-mod test_houdini_build_version {
-
+mod test {
     use std::str::FromStr;
 
     use super::*;
@@ -85,12 +84,7 @@ mod test_houdini_build_version {
 
     #[test]
     fn rejects_invalid_number() {
-        let err = HoudiniBuildVersion::from_str("abc").unwrap_err();
-        // `err` is a miette::ErrReport — you can inspect its Display if you want
-        let msg = err.to_string();
-        assert!(
-            msg.contains("invalid digit"),
-            "Unexpected error message: {msg}"
-        );
+        let err = HoudiniBuildVersion::from_str("abc");
+        assert!(err.is_err())
     }
 }

@@ -3,7 +3,7 @@ use std::process;
 
 use dunce::canonicalize;
 use glob::glob;
-use mischief::{mischief, IntoMischief};
+use mischief::{IntoMischief, mischief};
 use path_slash::PathExt;
 use regex::Regex;
 use validator::Validate;

@@ -5,12 +5,12 @@ use std::path::{Path, PathBuf};
 use glob::glob;
 use mischief::IntoMischief;
 use path_slash::PathExt;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use validator::Validate;
 
 use crate::hou::{
-    HoudiniPreference, HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN,
-    HOUDINI_VERSION_MINOR_MAX, HOUDINI_VERSION_MINOR_MIN,
+    HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
+    HOUDINI_VERSION_MINOR_MIN, HoudiniPreference,
 };
 
 #[derive(Debug, Clone)]

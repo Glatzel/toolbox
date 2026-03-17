@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::time::Duration;
 
-use base64::engine::general_purpose::STANDARD;
 use base64::Engine as _;
-use mischief::{mischief, IntoMischief};
+use base64::engine::general_purpose::STANDARD;
+use mischief::{IntoMischief, mischief};
 use serde_json::json;
 
 use crate::hou::{HoudiniBuildVersion, HoudiniPlatform, HoudiniProduct};

@@ -32,7 +32,7 @@ jobs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
-      
+
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
       changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
     runs-on: ubuntu-slim

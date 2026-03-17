@@ -78,7 +78,7 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "arbor"
-version = "2026.3.14"
+version = "2026.3.17"
 dependencies = [
  "textwrap",
 ]
@@ -215,7 +215,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.3.14"
+version = "2026.3.17"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -1023,7 +1023,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.3.14"
+version = "2026.3.17"
 dependencies = [
  "arbor",
  "mischief-macros",
@@ -1036,7 +1036,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.3.14"
+version = "2026.3.17"
 dependencies = [
  "quote",
  "syn",

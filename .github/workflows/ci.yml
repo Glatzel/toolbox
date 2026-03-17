@@ -45,7 +45,7 @@ jobs:
         with:
           files_yaml: |
             benchmark:
-              - ./rust/**
+              - ./rust/crates/rax/**
               - ./.github/workflows/benchmark.yml
             python:
               - ./python/**

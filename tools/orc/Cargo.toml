@@ -1,7 +1,7 @@
 [package]
 edition = "2024"
 name = "orc"
-version = "2026.3.14"
+version = "2026.3.17"
 
 [dependencies]
 goblin = "0.10.5"

@@ -96,7 +96,7 @@ where
             inner: {
                 fn convert(err: &dyn Error) -> MischiefError {
                     MischiefError::new(
-                        &err.to_string(),
+                        err.to_string(),
                         err.source().map(|src| Box::new(convert(src))),
                         #[cfg(feature = "fancy")]
                         None,

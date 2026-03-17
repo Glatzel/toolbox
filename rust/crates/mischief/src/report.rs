@@ -98,9 +98,13 @@ where
                     MischiefError::new(
                         &err.to_string(),
                         err.source().map(|src| Box::new(convert(src))),
+                        #[cfg(feature = "fancy")]
                         None,
+                        #[cfg(feature = "fancy")]
                         None,
+                        #[cfg(feature = "fancy")]
                         None,
+                        #[cfg(feature = "fancy")]
                         None,
                     )
                 }

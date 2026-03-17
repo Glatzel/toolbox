@@ -35,17 +35,21 @@ pub struct MischiefError {
     ///
     /// Error codes may be used to categorize errors or reference
     /// documentation.
+    #[cfg(feature = "fancy")]
     code: Option<String>,
 
     /// Optional severity level associated with the diagnostic.
     ///
     /// If not specified, consumers may assume a default severity.
+    #[cfg(feature = "fancy")]
     severity: Option<crate::Severity>,
 
     /// Optional guidance describing how the issue may be resolved.
+    #[cfg(feature = "fancy")]
     help: Option<String>,
 
     /// Optional URL pointing to related documentation.
+    #[cfg(feature = "fancy")]
     url: Option<String>,
 }
 
@@ -64,10 +68,10 @@ impl MischiefError {
     pub fn new<D>(
         description: D,
         source: Option<Box<MischiefError>>,
-        code: Option<D>,
-        severity: Option<crate::Severity>,
-        help: Option<D>,
-        url: Option<D>,
+        #[cfg(feature = "fancy")] code: Option<D>,
+        #[cfg(feature = "fancy")] severity: Option<crate::Severity>,
+        #[cfg(feature = "fancy")] help: Option<D>,
+        #[cfg(feature = "fancy")] url: Option<D>,
     ) -> Self
     where
         D: Display,
@@ -75,9 +79,13 @@ impl MischiefError {
         Self {
             description: description.to_string(),
             source,
+            #[cfg(feature = "fancy")]
             code: code.map(|s| s.to_string()),
+            #[cfg(feature = "fancy")]
             severity,
+            #[cfg(feature = "fancy")]
             help: help.map(|s| s.to_string()),
+            #[cfg(feature = "fancy")]
             url: url.map(|s| s.to_string()),
         }
     }
@@ -95,14 +103,34 @@ impl IDiagnostic for MischiefError {
     }
 
     /// Returns the optional error code associated with the diagnostic.
-    fn code(&self) -> Option<&str> { self.code.as_deref() }
+    fn code(&self) -> Option<&str> {
+        #[cfg(feature = "fancy")]
+        return self.code.as_deref();
+        #[cfg(not(feature = "fancy"))]
+        None
+    }
 
     /// Returns the severity level associated with the diagnostic.
-    fn severity(&self) -> Option<crate::Severity> { self.severity }
+    fn severity(&self) -> Option<crate::Severity> {
+        #[cfg(feature = "fancy")]
+        return self.severity;
+        #[cfg(not(feature = "fancy"))]
+        None
+    }
 
     /// Returns optional help text describing how the issue might be resolved.
-    fn help(&self) -> Option<&str> { self.help.as_deref() }
+    fn help(&self) -> Option<&str> {
+        #[cfg(feature = "fancy")]
+        return self.help.as_deref();
+        #[cfg(not(feature = "fancy"))]
+        None
+    }
 
     /// Returns the optional documentation URL for the diagnostic.
-    fn url(&self) -> Option<&str> { self.url.as_deref() }
+    fn url(&self) -> Option<&str> {
+        #[cfg(feature = "fancy")]
+        return self.url.as_deref();
+        #[cfg(not(feature = "fancy"))]
+        None
+    }
 }

@@ -46,7 +46,7 @@ pub enum HoudiniProduct {
     LauncherIsoPy2,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HoudiniBuildVersion {
     Number(u16),
     Production,
@@ -68,20 +68,17 @@ impl std::str::FromStr for HoudiniBuildVersion {
 mod test {
     use std::str::FromStr;
 
+    use rstest::rstest;
+
     use super::*;
 
-    #[test]
-    fn parses_production() {
-        let version = HoudiniBuildVersion::from_str("production").unwrap();
-        assert!(matches!(version, HoudiniBuildVersion::Production));
+    #[rstest]
+    #[case("production", HoudiniBuildVersion::Production)]
+    #[case("123", HoudiniBuildVersion::Number(123))]
+    fn test_build_version(#[case] input: &str, #[case] expected: HoudiniBuildVersion) {
+        let version = HoudiniBuildVersion::from_str(input).unwrap();
+        assert_eq!(version, expected);
     }
-
-    #[test]
-    fn parses_number() {
-        let version = HoudiniBuildVersion::from_str("123").unwrap();
-        assert!(matches!(version, HoudiniBuildVersion::Number(123)));
-    }
-
     #[test]
     fn rejects_invalid_number() {
         let err = HoudiniBuildVersion::from_str("abc");

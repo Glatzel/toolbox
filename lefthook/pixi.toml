@@ -10,6 +10,7 @@ lefthook-run = "lefthook run pre-commit --all-files --no-auto-install"
 [target.linux-64.dependencies]
 markdownlint-cli2 = "==0.21.0"
 [dependencies]
+actionlint = "==1.7.11"
 cargo-machete = "==0.9.1"
 lefthook = "==2.1.4"
 numpydoc = "==1.10.0"
@@ -18,4 +19,3 @@ python = "3.13.*"
 ruff = "==0.15.5"
 taplo = "==0.10.0"
 typos = "==1.44.0"
-actionlint = "==1.7.11"

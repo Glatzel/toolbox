@@ -9,6 +9,11 @@ on:
         type: string
         required: true
         description: "Tag to release (e.g., v1.2.3)"
+      latest:
+        type: boolean
+        required: false
+        default: true
+        description: is it a latest release
 
 permissions:
   contents: write
@@ -18,47 +23,60 @@ jobs:
     if: ${{!failure()}}
     runs-on: ubuntu-slim
     steps:
-      - id: check-tag
+      - name: check-tag-release
+        if: inputs.latest
         run: |
-          $tag="${{inputs.tag}}"
+          $tag="$env:INPUTS_TAG"
           Write-Output "tag: $tag"
-          if("$tag" -match '^v\d+\.\d+\.\d+$' ){"IS_PRE_RELEASE=false" >> "$env:GITHUB_OUTPUT"}
-          elseif("$tag" -match '^v\d+\.\d+\.\d+-.*$') {"IS_PRE_RELEASE=true" >> "$env:GITHUB_OUTPUT"}
+          if("$tag" -match '^v\d+\.\d+\.\d+$' ){}
+          elseif("$tag" -match '^v\d+\.\d+\.\d+-.*$') {}
           else{throw "Unknown version: '$tag'"}
         shell: pwsh
+        env:
+          INPUTS_TAG: ${{inputs.tag}}
+      - name: check-tag-pre-release
+        if: ! inputs.latest
+        run: |
+          $tag="$env:INPUTS_TAG"
+          Write-Output "tag: $tag"
+          if("$tag" -match '^v\d+\.\d+\.\d+-.*$') {}
+          else{throw "Unknown version: '$tag'"}
+        shell: pwsh
+        env:
+          INPUTS_TAG: ${{inputs.tag}}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: clear-tag-and-release
         run: |
-          if($(gh api /repos/${{github.repository}}/tags --jq '.[].name') -contains "${{inputs.tag}}")
+          if($(gh api /repos/${{github.repository}}/tags --jq '.[].name') -contains "$env:INPUTS_TAG")
           {
-              write-output "tag ${{inputs.tag}} exists."
-              gh release delete ${{inputs.tag}} --cleanup-tag -y
+              write-output "tag $env:INPUTS_TAG exists."
+              gh release delete $env:INPUTS_TAG --cleanup-tag -y
           }
           else{
-              write-output "tag ${{inputs.tag}} does not exist."
+              write-output "tag $env:INPUTS_TAG does not exist."
           }
         env:
           GH_TOKEN: ${{ github.token }}
+          INPUTS_TAG: ${{inputs.tag}}
         shell: pwsh
 
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
 
       - name: Generate a changelog
         run: |
           pixi global install git-cliff
-          git-cliff --unreleased --tag ${{inputs.tag}} --strip header > release_changelog.md
+          git-cliff --unreleased --tag ${INPUTS_TAG} --strip header > release_changelog.md
+        env:
+          INPUTS_TAG: ${{inputs.tag}}
 
       - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: release_changelog.md
-          tag_name: ${{inputs.tag}}
-          draft: true
-          prerelease: ${{steps.check-tag.outputs.is_pre_release}}
+        run: |
+          gh release create ${{inputs.tag}} -F release_changelog.md --draft ${{inputs.latest && '--latest' || '--prerelease'}}

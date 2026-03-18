@@ -25,6 +25,9 @@ strum = { version = "0.28", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 validator = { version = "0.20.0", features = ["derive"] }
 
+[dev-dependencies]
+rstest = "0.26.1"
+
 [profile.release]
 codegen-units = 1
 debug = false

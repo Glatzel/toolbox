@@ -17,8 +17,6 @@ on:
   schedule:
     - cron: 0 16 * * *
 
-permissions: read-all
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
@@ -27,6 +25,8 @@ jobs:
   lefthook:
     if: ${{ github.event_name != 'schedule' }}
     uses: ./.github/workflows/ci-lefthook.yml
+    permissions:
+      contents: write
   changed:
     outputs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}

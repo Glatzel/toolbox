@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-permissions: read-all
 defaults:
   run:
     working-directory: ./python
@@ -14,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
 
@@ -24,9 +23,9 @@ jobs:
 
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
       - name: Upload test results to Codecov
         if: ${{ !cancelled()}}
-        uses: codecov/test-results-action@v1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true

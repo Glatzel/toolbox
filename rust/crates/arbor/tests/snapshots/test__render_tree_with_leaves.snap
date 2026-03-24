@@ -3,6 +3,6 @@ source: crates/arbor/tests/test.rs
 expression: "format!(\"{}\", render)"
 ---
 foo
-╰─▶ bar
-    ╰─▶ foobar
-        ╰─▶ baz
+╰── bar
+    ╰── foobar
+        ╰── baz

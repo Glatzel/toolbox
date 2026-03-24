@@ -19,7 +19,7 @@ use crate::no_fancy_render::*;
 ///
 /// The type is designed to behave similarly to application-oriented error
 /// containers such as `anyhow::Error`, while preserving structured diagnostic
-/// information compatible with [`IDiagnostic`].
+/// information compatible with [`crate::IDiagnostic`].
 ///
 /// Formatting a `Report` will render the full diagnostic chain. If the
 /// `fancy` feature is enabled, a structured tree-based renderer is used.

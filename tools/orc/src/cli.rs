@@ -86,7 +86,7 @@ impl ILazyTree for ImportsTree {
                     .green()
                     .to_string()
             }
-            (_, Some(_), ShowOption::Missing) => (&self.name).to_string(),
+            (_, Some(_), ShowOption::Missing) => self.name.to_string(),
             (_, None, ShowOption::All) => {
                 if self.name.starts_with("api-ms-win") {
                     format!(

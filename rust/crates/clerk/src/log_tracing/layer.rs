@@ -20,7 +20,13 @@ use tracing_subscriber::registry::LookupSpan;
 /// use tracing_subscriber::util::SubscriberInitExt;
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::terminal_layer(clerk::LogLevel::TRACE, true))
+///     .with(
+///         clerk::layer::terminal_layer(true).with_filter(
+///             EnvFilter::builder()
+///                 .with_default_directive(level.into())
+///                 .from_env_lossy(),
+///         ),
+///     )
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -63,7 +69,13 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::file_layer(f, true))
+///     .with(
+///         clerk::layer::file_layer(f, true).with_filter(
+///             EnvFilter::builder()
+///                 .with_default_directive(level.into())
+///                 .from_env_lossy(),
+///         ),
+///     )
 ///     .init();
 ///
 /// trace!("Trace message");

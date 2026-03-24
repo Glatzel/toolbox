@@ -83,9 +83,9 @@ impl Default for UniversalIndent {
 ///
 /// ```text
 /// root
-/// ├─▶ child
-/// │   ├─▶ grandchild
-/// ╰─▶ child
+/// ├── child
+/// │   ├── grandchild
+/// ╰── child
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct UnicodeIndent;
@@ -94,8 +94,8 @@ impl IIndent for UnicodeIndent {
     fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
         match (layer, line) {
             (Layer::Root, _) => "",
-            (Layer::Middle | Layer::Top, Line::First) => "├─▶ ",
-            (Layer::Bottom, Line::First) => "╰─▶ ",
+            (Layer::Middle | Layer::Top, Line::First) => "├── ",
+            (Layer::Bottom, Line::First) => "╰── ",
             (Layer::Bottom, Line::Other) => "    ",
             (_, Line::Other) => "│   ",
         }

@@ -15,9 +15,9 @@ jobs:
       matrix:
         args:
           - --workspace --all-features --exclude clerk
-          - --workspace -p mischief --no-default-features --features macros
-          - --workspace --features tracing -p clerk
-          - --workspace --no-default-features -p rax -p rax-nmea
+          - -p mischief --no-default-features --features macros
+          - --features tracing -p clerk
+          - --no-default-features -p rax -p rax-nmea
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

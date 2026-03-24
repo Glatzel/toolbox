@@ -16,7 +16,10 @@ hashbrown = "0.16.0"
 owo-colors = "4.2.2"
 path-slash = "0.2.1"
 strum = { version = "0.28", features = ["derive"] }
-
+[dev-dependencies]
+insta = "1.46.1"
+assert_cmd = "2.0"
+rstest = "0.26.1"
 [profile.release]
 codegen-units = 1
 debug = false

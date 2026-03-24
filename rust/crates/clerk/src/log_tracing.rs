@@ -7,4 +7,5 @@ pub use tracing::level_filters::LevelFilter;
 mod fast_setup;
 mod log_level;
 pub use log_level::LogLevel;
+pub use tracing_core;
 pub use tracing_subscriber;

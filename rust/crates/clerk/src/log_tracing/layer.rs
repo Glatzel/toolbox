@@ -1,5 +1,5 @@
 extern crate std;
-use std::boxed::Box;
+
 use std::path::PathBuf;
 
 use tracing_core::LevelFilter;
@@ -32,7 +32,7 @@ use crate::LogLevel;
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(level: LogLevel, color: bool) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn terminal_layer<S>(color: bool) -> impl Layer<S> + Send + Sync
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -40,12 +40,6 @@ where
     tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color })
         .with_writer(std::io::stderr)
-        .with_filter(
-            EnvFilter::builder()
-                .with_default_directive(Into::<LevelFilter>::into(level).into())
-                .from_env_lossy(),
-        )
-        .boxed()
 }
 
 /// Generate a file log layer for tracing.
@@ -85,7 +79,7 @@ pub fn file_layer<S>(
     level: LogLevel,
     filepath: PathBuf,
     overwrite: bool,
-) -> Box<dyn Layer<S> + Send + Sync + 'static>
+) -> impl Layer<S> + Send + Sync
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -134,7 +128,13 @@ mod tests {
     #[test]
     fn test_log_term() {
         tracing_subscriber::registry()
-            .with(terminal_layer(LogLevel::TRACE, true))
+            .with(
+                terminal_layer(true).with_filter(
+                    EnvFilter::builder()
+                        .with_default_directive(Into::<LevelFilter>::into(LogLevel::TRACE).into())
+                        .from_env_lossy(),
+                ),
+            )
             .init();
         trace!("Trace message");
         debug!("Debug message");

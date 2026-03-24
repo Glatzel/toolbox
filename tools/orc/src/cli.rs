@@ -1,14 +1,17 @@
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::{env, fs};
 
 use arbor::protocol::ILazyTree;
 use clap::{Parser, ValueEnum};
+use clerk::tracing_subscriber::layer::SubscriberExt;
+use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer};
 use goblin::pe::PE;
 use hashbrown::HashSet;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
 use strum::Display;
-
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -17,12 +20,12 @@ struct Args {
     #[arg(long, short, default_value_t = 1)]
     limit: usize,
     #[arg(long,short, default_value_t = ShowOption::All)]
-    show: ShowOption,
+    show_option: ShowOption,
     #[arg(help = "Path to the executable to scan")]
     executable: PathBuf,
 }
 
-#[derive(Default, Debug, Display, Clone, PartialEq, Eq, ValueEnum)]
+#[derive(Default, Debug, Display, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum ShowOption {
     #[default]
     #[strum(serialize = "all")]
@@ -30,44 +33,39 @@ enum ShowOption {
     #[strum(serialize = "missing")]
     Missing,
 }
+static LIMIT: OnceLock<usize> = OnceLock::new();
+static SHOW_OPTION: OnceLock<ShowOption> = OnceLock::new();
 #[derive(Debug, Clone)]
 struct ImportsTree {
     name: String,
     base: Option<PathBuf>,
-    limit: usize,
     depth: usize,
 }
 impl ImportsTree {
-    pub fn new(name: String, base: &Path, limit: usize, depth: usize) -> Self {
-        match (depth, Self::find(&name, &base)) {
-            (0, _) => Self {
-                name,
-                base: Some(base.to_path_buf()),
-                limit,
-                depth,
-            },
-            (_, p) => Self {
-                name,
-                base: p,
-                limit,
-                depth,
-            },
-        }
+    pub fn new(name: String, base: Option<PathBuf>, depth: usize) -> Self {
+        Self { name, base, depth }
     }
     fn find(name: &str, base: &Path) -> Option<PathBuf> {
+        clerk::trace!("Searching DLL: {}", name);
+
         let candidate = base.join(&name);
         if candidate.exists() {
-            return Some(candidate);
+            clerk::debug!("Found DLL in local directory: {}", candidate.display());
+            return Some(base.to_path_buf());
         }
 
         if let Ok(path_env) = env::var("PATH") {
             for p in env::split_paths(&path_env) {
                 let candidate = p.join(&name);
                 if candidate.exists() {
-                    return Some(candidate);
+                    clerk::debug!("Found DLL in PATH: {}", candidate.display());
+                    return Some(p);
                 }
             }
         }
+
+        clerk::info!("DLL not found: {}", name);
+
         None
     }
 }
@@ -75,54 +73,135 @@ impl ILazyTree for ImportsTree {
     type Leave = ImportsTree;
 
     fn content(&self) -> String {
-        match (self.depth, &self.base) {
-            (0, _) => self.name.clone(),
-            (_, Some(p)) => format!("{} -> {}", self.name, p.to_slash_lossy())
-                .green()
-                .to_string(),
-            _ => format!("{}", self.name).red().to_string(),
+        match (self.depth, &self.base, SHOW_OPTION.get().unwrap()) {
+            (0, _, _) => self.name.clone(),
+            (_, Some(p), ShowOption::All) => {
+                format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
+                    .green()
+                    .to_string()
+            }
+            (_, Some(_), ShowOption::Missing) => {
+                format!("{}", &self.name)
+            }
+            (_, None, ShowOption::All) => {
+                if self.name.starts_with("api-ms-win") {
+                    format!("{} -> VirtualImport", &self.name)
+                        .green()
+                        .to_string()
+                } else {
+                    format!("{}", self.name).red().to_string()
+                }
+            }
+            (_, None, ShowOption::Missing) => format!("{}", self.name).red().to_string(),
         }
     }
 
     fn leaves(&self) -> Option<Vec<Self::Leave>> {
-        if self.depth + 1 > self.limit && self.limit > 0 {
+        if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
+            clerk::trace!("Depth limit reached at {}", self.name);
             return None;
         }
+
         match &self.base {
             Some(base) => {
-                let buf = match fs::read(base.join(&self.name)) {
+                let path = base.join(&self.name);
+
+                clerk::trace!("Reading PE file: {}", path.display());
+
+                let buf = match fs::read(&path) {
                     Ok(b) => b,
-                    Err(_) => return None,
+                    Err(e) => {
+                        clerk::warn!("Failed to read {}: {}", path.display(), e);
+                        return None;
+                    }
                 };
+
                 let pe = match PE::parse(&buf) {
                     Ok(p) => p,
-                    Err(_) => return None,
+                    Err(e) => {
+                        clerk::warn!("Failed to parse PE {}: {}", path.display(), e);
+                        return None;
+                    }
                 };
+
+                clerk::debug!("Parsed PE imports for {}", self.name);
+
                 let mut leaves = Vec::new();
                 let mut visited = HashSet::new();
+
                 for import in pe.imports {
                     let dll = import.dll.to_string();
+
                     if visited.contains(&dll) {
+                        clerk::trace!("Skipping duplicate import {}", dll);
                         continue;
                     }
+                    clerk::trace!("Found import {}", dll);
                     visited.insert(dll.clone());
-                    leaves.push(Self::new(dll, &base, self.limit, self.depth + 1));
+                    match (Self::find(&dll, &base), SHOW_OPTION.get().unwrap()) {
+                        (leaf_base, ShowOption::All) => {
+                            leaves.push(Self::new(dll, leaf_base, self.depth + 1))
+                        }
+                        (None, ShowOption::Missing) => {
+                            if self.name.starts_with("api-ms-win") {
+                                continue;
+                            }
+                            leaves.push(Self::new(dll, None, self.depth + 1))
+                        }
+                        (Some(dll_base), ShowOption::Missing) => {
+                            if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
+                                continue;
+                            }
+                            let path = dll_base.join(&dll);
+                            let buf = match fs::read(&path) {
+                                Ok(b) => b,
+                                Err(_) => {
+                                    leaves.push(Self::new(dll, None, self.depth + 1));
+                                    continue;
+                                }
+                            };
+
+                            let pe = match PE::parse(&buf) {
+                                Ok(p) => p,
+                                Err(_) => {
+                                    leaves.push(Self::new(dll, None, self.depth + 1));
+                                    continue;
+                                }
+                            };
+                            let dll_imports = pe.imports;
+                            if dll_imports.is_empty() {
+                                continue;
+                            }
+                            if dll_imports
+                                .iter()
+                                .any(|d| Self::find(&d.dll.to_string(), &dll_base).is_none())
+                            {
+                                leaves.push(Self::new(dll, Some(dll_base), self.depth + 1));
+                            }
+                        }
+                    };
                 }
+
                 Some(leaves)
             }
-            None => None,
+            None => {
+                clerk::warn!("Skipping unresolved dependency {}", self.name);
+                None
+            }
         }
     }
 }
 fn execute(args: Args) -> mischief::Result<()> {
     let abs_path = dunce::canonicalize(&args.executable)?;
-
+    clerk::info!("Scanning executable: {}", abs_path.display());
+    LIMIT.set(args.limit).unwrap();
+    SHOW_OPTION.set(args.show_option).unwrap();
     let tree = ImportsTree::new(
         abs_path.file_name().unwrap().to_string_lossy().to_string(),
-        abs_path.parent().unwrap(),
-        args.limit,
+        Some(abs_path.parent().unwrap().to_path_buf()),
         0,
     );
+    clerk::debug!("Dependency tree root created");
     let render = arbor::lazy_renders::LazyRender {
         tree: tree,
         indent: arbor::indents::UnicodeIndent,
@@ -131,6 +210,7 @@ fn execute(args: Args) -> mischief::Result<()> {
             None => 80,
         },
     };
+    clerk::trace!("Rendering dependency tree");
     println!("{render}");
     Ok(())
 }
@@ -146,7 +226,21 @@ pub fn main() -> mischief::Result<()> {
         clap_verbosity_flag::VerbosityFilter::Error => clerk::LogLevel::ERROR,
     };
     clerk::tracing_subscriber::registry()
-        .with(clerk::layer::terminal_layer(log_level, true))
+        .with(
+            clerk::layer::terminal_layer(true).with_filter(
+                EnvFilter::builder()
+                    .with_default_directive(
+                        format!(
+                            "{}={}",
+                            env!("CARGO_PKG_NAME"),
+                            Into::<clerk::tracing_core::LevelFilter>::into(log_level)
+                        )
+                        .parse()
+                        .unwrap(),
+                    )
+                    .from_env_lossy(),
+            ),
+        )
         .init();
     execute(args)
 }

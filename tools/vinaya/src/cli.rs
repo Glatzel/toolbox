@@ -3,10 +3,10 @@ mod houdini;
 mod package;
 mod preference;
 mod sidefx;
-
 use clap::{Parser, Subcommand};
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer};
 pub(crate) use common_arg::{ArgMajor, ArgMinor, ArgNoCheck, ArgPatch, HOUDINI_OPTIONS};
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -46,7 +46,15 @@ pub async fn main() {
         clap_verbosity_flag::VerbosityFilter::Error => clerk::LogLevel::ERROR,
     };
     clerk::tracing_subscriber::registry()
-        .with(clerk::layer::terminal_layer(log_level, true))
+        .with(
+            clerk::layer::terminal_layer(true).with_filter(
+                EnvFilter::builder()
+                    .with_default_directive(
+                        Into::<clerk::tracing_core::LevelFilter>::into(log_level).into(),
+                    )
+                    .from_env_lossy(),
+            ),
+        )
         .init();
 
     // run

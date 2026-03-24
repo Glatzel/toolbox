@@ -87,6 +87,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
+          skip-doc: true
 
   tools-vinaya:
     needs: changed

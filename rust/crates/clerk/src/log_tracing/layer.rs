@@ -18,7 +18,7 @@ use tracing_subscriber::registry::LookupSpan;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
-///
+/// use tracing_subscriber::{EnvFilter, Layer};
 /// tracing_subscriber::registry()
 ///     .with(
 ///         clerk::layer::terminal_layer(true).with_filter(
@@ -61,6 +61,7 @@ where
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
+/// use tracing_subscriber::{EnvFilter, Layer};
 ///
 /// let f = format!(
 ///     "./temp/{}.log",

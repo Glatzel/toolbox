@@ -150,7 +150,7 @@ impl ILazyTree for ImportsTree {
                             leaves.push(Self::new(dll, leaf_base, self.depth + 1))
                         }
                         (None, ShowOption::Missing) => {
-                            if self.name.starts_with("api-ms-win") {
+                            if dll.starts_with("api-ms-win") {
                                 continue;
                             }
                             leaves.push(Self::new(dll, None, self.depth + 1))
@@ -159,7 +159,9 @@ impl ILazyTree for ImportsTree {
                             if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
                                 continue;
                             }
-
+                            if dll.starts_with("api-ms-win") {
+                                continue;
+                            }
                             let path = dll_base.join(&dll);
                             let buf = match fs::read(&path) {
                                 Ok(b) => b,

@@ -8,33 +8,23 @@ raw_r.dll
 │   ╰── [31mKERNEL32.dll[39m
 ├── zlib.dll
 │   ├── VCRUNTIME140.dll
-│   │   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   │   ╰── [31mKERNEL32.dll[39m
-│   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
 ├── [31mjpeg8.dll[39m
 ├── [31mKERNEL32.dll[39m
 ├── MSVCP140.dll
 │   ├── VCRUNTIME140.dll
-│   │   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   │   ╰── [31mKERNEL32.dll[39m
 │   ├── VCRUNTIME140_1.dll
-│   │   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   │   ├── VCRUNTIME140.dll
-│   │   │   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   │   │   ╰── [31mKERNEL32.dll[39m
 │   │   ╰── [31mKERNEL32.dll[39m
-│   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
 ├── VCOMP140.DLL
 │   ╰── [31mKERNEL32.dll[39m
 ├── VCRUNTIME140.dll
-│   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
-├── VCRUNTIME140_1.dll
-│   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
-│   ├── VCRUNTIME140.dll
-│   │   ├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
-╰── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
+╰── VCRUNTIME140_1.dll
+    ├── VCRUNTIME140.dll
+    │   ╰── [31mKERNEL32.dll[39m
+    ╰── [31mKERNEL32.dll[39m

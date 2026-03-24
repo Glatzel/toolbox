@@ -3,7 +3,6 @@ name: rust-CI
 on:
   workflow_dispatch:
   workflow_call:
-permissions: read-all
 defaults:
   run:
     working-directory: ./rust

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- No rust doc test by @Glatzel in [#391](https://github.com/Glatzel/toolbox/pull/391)
+
+### Testing
+
+- Vinaya test by @Glatzel in [#392](https://github.com/Glatzel/toolbox/pull/392)
+
 ## [2026.3.17] - 2026-03-17
 
 ### Added
@@ -347,6 +357,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[unreleased]: https://github.com/Glatzel/toolbox/compare/v2026.3.17..HEAD
 [2026.3.17]: https://github.com/Glatzel/toolbox/compare/v2026.3.14..v2026.3.17
 [2026.3.14]: https://github.com/Glatzel/toolbox/compare/v0.0.38..v2026.3.14
 [0.0.38]: https://github.com/Glatzel/toolbox/compare/v0.0.37..v0.0.38

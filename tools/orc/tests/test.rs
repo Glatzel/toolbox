@@ -1,0 +1,68 @@
+use std::path::PathBuf;
+
+use assert_cmd::Command;
+use path_slash::PathExt;
+use rstest::rstest;
+
+fn test_file() -> String {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(".pixi")
+        .join("envs")
+        .join("default")
+        .join("Library")
+        .join("bin")
+        .join("raw_r.dll")
+        .to_slash_lossy()
+        .to_string()
+}
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+#[case(2)]
+fn test_limit(#[case] limit: usize) {
+    let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
+        .env_clear()
+        .args(["-l", &limit.to_string()])
+        .args([test_file()])
+        .assert()
+        .success();
+    println!(
+        "{}",
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
+    insta::with_settings!({filters => vec![
+        (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
+    ]}, {
+        insta::assert_snapshot!(
+            format!("test_limit-{}", limit),
+            String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+        );
+    });
+}
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+#[case(2)]
+fn test_limit_missing(#[case] limit: usize) {
+    let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
+        .env_clear()
+        .args(["-l", &limit.to_string()])
+        .args(["-s", "missing"])
+        .args([test_file()])
+        .assert()
+        .success();
+    println!(
+        "{}",
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
+    insta::with_settings!({filters => vec![
+        (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
+    ]}, {
+        insta::assert_snapshot!(
+            format!("test_limit_missing-{}", limit),
+            String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+        );
+    });
+}

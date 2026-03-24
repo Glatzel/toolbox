@@ -1,0 +1,20 @@
+---
+source: tests/test.rs
+expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
+---
+raw_r.dll
+├── [31mWS2_32.dll[39m
+├── lcms2.dll
+│   ╰── [31mKERNEL32.dll[39m
+├── zlib.dll
+│   ╰── [31mKERNEL32.dll[39m
+├── [31mjpeg8.dll[39m
+├── [31mKERNEL32.dll[39m
+├── MSVCP140.dll
+│   ╰── [31mKERNEL32.dll[39m
+├── VCOMP140.DLL
+│   ╰── [31mKERNEL32.dll[39m
+├── VCRUNTIME140.dll
+│   ╰── [31mKERNEL32.dll[39m
+╰── VCRUNTIME140_1.dll
+    ╰── [31mKERNEL32.dll[39m

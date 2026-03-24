@@ -74,14 +74,14 @@ fn render_tree_with_multiple_lines(#[case] name: &str, #[case] mode: usize) {
 fn render_tree_with_different_indent() {
     let indent1 = UniversalIndent::default();
     let indent2 = UniversalIndent {
-        root_first: "",
-        root_other: "",
-        top_first: "~~> ",
-        top_other: "l   ",
-        mid_first: "~~> ",
-        mid_other: "l   ",
-        bottom_first: "==> ",
-        bottom_other: "    ",
+        root_first: "".to_string(),
+        root_other: "".to_string(),
+        top_first: "~~> ".to_string(),
+        top_other: "l   ".to_string(),
+        mid_first: "~~> ".to_string(),
+        mid_other: "l   ".to_string(),
+        bottom_first: "==> ".to_string(),
+        bottom_other: "    ".to_string(),
     };
     let tree = ComplexTree::new_with_indent("node 1\nroot", indent1).with_leaves([
         ComplexTree::new("node 1.1"),

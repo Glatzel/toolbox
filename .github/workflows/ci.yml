@@ -84,9 +84,10 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/orc
-      - uses: ./.github/actions/rust/cargo-build
+      - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
+          skip-doc: true
 
   tools-vinaya:
     needs: changed
@@ -105,7 +106,16 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, changed, python-ci, rust-ci, benchmark, tools-orc]
+    needs:
+      [
+        benchmark,
+        changed,
+        lefthook,
+        python-ci,
+        rust-ci,
+        tools-orc,
+        tools-vinaya,
+      ]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

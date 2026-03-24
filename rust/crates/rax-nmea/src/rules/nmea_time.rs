@@ -7,7 +7,7 @@ use super::UNTIL_COMMA_DISCARD;
 
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
 /// Converts the time to a `DateTime<Utc>` using today's date.
-/// Returns a tuple of (DateTime<Utc>, rest_of_input) if successful, otherwise
+/// Returns a tuple of (`DateTime<Utc>`, rest_of_input) if successful, otherwise
 /// None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
@@ -50,11 +50,9 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
         };
 
         let parse_field = |range: core::ops::Range<usize>, _label: &str| {
-            res.get(range)
-                .and_then(|s| s.parse::<u32>().ok())
-                .ok_or_else(|| {
-                    clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
-                })
+            res.get(range).and_then(|s| s.parse::<u32>().ok()).ok_or({
+                clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
+            })
         };
 
         let hour = match parse_field(0..2, "hour") {

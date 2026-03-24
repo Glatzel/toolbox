@@ -5,9 +5,9 @@ expression: "format!(\"{}\", render)"
 textwrap1: an efficient
 and powerful library for
 wrapping text.
-├─▶ textwrap2: an efficient
+├── textwrap2: an efficient
 │   and powerful library for
 │   wrapping text.
-╰─▶ textwrap3: an efficient
+╰── textwrap3: an efficient
     and powerful library for
     wrapping text.

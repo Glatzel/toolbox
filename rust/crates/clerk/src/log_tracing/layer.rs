@@ -1,12 +1,9 @@
 extern crate std;
-use std::boxed::Box;
+
 use std::path::PathBuf;
 
-use tracing_core::LevelFilter;
+use tracing_subscriber::Layer;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::{EnvFilter, Layer};
-
-use crate::LogLevel;
 
 /// Generate a terminal log layer for tracing.
 ///
@@ -18,12 +15,19 @@ use crate::LogLevel;
 /// # Example
 ///
 /// ```
+/// use clerk::LogLevel;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
-///
+/// use tracing_subscriber::{EnvFilter, Layer};
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::terminal_layer(clerk::LogLevel::TRACE, true))
+///     .with(
+///         clerk::layer::terminal_layer(true).with_filter(
+///             EnvFilter::builder()
+///                 .with_default_directive(LogLevel::TRACE.into())
+///                 .from_env_lossy(),
+///         ),
+///     )
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -32,7 +36,7 @@ use crate::LogLevel;
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn terminal_layer<S>(level: LogLevel, color: bool) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn terminal_layer<S>(color: bool) -> impl Layer<S> + Send + Sync
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -40,12 +44,6 @@ where
     tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color })
         .with_writer(std::io::stderr)
-        .with_filter(
-            EnvFilter::builder()
-                .with_default_directive(Into::<LevelFilter>::into(level).into())
-                .from_env_lossy(),
-        )
-        .boxed()
 }
 
 /// Generate a file log layer for tracing.
@@ -61,9 +59,11 @@ where
 /// ```
 /// use std::path::PathBuf;
 ///
+/// use clerk::LogLevel;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
+/// use tracing_subscriber::{EnvFilter, Layer};
 ///
 /// let f = format!(
 ///     "./temp/{}.log",
@@ -72,7 +72,13 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::file_layer(clerk::LogLevel::TRACE, f, true))
+///     .with(
+///         clerk::layer::file_layer(f, true).with_filter(
+///             EnvFilter::builder()
+///                 .with_default_directive(LogLevel::TRACE.into())
+///                 .from_env_lossy(),
+///         ),
+///     )
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -81,11 +87,7 @@ where
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn file_layer<S>(
-    level: LogLevel,
-    filepath: PathBuf,
-    overwrite: bool,
-) -> Box<dyn Layer<S> + Send + Sync + 'static>
+pub fn file_layer<S>(filepath: PathBuf, overwrite: bool) -> impl Layer<S> + Send + Sync
 where
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
@@ -103,12 +105,6 @@ where
     tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color: false })
         .with_writer(a)
-        .with_filter(
-            EnvFilter::builder()
-                .with_default_directive(Into::<LevelFilter>::into(level).into())
-                .from_env_lossy(),
-        )
-        .boxed()
 }
 #[cfg(test)]
 mod tests {
@@ -117,13 +113,14 @@ mod tests {
     use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
+
     #[test]
     fn test_log_file() {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(LogLevel::TRACE, f1, true))
-            .with(file_layer(LogLevel::TRACE, f2, false))
+            .with(file_layer(f1, true))
+            .with(file_layer(f2, false))
             .init();
         trace!("Trace message");
         debug!("Debug message");
@@ -134,7 +131,7 @@ mod tests {
     #[test]
     fn test_log_term() {
         tracing_subscriber::registry()
-            .with(terminal_layer(LogLevel::TRACE, true))
+            .with(terminal_layer(true))
             .init();
         trace!("Trace message");
         debug!("Debug message");

@@ -1,7 +1,9 @@
 use std::sync::OnceLock;
 extern crate std;
+
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::LogLevel;
 
@@ -30,7 +32,13 @@ static INIT_LOGGING: OnceLock<()> = OnceLock::new();
 pub fn init_log_with_level(level: LogLevel) {
     INIT_LOGGING.get_or_init(|| {
         tracing_subscriber::registry()
-            .with(crate::layer::terminal_layer(level, true))
+            .with(
+                crate::layer::terminal_layer(true).with_filter(
+                    EnvFilter::builder()
+                        .with_default_directive(level.into())
+                        .from_env_lossy(),
+                ),
+            )
             .init();
     });
 }

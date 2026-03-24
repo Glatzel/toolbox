@@ -1,3 +1,8 @@
+use std::fmt::{Debug, Display};
+
+use tracing_core::LevelFilter;
+use tracing_subscriber::filter::Directive;
+
 /// Represents the log levels supported by the application.
 ///
 /// This enum is used for configuring both terminal and file logging layers.
@@ -22,7 +27,7 @@
 /// let filter: LevelFilter = level.into();
 /// assert_eq!(filter, LevelFilter::DEBUG);
 /// ```
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LogLevel {
     ERROR,
@@ -35,8 +40,6 @@ pub enum LogLevel {
 
 impl From<LogLevel> for tracing_core::LevelFilter {
     fn from(value: LogLevel) -> Self {
-        use tracing_core::LevelFilter;
-
         match value {
             LogLevel::ERROR => LevelFilter::ERROR,
             LogLevel::WARN => LevelFilter::WARN,
@@ -45,5 +48,27 @@ impl From<LogLevel> for tracing_core::LevelFilter {
             LogLevel::TRACE => LevelFilter::TRACE,
             LogLevel::OFF => LevelFilter::OFF,
         }
+    }
+}
+impl From<LogLevel> for Directive {
+    fn from(value: LogLevel) -> Self {
+        match value {
+            LogLevel::ERROR => LevelFilter::ERROR.into(),
+            LogLevel::WARN => LevelFilter::WARN.into(),
+            LogLevel::INFO => LevelFilter::INFO.into(),
+            LogLevel::DEBUG => LevelFilter::DEBUG.into(),
+            LogLevel::TRACE => LevelFilter::TRACE.into(),
+            LogLevel::OFF => LevelFilter::OFF.into(),
+        }
+    }
+}
+impl Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", LevelFilter::from(*self))
+    }
+}
+impl Debug for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", LevelFilter::from(*self))
     }
 }

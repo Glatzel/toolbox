@@ -100,8 +100,8 @@ pub trait ToVecCString {
     ///
     /// # Errors
     ///
-    /// Returns [`NulError`] if **any** element contains an interior NUL
-    /// (`'\0'`) byte.
+    /// Returns [`EnvoyError::NulError`] if **any** element contains an interior
+    /// NUL (`'\0'`) byte.
     ///
     /// # Notes
     ///

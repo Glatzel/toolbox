@@ -4,17 +4,23 @@ name = "orc"
 version = "2026.3.17"
 
 [dependencies]
-arbor = { path = "../../rust/crates/arbor" }
-clerk = { path = "../../rust/crates/clerk", features = "tracing" }
 mischief = { path = "../../rust/crates/mischief" }
+arbor = { path = "../../rust/crates/arbor" ,default-features = false}
+clerk = { path = "../../rust/crates/clerk" ,features=["tracing"]}
 
-clap = { version = "4.6.0", features = ["derive"] }
-clap-verbosity-flag = "3.0.4"
 dunce = "1.0.5"
+path-slash = "0.2.1"
 goblin = "0.10.5"
+clap = { version = "4.6.0", features = ["derive"] }
+strum = { version = "0.28", features = ["derive"] }
+thiserror = { version = "2.0.16"}
 hashbrown = "0.16.0"
 owo-colors = "4.2.2"
-path-slash = "0.2.1"
-strum = { version = "0.28", features = ["derive"] }
-terminal_size = "0.4.3"
-thiserror = { version = "2.0.16" }
+clap-verbosity-flag = "3.0.4"
+
+[profile.release]
+codegen-units = 1
+debug = false
+lto = "fat"
+opt-level = 3
+strip = true

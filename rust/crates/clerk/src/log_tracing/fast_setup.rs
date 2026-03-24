@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 extern crate std;
-use tracing_core::LevelFilter;
+
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Layer};
@@ -35,7 +35,7 @@ pub fn init_log_with_level(level: LogLevel) {
             .with(
                 crate::layer::terminal_layer(true).with_filter(
                     EnvFilter::builder()
-                        .with_default_directive(Into::<LevelFilter>::into(level).into())
+                        .with_default_directive(level.into())
                         .from_env_lossy(),
                 ),
             )

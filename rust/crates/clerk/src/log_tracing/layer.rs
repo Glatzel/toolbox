@@ -63,7 +63,7 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::file_layer(clerk::LogLevel::TRACE, f, true))
+///     .with(clerk::layer::file_layer(f, true))
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -94,12 +94,11 @@ where
 #[cfg(test)]
 mod tests {
     use tracing::{debug, error, info, trace, warn};
-    use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
-    use crate::LogLevel;
+
     #[test]
     fn test_log_file() {
         let f1 = std::path::PathBuf::from("./temp/a.log");
@@ -107,13 +106,6 @@ mod tests {
         tracing_subscriber::registry()
             .with(file_layer(f1, true))
             .with(file_layer(f2, false))
-            .with(
-                terminal_layer(true).with_filter(
-                    EnvFilter::builder()
-                        .with_default_directive(LogLevel::TRACE.into())
-                        .from_env_lossy(),
-                ),
-            )
             .init();
         trace!("Trace message");
         debug!("Debug message");
@@ -124,13 +116,7 @@ mod tests {
     #[test]
     fn test_log_term() {
         tracing_subscriber::registry()
-            .with(
-                terminal_layer(true).with_filter(
-                    EnvFilter::builder()
-                        .with_default_directive(LogLevel::TRACE.into())
-                        .from_env_lossy(),
-                ),
-            )
+            .with(terminal_layer(true))
             .init();
         trace!("Trace message");
         debug!("Debug message");

@@ -179,10 +179,10 @@ impl ILazyTree for ImportsTree {
                             if dll_imports.is_empty() {
                                 continue;
                             }
-                            if dll_imports
-                                .iter()
-                                .any(|d| Self::find(d.dll, &dll_base).is_none())
-                            {
+                            if dll_imports.iter().any(|d| {
+                                Self::find(d.dll, &dll_base).is_none()
+                                    || d.dll.starts_with("api-ms-win")
+                            }) {
                                 leaves.push(Self::new(dll, Some(dll_base), self.depth + 1));
                             }
                         }

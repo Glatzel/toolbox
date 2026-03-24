@@ -12,7 +12,7 @@ raw_r.dll
 │   ├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-convert-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-convert-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-string-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-string-l1-1-0.dll[39m
-│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll[39m [32m->[39m [1m[33mVirtualImport[39m[0m
 │   ╰── [31mKERNEL32.dll[39m
 ├── [31mjpeg8.dll[39m
 ├── [31mKERNEL32.dll[39m
@@ -20,7 +20,7 @@ raw_r.dll
 │   ├── [32mVCRUNTIME140.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140.dll[39m
 │   ├── [32mVCRUNTIME140_1.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140_1.dll[39m
 │   ├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
-│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll[39m [32m->[39m [1m[33mVirtualImport[39m[0m
 │   ├── [32mapi-ms-win-crt-string-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-string-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-locale-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-locale-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-stdio-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-stdio-l1-1-0.dll[39m
@@ -34,19 +34,19 @@ raw_r.dll
 ├── [32mVCOMP140.DLL -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCOMP140.DLL[39m
 │   ╰── [31mKERNEL32.dll[39m
 ├── [32mVCRUNTIME140.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140.dll[39m
-│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll[39m [32m->[39m [1m[33mVirtualImport[39m[0m
 │   ├── [32mapi-ms-win-crt-string-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-string-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-stdio-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-stdio-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-convert-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-convert-l1-1-0.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
 ├── [32mVCRUNTIME140_1.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140_1.dll[39m
-│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+│   ├── [32mapi-ms-win-crt-runtime-l1-1-0.dll[39m [32m->[39m [1m[33mVirtualImport[39m[0m
 │   ├── [32mapi-ms-win-crt-string-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-string-l1-1-0.dll[39m
 │   ├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
 │   ├── [32mVCRUNTIME140.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
-├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-runtime-l1-1-0.dll[39m [32m->[39m [1m[33mVirtualImport[39m[0m
 ├── [32mapi-ms-win-crt-stdio-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-stdio-l1-1-0.dll[39m
 ├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
 ├── [32mapi-ms-win-crt-math-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-math-l1-1-0.dll[39m

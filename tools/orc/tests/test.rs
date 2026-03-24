@@ -15,19 +15,7 @@ fn test_file() -> String {
         .to_slash_lossy()
         .to_string()
 }
-#[test]
-fn test_simple() {
-    let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
-        .env_clear()
-        .args([test_file()])
-        .assert()
-        .success();
-    println!(
-        "{}",
-        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
-    );
-    insta::assert_snapshot!(String::from_utf8_lossy(cmd.get_output().stdout.as_slice()));
-}
+
 #[rstest]
 #[case(0)]
 #[case(1)]

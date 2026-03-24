@@ -16,7 +16,6 @@ hashbrown = "0.16.0"
 owo-colors = "4.2.2"
 path-slash = "0.2.1"
 strum = { version = "0.28", features = ["derive"] }
-thiserror = { version = "2.0.16" }
 
 [profile.release]
 codegen-units = 1

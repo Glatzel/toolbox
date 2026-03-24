@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use std::{env, fs};
 
-use arbor::indents::UniversalIndent;
+use arbor::indents::UnicodeIndent;
 use arbor::protocol::ILazyTree;
 use clap::{Parser, ValueEnum};
 use clerk::tracing_subscriber::layer::SubscriberExt;
@@ -91,9 +91,12 @@ impl ILazyTree for ImportsTree {
             }
             (_, None, ShowOption::All) => {
                 if self.name.starts_with("api-ms-win") {
-                    format!("{} -> VirtualImport", &self.name)
-                        .green()
-                        .to_string()
+                    format!(
+                        "{} {} {}",
+                        &self.name.green().to_string(),
+                        "->".green().to_string(),
+                        "VirtualImport".yellow().bold()
+                    )
                 } else {
                     format!("{}", self.name).red().to_string()
                 }
@@ -208,23 +211,10 @@ fn execute(args: Args) -> mischief::Result<()> {
         0,
     );
     clerk::debug!("Dependency tree root created");
-    let indent = UniversalIndent {
-        root_first: String::from(""),
-        root_other: String::from(""),
-        top_first: "├── ".default_color().to_string(),
-        top_other: "│   ".default_color().to_string(),
-        mid_first: "├── ".default_color().to_string(),
-        mid_other: "│   ".default_color().to_string(),
-        bottom_first: "╰── ".default_color().to_string(),
-        bottom_other: String::from("    "),
-    };
     let render = arbor::lazy_renders::LazyRender {
         tree: tree,
-        indent,
-        width: match terminal_size::terminal_size() {
-            Some((w, _)) => w.0 as usize,
-            None => 80,
-        },
+        indent: UnicodeIndent,
+        width: 0,
     };
     clerk::trace!("Rendering dependency tree");
     println!("{render}");

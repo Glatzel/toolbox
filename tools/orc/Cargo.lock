@@ -414,7 +414,6 @@ dependencies = [
  "owo-colors",
  "path-slash",
  "strum",
- "terminal_size",
  "thiserror",
 ]
 

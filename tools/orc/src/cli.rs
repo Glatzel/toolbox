@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use std::{env, fs};
 
+use arbor::indents::UniversalIndent;
 use arbor::protocol::ILazyTree;
 use clap::{Parser, ValueEnum};
 use clerk::tracing_subscriber::layer::SubscriberExt;
@@ -13,16 +14,21 @@ use owo_colors::OwoColorize;
 use path_slash::PathExt;
 use strum::Display;
 #[derive(Debug, Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author="Glatzel", version, about="Scan a PE executable or DLL for missing dependencies.", long_about = None)]
 struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
-    #[arg(long, short, default_value_t = 1)]
+    #[arg(
+        long,
+        short,
+        default_value_t = 1,
+        help = "Limit the level of dependencies to show, 0 is show all level."
+    )]
     limit: usize,
-    #[arg(long,short, default_value_t = ShowOption::All)]
+    #[arg(long,short, default_value_t = ShowOption::All,help="Show all dependencies or only missing ones")]
     show_option: ShowOption,
-    #[arg(help = "Path to the executable to scan")]
-    executable: PathBuf,
+    #[arg(help = "Path to the exe or dll to scan")]
+    input: PathBuf,
 }
 
 #[derive(Default, Debug, Display, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -192,7 +198,7 @@ impl ILazyTree for ImportsTree {
     }
 }
 fn execute(args: Args) -> mischief::Result<()> {
-    let abs_path = dunce::canonicalize(&args.executable)?;
+    let abs_path = dunce::canonicalize(&args.input)?;
     clerk::info!("Scanning executable: {}", abs_path.display());
     LIMIT.set(args.limit).unwrap();
     SHOW_OPTION.set(args.show_option).unwrap();
@@ -202,9 +208,19 @@ fn execute(args: Args) -> mischief::Result<()> {
         0,
     );
     clerk::debug!("Dependency tree root created");
+    let indent = UniversalIndent {
+        root_first: String::from(""),
+        root_other: String::from(""),
+        top_first: "├── ".default_color().to_string(),
+        top_other: "│   ".default_color().to_string(),
+        mid_first: "├── ".default_color().to_string(),
+        mid_other: "│   ".default_color().to_string(),
+        bottom_first: "╰── ".default_color().to_string(),
+        bottom_other: String::from("    "),
+    };
     let render = arbor::lazy_renders::LazyRender {
         tree: tree,
-        indent: arbor::indents::UnicodeIndent,
+        indent,
         width: match terminal_size::terminal_size() {
             Some((w, _)) => w.0 as usize,
             None => 80,

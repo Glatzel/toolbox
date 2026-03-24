@@ -5,15 +5,13 @@
         "check": {
           "features": [
             "tracing",
-            "fancy",
-            "color"
+            "fancy"
           ]
         },
         "cargo": {
           "features": [
             "tracing",
-            "fancy",
-            "color"
+            "fancy"
           ]
         }
       }

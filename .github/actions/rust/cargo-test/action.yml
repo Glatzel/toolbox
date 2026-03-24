@@ -27,7 +27,7 @@ runs:
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
-        pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov cargo-nextest
+        pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov=0.6.* cargo-nextest
 
         Write-Output "::group::nextest"
         cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.args }}

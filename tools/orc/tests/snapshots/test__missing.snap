@@ -4,30 +4,20 @@ expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 raw_r.dll
 ├── [31mWS2_32.dll[39m
-├── lcms2.dll
-│   ╰── [31mKERNEL32.dll[39m
-├── zlib.dll
-│   ├── VCRUNTIME140.dll
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
-├── jpeg8.dll
-│   ├── VCRUNTIME140.dll
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
+├── [31mlcms2.dll[39m
+├── [31mzlib.dll[39m
+├── [31mjpeg8.dll[39m
 ├── [31mKERNEL32.dll[39m
-├── MSVCP140.dll
-│   ├── VCRUNTIME140.dll
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ├── VCRUNTIME140_1.dll
-│   │   ├── VCRUNTIME140.dll
-│   │   │   ╰── [31mKERNEL32.dll[39m
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
-├── VCOMP140.DLL
-│   ╰── [31mKERNEL32.dll[39m
-├── VCRUNTIME140.dll
-│   ╰── [31mKERNEL32.dll[39m
-╰── VCRUNTIME140_1.dll
-    ├── VCRUNTIME140.dll
-    │   ╰── [31mKERNEL32.dll[39m
-    ╰── [31mKERNEL32.dll[39m
+├── [31mMSVCP140.dll[39m
+├── [31mVCOMP140.DLL[39m
+├── [31mVCRUNTIME140.dll[39m
+├── [31mVCRUNTIME140_1.dll[39m
+├── [31mapi-ms-win-crt-runtime-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-stdio-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-heap-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-math-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-string-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-utility-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-filesystem-l1-1-0.dll[39m
+├── [31mapi-ms-win-crt-convert-l1-1-0.dll[39m
+╰── [31mapi-ms-win-crt-time-l1-1-0.dll[39m

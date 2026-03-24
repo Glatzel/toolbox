@@ -54,7 +54,7 @@ impl ImportsTree {
     fn find(name: &str, base: &Path) -> Option<PathBuf> {
         clerk::trace!("Searching DLL: {}", name);
 
-        let candidate = base.join(&name);
+        let candidate = base.join(name);
         if candidate.exists() {
             clerk::debug!("Found DLL in local directory: {}", candidate.display());
             return Some(base.to_path_buf());
@@ -62,7 +62,7 @@ impl ImportsTree {
 
         if let Ok(path_env) = env::var("PATH") {
             for p in env::split_paths(&path_env) {
-                let candidate = p.join(&name);
+                let candidate = p.join(name);
                 if candidate.exists() {
                     clerk::debug!("Found DLL in PATH: {}", candidate.display());
                     return Some(p);
@@ -87,21 +87,21 @@ impl ILazyTree for ImportsTree {
                     .to_string()
             }
             (_, Some(_), ShowOption::Missing) => {
-                format!("{}", &self.name)
+                (&self.name).to_string()
             }
             (_, None, ShowOption::All) => {
                 if self.name.starts_with("api-ms-win") {
                     format!(
                         "{} {} {}",
                         &self.name.green().to_string(),
-                        "->".green().to_string(),
+                        "->".green(),
                         "VirtualImport".yellow().bold()
                     )
                 } else {
-                    format!("{}", self.name).red().to_string()
+                    self.name.to_string().red().to_string()
                 }
             }
-            (_, None, ShowOption::Missing) => format!("{}", self.name).red().to_string(),
+            (_, None, ShowOption::Missing) => self.name.to_string().red().to_string(),
         }
     }
 
@@ -147,7 +147,7 @@ impl ILazyTree for ImportsTree {
                     }
                     clerk::trace!("Found import {}", dll);
                     visited.insert(dll.clone());
-                    match (Self::find(&dll, &base), SHOW_OPTION.get().unwrap()) {
+                    match (Self::find(&dll, base), SHOW_OPTION.get().unwrap()) {
                         (leaf_base, ShowOption::All) => {
                             leaves.push(Self::new(dll, leaf_base, self.depth + 1))
                         }
@@ -183,7 +183,7 @@ impl ILazyTree for ImportsTree {
                             }
                             if dll_imports
                                 .iter()
-                                .any(|d| Self::find(&d.dll.to_string(), &dll_base).is_none())
+                                .any(|d| Self::find(d.dll, &dll_base).is_none())
                             {
                                 leaves.push(Self::new(dll, Some(dll_base), self.depth + 1));
                             }
@@ -212,7 +212,7 @@ fn execute(args: Args) -> mischief::Result<()> {
     );
     clerk::debug!("Dependency tree root created");
     let render = arbor::lazy_renders::LazyRender {
-        tree: tree,
+        tree,
         indent: UnicodeIndent,
         width: 0,
     };

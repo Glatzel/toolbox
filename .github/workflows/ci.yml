@@ -106,7 +106,16 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, changed, python-ci, rust-ci, benchmark, tools-orc]
+    needs:
+      [
+        benchmark,
+        changed,
+        lefthook,
+        python-ci,
+        rust-ci,
+        tools-orc,
+        tools-vinaya,
+      ]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

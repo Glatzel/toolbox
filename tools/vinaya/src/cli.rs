@@ -49,9 +49,7 @@ pub async fn main() {
         .with(
             clerk::layer::terminal_layer(true).with_filter(
                 EnvFilter::builder()
-                    .with_default_directive(
-                        Into::<clerk::tracing_core::LevelFilter>::into(log_level).into(),
-                    )
+                    .with_default_directive(log_level.into())
                     .from_env_lossy(),
             ),
         )

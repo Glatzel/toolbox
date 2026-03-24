@@ -15,6 +15,7 @@ use tracing_subscriber::registry::LookupSpan;
 /// # Example
 ///
 /// ```
+/// use clerk::LogLevel;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
@@ -23,7 +24,7 @@ use tracing_subscriber::registry::LookupSpan;
 ///     .with(
 ///         clerk::layer::terminal_layer(true).with_filter(
 ///             EnvFilter::builder()
-///                 .with_default_directive(level.into())
+///                 .with_default_directive(LogLevel::TRACE.into())
 ///                 .from_env_lossy(),
 ///         ),
 ///     )
@@ -58,6 +59,7 @@ where
 /// ```
 /// use std::path::PathBuf;
 ///
+/// use clerk::LogLevel;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
@@ -73,7 +75,7 @@ where
 ///     .with(
 ///         clerk::layer::file_layer(f, true).with_filter(
 ///             EnvFilter::builder()
-///                 .with_default_directive(level.into())
+///                 .with_default_directive(LogLevel::TRACE.into())
 ///                 .from_env_lossy(),
 ///         ),
 ///     )

@@ -52,7 +52,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
         let parse_field = |range: core::ops::Range<usize>, _label: &str| {
             res.get(range)
                 .and_then(|s| s.parse::<u32>().ok())
-                .ok_or_else(|| {
+                .ok_or({
                     clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
                 })
         };

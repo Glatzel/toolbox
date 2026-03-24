@@ -84,7 +84,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/orc
-      - uses: ./.github/actions/rust/cargo-build
+      - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
 

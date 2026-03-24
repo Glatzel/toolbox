@@ -3,21 +3,21 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 raw_r.dll
-├── [32mWS2_32.dll -> C:/Windows/system32/WS2_32.dll[39m
-├── [31mlcms2.dll[39m
-├── [31mzlib.dll[39m
-├── [31mjpeg8.dll[39m
-├── [32mKERNEL32.dll -> C:/Windows/system32/KERNEL32.dll[39m
-├── [32mMSVCP140.dll -> C:/Windows/system32/MSVCP140.dll[39m
-├── [32mVCOMP140.DLL -> C:/Windows/system32/VCOMP140.DLL[39m
-├── [32mVCRUNTIME140.dll -> C:/Windows/system32/VCRUNTIME140.dll[39m
-├── [32mVCRUNTIME140_1.dll -> C:/Windows/system32/VCRUNTIME140_1.dll[39m
-├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-runtime-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-stdio-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-stdio-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-heap-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-math-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-math-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-string-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-string-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-utility-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-utility-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-filesystem-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-filesystem-l1-1-0.dll[39m
-├── [32mapi-ms-win-crt-convert-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-convert-l1-1-0.dll[39m
-╰── [32mapi-ms-win-crt-time-l1-1-0.dll -> C:/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/api-ms-win-crt-time-l1-1-0.dll[39m
+├── [31mWS2_32.dll[39m
+├── [32mlcms2.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/lcms2.dll[39m
+├── [32mzlib.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/zlib.dll[39m
+├── [32mjpeg8.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/jpeg8.dll[39m
+├── [31mKERNEL32.dll[39m
+├── [32mMSVCP140.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/MSVCP140.dll[39m
+├── [32mVCOMP140.DLL -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCOMP140.DLL[39m
+├── [32mVCRUNTIME140.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140.dll[39m
+├── [32mVCRUNTIME140_1.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/VCRUNTIME140_1.dll[39m
+├── [32mapi-ms-win-crt-runtime-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-runtime-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-stdio-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-stdio-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-heap-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-heap-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-math-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-math-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-string-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-string-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-utility-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-utility-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-filesystem-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-filesystem-l1-1-0.dll[39m
+├── [32mapi-ms-win-crt-convert-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-convert-l1-1-0.dll[39m
+╰── [32mapi-ms-win-crt-time-l1-1-0.dll -> D:/project/toolbox/tools/orc/.pixi/envs/default/Library/bin/api-ms-win-crt-time-l1-1-0.dll[39m

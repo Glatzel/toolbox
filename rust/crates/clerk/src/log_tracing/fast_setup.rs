@@ -1,9 +1,9 @@
 use std::sync::OnceLock;
 extern crate std;
 use tracing_core::LevelFilter;
-use tracing_subscriber::{EnvFilter, Layer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{EnvFilter, Layer};
 
 use crate::LogLevel;
 

@@ -6,7 +6,11 @@ use rstest::rstest;
 
 fn test_file() -> String {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("temp")
+        .join(".pixi")
+        .join("envs")
+        .join("default")
+        .join("Library")
+        .join("bin")
         .join("raw_r.dll")
         .to_slash_lossy()
         .to_string()
@@ -18,6 +22,10 @@ fn test_simple() {
         .args([test_file()])
         .assert()
         .success();
+    println!(
+        "{}",
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
     insta::assert_snapshot!(String::from_utf8_lossy(cmd.get_output().stdout.as_slice()));
 }
 #[rstest]
@@ -31,6 +39,10 @@ fn test_limit(#[case] limit: usize) {
         .args([test_file()])
         .assert()
         .success();
+    println!(
+        "{}",
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
     insta::assert_snapshot!(
         format!("test_limit-{}", limit),
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
@@ -45,5 +57,9 @@ fn test_missing() {
         .args([test_file()])
         .assert()
         .success();
+    println!(
+        "{}",
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
     insta::assert_snapshot!(String::from_utf8_lossy(cmd.get_output().stdout.as_slice()));
 }

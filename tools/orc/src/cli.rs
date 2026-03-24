@@ -159,6 +159,7 @@ impl ILazyTree for ImportsTree {
                             if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
                                 continue;
                             }
+
                             let path = dll_base.join(&dll);
                             let buf = match fs::read(&path) {
                                 Ok(b) => b,
@@ -179,17 +180,21 @@ impl ILazyTree for ImportsTree {
                             if dll_imports.is_empty() {
                                 continue;
                             }
-                            if dll_imports.iter().any(|d| {
-                                Self::find(d.dll, &dll_base).is_none()
-                                    || d.dll.starts_with("api-ms-win")
-                            }) {
+                            if dll_imports
+                                .iter()
+                                .any(|d| Self::find(d.dll, &dll_base).is_none())
+                            {
                                 leaves.push(Self::new(dll, Some(dll_base), self.depth + 1));
                             }
                         }
                     };
                 }
 
-                Some(leaves)
+                if leaves.is_empty() {
+                    None
+                } else {
+                    Some(leaves)
+                }
             }
             None => {
                 clerk::warn!("Skipping unresolved dependency {}", self.name);

@@ -48,11 +48,15 @@ fn test_limit(#[case] limit: usize) {
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
 }
-#[test]
-fn test_missing() {
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+#[case(2)]
+fn test_limit_missing(#[case] limit: usize) {
     let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
         .env_clear()
-        .args(["-l", "0"])
+        .args(["-l", &limit.to_string()])
         .args(["-s", "missing"])
         .args([test_file()])
         .assert()
@@ -61,5 +65,8 @@ fn test_missing() {
         "{}",
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
-    insta::assert_snapshot!(String::from_utf8_lossy(cmd.get_output().stdout.as_slice()));
+    insta::assert_snapshot!(
+        format!("test_limit_missing-{}", limit),
+        String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
+    );
 }

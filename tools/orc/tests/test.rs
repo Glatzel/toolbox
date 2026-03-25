@@ -15,24 +15,28 @@ fn env_path() -> String {
 
 fn test_file() -> String {
     #[cfg(target_os = "windows")]
-    {PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join(".pixi")
-        .join("envs")
-        .join("default")
-        .join("Library")
-        .join("bin")
-        .join("raw_r.dll")
-        .to_slash_lossy()
-        .to_string()}
+    {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join(".pixi")
+            .join("envs")
+            .join("default")
+            .join("Library")
+            .join("bin")
+            .join("raw_r.dll")
+            .to_slash_lossy()
+            .to_string()
+    }
     #[cfg(target_os = "linux")]
-   { PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join(".pixi")
-        .join("envs")
-        .join("default")
-        .join("lib")
-        .join("raw_r.so")
-        .to_slash_lossy()
-        .to_string()}
+    {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join(".pixi")
+            .join("envs")
+            .join("default")
+            .join("lib")
+            .join("raw_r.so")
+            .to_slash_lossy()
+            .to_string()
+    }
 }
 fn os() -> &'static str {
     #[cfg(target_os = "windows")]

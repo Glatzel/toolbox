@@ -36,20 +36,13 @@ async fn execute(commands: Commands) -> mischief::Result<()> {
 }
 pub async fn main() {
     let args = VinayaArgs::parse();
-    //config logger
-    let log_level = match args.verbose.filter() {
-        clap_verbosity_flag::VerbosityFilter::Off => clerk::LogLevel::OFF,
-        clap_verbosity_flag::VerbosityFilter::Trace => clerk::LogLevel::TRACE,
-        clap_verbosity_flag::VerbosityFilter::Debug => clerk::LogLevel::DEBUG,
-        clap_verbosity_flag::VerbosityFilter::Info => clerk::LogLevel::INFO,
-        clap_verbosity_flag::VerbosityFilter::Warn => clerk::LogLevel::WARN,
-        clap_verbosity_flag::VerbosityFilter::Error => clerk::LogLevel::ERROR,
-    };
     clerk::tracing_subscriber::registry()
         .with(
             clerk::layer::terminal_layer(true).with_filter(
                 EnvFilter::builder()
-                    .with_default_directive(log_level.into())
+                    .with_default_directive(
+                        clerk::tracing_core::LevelFilter::from(args.verbose.filter()).into(),
+                    )
                     .from_env_lossy(),
             ),
         )

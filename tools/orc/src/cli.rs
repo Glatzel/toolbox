@@ -281,27 +281,15 @@ fn execute(args: Args) -> mischief::Result<()> {
 }
 
 pub fn main() -> mischief::Result<()> {
-    let args = Args::parse(); //config logger
-    let log_level = match args.verbose.filter() {
-        clap_verbosity_flag::VerbosityFilter::Off => clerk::LogLevel::OFF,
-        clap_verbosity_flag::VerbosityFilter::Trace => clerk::LogLevel::TRACE,
-        clap_verbosity_flag::VerbosityFilter::Debug => clerk::LogLevel::DEBUG,
-        clap_verbosity_flag::VerbosityFilter::Info => clerk::LogLevel::INFO,
-        clap_verbosity_flag::VerbosityFilter::Warn => clerk::LogLevel::WARN,
-        clap_verbosity_flag::VerbosityFilter::Error => clerk::LogLevel::ERROR,
-    };
+    let args = Args::parse();
     clerk::tracing_subscriber::registry()
         .with(
             clerk::layer::terminal_layer(true).with_filter(
                 EnvFilter::builder()
                     .with_default_directive(
-                        format!(
-                            "{}={}",
-                            env!("CARGO_PKG_NAME"),
-                            Into::<clerk::tracing_core::LevelFilter>::into(log_level)
-                        )
-                        .parse()
-                        .unwrap(),
+                        format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter())
+                            .parse()
+                            .unwrap(),
                     )
                     .from_env_lossy(),
             ),

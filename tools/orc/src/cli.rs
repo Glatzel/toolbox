@@ -281,7 +281,7 @@ fn execute(args: Args) -> mischief::Result<()> {
 }
 
 pub fn main() -> mischief::Result<()> {
-    let args = Args::parse(); 
+    let args = Args::parse();
     clerk::tracing_subscriber::registry()
         .with(
             clerk::layer::terminal_layer(true).with_filter(

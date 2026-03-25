@@ -51,7 +51,7 @@ impl ImportsTree {
     pub fn new(name: String, base: Option<PathBuf>, depth: usize) -> Self {
         Self { name, base, depth }
     }
-    fn find(name: &str, base: &Path) -> Option<PathBuf> {
+    fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
         clerk::trace!("Searching DLL: {}", name);
 
         let candidate = base.join(name);
@@ -74,20 +74,15 @@ impl ImportsTree {
 
         None
     }
-}
-impl ILazyTree for ImportsTree {
-    type Leave = ImportsTree;
 
-    fn content(&self) -> String {
-        match (self.depth, &self.base, SHOW_OPTION.get().unwrap()) {
-            (0, _, _) => self.name.clone(),
-            (_, Some(p), ShowOption::All) => {
-                format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
-                    .green()
-                    .to_string()
-            }
-            (_, Some(_), ShowOption::Missing) => self.name.to_string(),
-            (_, None, ShowOption::All) => {
+    fn content_all(&self) -> String {
+        match (self.depth, &self.base) {
+            (0, _) => self.name.clone(),
+            (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
+                .green()
+                .to_string(),
+
+            (_, None) => {
                 if self.name.starts_with("api-ms-win") {
                     format!(
                         "{} {} {}",
@@ -99,11 +94,68 @@ impl ILazyTree for ImportsTree {
                     self.name.to_string().red().to_string()
                 }
             }
-            (_, None, ShowOption::Missing) => self.name.to_string().red().to_string(),
+        }
+    }
+    fn content_missing(&self) -> String {
+        match (self.depth, &self.base) {
+            (0, _) => self.name.clone(),
+            (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
+                .green()
+                .to_string(),
+            (_, None) => self.name.to_string().red().to_string(),
+        }
+    }
+    fn leaves_all(&self) -> Option<Vec<Self>> {
+        if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
+            clerk::trace!("Depth limit reached at {}", self.name);
+            return None;
+        }
+
+        match &self.base {
+            Some(base) => {
+                let path = base.join(&self.name);
+                clerk::trace!("Reading PE file: {}", path.display());
+                let buf = match fs::read(&path) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        clerk::warn!("Failed to read {}: {}", path.display(), e);
+                        return None;
+                    }
+                };
+                let pe = match PE::parse(&buf) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        clerk::warn!("Failed to parse PE {}: {}", path.display(), e);
+                        return None;
+                    }
+                };
+                clerk::debug!("Parsed PE imports for {}", self.name);
+
+                let mut leaves = Vec::new();
+                let mut visited = HashSet::new();
+
+                for import in pe.imports {
+                    let dll = import.dll.to_string();
+
+                    if visited.contains(&dll) {
+                        clerk::trace!("Skipping duplicate import {}", dll);
+                        continue;
+                    }
+                    clerk::trace!("Found import {}", dll);
+                    visited.insert(dll.clone());
+                    let dll_base = Self::find_dll(&dll, base);
+                    leaves.push(Self::new(dll, dll_base, self.depth + 1));
+                }
+                (!leaves.is_empty()).then_some(leaves)
+            }
+            None => {
+                clerk::warn!("Skipping unresolved dependency {}", self.name);
+                None
+            }
         }
     }
 
-    fn leaves(&self) -> Option<Vec<Self::Leave>> {
+    fn leaves_missing(&self) -> Option<Vec<Self>> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
             clerk::trace!("Depth limit reached at {}", self.name);
             return None;
@@ -145,17 +197,14 @@ impl ILazyTree for ImportsTree {
                     }
                     clerk::trace!("Found import {}", dll);
                     visited.insert(dll.clone());
-                    match (Self::find(&dll, base), SHOW_OPTION.get().unwrap()) {
-                        (leaf_base, ShowOption::All) => {
-                            leaves.push(Self::new(dll, leaf_base, self.depth + 1))
-                        }
-                        (None, ShowOption::Missing) => {
+                    match Self::find_dll(&dll, base) {
+                        None => {
                             if dll.starts_with("api-ms-win") {
                                 continue;
                             }
                             leaves.push(Self::new(dll, None, self.depth + 1))
                         }
-                        (Some(dll_base), ShowOption::Missing) => {
+                        Some(dll_base) => {
                             if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
                                 continue;
                             }
@@ -184,7 +233,7 @@ impl ILazyTree for ImportsTree {
                             }
                             if dll_imports
                                 .iter()
-                                .any(|d| Self::find(d.dll, &dll_base).is_none())
+                                .any(|d| Self::find_dll(d.dll, &dll_base).is_none())
                             {
                                 leaves.push(Self::new(dll, Some(dll_base), self.depth + 1));
                             }
@@ -192,16 +241,29 @@ impl ILazyTree for ImportsTree {
                     };
                 }
 
-                if leaves.is_empty() {
-                    None
-                } else {
-                    Some(leaves)
-                }
+                (!leaves.is_empty()).then_some(leaves)
             }
             None => {
                 clerk::warn!("Skipping unresolved dependency {}", self.name);
                 None
             }
+        }
+    }
+}
+impl ILazyTree for ImportsTree {
+    type Leave = ImportsTree;
+
+    fn content(&self) -> String {
+        match SHOW_OPTION.get().unwrap() {
+            ShowOption::All => self.content_all(),
+            ShowOption::Missing => self.content_missing(),
+        }
+    }
+
+    fn leaves(&self) -> Option<Vec<Self::Leave>> {
+        match SHOW_OPTION.get().unwrap() {
+            ShowOption::All => self.leaves_all(),
+            ShowOption::Missing => self.leaves_missing(),
         }
     }
 }

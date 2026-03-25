@@ -3,6 +3,14 @@ use std::path::PathBuf;
 use assert_cmd::Command;
 use path_slash::PathExt;
 use rstest::rstest;
+fn env_path() -> String {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(".pixi")
+        .join("envs")
+        .join("default")
+        .to_slash_lossy()
+        .to_string()
+}
 
 fn test_file() -> String {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -23,6 +31,7 @@ fn test_file() -> String {
 fn test_limit(#[case] limit: usize) {
     let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
         .env_clear()
+        .env("PATH", env_path())
         .args(["-l", &limit.to_string()])
         .args([test_file()])
         .assert()
@@ -48,6 +57,7 @@ fn test_limit(#[case] limit: usize) {
 fn test_limit_missing(#[case] limit: usize) {
     let cmd = Command::new(assert_cmd::cargo_bin!("orc"))
         .env_clear()
+        .env("PATH", env_path())
         .args(["-l", &limit.to_string()])
         .args(["-s", "missing"])
         .args([test_file()])

@@ -1,17 +1,14 @@
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-
-use goblin::elf ::Elf;
+use goblin::elf::Elf;
 use hashbrown::HashSet;
 use owo_colors::OwoColorize;
 use path_slash::PathBufExt;
 
-use crate::cli::{LIMIT};
+use crate::cli::LIMIT;
 
-
-impl super:: DepTree {
-
+impl super::DepTree {
     fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
         clerk::trace!("Searching dep: {}", name);
         let candidate = base.join(name);
@@ -32,7 +29,7 @@ impl super:: DepTree {
         None
     }
 
-    pub(super)  fn content_all(&self) -> String {
+    pub(super) fn content_all(&self) -> String {
         match (self.depth, &self.base) {
             (0, _) => self.name.clone(),
             (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
@@ -47,14 +44,14 @@ impl super:: DepTree {
             (_, None) => self.name.red().to_string(),
         }
     }
-   pub(super)   fn content_missing(&self) -> String {
+    pub(super) fn content_missing(&self) -> String {
         match (self.depth, &self.base) {
             (0, _) => self.name.clone(),
             (_, Some(_)) => self.name.clone(),
             (_, None) => self.name.red().to_string(),
         }
     }
-    pub(super)  fn leaves_all(&self) -> Option<Vec<Self>> {
+    pub(super) fn leaves_all(&self) -> Option<Vec<Self>> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
             clerk::trace!("Depth limit reached at {}", self.name);
             return None;
@@ -84,7 +81,6 @@ impl super:: DepTree {
                 let mut visited = HashSet::new();
 
                 for lib in pe.libraries {
-
                     if visited.contains(lib) {
                         clerk::trace!("Skipping duplicate import {}", lib);
                         continue;
@@ -103,7 +99,7 @@ impl super:: DepTree {
         }
     }
 
-    pub(super)  fn leaves_missing(&self) -> Option<Vec<Self>> {
+    pub(super) fn leaves_missing(&self) -> Option<Vec<Self>> {
         todo!()
     }
 }

@@ -1,10 +1,10 @@
-#[cfg(target_os = "windows")]
-mod win;
 #[cfg(target_os = "linux")]
 mod linux;
-use std::path::{ PathBuf};
+#[cfg(target_os = "windows")]
+mod win;
+use crate::cli::{SHOW_OPTION, ShowOption};
 use arbor::protocol::ILazyTree;
-use crate::cli::{ SHOW_OPTION, ShowOption};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct DepTree {
@@ -15,7 +15,8 @@ pub struct DepTree {
 impl DepTree {
     pub fn new(name: String, base: Option<PathBuf>, depth: usize) -> Self {
         Self { name, base, depth }
-    }}
+    }
+}
 impl ILazyTree for DepTree {
     type Leave = DepTree;
     fn content(&self) -> String {

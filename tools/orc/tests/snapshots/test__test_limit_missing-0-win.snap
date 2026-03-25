@@ -10,7 +10,10 @@ raw_r.dll
 │   ├── VCRUNTIME140.dll
 │   │   ╰── [31mKERNEL32.dll[39m
 │   ╰── [31mKERNEL32.dll[39m
-├── [31mjpeg8.dll[39m
+├── jpeg8.dll
+│   ├── VCRUNTIME140.dll
+│   │   ╰── [31mKERNEL32.dll[39m
+│   ╰── [31mKERNEL32.dll[39m
 ├── [31mKERNEL32.dll[39m
 ├── MSVCP140.dll
 │   ├── VCRUNTIME140.dll

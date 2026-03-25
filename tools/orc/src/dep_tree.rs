@@ -2,9 +2,11 @@
 mod linux;
 #[cfg(target_os = "windows")]
 mod win;
-use crate::cli::{SHOW_OPTION, ShowOption};
-use arbor::protocol::ILazyTree;
 use std::path::PathBuf;
+
+use arbor::protocol::ILazyTree;
+
+use crate::cli::{SHOW_OPTION, ShowOption};
 
 #[derive(Debug, Clone)]
 pub struct DepTree {

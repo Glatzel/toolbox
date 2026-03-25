@@ -99,7 +99,5 @@ impl super::DepTree {
         }
     }
 
-    pub(super) fn leaves_missing(&self) -> Option<Vec<Self>> {
-        todo!()
-    }
+    pub(super) fn leaves_missing(&self) -> Option<Vec<Self>> { todo!() }
 }

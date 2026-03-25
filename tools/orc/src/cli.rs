@@ -93,9 +93,7 @@ impl ImportsTree {
     fn content_missing(&self) -> String {
         match (self.depth, &self.base) {
             (0, _) => self.name.clone(),
-            (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
-                .green()
-                .to_string(),
+            (_, Some(_)) => self.name.clone(),
             (_, None) => self.name.red().to_string(),
         }
     }

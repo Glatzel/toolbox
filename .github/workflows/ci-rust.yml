@@ -24,6 +24,7 @@ jobs:
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly
+          components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ${{env.WORKDIR}}

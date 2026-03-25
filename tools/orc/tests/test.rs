@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use assert_cmd::Command;
 use path_slash::PathExt;
 use rstest::rstest;
+
 fn env_path() -> String {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join(".pixi")
@@ -13,7 +14,8 @@ fn env_path() -> String {
 }
 
 fn test_file() -> String {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    #[cfg(target_os = "windows")]
+    {PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join(".pixi")
         .join("envs")
         .join("default")
@@ -21,7 +23,27 @@ fn test_file() -> String {
         .join("bin")
         .join("raw_r.dll")
         .to_slash_lossy()
-        .to_string()
+        .to_string()}
+    #[cfg(target_os = "linux")]
+   { PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join(".pixi")
+        .join("envs")
+        .join("default")
+        .join("lib")
+        .join("raw_r.so")
+        .to_slash_lossy()
+        .to_string()}
+}
+fn os() -> &'static str {
+    #[cfg(target_os = "windows")]
+    {
+        "win"
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        "linux"
+    }
 }
 
 #[rstest]
@@ -44,7 +66,7 @@ fn test_limit(#[case] limit: usize) {
         (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
     ]}, {
         insta::assert_snapshot!(
-            format!("test_limit-{}", limit),
+            format!("test_limit-{}-{}", limit, os()),
             String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
         );
     });
@@ -71,7 +93,7 @@ fn test_limit_missing(#[case] limit: usize) {
         (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
     ]}, {
         insta::assert_snapshot!(
-            format!("test_limit_missing-{}", limit),
+            format!("test_limit_missing-{}-{}", limit, os()),
             String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
         );
     });

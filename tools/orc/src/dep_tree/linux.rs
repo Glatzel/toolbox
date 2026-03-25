@@ -21,13 +21,11 @@ impl DepTree {
     }
     fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
         clerk::trace!("Searching DLL: {}", name);
-
         let candidate = base.join(name);
         if candidate.exists() {
             clerk::debug!("Found DLL in local directory: {}", candidate.display());
             return Some(base.to_path_buf());
         }
-
         if let Ok(path_env) = env::var("PATH") {
             for p in env::split_paths(&path_env) {
                 let candidate = p.join(name);
@@ -68,6 +66,7 @@ impl DepTree {
             clerk::trace!("Depth limit reached at {}", self.name);
             return None;
         }
+
         match &self.base {
             Some(base) => {
                 let path = base.join(&self.name);
@@ -121,7 +120,9 @@ impl DepTree {
         match &self.base {
             Some(base) => {
                 let path = base.join(&self.name);
+
                 clerk::trace!("Reading PE file: {}", path.display());
+
                 let buf = match fs::read(&path) {
                     Ok(b) => b,
                     Err(e) => {
@@ -129,6 +130,7 @@ impl DepTree {
                         return None;
                     }
                 };
+
                 let pe = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(e) => {
@@ -136,12 +138,15 @@ impl DepTree {
                         return None;
                     }
                 };
+
                 clerk::debug!("Parsed PE imports for {}", self.name);
+
                 let mut leaves = Vec::new();
                 let mut visited = HashSet::new();
 
                 for import in pe.imports {
                     let dll = import.dll.to_string();
+
                     if visited.contains(&dll) {
                         clerk::trace!("Skipping duplicate import {}", dll);
                         continue;
@@ -191,6 +196,7 @@ impl DepTree {
                         }
                     };
                 }
+
                 (!leaves.is_empty()).then_some(leaves)
             }
             None => {
@@ -202,12 +208,14 @@ impl DepTree {
 }
 impl ILazyTree for DepTree {
     type Leave = DepTree;
+
     fn content(&self) -> String {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.content_all(),
             ShowOption::Missing => self.content_missing(),
         }
     }
+
     fn leaves(&self) -> Option<Vec<Self::Leave>> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.leaves_all(),

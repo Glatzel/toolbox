@@ -77,7 +77,11 @@ jobs:
   tools-orc:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-orc != 'false' }}
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.machine }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/rust/setup-rust

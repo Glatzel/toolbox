@@ -9,17 +9,10 @@ use path_slash::PathBufExt;
 
 use crate::cli::{LIMIT, SHOW_OPTION, ShowOption};
 
-#[derive(Debug, Clone)]
-pub struct DepTree {
-    pub name: String,
-    pub base: Option<PathBuf>,
-    pub depth: usize,
-}
-impl DepTree {
-    pub fn new(name: String, base: Option<PathBuf>, depth: usize) -> Self {
-        Self { name, base, depth }
-    }
-    fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
+
+impl super::DepTree {
+
+   pub(super)   fn find_dll(name: &str, base: &Path) -> Option<PathBuf> {
         clerk::trace!("Searching DLL: {}", name);
 
         let candidate = base.join(name);
@@ -41,7 +34,7 @@ impl DepTree {
         None
     }
 
-    fn content_all(&self) -> String {
+   pub(super)   fn content_all(&self) -> String {
         match (self.depth, &self.base) {
             (0, _) => self.name.clone(),
             (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
@@ -56,14 +49,14 @@ impl DepTree {
             (_, None) => self.name.red().to_string(),
         }
     }
-    fn content_missing(&self) -> String {
+    pub(super)  fn content_missing(&self) -> String {
         match (self.depth, &self.base) {
             (0, _) => self.name.clone(),
             (_, Some(_)) => self.name.clone(),
             (_, None) => self.name.red().to_string(),
         }
     }
-    fn leaves_all(&self) -> Option<Vec<Self>> {
+   pub(super)   fn leaves_all(&self) -> Option<Vec<Self>> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
             clerk::trace!("Depth limit reached at {}", self.name);
             return None;
@@ -112,7 +105,7 @@ impl DepTree {
         }
     }
 
-    fn leaves_missing(&self) -> Option<Vec<Self>> {
+    pub(super)  fn leaves_missing(&self) -> Option<Vec<Self>> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
             clerk::trace!("Depth limit reached at {}", self.name);
             return None;
@@ -197,21 +190,6 @@ impl DepTree {
                 clerk::warn!("Skipping unresolved dependency {}", self.name);
                 None
             }
-        }
-    }
-}
-impl ILazyTree for DepTree {
-    type Leave = DepTree;
-    fn content(&self) -> String {
-        match SHOW_OPTION.get().unwrap() {
-            ShowOption::All => self.content_all(),
-            ShowOption::Missing => self.content_missing(),
-        }
-    }
-    fn leaves(&self) -> Option<Vec<Self::Leave>> {
-        match SHOW_OPTION.get().unwrap() {
-            ShowOption::All => self.leaves_all(),
-            ShowOption::Missing => self.leaves_missing(),
         }
     }
 }

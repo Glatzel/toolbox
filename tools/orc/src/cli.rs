@@ -81,19 +81,13 @@ impl ImportsTree {
             (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
                 .green()
                 .to_string(),
-
-            (_, None) => {
-                if self.name.starts_with("api-ms-win") {
-                    format!(
-                        "{} {} {}",
-                        &self.name.green().to_string(),
-                        "->".green(),
-                        "VirtualImport".yellow().bold()
-                    )
-                } else {
-                    self.name.to_string().red().to_string()
-                }
-            }
+            (_, None) if self.name.starts_with("api-ms-win") => format!(
+                "{} {} {}",
+                &self.name.green().to_string(),
+                "->".green(),
+                "VirtualImport".yellow().bold()
+            ),
+            (_, None) => self.name.red().to_string(),
         }
     }
     fn content_missing(&self) -> String {
@@ -102,7 +96,7 @@ impl ImportsTree {
             (_, Some(p)) => format!("{} -> {}", &self.name, p.join(&self.name).to_slash_lossy())
                 .green()
                 .to_string(),
-            (_, None) => self.name.to_string().red().to_string(),
+            (_, None) => self.name.red().to_string(),
         }
     }
     fn leaves_all(&self) -> Option<Vec<Self>> {

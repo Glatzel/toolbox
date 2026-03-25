@@ -40,7 +40,7 @@ pub async fn main() {
         .with(
             clerk::layer::terminal_layer(true).with_filter(
                 EnvFilter::builder()
-                    .with_default_directive( args.verbose.filter().into())
+                    .with_default_directive(args.verbose.filter().into())
                     .from_env_lossy(),
             ),
         )

@@ -17,6 +17,7 @@ criterion.workspace = true
 mischief.workspace = true
 serialport.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
+tokio-serial = "5.4.5"
 
 [features]
 async = ["tokio", "tokio/io-util", "async-trait", "tokio-serial", "std"]

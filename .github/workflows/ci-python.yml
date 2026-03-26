@@ -16,16 +16,8 @@ jobs:
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
-
       - name: test
         run: ./scripts/pytest.ps1
         shell: pwsh
-
-      - name: Upload results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled()}}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        with:
-          fail_ci_if_error: true
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}

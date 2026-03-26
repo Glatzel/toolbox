@@ -32,7 +32,9 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ${{env.WORKDIR}}
-          args: ${{matrix.args}}
+          global-args: ${{matrix.args}}
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}
 
   cargo-miri:
     strategy:

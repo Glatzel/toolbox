@@ -90,7 +90,9 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
-          skip-doc: true
+          doc: false
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}
 
   tools-vinaya:
     needs: changed
@@ -108,7 +110,9 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/vinaya
-          skip-doc: true
+          doc: false
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'

@@ -219,6 +219,7 @@ impl DepTree {
                     visited.insert(dll_name);
                     match Self::find_dll_base(dll_name, base) {
                         None => {
+                            #[cfg(target_os = "windows")]
                             if dll_name.starts_with("api-ms-win") {
                                 continue;
                             }
@@ -229,6 +230,7 @@ impl DepTree {
                             if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
                                 continue;
                             }
+                            #[cfg(target_os = "windows")]
                             if dll_name.starts_with("api-ms-win") {
                                 continue;
                             }

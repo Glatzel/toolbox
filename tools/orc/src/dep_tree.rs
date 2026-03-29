@@ -142,11 +142,13 @@ impl DepTree {
                 };
 
                 let mut leaves = Vec::new();
-                let mut visited = HashSet::new();
+
                 #[cfg(target_os = "windows")]
-                let imports = binary.imports;
+                let mut imports = binary.imports;
                 #[cfg(target_os = "linux")]
-                let imports = binary.libraries;
+                let mut imports = binary.libraries;
+                imports.sort();
+                imports.dedup();
 
                 for import in imports {
                     #[cfg(target_os = "windows")]
@@ -154,11 +156,6 @@ impl DepTree {
                     #[cfg(target_os = "linux")]
                     let dll = import;
 
-                    if visited.contains(&dll) {
-                        continue;
-                    }
-
-                    visited.insert(dll);
                     let dll_base = Self::find_dll_base(dll, base);
                     let target =
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
@@ -201,22 +198,20 @@ impl DepTree {
                 };
 
                 let mut leaves = Vec::new();
-                let mut visited = HashSet::new();
+
                 #[cfg(target_os = "windows")]
-                let imports = binary.imports;
+                let mut imports = binary.imports;
                 #[cfg(target_os = "linux")]
-                let imports = binary.libraries;
+                let mut imports = binary.libraries;
+                imports.sort();
+                imports.dedup();
 
                 for import in imports {
                     #[cfg(target_os = "windows")]
                     let dll_name = import.dll;
                     #[cfg(target_os = "linux")]
                     let dll_name = import;
-                    if visited.contains(&dll_name) {
-                        continue;
-                    }
 
-                    visited.insert(dll_name);
                     match Self::find_dll_base(dll_name, base) {
                         None => {
                             #[cfg(target_os = "windows")]

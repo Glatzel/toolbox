@@ -7,7 +7,6 @@ use arbor::protocol::ILazyTree;
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
 use goblin::pe::PE;
-use hashbrown::HashSet;
 use owo_colors::OwoColorize;
 use path_slash::PathBufExt;
 

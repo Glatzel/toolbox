@@ -85,7 +85,7 @@ impl DepTree {
                 }
             }
         }
-        #[cfg(test)]
+        #[cfg(not(test))]
         {
             const SYSTEM_PATHS: &[&str] = &[
                 "/lib",

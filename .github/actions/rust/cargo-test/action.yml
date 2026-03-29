@@ -7,14 +7,30 @@ inputs:
   working-directory:
     description: Working directory
     default: .
-  args:
+  global-args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
-    default: --workspace --all-features
-  skip-doc:
-    description: Skip doc test
+  nextest:
+    description: Use nextest for testing
     required: false
-    default: "false"
+    default: "true"
+  nextest-args:
+    description: Additional arguments passed to cargo llvm-cov
+    required: false
+  examples:
+    description: Run examples
+    required: false
+    default: "true"
+  examples-args:
+    description: Additional arguments passed to examples
+    required: false
+  doc:
+    description: Run doctests
+    required: false
+    default: "true"
+  doc-args:
+    description: Additional arguments passed to doc test
+    required: false
 runs:
   using: composite
   steps:
@@ -29,22 +45,26 @@ runs:
         # problem with cli test against llvm-cov 0.7+
         pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov=0.6 cargo-nextest
 
-        Write-Output "::group::nextest"
-        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.args }}
-        $code = $LASTEXITCODE
-        Write-Output "::endgroup::"
-
-        Write-Output "::group::examples"
-        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples --no-tests pass ${{ inputs.args }}
-        $code = $code + $LASTEXITCODE
-        Write-Output "::endgroup::"
-
-        Write-Output "::group::doctest"
-        if( -not ("${{ inputs.skip-doc }}" -eq 'true')){
-            cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{ inputs.args }}
+        if ("${{ inputs.nextest }}" -eq "true") {
+            Write-Output "::group::nextest"
+            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
+            $code = $LASTEXITCODE
+            Write-Output "::endgroup::"
         }
-        $code = $code + $LASTEXITCODE
-        Write-Output "::endgroup::"
+
+        if ("${{ inputs.examples }}" -eq "true") {
+            Write-Output "::group::examples"
+            cargo +nightly llvm-cov test --examples --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
+            $code = $code+$LASTEXITCODE
+            Write-Output "::endgroup::"
+        }
+
+        if ("${{ inputs.doc }}" -eq "true") {
+            Write-Output "::group::doctest"
+            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
+            $code = $code+$LASTEXITCODE
+            Write-Output "::endgroup::"
+        }
 
         Write-Output "::group::report"
         copy-item *.profraw  ./target/llvm-cov-target -ErrorAction SilentlyContinue # temporary situation for llvm-cov
@@ -52,8 +72,6 @@ runs:
         cargo +nightly llvm-cov report --lcov --output-path lcov.info
         Write-Output "::endgroup::"
 
-        Write-Output "::group::result"
-        $code = $code + $LASTEXITCODE
         if ($code -ne 0) {
             Write-Host "Test failed." -ForegroundColor Red
         } else {
@@ -62,14 +80,3 @@ runs:
         Write-Output "::endgroup::"
 
         exit $code
-
-    - name: Upload coverage to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
-
-    - name: Upload test results to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
-      with:
-        report_type: test_results
-        fail_ci_if_error: true

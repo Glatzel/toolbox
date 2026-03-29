@@ -3,28 +3,28 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 raw_r.dll
-├── [31mWS2_32.dll[39m
-├── lcms2.dll
-│   ╰── [31mKERNEL32.dll[39m
-├── zlib.dll
-│   ├── VCRUNTIME140.dll
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
-├── [31mjpeg8.dll[39m
-├── [31mKERNEL32.dll[39m
+├── [RED]KERNEL32.dll
 ├── MSVCP140.dll
+│   ├── [RED]KERNEL32.dll
 │   ├── VCRUNTIME140.dll
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ├── VCRUNTIME140_1.dll
-│   │   ├── VCRUNTIME140.dll
-│   │   │   ╰── [31mKERNEL32.dll[39m
-│   │   ╰── [31mKERNEL32.dll[39m
-│   ╰── [31mKERNEL32.dll[39m
+│   │   ╰── [RED]KERNEL32.dll
+│   ╰── VCRUNTIME140_1.dll
+│       ├── [RED]KERNEL32.dll
+│       ╰── VCRUNTIME140.dll
+│           ╰── [RED]KERNEL32.dll
 ├── VCOMP140.DLL
-│   ╰── [31mKERNEL32.dll[39m
+│   ╰── [RED]KERNEL32.dll
 ├── VCRUNTIME140.dll
-│   ╰── [31mKERNEL32.dll[39m
-╰── VCRUNTIME140_1.dll
-    ├── VCRUNTIME140.dll
-    │   ╰── [31mKERNEL32.dll[39m
-    ╰── [31mKERNEL32.dll[39m
+│   ╰── [RED]KERNEL32.dll
+├── VCRUNTIME140_1.dll
+│   ├── [RED]KERNEL32.dll
+│   ╰── VCRUNTIME140.dll
+│       ╰── [RED]KERNEL32.dll
+├── [RED]WS2_32.dll
+├── [RED]jpeg8.dll
+├── lcms2.dll
+│   ╰── [RED]KERNEL32.dll
+╰── zlib.dll
+    ├── [RED]KERNEL32.dll
+    ╰── VCRUNTIME140.dll
+        ╰── [RED]KERNEL32.dll

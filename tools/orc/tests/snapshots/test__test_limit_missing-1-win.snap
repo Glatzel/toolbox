@@ -3,6 +3,6 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 raw_r.dll
-├── [31mWS2_32.dll[39m
-├── [31mjpeg8.dll[39m
-╰── [31mKERNEL32.dll[39m
+├── [RED]KERNEL32.dll
+├── [RED]WS2_32.dll
+╰── [RED]jpeg8.dll

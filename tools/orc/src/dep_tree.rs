@@ -85,29 +85,32 @@ impl DepTree {
                 }
             }
         }
-        const SYSTEM_PATHS: &[&str] = &[
-            "/lib",
-            "/lib64",
-            "/usr/lib",
-            "/usr/lib64",
-            "/usr/local/lib",
-            "/usr/local/lib64",
-            // Debian/Ubuntu multiarch
-            #[cfg(target_arch = "x86_64")]
-            "/lib/x86_64-linux-gnu",
-            #[cfg(target_arch = "x86_64")]
-            "/usr/lib/x86_64-linux-gnu",
-            #[cfg(target_arch = "aarch64")]
-            "/lib/aarch64-linux-gnu",
-            #[cfg(target_arch = "aarch64")]
-            "/usr/lib/aarch64-linux-gnu",
-        ];
+        #[cfg(test)]
+        {
+            const SYSTEM_PATHS: &[&str] = &[
+                "/lib",
+                "/lib64",
+                "/usr/lib",
+                "/usr/lib64",
+                "/usr/local/lib",
+                "/usr/local/lib64",
+                // Debian/Ubuntu multiarch
+                #[cfg(target_arch = "x86_64")]
+                "/lib/x86_64-linux-gnu",
+                #[cfg(target_arch = "x86_64")]
+                "/usr/lib/x86_64-linux-gnu",
+                #[cfg(target_arch = "aarch64")]
+                "/lib/aarch64-linux-gnu",
+                #[cfg(target_arch = "aarch64")]
+                "/usr/lib/aarch64-linux-gnu",
+            ];
 
-        for p in SYSTEM_PATHS {
-            let path = Path::new(p);
-            let candidate = path.join(name);
-            if candidate.exists() {
-                return Some(path.to_path_buf());
+            for p in SYSTEM_PATHS {
+                let path = Path::new(p);
+                let candidate = path.join(name);
+                if candidate.exists() {
+                    return Some(path.to_path_buf());
+                }
             }
         }
         None
@@ -274,11 +277,13 @@ impl DepTree {
                     #[cfg(target_os = "linux")]
                     let dll_name = import;
                     #[cfg(target_os = "windows")]
-                    let result = Self::find_dll_base(dll_name, base);
+                    let dll_base = Self::find_dll_base(dll_name, base);
                     #[cfg(target_os = "linux")]
-                    let result = Self::find_dll_base(dll_name, base, &rpaths, &runpaths);
-                    let target = Self::find_link_target(&path);
-                    match result {
+                    let dll_base = Self::find_dll_base(dll_name, base, &rpaths, &runpaths);
+                    let target = Self::find_link_target(
+                        &dll_base.clone().unwrap_or(base.clone()).join(dll_name),
+                    );
+                    match dll_base {
                         None => {
                             #[cfg(target_os = "windows")]
                             if dll_name.starts_with("api-ms-win") {

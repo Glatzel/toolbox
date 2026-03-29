@@ -129,7 +129,7 @@ impl DepTree {
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
-                    Err(e) => {
+                    Err(_e) => {
                         return None;
                     }
                 };
@@ -209,7 +209,7 @@ impl DepTree {
 
                 for import in imports {
                     #[cfg(target_os = "windows")]
-                    let dll = import.dll;
+                    let dll_name = import.dll;
                     #[cfg(target_os = "linux")]
                     let dll_name = import;
                     if visited.contains(&dll_name) {
@@ -264,7 +264,7 @@ impl DepTree {
                             }
                             if dll_imports.iter().any(|d| {
                                 #[cfg(target_os = "windows")]
-                                let result = Self::find_dll(d.dll, &dll_base).is_none();
+                                let result = Self::find_dll_base(d.dll, &dll_base).is_none();
                                 #[cfg(target_os = "linux")]
                                 let result = Self::find_dll_base(d, &dll_base).is_none();
                                 result

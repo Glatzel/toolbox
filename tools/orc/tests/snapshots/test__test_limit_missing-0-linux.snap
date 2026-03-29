@@ -3,27 +3,4 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 libraw.so -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.23.0.0
-├── [31mlibjpeg.so.8[39m
-├── libz.so.1 -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libz.so.1.3.2
-│   ╰── [31mlibc.so.6[39m
-├── liblcms2.so.2 -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/liblcms2.so.2.0.18
-│   ├── [31mlibm.so.6[39m
-│   ├── [31mlibpthread.so.0[39m
-│   ╰── [31mlibc.so.6[39m
-├── libstdc++.so.6 -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libstdc++.so.6.0.34
-│   ├── [31mlibm.so.6[39m
-│   ├── [31mlibdl.so.2[39m
-│   ├── [31mlibc.so.6[39m
-│   ├── [31mld-linux-x86-64.so.2[39m
-│   ╰── libgcc_s.so.1
-│       ├── [31mlibc.so.6[39m
-│       ╰── [31mld-linux-x86-64.so.2[39m
-├── [31mlibm.so.6[39m
-├── [31mlibc.so.6[39m
-├── libgcc_s.so.1
-│   ├── [31mlibc.so.6[39m
-│   ╰── [31mld-linux-x86-64.so.2[39m
-╰── libgomp.so.1 -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libgomp.so.1.0.0
-    ├── [31mlibdl.so.2[39m
-    ├── [31mlibpthread.so.0[39m
-    ╰── [31mlibc.so.6[39m
+╰── [31mlibjpeg.so.8[39m

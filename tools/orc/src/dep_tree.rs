@@ -68,14 +68,42 @@ impl DepTree {
                 }
             }
         }
-        for p in rpaths {
-            let path = Path::new(p);
-            let candidate = path.join(name);
-            if candidate.exists() {
-                return Some(path.to_path_buf());
+        if !runpaths.is_empty() {
+            for p in runpaths {
+                let path = Path::new(p);
+                let candidate = path.join(name);
+                if candidate.exists() {
+                    return Some(path.to_path_buf());
+                }
+            }
+        } else {
+            for p in rpaths {
+                let path = Path::new(p);
+                let candidate = path.join(name);
+                if candidate.exists() {
+                    return Some(path.to_path_buf());
+                }
             }
         }
-        for p in runpaths {
+        const SYSTEM_PATHS: &[&str] = &[
+            "/lib",
+            "/lib64",
+            "/usr/lib",
+            "/usr/lib64",
+            "/usr/local/lib",
+            "/usr/local/lib64",
+            // Debian/Ubuntu multiarch
+            #[cfg(target_arch = "x86_64")]
+            "/lib/x86_64-linux-gnu",
+            #[cfg(target_arch = "x86_64")]
+            "/usr/lib/x86_64-linux-gnu",
+            #[cfg(target_arch = "aarch64")]
+            "/lib/aarch64-linux-gnu",
+            #[cfg(target_arch = "aarch64")]
+            "/usr/lib/aarch64-linux-gnu",
+        ];
+
+        for p in SYSTEM_PATHS {
             let path = Path::new(p);
             let candidate = path.join(name);
             if candidate.exists() {

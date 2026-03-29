@@ -68,6 +68,7 @@ impl DepTree {
                 }
             }
         }
+
         if !runpaths.is_empty() {
             for p in runpaths {
                 let path = Path::new(p);
@@ -85,7 +86,7 @@ impl DepTree {
                 }
             }
         }
-        #[cfg(not(test))]
+        #[cfg(not(feature = "test-mode"))]
         {
             const SYSTEM_PATHS: &[&str] = &[
                 "/lib",
@@ -113,6 +114,7 @@ impl DepTree {
                 }
             }
         }
+
         None
     }
     pub fn find_link_target(link: &Path) -> Option<PathBuf> {

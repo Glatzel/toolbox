@@ -94,6 +94,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
+          global-args: --all-features
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

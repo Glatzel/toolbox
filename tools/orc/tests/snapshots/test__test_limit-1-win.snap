@@ -1,0 +1,23 @@
+---
+source: tests/test.rs
+expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
+---
+raw_r.dll
+├── [RED]KERNEL32.dll
+├── MSVCP140.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/MSVCP140.dll]
+├── VCOMP140.DLL [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCOMP140.DLL]
+├── VCRUNTIME140.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCRUNTIME140.dll]
+├── VCRUNTIME140_1.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCRUNTIME140_1.dll]
+├── [RED]WS2_32.dll
+├── api-ms-win-crt-convert-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-convert-l1-1-0.dll]
+├── api-ms-win-crt-filesystem-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-filesystem-l1-1-0.dll]
+├── api-ms-win-crt-heap-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll]
+├── api-ms-win-crt-math-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-math-l1-1-0.dll]
+├── api-ms-win-crt-runtime-l1-1-0.dll [[BLUE]VirtualImport]
+├── api-ms-win-crt-stdio-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll]
+├── api-ms-win-crt-string-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll]
+├── api-ms-win-crt-time-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-time-l1-1-0.dll]
+├── api-ms-win-crt-utility-l1-1-0.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-utility-l1-1-0.dll]
+├── [RED]jpeg8.dll
+├── lcms2.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/lcms2.dll]
+╰── zlib.dll [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/zlib.dll]

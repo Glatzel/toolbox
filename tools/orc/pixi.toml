@@ -1,6 +1,6 @@
 [workspace]
 channels = ["conda-forge"]
-platforms = ["win-64"]
+platforms = ["win-64", "linux-64"]
 
 [dependencies]
-libraw = ">=0.21.5,<0.22"
+libraw = "==0.21.5"

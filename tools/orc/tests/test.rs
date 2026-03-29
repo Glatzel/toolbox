@@ -49,6 +49,24 @@ fn os() -> &'static str {
         "linux"
     }
 }
+macro_rules! filter {
+    () => {
+        vec![
+            (
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .to_slash_lossy()
+                    .to_string()
+                    .as_str(),
+                "[CARGO_MANIFEST_DIR]",
+            ),
+            (r"\[31m", "[RED]"),
+            (r"\[32m", "[GREEN]"),
+            (r"\[34m", "[BLUE]"),
+            (r"\[39m", ""),
+        ]
+    }
+}
+
 
 #[rstest]
 #[case(0)]
@@ -66,9 +84,7 @@ fn test_limit(#[case] limit: usize) {
         "{}",
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
-    insta::with_settings!({filters => vec![
-        (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
-    ]}, {
+    insta::with_settings!({filters => filter!()}, {
         insta::assert_snapshot!(
             format!("test_limit-{}-{}", limit, os()),
             String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
@@ -93,9 +109,8 @@ fn test_limit_missing(#[case] limit: usize) {
         "{}",
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
-    insta::with_settings!({filters => vec![
-        (PathBuf::from(env!("CARGO_MANIFEST_DIR")).to_slash_lossy().to_string().as_str(), "[CARGO_MANIFEST_DIR]"),
-    ]}, {
+    insta::with_settings!({filters => filter!()
+    }, {
         insta::assert_snapshot!(
             format!("test_limit_missing-{}-{}", limit, os()),
             String::from_utf8_lossy(cmd.get_output().stdout.as_slice())

@@ -1,0 +1,8 @@
+---
+source: tests/test.rs
+expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
+---
+libraw.so -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.23.0.0
+├── [31mlibjpeg.so.8[39m
+├── [31mlibm.so.6[39m
+╰── [31mlibc.so.6[39m

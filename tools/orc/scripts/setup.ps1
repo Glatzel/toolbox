@@ -6,5 +6,5 @@ if ($IsWindows) {
     Remove-Item $PSScriptRoot/../.pixi/envs/default/api-ms-win-crt-runtime*.dll -ErrorAction SilentlyContinue
 }
 if ($IsLinux) {
-    Remove-Item $PSScriptRoot/../.pixi/envs/default/lib/jpeg* -ErrorAction SilentlyContinue
+    Remove-Item $PSScriptRoot/../.pixi/envs/default/lib/libjpeg.so.8.* -ErrorAction SilentlyContinue
 }

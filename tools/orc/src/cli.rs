@@ -7,6 +7,7 @@ use clap::{Parser, ValueEnum};
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
+use path_slash::PathExt;
 use strum::Display;
 
 use crate::dep_tree::DepTree;
@@ -41,13 +42,17 @@ pub static SHOW_OPTION: OnceLock<ShowOption> = OnceLock::new();
 
 fn execute(args: Args) -> mischief::Result<()> {
     let abs_path = dunce::canonicalize(&args.input)?;
-    clerk::info!("Scanning executable: {}", abs_path.display());
+    clerk::info!(
+        "Scanning executable: {}",
+        abs_path.to_slash_lossy().to_string()
+    );
     LIMIT.set(args.limit).unwrap();
     SHOW_OPTION.set(args.show_option).unwrap();
     let tree = DepTree::new(
-        abs_path.file_name().unwrap().to_string_lossy().to_string(),
+        args.input.file_name().unwrap().to_str().unwrap(),
         Some(abs_path.parent().unwrap().to_path_buf()),
         0,
+        DepTree::find_link_target(&args.input),
     );
     clerk::debug!("Dependency tree root created");
     let render = arbor::lazy_renders::LazyRender {

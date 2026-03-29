@@ -33,7 +33,7 @@ fn test_file() -> String {
             .join("envs")
             .join("default")
             .join("lib")
-            .join("raw_r.so")
+            .join("libraw.so")
             .to_slash_lossy()
             .to_string()
     }

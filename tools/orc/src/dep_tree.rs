@@ -49,21 +49,39 @@ impl DepTree {
         None
     }
     #[cfg(target_os = "linux")]
-    pub fn find_dll_base(name: &str, base: &Path) -> Option<PathBuf> {
+    pub fn find_dll_base(
+        name: &str,
+        base: &Path,
+        rpaths: &[&str],
+        runpaths: &[&str],
+    ) -> Option<PathBuf> {
         let candidate = base.join(name);
         if candidate.exists() {
             return Some(base.to_path_buf());
         }
 
-        if let Ok(path_env) = env::var("PATH") {
-            for p in env::split_paths(&path_env) {
+        if let Ok(ld_path) = env::var("LD_LIBRARY_PATH") {
+            for p in env::split_paths(&ld_path) {
                 let candidate = p.join(name);
                 if candidate.exists() {
                     return Some(p);
                 }
             }
         }
-
+        for p in rpaths {
+            let path = Path::new(p);
+            let candidate = path.join(name);
+            if candidate.exists() {
+                return Some(path.to_path_buf());
+            }
+        }
+        for p in runpaths {
+            let path = Path::new(p);
+            let candidate = path.join(name);
+            if candidate.exists() {
+                return Some(path.to_path_buf());
+            }
+        }
         None
     }
     pub fn find_link_target(link: &Path) -> Option<PathBuf> {
@@ -148,13 +166,19 @@ impl DepTree {
                 let mut imports = binary.libraries;
                 imports.sort();
                 imports.dedup();
+                #[cfg(target_os = "linux")]
+                let rpaths = binary.rpaths;
+                #[cfg(target_os = "linux")]
+                let runpaths = binary.runpaths;
 
                 for import in imports {
                     #[cfg(target_os = "windows")]
                     let dll = import.dll;
                     #[cfg(target_os = "linux")]
                     let dll = import;
-
+                    #[cfg(target_os = "linux")]
+                    let dll_base = Self::find_dll_base(dll, base, &rpaths, &runpaths);
+                    #[cfg(target_os = "windows")]
                     let dll_base = Self::find_dll_base(dll, base);
                     let target =
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
@@ -204,14 +228,21 @@ impl DepTree {
                 let mut imports = binary.libraries;
                 imports.sort();
                 imports.dedup();
-
+                #[cfg(target_os = "linux")]
+                let rpaths = binary.rpaths;
+                #[cfg(target_os = "linux")]
+                let runpaths = binary.runpaths;
                 for import in imports {
                     #[cfg(target_os = "windows")]
                     let dll_name = import.dll;
                     #[cfg(target_os = "linux")]
                     let dll_name = import;
+                    #[cfg(target_os = "windows")]
+                    let result = Self::find_dll_base(dll_name, base);
+                    #[cfg(target_os = "linux")]
+                    let result = Self::find_dll_base(dll_name, base, &rpaths, &runpaths);
 
-                    match Self::find_dll_base(dll_name, base) {
+                    match result {
                         None => {
                             #[cfg(target_os = "windows")]
                             if dll_name.starts_with("api-ms-win") {
@@ -254,15 +285,20 @@ impl DepTree {
                             let dll_imports = binary.imports;
                             #[cfg(target_os = "linux")]
                             let dll_imports = binary.libraries;
-
+                            #[cfg(target_os = "linux")]
+                            let rpaths = binary.rpaths;
+                            #[cfg(target_os = "linux")]
+                            let runpaths = binary.runpaths;
                             if dll_imports.is_empty() {
                                 continue;
                             }
                             if dll_imports.iter().any(|d| {
                                 #[cfg(target_os = "windows")]
                                 let result = Self::find_dll_base(d.dll, &dll_base).is_none();
+
                                 #[cfg(target_os = "linux")]
-                                let result = Self::find_dll_base(d, &dll_base).is_none();
+                                let result =
+                                    Self::find_dll_base(d, &dll_base, &rpaths, &runpaths).is_none();
                                 result
                             }) {
                                 let target = Self::find_link_target(&dll_base.join(dll_name));

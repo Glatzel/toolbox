@@ -196,7 +196,8 @@ impl DepTree {
                 let mut leaves = Vec::new();
 
                 #[cfg(target_os = "windows")]
-                let mut imports = binary.imports;
+                let mut imports: Vec<String> =
+                    binary.imports.iter().map(|i| i.dll.to_string()).collect();
                 #[cfg(target_os = "linux")]
                 let mut imports = binary.libraries;
                 imports.sort();
@@ -208,7 +209,7 @@ impl DepTree {
 
                 for import in imports {
                     #[cfg(target_os = "windows")]
-                    let dll = import.dll;
+                    let dll = import.as_str();
                     #[cfg(target_os = "linux")]
                     let dll = import;
                     #[cfg(target_os = "linux")]
@@ -258,7 +259,8 @@ impl DepTree {
                 let mut leaves = Vec::new();
 
                 #[cfg(target_os = "windows")]
-                let mut imports = binary.imports;
+                let mut imports: Vec<String> =
+                    binary.imports.iter().map(|i| i.dll.to_string()).collect();
                 #[cfg(target_os = "linux")]
                 let mut imports = binary.libraries;
                 imports.sort();
@@ -269,7 +271,7 @@ impl DepTree {
                 let runpaths = binary.runpaths;
                 for import in imports {
                     #[cfg(target_os = "windows")]
-                    let dll_name = import.dll;
+                    let dll_name = import.as_str();
                     #[cfg(target_os = "linux")]
                     let dll_name = import;
                     #[cfg(target_os = "windows")]

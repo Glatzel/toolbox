@@ -134,15 +134,14 @@ impl DepTree {
             }
             #[cfg(target_os = "windows")]
             (_, None, None) if self.name.starts_with("api-ms-win") => format!(
-                "{} {} {}",
+                "{} ({})",
                 &self.name.green().to_string(),
-                "->".green(),
                 "VirtualImport".blue()
             ),
             (_, None, None) => self.name.red().to_string(),
             (0, _, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
             (_, Some(_p), Some(target)) => {
-                format!("{} -> {} ", &self.name, target.to_slash_lossy(),)
+                format!("{} -> {}", &self.name, target.to_slash_lossy(),)
                     .green()
                     .to_string()
             }

@@ -159,7 +159,7 @@ impl DepTree {
                     }
 
                     visited.insert(dll);
-                    let dll_base = Self::find_dll_base(&dll, base);
+                    let dll_base = Self::find_dll_base(dll, base);
                     let target =
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
                     leaves.push(Self::new(dll, dll_base, self.depth + 1, target));
@@ -243,7 +243,7 @@ impl DepTree {
                             #[cfg(target_os = "windows")]
                             let binary = match PE::parse(&buf) {
                                 Ok(p) => p,
-                                Err(e) => {
+                                Err(_e) => {
                                     return None;
                                 }
                             };

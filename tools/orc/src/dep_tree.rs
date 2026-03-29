@@ -217,7 +217,7 @@ impl DepTree {
                     }
 
                     visited.insert(dll_name);
-                    match Self::find_dll_base(&dll_name, base) {
+                    match Self::find_dll_base(dll_name, base) {
                         None => {
                             if dll_name.starts_with("api-ms-win") {
                                 continue;
@@ -232,7 +232,7 @@ impl DepTree {
                             if dll_name.starts_with("api-ms-win") {
                                 continue;
                             }
-                            let path = dll_base.join(&dll_name);
+                            let path = dll_base.join(dll_name);
                             let buf = match fs::read(&path) {
                                 Ok(b) => b,
                                 Err(_) => {

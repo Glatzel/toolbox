@@ -277,7 +277,7 @@ impl DepTree {
                     let result = Self::find_dll_base(dll_name, base);
                     #[cfg(target_os = "linux")]
                     let result = Self::find_dll_base(dll_name, base, &rpaths, &runpaths);
-
+                    let target = Self::find_link_target(&path);
                     match result {
                         None => {
                             #[cfg(target_os = "windows")]
@@ -285,7 +285,7 @@ impl DepTree {
                                 continue;
                             }
 
-                            leaves.push(Self::new(dll_name, None, self.depth + 1, None))
+                            leaves.push(Self::new(dll_name, None, self.depth + 1, target))
                         }
                         Some(dll_base) => {
                             if self.depth + 2 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
@@ -296,10 +296,11 @@ impl DepTree {
                                 continue;
                             }
                             let path = dll_base.join(dll_name);
+
                             let buf = match fs::read(&path) {
                                 Ok(b) => b,
                                 Err(_) => {
-                                    leaves.push(Self::new(dll_name, None, self.depth + 1, None));
+                                    leaves.push(Self::new(dll_name, None, self.depth + 1, target));
                                     continue;
                                 }
                             };
@@ -337,7 +338,6 @@ impl DepTree {
                                     Self::find_dll_base(d, &dll_base, &rpaths, &runpaths).is_none();
                                 result
                             }) {
-                                let target = Self::find_link_target(&dll_base.join(dll_name));
                                 leaves.push(Self::new(
                                     dll_name,
                                     Some(dll_base),

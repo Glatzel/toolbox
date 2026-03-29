@@ -59,10 +59,10 @@ macro_rules! filter {
                     .as_str(),
                 "[CARGO_MANIFEST_DIR]",
             ),
-            (r"\[31m", "[RED]"),
-            (r"\[32m", "[GREEN]"),
-            (r"\[34m", "[BLUE]"),
-            (r"\[39m", ""),
+            (r".\[31m", "[RED]"),
+            (r".\[32m", "[GREEN]"),
+            (r".\[34m", "[BLUE]"),
+            (r".\[39m", ""),
         ]
     };
 }

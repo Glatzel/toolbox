@@ -14,7 +14,7 @@ raw_r.dll
 │   ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
 │   ├── [GREEN]api-ms-win-crt-locale-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-locale-l1-1-0.dll)
 │   ├── [GREEN]api-ms-win-crt-math-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-math-l1-1-0.dll)
-│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
 │   ├── [GREEN]api-ms-win-crt-stdio-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll)
 │   ├── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)
 │   ├── [GREEN]api-ms-win-crt-time-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-time-l1-1-0.dll)
@@ -25,21 +25,21 @@ raw_r.dll
 │   ├── [RED]KERNEL32.dll
 │   ├── [GREEN]api-ms-win-crt-convert-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-convert-l1-1-0.dll)
 │   ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
-│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
 │   ├── [GREEN]api-ms-win-crt-stdio-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll)
 │   ╰── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)
 ├── [GREEN]VCRUNTIME140_1.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCRUNTIME140_1.dll)
 │   ├── [RED]KERNEL32.dll
 │   ├── [GREEN]VCRUNTIME140.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCRUNTIME140.dll)
 │   ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
-│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+│   ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
 │   ╰── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)
 ├── [RED]WS2_32.dll
 ├── [GREEN]api-ms-win-crt-convert-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-convert-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-filesystem-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-filesystem-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-math-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-math-l1-1-0.dll)
-├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
 ├── [GREEN]api-ms-win-crt-stdio-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-time-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-time-l1-1-0.dll)
@@ -52,6 +52,6 @@ raw_r.dll
     ├── [GREEN]VCRUNTIME140.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/Library/bin/VCRUNTIME140.dll)
     ├── [GREEN]api-ms-win-crt-convert-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-convert-l1-1-0.dll)
     ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
-    ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+    ├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
     ├── [GREEN]api-ms-win-crt-stdio-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll)
     ╰── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)

@@ -13,7 +13,7 @@ raw_r.dll
 ├── [GREEN]api-ms-win-crt-filesystem-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-filesystem-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-heap-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-heap-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-math-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-math-l1-1-0.dll)
-├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll [GREEN]-> [BLUE]VirtualImport
+├── [GREEN]api-ms-win-crt-runtime-l1-1-0.dll ([BLUE]VirtualImport)
 ├── [GREEN]api-ms-win-crt-stdio-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-stdio-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-string-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-string-l1-1-0.dll)
 ├── [GREEN]api-ms-win-crt-time-l1-1-0.dll ([CARGO_MANIFEST_DIR]/.pixi/envs/default/api-ms-win-crt-time-l1-1-0.dll)

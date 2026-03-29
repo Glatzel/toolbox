@@ -128,26 +128,26 @@ impl DepTree {
         match (self.depth, &self.base, &self.target) {
             (0, _, None) => self.name.clone(),
             (_, Some(p), None) => {
-                format!("{} ({})", &self.name, p.join(&self.name).to_slash_lossy())
-                    .green()
-                    .to_string()
+                format!(
+                    "{} [{}]",
+                    &self.name,
+                    p.join(&self.name).to_slash_lossy().green()
+                )
             }
             #[cfg(target_os = "windows")]
-            (_, None, None) if self.name.starts_with("api-ms-win") => format!(
-                "{} ({})",
-                &self.name.green().to_string(),
-                "VirtualImport".blue()
-            ),
-            (_, None, None) => self.name.red().to_string(),
-            (0, _, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
-            (_, Some(_p), Some(target)) => {
-                format!("{} -> {}", &self.name, target.to_slash_lossy(),)
-                    .green()
-                    .to_string()
+            (_, None, None) if self.name.starts_with("api-ms-win") => {
+                format!("{} [{}]", &self.name, "VirtualImport".blue())
             }
-            (_, None, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy())
-                .red()
-                .to_string(),
+            (_, None, None) => self.name.red().to_string(),
+            (0, _, Some(target)) => {
+                format!("{} -> {}", &self.name, target.to_slash_lossy().green())
+            }
+            (_, Some(_p), Some(target)) => {
+                format!("{} -> {}", &self.name, target.to_slash_lossy().green())
+            }
+            (_, None, Some(target)) => {
+                format!("{} -> {}", &self.name, target.to_slash_lossy().red())
+            }
         }
     }
     pub fn content_missing(&self) -> String {
@@ -157,9 +157,9 @@ impl DepTree {
             (_, None, None) => self.name.red().to_string(),
             (0, _, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
             (_, Some(_), Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
-            (_, None, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy())
-                .red()
-                .to_string(),
+            (_, None, Some(target)) => {
+                format!("{} -> {}", &self.name, target.to_slash_lossy().red())
+            }
         }
     }
     pub fn leaves_all(&self) -> Option<Vec<Self>> {

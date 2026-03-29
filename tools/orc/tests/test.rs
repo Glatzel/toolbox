@@ -64,9 +64,8 @@ macro_rules! filter {
             (r"\[34m", "[BLUE]"),
             (r"\[39m", ""),
         ]
-    }
+    };
 }
-
 
 #[rstest]
 #[case(0)]

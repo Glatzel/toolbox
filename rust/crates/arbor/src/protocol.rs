@@ -63,7 +63,7 @@ pub enum Line {
 ///
 /// The returned string is expected to represent the indentation prefix
 /// for the given `(layer, line)` combination.
-pub trait IIndent: Default + Clone {
+pub trait IIndent: Default {
     /// Returns the indentation prefix for a specific `(layer, line)` pair.
     ///
     /// # Parameters

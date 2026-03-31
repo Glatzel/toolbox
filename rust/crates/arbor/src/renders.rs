@@ -118,7 +118,7 @@ pub struct ComplexRender<'a, T> {
 
 impl<'a, I, T> Display for ComplexRender<'a, T>
 where
-    I: IIndent,
+    I: IIndent + Clone,
     T: IComplexTree<Indent = I, Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

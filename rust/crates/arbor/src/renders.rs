@@ -46,7 +46,7 @@ pub struct Render<'a, I, T> {
 impl<'a, I, T> Display for Render<'a, I, T>
 where
     I: IIndent,
-    T: ITree<Leave = T>,
+    T: ITree<Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
@@ -74,14 +74,13 @@ where
                 self.width,
             )?;
 
-            if !leaf.leaves().is_empty() {
+            let mut iter = leaf.leaves().peekable();
+            if iter.peek().is_some() {
                 let mut leave_spaces = (*s).clone();
                 leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
-
                 enqueue(&mut queue, leaf, Rc::new(leave_spaces), &self.indent);
             }
         }
-
         Ok(())
     }
 }
@@ -120,7 +119,7 @@ pub struct ComplexRender<'a, T> {
 impl<'a, I, T> Display for ComplexRender<'a, T>
 where
     I: IIndent,
-    T: IComplexTree<Indent = I, Leave = T>,
+    T: IComplexTree<Indent = I, Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
@@ -149,14 +148,11 @@ where
                 #[cfg(feature = "textwrap")]
                 self.width,
             )?;
-
-            if !leaf.leaves().is_empty() {
+            let mut iter = leaf.leaves().peekable();
+            if iter.peek().is_some() {
                 let mut leave_spaces = (*s).clone();
-
                 let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
-
                 leave_spaces.push_str(indent.get_indent(layer, Line::Other));
-
                 enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
             }
         }
@@ -183,23 +179,28 @@ fn enqueue<'a, I, T>(
     indent: &'a I,
 ) where
     I: IIndent,
-    T: ITree<Leave = T>,
+    T: ITree<Leaf = T>,
 {
-    let children_count_index = tree.leaves().len().saturating_sub(1);
+    let mut iter = tree.leaves().peekable();
 
-    for (i, leaf) in tree.leaves().iter().rev().enumerate() {
-        let layer = match i {
-            0 => Layer::Bottom,
-            i => {
-                if i == children_count_index {
-                    Layer::Top
-                } else {
-                    Layer::Middle
-                }
+    let mut first = true;
+
+    while let Some(leaf) = iter.next() {
+        let layer = if first {
+            if iter.peek().is_none() {
+                Layer::Bottom
+            } else {
+                Layer::Top
             }
+        } else if iter.peek().is_none() {
+            Layer::Bottom
+        } else {
+            Layer::Middle
         };
 
-        queue.push_front((leaf, layer, spaces.clone(), indent));
+        first = false;
+
+        queue.push_back((leaf, layer, spaces.clone(), indent));
     }
 }
 
@@ -211,19 +212,18 @@ fn enqueue<'a, I, T>(
 ///
 /// The `Layer` determines which branch marker is emitted by the indentation
 /// style implementation.
-fn render_content_no_wrap<I>(
+fn render_content_no_wrap<I, T>(
     f: &mut fmt::Formatter<'_>,
-    node: &impl ITree,
+    node: &T,
     layer: Layer,
     prefix: &str,
     indent: &I,
 ) -> fmt::Result
 where
     I: IIndent,
+    T: ITree,
 {
-    let lines = node.content().lines();
-
-    for (line_index, text) in lines.enumerate() {
+    for (line_index, text) in node.content().as_ref().lines().enumerate() {
         f.write_str(prefix)?;
 
         f.write_str(indent.get_indent(
@@ -278,7 +278,11 @@ where
             .initial_indent(&initial_indent)
             .subsequent_indent(&subsequent_indent);
 
-        writeln!(f, "{}", textwrap::fill(node.content(), &wrap_option))?;
+        writeln!(
+            f,
+            "{}",
+            textwrap::fill(node.content().as_ref(), &wrap_option)
+        )?;
     }
 
     Ok(())

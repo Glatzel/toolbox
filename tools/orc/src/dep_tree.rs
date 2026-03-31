@@ -196,7 +196,7 @@ impl DepTree {
                 let binary = match Elf::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return ;
+                        return;
                     }
                 };
 
@@ -325,7 +325,7 @@ impl DepTree {
                             let binary = match Elf::parse(&buf) {
                                 Ok(p) => p,
                                 Err(_e) => {
-                                    return ;
+                                    return;
                                 }
                             };
                             #[cfg(target_os = "windows")]

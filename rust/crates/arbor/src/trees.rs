@@ -41,13 +41,14 @@ pub struct Tree<D: AsRef<str>> {
 }
 
 impl<D: AsRef<str>> ITree for Tree<D> {
-    type Leave = Tree<D>;
-    /// Returns the textual content of the node.
-    fn content(&self) -> &str { self.content.as_ref() }
-    /// Returns the child nodes of this tree element.
-    fn leaves(&self) -> &[Self::Leave] { &self.leaves }
-}
+    type Leaf = Tree<D>;
 
+    fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
+
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
+        self.leaves.iter()
+    }
+}
 impl<D: AsRef<str>> Tree<D> {
     /// Creates a new tree node with no children.
     pub fn new(content: D) -> Self {
@@ -112,11 +113,13 @@ pub struct ComplexTree<D: AsRef<str>, I: IIndent> {
 }
 
 impl<D: AsRef<str>, I: IIndent> ITree for ComplexTree<D, I> {
-    type Leave = ComplexTree<D, I>;
-    /// Returns the textual content of the node.
-    fn content(&self) -> &str { self.content.as_ref() }
-    /// Returns the child nodes of this element.
-    fn leaves(&self) -> &[Self::Leave] { &self.leaves }
+    type Leaf = ComplexTree<D, I>;
+
+    fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
+
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
+        self.leaves.iter()
+    }
 }
 
 impl<D: AsRef<str>, I: IIndent> IComplexTree for ComplexTree<D, I> {

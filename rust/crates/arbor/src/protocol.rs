@@ -96,15 +96,16 @@ pub trait ITree {
     ///
     /// Each child must also implement [`ITree`], enabling recursive
     /// traversal of the tree.
-    type Leave: ITree;
+    type Leaf: ITree;
+
     /// Returns the textual content associated with the node.
     ///
     /// This content is rendered after the indentation prefix.
-    fn content(&self) -> &str;
+    fn content(&self) -> impl AsRef<str>;
     /// Returns the child nodes of this element.
     ///
     /// An empty slice indicates that the node is a leaf.
-    fn leaves(&self) -> &[Self::Leave];
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator;
 }
 
 /// Extension of [`ITree`] that allows nodes to specify a custom
@@ -120,19 +121,4 @@ pub trait IComplexTree: ITree {
     /// If `None` is returned, the renderer should fall back to the
     /// inherited or default indentation style.
     fn indent(&self) -> &Option<Self::Indent>;
-}
-pub trait ILazyTree: Clone {
-    /// The child node type.
-    ///
-    /// Each child must also implement [`ITree`], enabling recursive
-    /// traversal of the tree.
-    type Leave: ILazyTree;
-    /// Returns the textual content associated with the node.
-    ///
-    /// This content is rendered after the indentation prefix.
-    fn content(&self) -> alloc::string::String;
-    /// Returns the child nodes of this element.
-    ///
-    /// An empty slice indicates that the node is a leaf.
-    fn leaves(&self) -> Option<alloc::vec::Vec<Self::Leave>>;
 }

@@ -170,9 +170,9 @@ impl DepTree {
             }
         }
     }
-    pub fn leaves_all(&self) -> Vec<Self> {
+    pub fn leaves_all(&self) {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return vec![];
+            return;
         }
         match &self.base {
             Some(base) => {
@@ -182,14 +182,14 @@ impl DepTree {
                     Ok(b) => b,
                     Err(e) => {
                         clerk::warn!("Failed to read {}: {}", path.display(), e);
-                        return vec![];
+                        return;
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return vec![];
+                        return;
                     }
                 };
                 #[cfg(target_os = "linux")]
@@ -227,15 +227,15 @@ impl DepTree {
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
                     leaves.push(Self::new(dll, dll_base, self.depth + 1, target));
                 }
-                leaves
+                let _ = self.leaves.set(leaves);
             }
-            None => vec![],
+            None => {}
         }
     }
 
-    pub fn leaves_missing(&self) -> Vec<Self> {
+    pub fn leaves_missing(&self) {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return vec![];
+            return;
         }
 
         match &self.base {
@@ -245,21 +245,21 @@ impl DepTree {
                 let buf = match fs::read(&path) {
                     Ok(b) => b,
                     Err(_e) => {
-                        return vec![];
+                        return;
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return vec![];
+                        return;
                     }
                 };
                 #[cfg(target_os = "linux")]
                 let binary = match Elf::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return vec![];
+                        return;
                     }
                 };
 
@@ -318,7 +318,7 @@ impl DepTree {
                             let binary = match PE::parse(&buf) {
                                 Ok(p) => p,
                                 Err(_e) => {
-                                    return vec![];
+                                    return;
                                 }
                             };
                             #[cfg(target_os = "linux")]
@@ -358,9 +358,9 @@ impl DepTree {
                         }
                     };
                 }
-                leaves
+                let _ = self.leaves.set(leaves);
             }
-            None => vec![],
+            None => {}
         }
     }
 }
@@ -375,9 +375,13 @@ impl ITree for DepTree {
         }
     }
     fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> {
+        match SHOW_OPTION.get().unwrap() {
+            ShowOption::All => self.leaves_all(),
+            ShowOption::Missing => self.leaves_missing(),
+        };
         match self.leaves.get() {
             Some(leaves) => leaves.iter(),
-            None => std::iter::empty(),
+            None => [].iter(),
         }
     }
 }

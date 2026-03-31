@@ -45,7 +45,9 @@ impl<D: AsRef<str>> ITree for Tree<D> {
 
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
 
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> { self.leaves.iter() }
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
+        self.leaves.iter()
+    }
 }
 impl<D: AsRef<str>> Tree<D> {
     /// Creates a new tree node with no children.
@@ -115,7 +117,9 @@ impl<D: AsRef<str>, I: IIndent> ITree for ComplexTree<D, I> {
 
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
 
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> { self.leaves.iter() }
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
+        self.leaves.iter()
+    }
 }
 
 impl<D: AsRef<str>, I: IIndent> IComplexTree for ComplexTree<D, I> {

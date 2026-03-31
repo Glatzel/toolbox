@@ -374,7 +374,7 @@ impl ITree for DepTree {
             ShowOption::Missing => self.content_missing(),
         }
     }
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> {
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.leaves_all(),
             ShowOption::Missing => self.leaves_missing(),

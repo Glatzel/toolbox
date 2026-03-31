@@ -105,7 +105,7 @@ pub trait ITree {
     /// Returns the child nodes of this element.
     ///
     /// An empty slice indicates that the node is a leaf.
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf>;
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator;
 }
 
 /// Extension of [`ITree`] that allows nodes to specify a custom

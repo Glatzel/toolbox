@@ -181,26 +181,15 @@ fn enqueue<'a, I, T>(
     I: IIndent,
     T: ITree<Leaf = T>,
 {
-    let mut iter = tree.leaves().peekable();
-
-    let mut first = true;
-
-    while let Some(leaf) = iter.next() {
-        let layer = if first {
-            if iter.peek().is_none() {
-                Layer::Bottom
-            } else {
-                Layer::Top
-            }
-        } else if iter.peek().is_none() {
-            Layer::Bottom
-        } else {
-            Layer::Middle
+    let leaves: alloc::vec::Vec<_> = tree.leaves().collect();
+    let last = leaves.len().saturating_sub(1);
+    for (i, leaf) in leaves.iter().rev().enumerate() {
+        let layer = match i {
+            0 => Layer::Bottom,
+            i if i == last => Layer::Top,
+            _ => Layer::Middle,
         };
-
-        first = false;
-
-        queue.push_back((leaf, layer, spaces.clone(), indent));
+        queue.push_front((leaf, layer, spaces.clone(), indent));
     }
 }
 

@@ -1,8 +1,9 @@
+use std::cell::OnceCell;
 use std::fs::read_link;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use arbor::protocol::ILazyTree;
+use arbor::protocol::ITree;
 #[cfg(target_os = "linux")]
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
@@ -18,6 +19,7 @@ pub struct DepTree {
     pub base: Option<PathBuf>,
     pub depth: usize,
     pub target: Option<PathBuf>,
+    pub leaves: OnceCell<Vec<DepTree>>,
 }
 impl DepTree {
     pub fn new(name: &str, base: Option<PathBuf>, depth: usize, target: Option<PathBuf>) -> Self {
@@ -26,6 +28,7 @@ impl DepTree {
             base,
             depth,
             target,
+            leaves: OnceCell::new(),
         }
     }
 }
@@ -167,9 +170,9 @@ impl DepTree {
             }
         }
     }
-    pub fn leaves_all(&self) -> Option<Vec<Self>> {
+    pub fn leaves_all(&self) -> Vec<Self> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return None;
+            return vec![];
         }
         match &self.base {
             Some(base) => {
@@ -179,14 +182,14 @@ impl DepTree {
                     Ok(b) => b,
                     Err(e) => {
                         clerk::warn!("Failed to read {}: {}", path.display(), e);
-                        return None;
+                        return vec![];
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return None;
+                        return vec![];
                     }
                 };
                 #[cfg(target_os = "linux")]
@@ -224,15 +227,15 @@ impl DepTree {
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
                     leaves.push(Self::new(dll, dll_base, self.depth + 1, target));
                 }
-                (!leaves.is_empty()).then_some(leaves)
+                leaves
             }
-            None => None,
+            None => vec![],
         }
     }
 
-    pub fn leaves_missing(&self) -> Option<Vec<Self>> {
+    pub fn leaves_missing(&self) -> Vec<Self> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return None;
+            return vec![];
         }
 
         match &self.base {
@@ -242,21 +245,21 @@ impl DepTree {
                 let buf = match fs::read(&path) {
                     Ok(b) => b,
                     Err(_e) => {
-                        return None;
+                        return vec![];
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return None;
+                        return vec![];
                     }
                 };
                 #[cfg(target_os = "linux")]
                 let binary = match Elf::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return None;
+                        return vec![];
                     }
                 };
 
@@ -315,7 +318,7 @@ impl DepTree {
                             let binary = match PE::parse(&buf) {
                                 Ok(p) => p,
                                 Err(_e) => {
-                                    return None;
+                                    return vec![];
                                 }
                             };
                             #[cfg(target_os = "linux")]
@@ -355,26 +358,26 @@ impl DepTree {
                         }
                     };
                 }
-                (!leaves.is_empty()).then_some(leaves)
+                leaves
             }
-            None => None,
+            None => vec![],
         }
     }
 }
 
 use crate::cli::{SHOW_OPTION, ShowOption};
-impl ILazyTree for DepTree {
-    type Leave = DepTree;
-    fn content(&self) -> String {
+impl ITree for DepTree {
+    type Leaf = DepTree;
+    fn content(&self) -> impl AsRef<str> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.content_all(),
             ShowOption::Missing => self.content_missing(),
         }
     }
-    fn leaves(&self) -> Option<Vec<Self::Leave>> {
-        match SHOW_OPTION.get().unwrap() {
-            ShowOption::All => self.leaves_all(),
-            ShowOption::Missing => self.leaves_missing(),
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> {
+        match self.leaves.get() {
+            Some(leaves) => leaves.iter(),
+            None => std::iter::empty(),
         }
     }
 }

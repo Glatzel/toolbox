@@ -42,14 +42,10 @@ pub struct Tree<D: AsRef<str>> {
 
 impl<D: AsRef<str>> ITree for Tree<D> {
     type Leaf = Tree<D>;
-    type Leaves<'a>
-        = alloc::slice::Iter<'a, Tree<D>>
-    where
-        Self: 'a;
 
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
 
-    fn leaves(&self) -> Self::Leaves<'_> { self.leaves.iter() }
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> { self.leaves.iter() }
 }
 impl<D: AsRef<str>> Tree<D> {
     /// Creates a new tree node with no children.
@@ -117,14 +113,9 @@ pub struct ComplexTree<D: AsRef<str>, I: IIndent> {
 impl<D: AsRef<str>, I: IIndent> ITree for ComplexTree<D, I> {
     type Leaf = ComplexTree<D, I>;
 
-    type Leaves<'a>
-        = core::slice::Iter<'a, ComplexTree<D, I>>
-    where
-        Self: 'a;
-
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
 
-    fn leaves(&self) -> Self::Leaves<'_> { self.leaves.iter() }
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> { self.leaves.iter() }
 }
 
 impl<D: AsRef<str>, I: IIndent> IComplexTree for ComplexTree<D, I> {

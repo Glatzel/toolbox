@@ -97,9 +97,7 @@ pub trait ITree {
     /// Each child must also implement [`ITree`], enabling recursive
     /// traversal of the tree.
     type Leaf: ITree;
-    type Leaves<'a>: Iterator<Item = &'a Self::Leaf>
-    where
-        Self: 'a;
+
     /// Returns the textual content associated with the node.
     ///
     /// This content is rendered after the indentation prefix.
@@ -107,7 +105,7 @@ pub trait ITree {
     /// Returns the child nodes of this element.
     ///
     /// An empty slice indicates that the node is a leaf.
-    fn leaves(&self) -> Self::Leaves<'_>;
+    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf>;
 }
 
 /// Extension of [`ITree`] that allows nodes to specify a custom

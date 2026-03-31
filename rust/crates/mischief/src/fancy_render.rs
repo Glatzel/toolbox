@@ -330,7 +330,7 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     }
 }
 
-impl<I: IIndent, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
+impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
     /// Renders the entire diagnostic report as a formatted tree.
     ///
     /// Each diagnostic in the causal chain is converted into a tree

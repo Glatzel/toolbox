@@ -1,9 +1,8 @@
-use std::cell::OnceCell;
 use std::fs::read_link;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use arbor::protocol::{ILazyTree, IOwnedTree, ITreeContent};
+use arbor::protocol::{ILazyTree, ITreeContent};
 #[cfg(target_os = "linux")]
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
@@ -372,12 +371,12 @@ impl ITreeContent for DepTree {
 }
 impl ILazyTree for DepTree {
     type Leaf = DepTree;
-    type Leaves = Vec<DepTree>;
+    type Leaves = std::vec::IntoIter<DepTree>;
 
     fn leaves(&self) -> Self::Leaves {
         match SHOW_OPTION.get().unwrap() {
-            ShowOption::All => self.leaves_all(),
-            ShowOption::Missing => self.leaves_missing(),
+            ShowOption::All => self.leaves_all().into_iter(),
+            ShowOption::Missing => self.leaves_missing().into_iter(),
         }
     }
 }

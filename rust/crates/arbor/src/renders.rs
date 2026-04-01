@@ -80,19 +80,20 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
 
-        let indent = self.tree.indent().clone().unwrap_or_default();
+        let default_indent = I::default();
+        let indent = self.tree.indent().as_ref().unwrap_or(&default_indent);
 
         render_content(
             f,
             self.tree,
             Layer::Root,
             "",
-            &indent,
+            indent,
             #[cfg(feature = "textwrap")]
             self.width,
         )?;
 
-        enqueue(&mut queue, self.tree, Rc::new(String::new()), &indent);
+        enqueue(&mut queue, self.tree, Rc::new(String::new()), indent);
 
         while let Some((leaf, layer, s, indent)) = queue.pop_front() {
             render_content(
@@ -129,7 +130,7 @@ where
     T: ILazyTree<Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut queue: VecDeque<(<T as ILazyTree>::Leaf, Layer, Rc<String>, I)> = VecDeque::new();
+        let mut queue = VecDeque::new();
 
         render_content(
             f,
@@ -145,7 +146,7 @@ where
             &mut queue,
             self.tree.leaves(),
             Rc::new(String::new()),
-            self.indent.clone(),
+            &self.indent,
         );
 
         while let Some((node, layer, prefix, indent)) = queue.pop_front() {
@@ -154,13 +155,13 @@ where
                 &node,
                 layer,
                 &prefix,
-                &indent,
+                indent,
                 #[cfg(feature = "textwrap")]
                 self.width,
             )?;
 
             let leaves = node.leaves();
-            enqueue_lazy(&mut queue, leaves, prefix.clone(), indent.clone());
+            enqueue_lazy(&mut queue, leaves, prefix.clone(), &self.indent);
         }
 
         Ok(())
@@ -186,11 +187,11 @@ fn enqueue<'a, I, T>(
         queue.push_front((leaf, layer, spaces.clone(), indent));
     }
 }
-fn enqueue_lazy<I, T>(
-    queue: &mut VecDeque<(T, Layer, Rc<String>, I)>,
+fn enqueue_lazy<'a, I, T>(
+    queue: &mut VecDeque<(T, Layer, Rc<String>, &'a I)>,
     leaves: impl DoubleEndedIterator<Item = T>,
     spaces: Rc<String>,
-    indent: I,
+    indent: &'a I,
 ) where
     I: IIndent,
     T: ILazyTree,
@@ -205,7 +206,7 @@ fn enqueue_lazy<I, T>(
             _ => Layer::Middle,
         };
 
-        queue.push_front((leaf, layer, spaces.clone(), indent.clone()));
+        queue.push_front((leaf, layer, spaces.clone(), indent));
     }
 }
 /// Renders the textual content of a node without line wrapping.

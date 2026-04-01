@@ -3,7 +3,7 @@ use std::fs::read_link;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use arbor::protocol::IOwnedTree;
+use arbor::protocol::{IOwnedTree, ITreeContent};
 #[cfg(target_os = "linux")]
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
@@ -11,7 +11,7 @@ use goblin::pe::PE;
 use owo_colors::OwoColorize;
 use path_slash::PathBufExt;
 
-use crate::cli::LIMIT;
+use crate::cli::{LIMIT, SHOW_OPTION, ShowOption};
 
 #[derive(Debug, Clone)]
 pub struct DepTree {
@@ -364,20 +364,21 @@ impl DepTree {
         }
     }
 }
-
-use crate::cli::{SHOW_OPTION, ShowOption};
-impl IOwnedTree for DepTree {
-    type Leaf = DepTree;
-    type Leaves<'a>
-        = core::slice::Iter<'a, Self::Leaf>
-    where
-        Self: 'a;
+impl ITreeContent for DepTree {
     fn content(&self) -> impl AsRef<str> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.content_all(),
             ShowOption::Missing => self.content_missing(),
         }
     }
+}
+impl IOwnedTree for DepTree {
+    type Leaf = DepTree;
+    type Leaves<'a>
+        = core::slice::Iter<'a, Self::Leaf>
+    where
+        Self: 'a;
+
     fn leaves(&self) -> Self::Leaves<'_> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.leaves_all(),

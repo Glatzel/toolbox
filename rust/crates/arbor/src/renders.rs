@@ -126,7 +126,7 @@ pub struct LazyRender<I, T> {
 impl<I, T> Display for LazyRender<I, T>
 where
     I: IIndent + Clone,
-    T: ILazyTree,
+    T: ILazyTree<Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue: VecDeque<(<T as ILazyTree>::Leaf, Layer, Rc<String>, I)> = VecDeque::new();
@@ -160,7 +160,6 @@ where
             )?;
 
             let leaves = node.leaves();
-
             enqueue_lazy(&mut queue, leaves, prefix.clone(), indent.clone());
         }
 
@@ -193,7 +192,7 @@ fn enqueue_lazy<I, T>(
     spaces: Rc<String>,
     indent: I,
 ) where
-    I: IIndent ,
+    I: IIndent,
     T: ILazyTree,
 {
     let leaves: alloc::vec::Vec<T> = leaves.collect();

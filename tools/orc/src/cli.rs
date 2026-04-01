@@ -55,7 +55,7 @@ fn execute(args: Args) -> mischief::Result<()> {
         DepTree::find_link_target(&args.input),
     );
     clerk::debug!("Dependency tree root created");
-    let render = arbor::renders::Render {
+    let render = arbor::renders::OwnedRender {
         tree: &tree,
         indent: UnicodeIndent,
         width: 0,

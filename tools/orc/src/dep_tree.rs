@@ -3,7 +3,7 @@ use std::fs::read_link;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use arbor::protocol::ITree;
+use arbor::protocol::IOwnedTree;
 #[cfg(target_os = "linux")]
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
@@ -366,15 +366,19 @@ impl DepTree {
 }
 
 use crate::cli::{SHOW_OPTION, ShowOption};
-impl ITree for DepTree {
+impl IOwnedTree for DepTree {
     type Leaf = DepTree;
+    type Leaves<'a>
+        = core::slice::Iter<'a, Self::Leaf>
+    where
+        Self: 'a;
     fn content(&self) -> impl AsRef<str> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.content_all(),
             ShowOption::Missing => self.content_missing(),
         }
     }
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
+    fn leaves(&self) -> Self::Leaves<'_> {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.leaves_all(),
             ShowOption::Missing => self.leaves_missing(),

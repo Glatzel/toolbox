@@ -44,6 +44,7 @@ pub enum Line {
     ///
     /// This is typically where the branch connector appears.
     First,
+
     /// Any subsequent lines belonging to the same element.
     ///
     /// These lines usually align with the content indentation rather
@@ -77,48 +78,25 @@ pub trait IIndent: Default + Clone {
     /// before the content of the line.
     fn get_indent(&self, layer: Layer, line: Line) -> &str;
 }
-
-/// Defines the basic structure required for a renderable tree.
-///
-/// A type implementing `ITree` represents a node with textual content
-/// and zero or more child nodes. The trait is recursive, meaning that
-/// each child (`Leave`) must also implement `ITree`.
-///
-/// This abstraction allows generic rendering of hierarchical data
-/// structures such as:
-///
-/// - diagnostic reports
-/// - error chains
-/// - syntax trees
-/// - hierarchical logs
-pub trait ITree {
-    /// The child node type.
-    ///
-    /// Each child must also implement [`ITree`], enabling recursive
-    /// traversal of the tree.
-    type Leaf: ITree;
-
-    /// Returns the textual content associated with the node.
-    ///
-    /// This content is rendered after the indentation prefix.
+pub trait ITreeContent {
     fn content(&self) -> impl AsRef<str>;
-    /// Returns the child nodes of this element.
-    ///
-    /// An empty slice indicates that the node is a leaf.
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator;
 }
 
-/// Extension of [`ITree`] that allows nodes to specify a custom
-/// indentation style.
-///
-/// If an indentation style is provided, it overrides the renderer's
-/// default indentation behavior for this node and its subtree.
-pub trait IComplexTree: ITree {
-    /// The indentation style used by the node.
+pub trait IOwnedTree: ITreeContent {
+    type Leaf: IOwnedTree;
+    type Leaves<'a>: DoubleEndedIterator<Item = &'a Self::Leaf>
+    where
+        Self: 'a;
+    fn leaves(&self) -> Self::Leaves<'_>;
+}
+
+pub trait IStyledOwnedTree: IOwnedTree {
     type Indent: IIndent;
-    /// Returns the indentation style for this node.
-    ///
-    /// If `None` is returned, the renderer should fall back to the
-    /// inherited or default indentation style.
     fn indent(&self) -> &Option<Self::Indent>;
+}
+
+pub trait ILazyTree: ITreeContent {
+    type Leaf: ILazyTree;
+    type Leaves: DoubleEndedIterator<Item = Self::Leaf>;
+    fn leaves(&self) -> Self::Leaves;
 }

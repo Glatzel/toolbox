@@ -3,7 +3,7 @@ use std::fs::read_link;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use arbor::protocol::{IOwnedTree, ITreeContent};
+use arbor::protocol::{ILazyTree, IOwnedTree, ITreeContent};
 #[cfg(target_os = "linux")]
 use goblin::elf::Elf;
 #[cfg(target_os = "windows")]
@@ -19,7 +19,6 @@ pub struct DepTree {
     pub base: Option<PathBuf>,
     pub depth: usize,
     pub target: Option<PathBuf>,
-    pub leaves: OnceCell<Vec<DepTree>>,
 }
 impl DepTree {
     pub fn new(name: &str, base: Option<PathBuf>, depth: usize, target: Option<PathBuf>) -> Self {
@@ -28,7 +27,6 @@ impl DepTree {
             base,
             depth,
             target,
-            leaves: OnceCell::new(),
         }
     }
 }
@@ -170,9 +168,9 @@ impl DepTree {
             }
         }
     }
-    pub fn leaves_all(&self) {
+    pub fn leaves_all(&self) -> Vec<DepTree> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return;
+            return Vec::new();
         }
         match &self.base {
             Some(base) => {
@@ -182,21 +180,21 @@ impl DepTree {
                     Ok(b) => b,
                     Err(e) => {
                         clerk::warn!("Failed to read {}: {}", path.display(), e);
-                        return;
+                        return Vec::new();
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return;
+                        return Vec::new();
                     }
                 };
                 #[cfg(target_os = "linux")]
                 let binary = match Elf::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return;
+                        return Vec::new();
                     }
                 };
 
@@ -227,15 +225,15 @@ impl DepTree {
                         Self::find_link_target(&dll_base.clone().unwrap_or(base.clone()).join(dll));
                     leaves.push(Self::new(dll, dll_base, self.depth + 1, target));
                 }
-                let _ = self.leaves.set(leaves);
+                leaves
             }
-            None => {}
+            None => Vec::new(),
         }
     }
 
-    pub fn leaves_missing(&self) {
+    pub fn leaves_missing(&self) -> Vec<DepTree> {
         if self.depth + 1 > *LIMIT.get().unwrap() && *LIMIT.get().unwrap() > 0 {
-            return;
+            return Vec::new();
         }
 
         match &self.base {
@@ -245,21 +243,21 @@ impl DepTree {
                 let buf = match fs::read(&path) {
                     Ok(b) => b,
                     Err(_e) => {
-                        return;
+                        return Vec::new();
                     }
                 };
                 #[cfg(target_os = "windows")]
                 let binary = match PE::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return;
+                        return Vec::new();
                     }
                 };
                 #[cfg(target_os = "linux")]
                 let binary = match Elf::parse(&buf) {
                     Ok(p) => p,
                     Err(_e) => {
-                        return;
+                        return Vec::new();
                     }
                 };
 
@@ -318,14 +316,14 @@ impl DepTree {
                             let binary = match PE::parse(&buf) {
                                 Ok(p) => p,
                                 Err(_e) => {
-                                    return;
+                                    return Vec::new();
                                 }
                             };
                             #[cfg(target_os = "linux")]
                             let binary = match Elf::parse(&buf) {
                                 Ok(p) => p,
                                 Err(_e) => {
-                                    return;
+                                    return Vec::new();
                                 }
                             };
                             #[cfg(target_os = "windows")]
@@ -358,9 +356,9 @@ impl DepTree {
                         }
                     };
                 }
-                let _ = self.leaves.set(leaves);
+                leaves
             }
-            None => {}
+            None => Vec::new(),
         }
     }
 }
@@ -372,21 +370,14 @@ impl ITreeContent for DepTree {
         }
     }
 }
-impl IOwnedTree for DepTree {
+impl ILazyTree for DepTree {
     type Leaf = DepTree;
-    type Leaves<'a>
-        = core::slice::Iter<'a, Self::Leaf>
-    where
-        Self: 'a;
+    type Leaves = Vec<DepTree>;
 
-    fn leaves(&self) -> Self::Leaves<'_> {
+    fn leaves(&self) -> Self::Leaves {
         match SHOW_OPTION.get().unwrap() {
             ShowOption::All => self.leaves_all(),
             ShowOption::Missing => self.leaves_missing(),
-        };
-        match self.leaves.get() {
-            Some(leaves) => leaves.iter(),
-            None => [].iter(),
         }
     }
 }

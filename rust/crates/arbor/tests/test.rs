@@ -1,7 +1,7 @@
 use arbor::indents::{AsciiIndent, DebugIndent, SpaceIndent, UnicodeIndent, UniversalIndent};
 use arbor::protocol::IIndent;
-use arbor::renders::{StyledOwnedRender, OwnedRender};
-use arbor::trees::{StyledOwnedTree, OwnedTree};
+use arbor::renders::{OwnedRender, StyledOwnedRender};
+use arbor::trees::{OwnedTree, StyledOwnedTree};
 use rstest::rstest;
 
 #[test]
@@ -17,8 +17,9 @@ fn render_tree_root() {
 }
 #[test]
 fn render_tree_with_leaves() {
-    let tree = OwnedTree::new("foo")
-        .with_leaves([OwnedTree::new("bar").with_leaves([OwnedTree::new("foobar").with_leaves(["baz"])])]);
+    let tree = OwnedTree::new("foo").with_leaves([
+        OwnedTree::new("bar").with_leaves([OwnedTree::new("foobar").with_leaves(["baz"])])
+    ]);
     let render = OwnedRender {
         tree: &tree,
         indent: UnicodeIndent,

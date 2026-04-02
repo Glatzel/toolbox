@@ -20,17 +20,17 @@ pub enum Layer {
     ///
     /// This is the topmost node and has no parent.
     Root,
-    
+
     /// The first child layer under a parent.
     ///
     /// Often rendered with a connector such as `├`.
     Top,
-    
+
     /// A middle child layer between the first and last children.
     ///
     /// Used when a parent contains multiple intermediate nodes.
     Middle,
-    
+
     /// The final child layer under a parent.
     ///
     /// Often rendered with a connector such as `└`.
@@ -88,7 +88,8 @@ pub trait IIndent: Default {
 /// Each node must expose a textual representation through [`content`].
 ///
 /// The returned value implements [`AsRef<str>`], allowing flexibility in
-/// whether the content is stored as `String`, `&str`, or another string-like type.
+/// whether the content is stored as `String`, `&str`, or another string-like
+/// type.
 pub trait ITreeContent {
     /// Returns the textual content associated with this node.
     fn content(&self) -> impl AsRef<str>;

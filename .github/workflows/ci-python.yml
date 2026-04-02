@@ -3,10 +3,6 @@ name: python-CI
 on:
   workflow_dispatch:
   workflow_call:
-
-defaults:
-  run:
-    working-directory: ./python
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -17,5 +13,7 @@ jobs:
         with:
           run-install: false
       - uses: ./.github/actions/python/pytest
+        with:
+          working-directory: ./python
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

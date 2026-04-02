@@ -9,6 +9,17 @@ use crate::protocol::{
     IIndent, ILazyTree, IOwnedTree, IStyledOwnedTree, ITreeContent, Layer, Line,
 };
 
+/// Renderer for trees implementing [`IOwnedTree`].
+///
+/// This renderer traverses a tree whose nodes are referenced (`&T`) and whose
+/// children are accessed via iterators yielding references. Rendering is done
+/// in a breadth-first manner using an internal queue.
+///
+/// The indentation style is fixed for the entire tree and provided through
+/// the `indent` field.
+///
+/// If the `textwrap` feature is enabled, lines can optionally be wrapped
+/// to the specified width.
 pub struct OwnedRender<'a, I, T> {
     /// Root tree node to render.
     pub tree: &'a T,
@@ -73,6 +84,14 @@ where
     }
 }
 
+/// Renderer for styled trees implementing [`IStyledOwnedTree`].
+///
+/// Unlike [`OwnedRender`], this renderer allows each node to override the
+/// indentation style used for its subtree. If a node does not provide a custom
+/// indentation style, the parent indentation or the default indentation
+/// implementation is used.
+///
+/// This allows heterogeneous indentation styles within the same tree.
 pub struct StyledOwnedRender<'a, T> {
     /// Root tree node to render.
     pub tree: &'a T,
@@ -137,13 +156,27 @@ where
         Ok(())
     }
 }
+
+/// Renderer for trees implementing [`ILazyTree`].
+///
+/// In this model, tree nodes own their children and the iterator returned by
+/// `leaves()` yields values rather than references. This enables lazy or
+/// streaming tree construction where nodes may be generated dynamically.
+///
+/// Because nodes are owned, this renderer stores them directly in the queue
+/// during traversal.
 pub struct LazyRender<I, T> {
+    /// Root tree node to render.
     pub tree: T,
+
+    /// Indentation style used for rendering.
     pub indent: I,
 
+    /// Optional wrapping width used when the `textwrap` feature is enabled.
     #[cfg(feature = "textwrap")]
     pub width: usize,
 }
+
 impl<I, T> Display for LazyRender<I, T>
 where
     I: IIndent + Clone,
@@ -196,6 +229,15 @@ where
         Ok(())
     }
 }
+
+/// Pushes a set of child nodes into the rendering queue.
+///
+/// The iterator of leaves is collected and then pushed in reverse order so
+/// that the first child is processed first when popping from the front of
+/// the queue.
+///
+/// Each child is annotated with a [`Layer`] describing whether it is the
+/// top, middle, or bottom branch within the current sibling group.
 fn enqueue<I, T, It>(
     queue: &mut VecDeque<(T, Layer, Rc<String>, I)>,
     leaves: It,
@@ -218,6 +260,7 @@ fn enqueue<I, T, It>(
         queue.push_front((leaf, layer, prefix.clone(), indent.clone()));
     }
 }
+
 /// Renders the textual content of a node without line wrapping.
 ///
 /// The node content may contain multiple lines. Each line is rendered with

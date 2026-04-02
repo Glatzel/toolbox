@@ -85,7 +85,7 @@ pub trait IIndent: Default {
 /// Provides textual content for a tree node.
 ///
 /// This trait represents the minimal interface for a tree element.
-/// Each node must expose a textual representation through [`content`].
+/// Each node must expose a textual representation through `content`.
 ///
 /// The returned value implements [`AsRef<str>`], allowing flexibility in
 /// whether the content is stored as `String`, `&str`, or another string-like
@@ -102,8 +102,8 @@ pub trait ITreeContent {
 /// designed for static or pre-built tree structures.
 ///
 /// Implementors must define:
-/// - [`Leaf`]: the concrete child node type
-/// - [`Leaves`]: an iterator yielding references to child nodes
+/// - `Leaf`: the concrete child node type
+/// - `Leaves`: an iterator yielding references to child nodes
 ///
 /// The iterator must implement [`DoubleEndedIterator`] to allow traversal
 /// from both directions.

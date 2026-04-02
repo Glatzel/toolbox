@@ -15,5 +15,7 @@ jobs:
       - uses: ./.github/actions/python/pytest
         with:
           working-directory: ./python
+        env:
+          PYTHONPATH: ./src
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

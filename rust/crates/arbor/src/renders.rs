@@ -164,7 +164,12 @@ where
             if iter.peek().is_some() {
                 let mut leave_prefix = (*prefix).clone();
                 leave_prefix.push_str(self.indent.get_indent(layer, Line::Other));
-                enqueue_lazy(&mut queue, leaf.leaves(), Rc::new(leave_prefix), &self.indent);
+                enqueue_lazy(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_prefix),
+                    &self.indent,
+                );
             }
         }
 

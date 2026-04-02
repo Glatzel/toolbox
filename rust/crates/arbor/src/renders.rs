@@ -5,33 +5,22 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use core::fmt::{self, Display};
 
-use crate::protocol::{IComplexTree, IIndent, ITree, Layer, Line};
+use crate::protocol::{
+    IIndent, ILazyTree, IOwnedTree, IStyledOwnedTree, ITreeContent, Layer, Line,
+};
 
-/// Renders a tree structure using a fixed indentation style.
+/// Renderer for trees implementing [`IOwnedTree`].
 ///
-/// `Render` implements [`Display`] and produces a textual tree representation
-/// of any type implementing [`ITree`]. The indentation style is provided by
-/// the [`IIndent`] implementation supplied in `indent`.
+/// This renderer traverses a tree whose nodes are referenced (`&T`) and whose
+/// children are accessed via iterators yielding references. Rendering is done
+/// in a breadth-first manner using an internal queue.
 ///
-/// The renderer performs a breadth-first traversal using an internal queue
-/// and constructs prefix spacing dynamically while walking the tree.
+/// The indentation style is fixed for the entire tree and provided through
+/// the `indent` field.
 ///
-/// The indentation style is applied uniformly across the entire tree.
-///
-/// # examples
-/// ```
-/// use arbor::indents::UnicodeIndent;
-/// use arbor::renders::Render;
-/// use arbor::trees::Tree;
-/// let tree = Tree::new("foo").with_leaves(["bar", "baz"]);
-/// let render = Render {
-///     tree: &tree,
-///     indent: UnicodeIndent,
-///     width: 0,
-/// };
-/// println!("{}", render);
-/// ```
-pub struct Render<'a, I, T> {
+/// If the `textwrap` feature is enabled, lines can optionally be wrapped
+/// to the specified width.
+pub struct OwnedRender<'a, I, T> {
     /// Root tree node to render.
     pub tree: &'a T,
 
@@ -43,10 +32,10 @@ pub struct Render<'a, I, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for Render<'a, I, T>
+impl<'a, I, T> Display for OwnedRender<'a, I, T>
 where
     I: IIndent,
-    T: ITree<Leaf = T>,
+    T: IOwnedTree<Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
@@ -61,14 +50,19 @@ where
             self.width,
         )?;
 
-        enqueue(&mut queue, self.tree, Rc::new(String::new()), &self.indent);
+        enqueue(
+            &mut queue,
+            self.tree.leaves(),
+            Rc::new(String::new()),
+            &self.indent,
+        );
 
-        while let Some((leaf, layer, s, _)) = queue.pop_front() {
+        while let Some((leaf, layer, prefix, _)) = queue.pop_front() {
             render_content(
                 f,
                 leaf,
                 layer,
-                &s,
+                &prefix,
                 &self.indent,
                 #[cfg(feature = "textwrap")]
                 self.width,
@@ -76,38 +70,29 @@ where
 
             let mut iter = leaf.leaves().peekable();
             if iter.peek().is_some() {
-                let mut leave_spaces = (*s).clone();
-                leave_spaces.push_str(self.indent.get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Rc::new(leave_spaces), &self.indent);
+                let mut leave_prefix = (*prefix).clone();
+                leave_prefix.push_str(self.indent.get_indent(layer, Line::Other));
+                enqueue(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_prefix),
+                    &self.indent,
+                );
             }
         }
         Ok(())
     }
 }
 
-/// Renders a tree that supports per-node indentation overrides.
+/// Renderer for styled trees implementing [`IStyledOwnedTree`].
 ///
-/// `ComplexRender` behaves similarly to [`Render`] but supports trees that
-/// implement [`IComplexTree`]. Each node may optionally provide its own
-/// indentation style, allowing sections of the tree to render using different
-/// visual formats.
+/// Unlike [`OwnedRender`], this renderer allows each node to override the
+/// indentation style used for its subtree. If a node does not provide a custom
+/// indentation style, the parent indentation or the default indentation
+/// implementation is used.
 ///
-/// When a node does not provide an indentation style, the renderer inherits
-/// the indentation configuration from its parent.
-///
-/// # examples
-/// ```
-/// use arbor::indents::UnicodeIndent;
-/// use arbor::renders::ComplexRender;
-/// use arbor::trees::ComplexTree;
-/// let tree = ComplexTree::new_with_indent("foo", UnicodeIndent).with_leaves(["bar", "baz"]);
-/// let render = ComplexRender {
-///     tree: &tree,
-///     width: 0,
-/// };
-/// println!("{}", render);
-/// ```
-pub struct ComplexRender<'a, T> {
+/// This allows heterogeneous indentation styles within the same tree.
+pub struct StyledOwnedRender<'a, T> {
     /// Root tree node to render.
     pub tree: &'a T,
 
@@ -116,44 +101,55 @@ pub struct ComplexRender<'a, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for ComplexRender<'a, T>
+impl<'a, I, T> Display for StyledOwnedRender<'a, T>
 where
-    I: IIndent + Clone,
-    T: IComplexTree<Indent = I, Leaf = T>,
+    I: IIndent,
+    T: IStyledOwnedTree<Indent = I, Leaf = T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut queue = VecDeque::new();
 
-        let indent = self.tree.indent().clone().unwrap_or_default();
+        let default_indent = I::default();
+        let indent = self.tree.indent().as_ref().unwrap_or(&default_indent);
 
         render_content(
             f,
             self.tree,
             Layer::Root,
             "",
-            &indent,
+            indent,
             #[cfg(feature = "textwrap")]
             self.width,
         )?;
 
-        enqueue(&mut queue, self.tree, Rc::new(String::new()), &indent);
+        enqueue(
+            &mut queue,
+            self.tree.leaves(),
+            Rc::new(String::new()),
+            indent,
+        );
 
-        while let Some((leaf, layer, s, indent)) = queue.pop_front() {
+        while let Some((leaf, layer, prefix, indent)) = queue.pop_front() {
             render_content(
                 f,
                 leaf,
                 layer,
-                &s,
+                &prefix,
                 indent,
                 #[cfg(feature = "textwrap")]
                 self.width,
             )?;
             let mut iter = leaf.leaves().peekable();
             if iter.peek().is_some() {
-                let mut leave_spaces = (*s).clone();
+                let mut leave_spaces = (*prefix).clone();
                 let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
                 leave_spaces.push_str(indent.get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
+                enqueue(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_spaces),
+                    leaf_indent,
+                );
             }
         }
 
@@ -161,35 +157,107 @@ where
     }
 }
 
-/// Pushes child nodes into the rendering queue.
+/// Renderer for trees implementing [`ILazyTree`].
 ///
-/// This function determines the [`Layer`] classification for each child node
-/// based on its position within the parent's children:
+/// In this model, tree nodes own their children and the iterator returned by
+/// `leaves()` yields values rather than references. This enables lazy or
+/// streaming tree construction where nodes may be generated dynamically.
 ///
-/// - `Top` — the first child
-/// - `Middle` — any intermediate child
-/// - `Bottom` — the final child
-///
-/// The queue stores the node reference, layer classification, accumulated
-/// indentation prefix, and the indentation configuration used for rendering.
-fn enqueue<'a, I, T>(
-    queue: &mut VecDeque<(&'a T, Layer, Rc<String>, &'a I)>,
-    tree: &'a T,
-    spaces: Rc<String>,
-    indent: &'a I,
-) where
-    I: IIndent,
-    T: ITree<Leaf = T>,
+/// Because nodes are owned, this renderer stores them directly in the queue
+/// during traversal.
+pub struct LazyRender<I, T> {
+    /// Root tree node to render.
+    pub tree: T,
+
+    /// Indentation style used for rendering.
+    pub indent: I,
+
+    /// Optional wrapping width used when the `textwrap` feature is enabled.
+    #[cfg(feature = "textwrap")]
+    pub width: usize,
+}
+
+impl<I, T> Display for LazyRender<I, T>
+where
+    I: IIndent + Clone,
+    T: ILazyTree<Leaf = T>,
 {
-    let leaves: alloc::vec::Vec<_> = tree.leaves().collect();
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut queue = VecDeque::new();
+
+        render_content(
+            f,
+            &self.tree,
+            Layer::Root,
+            "",
+            &self.indent,
+            #[cfg(feature = "textwrap")]
+            self.width,
+        )?;
+
+        enqueue(
+            &mut queue,
+            self.tree.leaves(),
+            Rc::new(String::new()),
+            &self.indent,
+        );
+
+        while let Some((leaf, layer, prefix, indent)) = queue.pop_front() {
+            render_content(
+                f,
+                &leaf,
+                layer,
+                &prefix,
+                indent,
+                #[cfg(feature = "textwrap")]
+                self.width,
+            )?;
+
+            let mut iter = leaf.leaves().peekable();
+            if iter.peek().is_some() {
+                let mut leave_prefix = (*prefix).clone();
+                leave_prefix.push_str(self.indent.get_indent(layer, Line::Other));
+                enqueue(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_prefix),
+                    &self.indent,
+                );
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// Pushes a set of child nodes into the rendering queue.
+///
+/// The iterator of leaves is collected and then pushed in reverse order so
+/// that the first child is processed first when popping from the front of
+/// the queue.
+///
+/// Each child is annotated with a [`Layer`] describing whether it is the
+/// top, middle, or bottom branch within the current sibling group.
+fn enqueue<I, T, It>(
+    queue: &mut VecDeque<(T, Layer, Rc<String>, I)>,
+    leaves: It,
+    prefix: Rc<String>,
+    indent: I,
+) where
+    It: DoubleEndedIterator<Item = T>,
+    I: Clone,
+{
+    let leaves: alloc::vec::Vec<T> = leaves.collect();
     let last = leaves.len().saturating_sub(1);
-    for (i, leaf) in leaves.iter().rev().enumerate() {
+
+    for (i, leaf) in leaves.into_iter().rev().enumerate() {
         let layer = match i {
             0 => Layer::Bottom,
             i if i == last => Layer::Top,
             _ => Layer::Middle,
         };
-        queue.push_front((leaf, layer, spaces.clone(), indent));
+
+        queue.push_front((leaf, layer, prefix.clone(), indent.clone()));
     }
 }
 
@@ -210,7 +278,7 @@ fn render_content_no_wrap<I, T>(
 ) -> fmt::Result
 where
     I: IIndent,
-    T: ITree,
+    T: ITreeContent,
 {
     for (line_index, text) in node.content().as_ref().lines().enumerate() {
         f.write_str(prefix)?;
@@ -240,9 +308,9 @@ where
 /// When enabled, the content is wrapped to the configured width while
 /// preserving the indentation prefixes used for the first and subsequent
 /// lines.
-fn render_content<I>(
+fn render_content<I, T>(
     f: &mut fmt::Formatter<'_>,
-    node: &impl ITree,
+    node: &T,
     layer: Layer,
     prefix: &str,
     indent: &I,
@@ -250,6 +318,7 @@ fn render_content<I>(
 ) -> fmt::Result
 where
     I: IIndent,
+    T: ITreeContent,
 {
     #[cfg(not(feature = "textwrap"))]
     render_content_no_wrap(f, node, layer, prefix, indent)?;

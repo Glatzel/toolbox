@@ -4,8 +4,8 @@ use alloc::format;
 use alloc::string::{String, ToString};
 
 use arbor::protocol::{IIndent, Layer, Line};
-use arbor::renders::Render;
-use arbor::trees::Tree;
+use arbor::renders::OwnedRender;
+use arbor::trees::OwnedTree;
 use owo_colors::{OwoColorize, Style};
 
 use crate::{IDiagnostic, Report, Severity};
@@ -336,7 +336,7 @@ impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
     /// Each diagnostic in the causal chain is converted into a tree
     /// node and rendered using the configured indentation and theme.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = Tree::new(self.render_diagnostic(&self.report.inner, &self.theme));
+        let mut tree = OwnedTree::new(self.render_diagnostic(&self.report.inner, &self.theme));
 
         let mut source = &self.report.inner.source;
         while let Some(e) = source {
@@ -344,7 +344,7 @@ impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
             source = &e.source
         }
 
-        let render = Render {
+        let render = OwnedRender {
             tree: &tree,
             indent: self.indent.clone(),
             width: self.width,

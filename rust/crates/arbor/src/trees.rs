@@ -1,33 +1,26 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::protocol::{IComplexTree, IIndent, ITree};
+use crate::protocol::{IIndent, IOwnedTree, IStyledOwnedTree, ITreeContent};
 
-/// A simple generic tree structure.
+/// A simple owned tree node.
 ///
-/// `Tree` is a minimal implementation of [`ITree`] that stores textual
-/// content and a list of child nodes.
+/// Each node stores textual content and a collection of child nodes.
+/// The entire tree structure is owned in memory, and children are accessed
+/// through iterators returning references.
 ///
-/// It is intended for:
+/// The generic parameter `D` represents the node content type and must
+/// implement [`AsRef<str>`], allowing flexibility such as `String`,
+/// `&str`, or `Cow<str>`.
 ///
-/// - testing tree renderers
-/// - simple hierarchical data
-/// - building diagnostic trees
+/// # Examples
 ///
-/// The node content is stored as any type implementing `AsRef<str>`,
-/// allowing flexible ownership models such as:
-///
-/// - `&'static str`
-/// - `String`
-/// - `Cow<'_, str>`
-///
-/// # examples
 /// ```
 /// use arbor::indents::UnicodeIndent;
-/// use arbor::renders::Render;
-/// use arbor::trees::Tree;
-/// let tree = Tree::new("foo").with_leaves(["bar", "baz"]);
-/// let render = Render {
+/// use arbor::renders::OwnedRender;
+/// use arbor::trees::OwnedTree;
+/// let tree = OwnedTree::new("foo").with_leaves(["bar", "baz"]);
+/// let render = OwnedRender {
 ///     tree: &tree,
 ///     indent: UnicodeIndent,
 ///     width: 0,
@@ -35,21 +28,31 @@ use crate::protocol::{IComplexTree, IIndent, ITree};
 /// println!("{}", render);
 /// ```
 #[derive(Debug, Clone)]
-pub struct Tree<D: AsRef<str>> {
+pub struct OwnedTree<D: AsRef<str>> {
     content: D,
-    leaves: Vec<Tree<D>>,
+    leaves: Vec<OwnedTree<D>>,
 }
 
-impl<D: AsRef<str>> ITree for Tree<D> {
-    type Leaf = Tree<D>;
-
+impl<D: AsRef<str>> ITreeContent for OwnedTree<D> {
+    /// Returns the textual content of this node.
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
-
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
-        self.leaves.iter()
-    }
 }
-impl<D: AsRef<str>> Tree<D> {
+
+impl<D: AsRef<str>> IOwnedTree for OwnedTree<D> {
+    /// Child node type.
+    type Leaf = OwnedTree<D>;
+
+    /// Iterator over child nodes.
+    type Leaves<'a>
+        = core::slice::Iter<'a, Self::Leaf>
+    where
+        Self: 'a;
+
+    /// Returns an iterator over the node's children.
+    fn leaves(&self) -> Self::Leaves<'_> { self.leaves.iter() }
+}
+
+impl<D: AsRef<str>> OwnedTree<D> {
     /// Creates a new tree node with no children.
     pub fn new(content: D) -> Self {
         Self {
@@ -57,72 +60,89 @@ impl<D: AsRef<str>> Tree<D> {
             leaves: Vec::new(),
         }
     }
-    /// Creates a node and attaches a set of child nodes.
+
+    /// Creates a node and attaches a collection of child nodes.
     ///
-    /// Any type convertible into `Tree<D>` may be provided.
-    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Tree<D>>>) -> Self {
+    /// Each element must be convertible into `OwnedTree<D>`.
+    /// This method follows a builder-style pattern and returns
+    /// the modified node.
+    pub fn with_leaves(
+        mut self,
+        leaves: impl IntoIterator<Item = impl Into<OwnedTree<D>>>,
+    ) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
+
     /// Appends a child node.
     ///
     /// Returns the node itself to support method chaining.
-    pub fn push(&mut self, leaf: impl Into<Tree<D>>) -> &mut Self {
+    pub fn push(&mut self, leaf: impl Into<OwnedTree<D>>) -> &mut Self {
         self.leaves.push(leaf.into());
         self
     }
 }
 
-/// Allows creating a tree node directly from content.
+/// Allows constructing a node directly from content.
 ///
 /// # Example
 ///
 /// ```
-/// use arbor::trees::Tree;
-/// let node: Tree<&str> = "hello".into();
+/// use arbor::trees::OwnedTree;
+/// let node: OwnedTree<&str> = "hello".into();
 /// ```
-impl<D: AsRef<str>> From<D> for Tree<D> {
-    fn from(value: D) -> Self { Tree::new(value) }
+impl<D: AsRef<str>> From<D> for OwnedTree<D> {
+    fn from(value: D) -> Self { OwnedTree::new(value) }
 }
 
-/// A tree node that supports custom indentation styles.
+/// A tree node that supports optional indentation styling.
 ///
-/// `ComplexTree` extends [`Tree`] by allowing nodes to override the
-/// indentation style used when rendering the subtree.
+/// This structure extends [`OwnedTree`] by allowing each node to specify
+/// an optional indentation style used during rendering.
 ///
-/// This is useful when different sections of a diagnostic tree should
-/// use different visual formats.
+/// If `indent` is `None`, the renderer should inherit indentation behavior
+/// from the parent node or fall back to its default configuration.
 ///
 /// # examples
+///
 /// ```
 /// use arbor::indents::UnicodeIndent;
-/// use arbor::renders::ComplexRender;
-/// use arbor::trees::ComplexTree;
-/// let tree = ComplexTree::new_with_indent("foo", UnicodeIndent).with_leaves(["bar", "baz"]);
-/// let render = ComplexRender {
+/// use arbor::renders::StyledOwnedRender;
+/// use arbor::trees::StyledOwnedTree;
+/// let tree = StyledOwnedTree::new_with_indent("foo", UnicodeIndent).with_leaves(["bar", "baz"]);
+/// let render = StyledOwnedRender {
 ///     tree: &tree,
 ///     width: 0,
 /// };
 /// println!("{}", render);
 /// ```
 #[derive(Debug, Clone)]
-pub struct ComplexTree<D: AsRef<str>, I: IIndent> {
+pub struct StyledOwnedTree<D: AsRef<str>, I: IIndent> {
     content: D,
-    leaves: Vec<ComplexTree<D, I>>,
+    leaves: Vec<StyledOwnedTree<D, I>>,
     indent: Option<I>,
 }
 
-impl<D: AsRef<str>, I: IIndent> ITree for ComplexTree<D, I> {
-    type Leaf = ComplexTree<D, I>;
-
+impl<D: AsRef<str>, I: IIndent> ITreeContent for StyledOwnedTree<D, I> {
+    /// Returns the textual content of this node.
     fn content(&self) -> impl AsRef<str> { self.content.as_ref() }
-
-    fn leaves(&self) -> impl Iterator<Item = &Self::Leaf> + DoubleEndedIterator {
-        self.leaves.iter()
-    }
 }
 
-impl<D: AsRef<str>, I: IIndent> IComplexTree for ComplexTree<D, I> {
+impl<D: AsRef<str>, I: IIndent> IOwnedTree for StyledOwnedTree<D, I> {
+    /// Child node type.
+    type Leaf = StyledOwnedTree<D, I>;
+
+    /// Iterator over child nodes.
+    type Leaves<'a>
+        = core::slice::Iter<'a, Self::Leaf>
+    where
+        Self: 'a;
+
+    /// Returns an iterator over the node's children.
+    fn leaves(&self) -> Self::Leaves<'_> { self.leaves.iter() }
+}
+
+impl<D: AsRef<str>, I: IIndent> IStyledOwnedTree for StyledOwnedTree<D, I> {
     type Indent = I;
 
     /// Returns the indentation style override for this node.
@@ -132,7 +152,7 @@ impl<D: AsRef<str>, I: IIndent> IComplexTree for ComplexTree<D, I> {
     fn indent(&self) -> &Option<I> { &self.indent }
 }
 
-impl<D: AsRef<str>, I: IIndent + Clone> ComplexTree<D, I> {
+impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Creates a new node without a custom indentation style.
     pub fn new(content: D) -> Self {
         Self {
@@ -141,6 +161,7 @@ impl<D: AsRef<str>, I: IIndent + Clone> ComplexTree<D, I> {
             indent: None,
         }
     }
+
     /// Creates a new node with a specific indentation style.
     pub fn new_with_indent(content: D, indent: I) -> Self {
         Self {
@@ -149,16 +170,18 @@ impl<D: AsRef<str>, I: IIndent + Clone> ComplexTree<D, I> {
             indent: Some(indent),
         }
     }
+
     /// Attaches a collection of child nodes.
     ///
-    /// Each element must be convertible into `ComplexTree<D, I>`.
+    /// Each element must be convertible into `StyledOwnedTree<D, I>`.
     pub fn with_leaves(
         mut self,
-        leaves: impl IntoIterator<Item = impl Into<ComplexTree<D, I>>>,
+        leaves: impl IntoIterator<Item = impl Into<StyledOwnedTree<D, I>>>,
     ) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
+
     /// Assigns a custom indentation style to the node.
     ///
     /// This overrides the indentation used when rendering the subtree.
@@ -166,14 +189,15 @@ impl<D: AsRef<str>, I: IIndent + Clone> ComplexTree<D, I> {
         self.indent = Some(indent);
         self
     }
+
     /// Appends a child node.
-    pub fn push(&mut self, leaf: impl Into<ComplexTree<D, I>>) -> &mut Self {
+    pub fn push(&mut self, leaf: impl Into<StyledOwnedTree<D, I>>) -> &mut Self {
         self.leaves.push(leaf.into());
         self
     }
 }
 
 /// Allows creating a node directly from content.
-impl<D: AsRef<str>, I: IIndent + Clone> From<D> for ComplexTree<D, I> {
-    fn from(value: D) -> Self { ComplexTree::new(value) }
+impl<D: AsRef<str>, I: IIndent + Clone> From<D> for StyledOwnedTree<D, I> {
+    fn from(value: D) -> Self { StyledOwnedTree::new(value) }
 }

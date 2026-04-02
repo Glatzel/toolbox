@@ -50,6 +50,7 @@ jobs:
               - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
+              - ./.github/actions/python/**
               - ./.github/workflows/ci-python.yml
             rust:
               - ./rust/**

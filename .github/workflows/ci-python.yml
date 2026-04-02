@@ -3,10 +3,6 @@ name: python-CI
 on:
   workflow_dispatch:
   workflow_call:
-
-defaults:
-  run:
-    working-directory: ./python
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -16,8 +12,10 @@ jobs:
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
-      - name: test
-        run: ./scripts/pytest.ps1
-        shell: pwsh
+      - uses: ./.github/actions/python/pytest
+        with:
+          working-directory: ./python
+        env:
+          PYTHONPATH: ./src
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

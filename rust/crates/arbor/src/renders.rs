@@ -39,7 +39,12 @@ where
             self.width,
         )?;
 
-        enqueue(&mut queue, self.tree, Rc::new(String::new()), &self.indent);
+        enqueue(
+            &mut queue,
+            self.tree.leaves(),
+            Rc::new(String::new()),
+            &self.indent,
+        );
 
         while let Some((leaf, layer, prefix, _)) = queue.pop_front() {
             render_content(
@@ -56,7 +61,12 @@ where
             if iter.peek().is_some() {
                 let mut leave_prefix = (*prefix).clone();
                 leave_prefix.push_str(self.indent.get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Rc::new(leave_prefix), &self.indent);
+                enqueue(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_prefix),
+                    &self.indent,
+                );
             }
         }
         Ok(())
@@ -93,7 +103,12 @@ where
             self.width,
         )?;
 
-        enqueue(&mut queue, self.tree, Rc::new(String::new()), indent);
+        enqueue(
+            &mut queue,
+            self.tree.leaves(),
+            Rc::new(String::new()),
+            indent,
+        );
 
         while let Some((leaf, layer, prefix, indent)) = queue.pop_front() {
             render_content(
@@ -110,7 +125,12 @@ where
                 let mut leave_spaces = (*prefix).clone();
                 let leaf_indent = leaf.indent().as_ref().unwrap_or(indent);
                 leave_spaces.push_str(indent.get_indent(layer, Line::Other));
-                enqueue(&mut queue, leaf, Rc::new(leave_spaces), leaf_indent);
+                enqueue(
+                    &mut queue,
+                    leaf.leaves(),
+                    Rc::new(leave_spaces),
+                    leaf_indent,
+                );
             }
         }
 
@@ -142,7 +162,7 @@ where
             self.width,
         )?;
 
-        enqueue_lazy(
+        enqueue(
             &mut queue,
             self.tree.leaves(),
             Rc::new(String::new()),
@@ -164,7 +184,7 @@ where
             if iter.peek().is_some() {
                 let mut leave_prefix = (*prefix).clone();
                 leave_prefix.push_str(self.indent.get_indent(layer, Line::Other));
-                enqueue_lazy(
+                enqueue(
                     &mut queue,
                     leaf.leaves(),
                     Rc::new(leave_prefix),
@@ -176,34 +196,14 @@ where
         Ok(())
     }
 }
-fn enqueue<'a, I, T>(
-    queue: &mut VecDeque<(&'a T, Layer, Rc<String>, &'a I)>,
-    tree: &'a T,
+fn enqueue<I, T, It>(
+    queue: &mut VecDeque<(T, Layer, Rc<String>, I)>,
+    leaves: It,
     prefix: Rc<String>,
-    indent: &'a I,
+    indent: I,
 ) where
-    I: IIndent,
-    T: IOwnedTree<Leaf = T>,
-{
-    let leaves: alloc::vec::Vec<_> = tree.leaves().collect();
-    let last = leaves.len().saturating_sub(1);
-    for (i, leaf) in leaves.iter().rev().enumerate() {
-        let layer = match i {
-            0 => Layer::Bottom,
-            i if i == last => Layer::Top,
-            _ => Layer::Middle,
-        };
-        queue.push_front((leaf, layer, prefix.clone(), indent));
-    }
-}
-fn enqueue_lazy<'a, I, T>(
-    queue: &mut VecDeque<(T, Layer, Rc<String>, &'a I)>,
-    leaves: impl DoubleEndedIterator<Item = T>,
-    prefix: Rc<String>,
-    indent: &'a I,
-) where
-    I: IIndent,
-    T: ILazyTree,
+    It: DoubleEndedIterator<Item = T>,
+    I: Clone,
 {
     let leaves: alloc::vec::Vec<T> = leaves.collect();
     let last = leaves.len().saturating_sub(1);
@@ -215,7 +215,7 @@ fn enqueue_lazy<'a, I, T>(
             _ => Layer::Middle,
         };
 
-        queue.push_front((leaf, layer, prefix.clone(), indent));
+        queue.push_front((leaf, layer, prefix.clone(), indent.clone()));
     }
 }
 /// Renders the textual content of a node without line wrapping.

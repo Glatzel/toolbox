@@ -5,11 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2026.4.3] - 2026-04-03
+
+### Added
+
+- Support Orc linux by @Glatzel in [#413](https://github.com/Glatzel/toolbox/pull/413)
+
+### Changed
+
+- Orc by @Glatzel in [#405](https://github.com/Glatzel/toolbox/pull/405)
+- Create README.md by @Glatzel in [#418](https://github.com/Glatzel/toolbox/pull/418)
+- Lazy tree by @Glatzel in [#426](https://github.com/Glatzel/toolbox/pull/426)
 
 ### Fixed
 
 - No rust doc test by @Glatzel in [#391](https://github.com/Glatzel/toolbox/pull/391)
+
+### Refactor
+
+- Orc by @Glatzel in [#408](https://github.com/Glatzel/toolbox/pull/408)
+- Update cli.rs by @Glatzel in [#409](https://github.com/Glatzel/toolbox/pull/409)
+- Platform specified tree by @Glatzel in [#411](https://github.com/Glatzel/toolbox/pull/411)
+- Simplify tree impl by @Glatzel in [#424](https://github.com/Glatzel/toolbox/pull/424)
+- Remove clone in ITree by @Glatzel in [#425](https://github.com/Glatzel/toolbox/pull/425)
+- Simplify orc by claude by @Glatzel in [#429](https://github.com/Glatzel/toolbox/pull/429)
+
+### Removed
+
+- Remove draft.rs by @Glatzel in [#407](https://github.com/Glatzel/toolbox/pull/407)
 
 ### Testing
 
@@ -357,7 +380,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
-[unreleased]: https://github.com/Glatzel/toolbox/compare/v2026.3.17..HEAD
+[2026.4.3]: https://github.com/Glatzel/toolbox/compare/v2026.3.17..v2026.4.3
 [2026.3.17]: https://github.com/Glatzel/toolbox/compare/v2026.3.14..v2026.3.17
 [2026.3.14]: https://github.com/Glatzel/toolbox/compare/v0.0.38..v2026.3.14
 [0.0.38]: https://github.com/Glatzel/toolbox/compare/v0.0.37..v0.0.38

@@ -17,8 +17,10 @@ use crate::webhook::{AppState, webhook};
 struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
-    #[arg(long, short)]
-    config: PathBuf,
+    #[arg(long, short,conflicts_with = "config",help_heading="Config Path")]
+    config_file: Option<PathBuf>,
+    #[command(flatten)]
+    config: Option<Config>,
 }
 
 pub async fn main() -> mischief::Result<()> {
@@ -37,7 +39,11 @@ pub async fn main() -> mischief::Result<()> {
         )
         .init();
     let shared_state = Arc::new(AppState {
-        config: Config::load_toml(&args.config)?,
+        config: match (args.config_file, args.config) {
+            (Some(path), _) => Config::load_toml(&path)?,
+            (None, Some(config)) => config,
+            _ => unreachable!(),
+        },
     });
     let app = Router::new()
         .route("/webhook", post(webhook))

@@ -37,7 +37,6 @@ impl NomadClient {
         let status = res.status();
 
         let body = res.bytes().await.unwrap();
-
         (StatusCode::from_u16(status.as_u16()).unwrap(), body).into_response()
     }
 }

@@ -53,13 +53,13 @@ pub async fn webhook(
     headers: HeaderMap,
     body: String,
 ) -> Result<Response, Response> {
-    let signature_header = headers
-        .get("X-Hub-Signature-256")
-        .and_then(|value| value.to_str().ok())
-        .unwrap_or("");
-
-    let secret_token = &state.config.devop.webhook_secret;
-    verify_signature(&body, secret_token, signature_header)?;
+    {
+        let signature_header = headers
+            .get("X-Hub-Signature-256")
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or("");
+        verify_signature(&body, &state.config.devop.webhook_secret, signature_header)?;
+    }
 
     let webhook_payload: WebhookPayload = serde_json::from_str(&body).map_err(|_| {
         (StatusCode::BAD_REQUEST, "Invalid JSON payload".to_string()).into_response()

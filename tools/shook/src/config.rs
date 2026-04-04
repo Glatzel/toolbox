@@ -190,7 +190,10 @@ mod tests {
         );
         let f = write_toml(&toml);
         let cfg = Config::load_toml(f.path()).unwrap();
-        assert_eq!(format!("{:?}", cfg.devop.vendor).to_lowercase(), expected_debug);
+        assert_eq!(
+            format!("{:?}", cfg.devop.vendor).to_lowercase(),
+            expected_debug
+        );
     }
 
     #[test]

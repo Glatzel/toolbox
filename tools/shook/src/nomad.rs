@@ -32,10 +32,7 @@ impl NomadClient {
             .client
             .post(format!(
                 "{}/{}{}{}",
-                config.nomad.url,
-                runner_spec.image,
-                runner_spec.cpu_mhz,
-                runner_spec.memory_mb
+                config.nomad.url, runner_spec.image, runner_spec.cpu_mhz, runner_spec.memory_mb
             ))
             .send()
             .await

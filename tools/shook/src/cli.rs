@@ -72,4 +72,3 @@ pub async fn main() -> mischief::Result<()> {
 
     Ok(())
 }
-

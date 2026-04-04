@@ -3,8 +3,8 @@ source: src/payload/github.rs
 expression: result.unwrap()
 ---
 RunnerSpec {
-    _image: "debian-12",
-    _platform: OsxArm64,
-    _cpu_mhz: 2400,
-    _memory_mb: 4096,
+    image: "debian-12",
+    platform: OsxArm64,
+    cpu_mhz: 2400,
+    memory_mb: 4096,
 }

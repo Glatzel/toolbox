@@ -1,6 +1,6 @@
 use axum::{http::HeaderMap, response::Response};
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError, ValidationErrors};
+use validator::{Validate, ValidationError};
 
 use crate::config::Config;
 pub mod github;

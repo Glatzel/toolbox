@@ -10,19 +10,21 @@ use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
 
 use crate::config::Config;
-use crate::webhook::{AppState, webhook};
+use crate::nomad::NomadClient;
+use crate::webhook::{AppContext, webhook};
 
 #[derive(Debug, Parser)]
 #[command(author="Glatzel", version, long_about = None)]
 struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
-    #[arg(long, short,conflicts_with = "config",help_heading="Config Path")]
-    config_file: Option<PathBuf>,
-    #[command(flatten)]
-    config: Option<Config>,
+    config: PathBuf,
 }
-
+fn app(shared_state: Arc<AppContext>) -> Router {
+    Router::new()
+        .route("/webhook", post(webhook))
+        .with_state(shared_state.clone())
+}
 pub async fn main() -> mischief::Result<()> {
     let args = Args::parse();
     clerk::tracing_subscriber::registry()
@@ -38,18 +40,13 @@ pub async fn main() -> mischief::Result<()> {
             ),
         )
         .init();
-    let shared_state = Arc::new(AppState {
-        config: match (args.config_file, args.config) {
-            (Some(path), _) => Config::load_toml(&path)?,
-            (None, Some(config)) => config,
-            _ => unreachable!(),
-        },
-    });
-    let app = Router::new()
-        .route("/webhook", post(webhook))
-        .with_state(shared_state.clone());
+    let config = Config::load_toml(&args.config)?;
+    let client = NomadClient::new(&config.nomad)?;
+    let shared_state = Arc::new(AppContext { config, client });
+    let app = app(shared_state.clone());
     let listener =
-        tokio::net::TcpListener::bind(format!("0.0.0.0:{}", shared_state.config.port)).await?;
+        tokio::net::TcpListener::bind(format!("0.0.0.0:{}", shared_state.config.server.port))
+            .await?;
     axum::serve(listener, app).await?;
     Ok(())
 }

@@ -44,8 +44,9 @@ struct Sender {
 
 #[derive(Debug, Deserialize, Validate)]
 struct WorkflowJob {
+    #[serde(rename = "workflow_name")]
     _workflow_name: String,
-    _job_id: u32,
+    #[serde(rename = "name")]
     _name: String,
     #[serde(deserialize_with = "parse_labels")]
     #[validate(nested)]
@@ -97,11 +98,11 @@ where
     if labels.len() != 5 {
         clerk::warn!(
             label_count = labels.len(),
-            "Invalid label count, expected 6 [self-hosted, image, os, arch, cpu_mhz, memory_mb]"
+            "Invalid label count, expected 5 [self-hosted, image, platform, cpu_mhz, memory_mb]"
         );
         return Err(serde::de::Error::invalid_length(
             labels.len(),
-            &"6 labels expected, [self-hosted, image, os, arch, cpu_mhz, memory_mb]",
+            &"5 labels expected, [self-hosted, image, platform, cpu_mhz, memory_mb]",
         ));
     }
 
@@ -166,7 +167,7 @@ fn validate_event(event: &Event) -> Result<(), ValidationError> {
             Ok(())
         }
         other => {
-            clerk::warn!(event = ?other, "Unsupported event type");
+            clerk::info!(event = ?other, "Unsupported event type");
             Err(ValidationError::new("Unsupported event"))
         }
     }
@@ -199,7 +200,7 @@ fn verify_signature(
     let expected_signature = format!("sha256={}", hex::encode(mac.finalize().into_bytes()));
 
     if !constant_time_eq(expected_signature.as_bytes(), signature_header.as_bytes()) {
-        clerk::warn!("Webhook signature mismatch — request rejected");
+        clerk::error!("Webhook signature mismatch — request rejected");
         return Err((StatusCode::FORBIDDEN, "Request signatures didn't match!").into_response());
     }
 

@@ -39,5 +39,6 @@ pub async fn webhook(
         Ok(spec) => spec,
         Err(response) => return response,
     };
-    state.client.dispatch(&runner_spec, &state.config).await
+    // state.client.dispatch(&runner_spec, &state.config).await
+    StatusCode::OK.into_response()
 }

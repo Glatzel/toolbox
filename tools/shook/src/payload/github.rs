@@ -16,7 +16,7 @@ use crate::{
 #[validate(context = Config)]
 pub struct WebhookPayload {
     #[validate(custom(function = "validate_event"))]
-    event: Event,
+    action: Event,
     #[validate(custom(function = "validate_repository", use_context))]
     repository: Repository,
     #[validate(custom(function = "validate_sender", use_context))]
@@ -25,6 +25,7 @@ pub struct WebhookPayload {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 enum Event {
     Completed,
     InProgress,

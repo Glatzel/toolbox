@@ -7,7 +7,6 @@ use crate::config::Config;
 pub mod github;
 pub trait IRunnerSpec {
     fn runner_spec(
-     
         headers: &HeaderMap,
         body: &str,
         config: &Config,

@@ -28,15 +28,31 @@ impl NomadClient {
         Ok(sidefx_web)
     }
     pub async fn dispatch(&self, _runner_spec: &RunnerSpec, config: &Config) -> Response {
-        let res = self
-            .client
-            .post(format!("{}", config.nomad.url))
-            .send()
-            .await
-            .unwrap();
-        let status = res.status();
+        let res = match self.client.post(&config.nomad.url).send().await {
+            Ok(res) => res,
+            Err(e) => {
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    format!("Nomad request failed: {e}"),
+                )
+                    .into_response();
+            }
+        };
 
-        let body = res.bytes().await.unwrap();
-        (StatusCode::from_u16(status.as_u16()).unwrap(), body).into_response()
+        let status = StatusCode::from_u16(res.status().as_u16())
+            .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+
+        let body = match res.bytes().await {
+            Ok(b) => b,
+            Err(e) => {
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    format!("Failed to read response: {e}"),
+                )
+                    .into_response();
+            }
+        };
+
+        (status, body).into_response()
     }
 }

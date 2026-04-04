@@ -30,7 +30,7 @@ impl NomadClient {
     pub async fn dispatch(&self, _runner_spec: &RunnerSpec, config: &Config) -> Response {
         let res = self
             .client
-            .post(format!("{}:{}", config.nomad.url, config.nomad.port))
+            .post(format!("{}", config.nomad.url))
             .send()
             .await
             .unwrap();

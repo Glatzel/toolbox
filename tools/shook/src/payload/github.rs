@@ -1,11 +1,15 @@
+use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Response};
+use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Deserializer, Serialize};
-
+use sha2::Sha256;
 use strum::VariantNames;
-use validator::{Validate, ValidationError};
+use validator::{Validate, ValidateArgs, ValidationError};
 
 use crate::{
     config::Config,
     payload::{Arch, IRunnerSpec, Os, RunnerSpec},
+    utils::constant_time_eq,
 };
 
 #[derive(Debug, Deserialize, Validate)]
@@ -44,9 +48,22 @@ struct WorkflowJob {
     #[validate(nested)]
     labels: RunnerSpec,
 }
+
 impl IRunnerSpec for WebhookPayload {
-    fn runner_spec(&self) -> &RunnerSpec {
-        &self.workflow_job.labels
+    fn runner_spec(
+        headers: &HeaderMap,
+        body: &str,
+        config: &Config,
+    ) -> Result<RunnerSpec, Response> {
+        verify_signature(&body, &config.devop.webhook_secret, headers)?;
+        let webhook_payload: WebhookPayload = serde_json::from_str(&body).map_err(|_| {
+            (StatusCode::BAD_REQUEST, "Invalid JSON payload".to_string()).into_response()
+        })?;
+
+        webhook_payload
+            .validate_with_args(&config)
+            .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()).into_response())?;
+        Ok(webhook_payload.workflow_job.labels)
     }
 }
 pub(super) fn parse_labels<'de, D>(deserializer: D) -> Result<RunnerSpec, D::Error>
@@ -107,4 +124,31 @@ fn validate_event(event: &Event) -> Result<(), ValidationError> {
         Event::Queued => Ok(()),
         _ => Err(ValidationError::new("Unsupported event")),
     }
+}
+fn verify_signature(
+    payload_body: &str,
+    secret_token: &str,
+    headers: &HeaderMap,
+) -> Result<(), Response> {
+    let signature_header = headers
+        .get("X-Hub-Signature-256")
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or("");
+    let mut mac = Hmac::<Sha256>::new_from_slice(secret_token.as_bytes()).map_err(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Missing x-hub-signature-256 header",
+        )
+            .into_response()
+    })?;
+
+    mac.update(payload_body.as_bytes());
+
+    let expected_signature = format!("sha256={}", hex::encode(mac.finalize().into_bytes()));
+
+    if !constant_time_eq(expected_signature.as_bytes(), signature_header.as_bytes()) {
+        return Err((StatusCode::FORBIDDEN, "Request signatures didn't match!").into_response());
+    }
+
+    Ok(())
 }

@@ -1,12 +1,22 @@
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Vendor {
+    #[serde(rename = "bitbucket", alias = "atlassian")]
+    Bitbucket,
+    Gitea,
+    Github,
+    Gitlab,
+    Woodpecker
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub port: u16,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DevOpConfig {
+    pub vender: Vendor,
     pub token: String,
     pub webhook_secret: String,
     pub allowed_repositories: Vec<String>,
@@ -15,7 +25,6 @@ pub struct DevOpConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NomadConfig {
     pub url: String,
-    pub port: u16,
     pub timeout_sec: f32,
     pub retry: u32,
 }
@@ -23,7 +32,10 @@ pub struct NomadConfig {
 pub struct Config {
     #[serde(default = "default_server_config")]
     pub server: ServerConfig,
+
     pub devop: DevOpConfig,
+
+    #[serde(default = "default_nomad_config")]
     pub nomad: NomadConfig,
 }
 impl Config {
@@ -33,6 +45,14 @@ impl Config {
         Ok(config)
     }
 }
+fn default_nomad_config() -> NomadConfig {
+    NomadConfig {
+        url: String::from("http://localhost:4646/v1/"),
+        timeout_sec: 3.0,
+        retry: 3,
+    }
+}
+
 fn default_server_config() -> ServerConfig {
     ServerConfig { port: 8787 }
 }

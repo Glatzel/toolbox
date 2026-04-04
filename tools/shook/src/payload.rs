@@ -1,10 +1,17 @@
+use axum::{http::HeaderMap, response::Response};
 use serde::{Deserialize, Serialize};
 use strum::{EnumString, VariantNames};
 use validator::{Validate, ValidationError};
-mod github;
-pub use github::WebhookPayload;
+
+use crate::config::Config;
+pub mod github;
 pub trait IRunnerSpec {
-    fn runner_spec(&self) -> &RunnerSpec;
+    fn runner_spec(
+     
+        headers: &HeaderMap,
+        body: &str,
+        config: &Config,
+    ) -> Result<RunnerSpec, Response>;
 }
 #[derive(Debug, Validate)]
 pub struct RunnerSpec {

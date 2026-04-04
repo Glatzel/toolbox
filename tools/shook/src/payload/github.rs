@@ -3,12 +3,12 @@ use axum::response::{IntoResponse, Response};
 use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Deserializer, Serialize};
 use sha2::Sha256;
-use strum::VariantNames;
 use validator::{Validate, ValidateArgs, ValidationError};
 
+use crate::payload::Platform;
 use crate::{
     config::Config,
-    payload::{Arch, IRunnerSpec, Os, RunnerSpec},
+    payload::{IRunnerSpec, RunnerSpec},
     utils::constant_time_eq,
 };
 
@@ -21,7 +21,6 @@ pub struct WebhookPayload {
     repository: Repository,
     #[validate(custom(function = "validate_sender", use_context))]
     sender: Sender,
-    #[validate(nested)]
     workflow_job: WorkflowJob,
 }
 
@@ -33,23 +32,22 @@ enum Event {
     Waiting,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Repository {
     name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Sender {
     login: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 struct WorkflowJob {
     _workflow_name: String,
     _job_id: u32,
     _name: String,
     #[serde(deserialize_with = "parse_labels")]
-    #[validate(nested)]
     labels: RunnerSpec,
 }
 
@@ -95,7 +93,7 @@ where
 
     clerk::debug!(label_count = labels.len(), "Parsing runner labels");
 
-    if labels.len() != 6 {
+    if labels.len() != 5 {
         clerk::warn!(
             label_count = labels.len(),
             "Invalid label count, expected 6 [self-hosted, image, os, arch, cpu_mhz, memory_mb]"
@@ -108,32 +106,35 @@ where
 
     let image = labels[1].clone();
 
-    let os = labels[2].parse::<Os>().map_err(|_| {
-        clerk::warn!(value = %labels[2], "Failed to parse OS label");
-        serde::de::Error::unknown_variant(labels[2].as_str(), &Os::VARIANTS)
+    let platform = match labels[2].as_str() {
+        "win-64" => Platform::Win64,
+        "linux-64" => Platform::Linux64,
+        "linux-aarch64" => Platform::LinuxAarch64,
+        "osx-arm64" => Platform::OsxArm64,
+        _ => {
+            clerk::warn!(value = %labels[2], "Failed to parse platform label");
+            return Err(serde::de::Error::unknown_variant(
+                labels[2].as_str(),
+                &["win-64", "linux-64", "linux-aarch64", "osx-arm64"],
+            ));
+        }
+    };
+
+    let cpu_mhz: usize = labels[3].parse().map_err(|_| {
+        clerk::warn!(value = %labels[3], "Failed to parse cpu_mhz label");
+        serde::de::Error::custom(format!("Invalid value for cpu_mhz: {}", labels[3]))
     })?;
 
-    let arch = labels[3].parse::<Arch>().map_err(|_| {
-        clerk::warn!(value = %labels[3], "Failed to parse Arch label");
-        serde::de::Error::unknown_variant(labels[3].as_str(), &Arch::VARIANTS)
+    let memory_mb = labels[4].parse().map_err(|_| {
+        clerk::warn!(value = %labels[4], "Failed to parse memory_mb label");
+        serde::de::Error::custom(format!("Invalid value for memory_mb: {}", labels[4]))
     })?;
 
-    let cpu_mhz: usize = labels[4].parse().map_err(|_| {
-        clerk::warn!(value = %labels[4], "Failed to parse cpu_mhz label");
-        serde::de::Error::custom(format!("Invalid value for cpu_mhz: {}", labels[4]))
-    })?;
-
-    let memory_mb = labels[5].parse().map_err(|_| {
-        clerk::warn!(value = %labels[5], "Failed to parse memory_mb label");
-        serde::de::Error::custom(format!("Invalid value for memory_mb: {}", labels[5]))
-    })?;
-
-    clerk::debug!(image = %image, ?os, ?arch, cpu_mhz, memory_mb, "Runner labels parsed successfully");
+    clerk::debug!(image = %image, ?platform, cpu_mhz, memory_mb, "Runner labels parsed successfully");
 
     Ok(RunnerSpec {
         _image: image,
-        os,
-        arch,
+        _platform: platform,
         _cpu_mhz: cpu_mhz,
         _memory_mb: memory_mb,
     })
@@ -286,17 +287,20 @@ mod tests {
 
     #[rstest]
     #[case(
-        &["self-hosted", "ubuntu-22.04", "linux", "x86_64", "3200", "7812"],
+        &["self-hosted", "ubuntu-22.04", "linux-64",  "3200", "7812"],
         "linux_x86_64_snapshot"
     )]
     #[case(
-        &["self-hosted", "debian-12", "linux", "arm64", "2400", "4096"],
+        &["self-hosted", "debian-12", "osx-arm64", "2400", "4096"],
         "linux_arm64_snapshot"
     )]
     fn parse_labels_valid_snapshot(#[case] labels: &[&str], #[case] snapshot_name: &str) {
         let result = deserialise_labels(labels);
         assert!(result.is_ok(), "expected Ok but got: {:?}", result);
-        insta::assert_debug_snapshot!(snapshot_name, result.unwrap());
+        insta::assert_debug_snapshot!(
+            format!("parse_labels_valid_snapshot-{}", snapshot_name),
+            result.unwrap()
+        );
     }
 
     #[rstest]
@@ -305,10 +309,13 @@ mod tests {
         &["self-hosted", "ubuntu", "linux", "x86_64", "3200", "7812", "extra"],
         "too many labels"
     )]
-    fn parse_labels_wrong_length(#[case] labels: &[&str], #[case] _desc: &str) {
+    fn parse_labels_wrong_length(#[case] labels: &[&str], #[case] snapshot_name: &str) {
         let result = deserialise_labels(labels);
         assert!(result.is_err());
-        insta::assert_snapshot!(result.unwrap_err());
+        insta::assert_snapshot!(
+            format!("parse_labels_invalid_variant-{}", snapshot_name),
+            result.unwrap_err()
+        );
     }
 
     #[rstest]
@@ -317,7 +324,10 @@ mod tests {
     fn parse_labels_invalid_variant(#[case] labels: &[&str], #[case] snapshot_name: &str) {
         let result = deserialise_labels(labels);
         assert!(result.is_err());
-        insta::assert_snapshot!(snapshot_name, result.unwrap_err());
+        insta::assert_snapshot!(
+            format!("parse_labels_invalid_variant-{}", snapshot_name),
+            result.unwrap_err()
+        );
     }
 
     #[rstest]
@@ -326,7 +336,10 @@ mod tests {
     fn parse_labels_invalid_numbers(#[case] labels: &[&str], #[case] snapshot_name: &str) {
         let result = deserialise_labels(labels);
         assert!(result.is_err());
-        insta::assert_snapshot!(snapshot_name, result.unwrap_err());
+        insta::assert_snapshot!(
+            format!("parse_labels_invalid_numbers-{}", snapshot_name),
+            result.unwrap_err()
+        );
     }
 
     // ── validate_event ──────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Vendor {
     #[serde(rename = "bitbucket", alias = "atlassian")]
     Bitbucket,
@@ -132,14 +133,14 @@ mod tests {
     fn load_minimal_uses_defaults() {
         let f = write_toml(MINIMAL_TOML);
         let cfg = Config::load_toml(f.path()).expect("should parse");
-        insta::assert_debug_snapshot!("minimal_config", cfg);
+        insta::assert_debug_snapshot!(cfg);
     }
 
     #[test]
     fn load_full_config() {
         let f = write_toml(FULL_TOML);
         let cfg = Config::load_toml(f.path()).expect("should parse");
-        insta::assert_debug_snapshot!("full_config", cfg);
+        insta::assert_debug_snapshot!(cfg);
     }
 
     // ── defaults ────────────────────────────────────────────────────────────
@@ -169,13 +170,13 @@ mod tests {
     // ── vendor deserialization ───────────────────────────────────────────────
 
     #[rstest]
-    #[case("github", "Github")]
-    #[case("gitlab", "Gitlab")]
-    #[case("bitbucket", "Bitbucket")]
-    #[case("atlassian", "Bitbucket")] // alias
-    #[case("Forgejo", "Forgejo")]
-    #[case("Gitea", "Gitea")]
-    #[case("Woodpecker", "Woodpecker")]
+    #[case("github", "github")]
+    #[case("gitlab", "gitlab")]
+    #[case("bitbucket", "bitbucket")]
+    #[case("atlassian", "bitbucket")] // alias
+    #[case("forgejo", "forgejo")]
+    #[case("gitea", "gitea")]
+    #[case("woodpecker", "woodpecker")]
     fn vendor_roundtrip(#[case] toml_value: &str, #[case] expected_debug: &str) {
         let toml = format!(
             r#"
@@ -189,7 +190,7 @@ mod tests {
         );
         let f = write_toml(&toml);
         let cfg = Config::load_toml(f.path()).unwrap();
-        assert_eq!(format!("{:?}", cfg.devop.vendor), expected_debug);
+        assert_eq!(format!("{:?}", cfg.devop.vendor).to_lowercase(), expected_debug);
     }
 
     #[test]
@@ -205,7 +206,7 @@ mod tests {
         let f = write_toml(toml);
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!("unknown_vendor_error", result.unwrap_err().to_string());
+        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     // ── error paths ──────────────────────────────────────────────────────────
@@ -221,7 +222,7 @@ mod tests {
         let f = write_toml("this is not [ valid toml !!!");
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!("malformed_toml_error", result.unwrap_err().to_string());
+        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     #[test]
@@ -238,7 +239,7 @@ mod tests {
         );
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!("missing_token_error", result.unwrap_err().to_string());
+        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     // ── allowed lists ────────────────────────────────────────────────────────

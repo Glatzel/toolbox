@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 pub enum Vendor {
     #[serde(rename = "bitbucket", alias = "atlassian")]
     Bitbucket,
+    Forgejo,
     Gitea,
     Github,
     Gitlab,
-    Woodpecker
+    Woodpecker,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {

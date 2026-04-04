@@ -42,12 +42,13 @@ struct Sender {
     login: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 struct WorkflowJob {
     _workflow_name: String,
     _job_id: u32,
     _name: String,
     #[serde(deserialize_with = "parse_labels")]
+    #[validate(nested)]
     labels: RunnerSpec,
 }
 
@@ -133,10 +134,10 @@ where
     clerk::debug!(image = %image, ?platform, cpu_mhz, memory_mb, "Runner labels parsed successfully");
 
     Ok(RunnerSpec {
-        _image: image,
-        _platform: platform,
-        _cpu_mhz: cpu_mhz,
-        _memory_mb: memory_mb,
+        image,
+        platform: platform,
+        cpu_mhz,
+        memory_mb,
     })
 }
 

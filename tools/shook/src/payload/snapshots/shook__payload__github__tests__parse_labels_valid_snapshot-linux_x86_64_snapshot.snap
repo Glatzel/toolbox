@@ -1,0 +1,10 @@
+---
+source: src/payload/github.rs
+expression: result.unwrap()
+---
+RunnerSpec {
+    _image: "ubuntu-22.04",
+    _platform: Linux64,
+    _cpu_mhz: 3200,
+    _memory_mb: 7812,
+}

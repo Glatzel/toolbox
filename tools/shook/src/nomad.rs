@@ -27,8 +27,19 @@ impl NomadClient {
         let sidefx_web = Self { client };
         Ok(sidefx_web)
     }
-    pub async fn dispatch(&self, _runner_spec: &RunnerSpec, config: &Config) -> Response {
-        let res = match self.client.post(&config.nomad.url).send().await {
+    pub async fn dispatch(&self, runner_spec: &RunnerSpec, config: &Config) -> Response {
+        let res = match self
+            .client
+            .post(format!(
+                "{}/{}{}{}",
+                config.nomad.url,
+                runner_spec.image,
+                runner_spec.cpu_mhz,
+                runner_spec.memory_mb
+            ))
+            .send()
+            .await
+        {
             Ok(res) => res,
             Err(e) => {
                 return (

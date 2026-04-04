@@ -1,0 +1,10 @@
+---
+source: src/config.rs
+expression: result.unwrap_err().to_string()
+---
+x TOML parse error at line 2, column 13
+│   |
+│ 2 |             [devop]
+│   |             ^^^^^^^
+│ missing field `token`
+│

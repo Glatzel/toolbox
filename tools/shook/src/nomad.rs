@@ -29,20 +29,20 @@ impl NomadClient {
     }
     pub async fn dispatch(&self, runner_spec: &RunnerSpec, config: &Config) -> Response {
         let body = serde_json::json!({"Meta":{
-            "token":config.devop.token,
-        "owner":runner_spec.owner,
-        "repo":runner_spec.repo,
-        "image":runner_spec.image,
-        "platform":runner_spec.platform,
-        "cpu_mhz":runner_spec.cpu_mhz,
-        "memory_mb":runner_spec.memory_mb,
-        }})
-        .to_string();
-        clerk::debug!(body = body);
+            "TOKEN":config.devop.token.to_string(),
+            "OWNER":runner_spec.owner.to_string(),
+            "REPO":runner_spec.repo.to_string(),
+            "ID":runner_spec.id.to_string()
+        }});
+        // clerk::debug!(body = body);
         let res = match self
             .client
-            .post(format!("{}/runner/dispatch", config.nomad.url))
-            .body(body)
+            .post(format!(
+                "{}/v1/job/{}/dispatch",
+                config.nomad.url, runner_spec.job
+            ))
+            .header("Content-Type", "application/json")
+            .json(&body)
             .send()
             .await
         {

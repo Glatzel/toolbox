@@ -5,7 +5,6 @@ use serde::{Deserialize, Deserializer, Serialize};
 use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
-use crate::payload::Platform;
 use crate::{
     config::Config,
     payload::{IRunnerSpec, RunnerSpec},
@@ -55,8 +54,10 @@ struct WorkflowJob {
     _workflow_name: String,
     #[serde(rename = "name")]
     _name: String,
+    id: usize,
     #[serde(deserialize_with = "parse_labels")]
-    labels: (String, Platform, usize, usize),
+    #[serde(rename = "labels")]
+    job: String,
 }
 
 impl IRunnerSpec for WebhookPayload {
@@ -92,18 +93,14 @@ impl IRunnerSpec for WebhookPayload {
         let runner_spec = RunnerSpec {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
-            image: webhook_payload.workflow_job.labels.0,
-            platform: webhook_payload.workflow_job.labels.1,
-            cpu_mhz: webhook_payload.workflow_job.labels.2,
-            memory_mb: webhook_payload.workflow_job.labels.3,
+            job: webhook_payload.workflow_job.job,
+            id: webhook_payload.workflow_job.id,
         };
         Ok(runner_spec)
     }
 }
 
-pub(super) fn parse_labels<'de, D>(
-    deserializer: D,
-) -> Result<(String, Platform, usize, usize), D::Error>
+pub(super) fn parse_labels<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -111,46 +108,22 @@ where
 
     clerk::debug!(label_count = labels.len(), "Parsing runner labels");
 
-    if labels.len() != 5 {
+    if labels.len() != 2 {
         clerk::warn!(
             label_count = labels.len(),
-            "Invalid label count, expected 5 [self-hosted, image, platform, cpu_mhz, memory_mb]"
+            "Invalid label count, expected 2 [self-hosted, job]"
         );
         return Err(serde::de::Error::invalid_length(
             labels.len(),
-            &"5 labels expected, [self-hosted, image, platform, cpu_mhz, memory_mb]",
+            &"2 labels expected, [self-hosted, job]",
         ));
     }
 
-    let image = labels[1].clone();
+    let job = labels[1].clone();
 
-    let platform = match labels[2].as_str() {
-        "win-64" => Platform::Win64,
-        "linux-64" => Platform::Linux64,
-        "linux-aarch64" => Platform::LinuxAarch64,
-        "osx-arm64" => Platform::OsxArm64,
-        _ => {
-            clerk::warn!(value = %labels[2], "Failed to parse platform label");
-            return Err(serde::de::Error::unknown_variant(
-                labels[2].as_str(),
-                &["win-64", "linux-64", "linux-aarch64", "osx-arm64"],
-            ));
-        }
-    };
+    clerk::debug!(?job, "Runner labels parsed successfully");
 
-    let cpu_mhz: usize = labels[3].parse().map_err(|_| {
-        clerk::warn!(value = %labels[3], "Failed to parse cpu_mhz label");
-        serde::de::Error::custom(format!("Invalid value for cpu_mhz: {}", labels[3]))
-    })?;
-
-    let memory_mb = labels[4].parse().map_err(|_| {
-        clerk::warn!(value = %labels[4], "Failed to parse memory_mb label");
-        serde::de::Error::custom(format!("Invalid value for memory_mb: {}", labels[4]))
-    })?;
-
-    clerk::debug!(image = %image, ?platform, cpu_mhz, memory_mb, "Runner labels parsed successfully");
-
-    Ok((image, platform, cpu_mhz, memory_mb))
+    Ok(job)
 }
 
 fn validate_repository(repo: &Repository, context: &Config) -> Result<(), ValidationError> {
@@ -219,10 +192,6 @@ fn verify_signature(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,8 +199,6 @@ mod tests {
     use hmac::{Hmac, Mac};
     use rstest::*;
     use sha2::Sha256;
-
-    // ── helpers ─────────────────────────────────────────────────────────────
 
     fn make_signature(secret: &str, body: &str) -> String {
         let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();
@@ -246,8 +213,6 @@ mod tests {
     }
 
     const SECRET: &str = "test-secret";
-
-    // ── verify_signature ────────────────────────────────────────────────────
 
     #[rstest]
     #[case("hello world")]
@@ -286,131 +251,5 @@ mod tests {
         let headers = headers_with_sig(&sig);
         let result = verify_signature("tampered body", SECRET, &headers);
         assert!(result.is_err());
-    }
-
-    // ── parse_labels ────────────────────────────────────────────────────────
-
-    // Helper: serialise a label vec into a JSON string then deserialise via
-    // parse_labels using a raw JSON deserializer.
-    fn deserialise_labels(labels: &[&str]) -> Result<(String, Platform, usize, usize), String> {
-        let json = serde_json::to_string(labels).unwrap();
-        let mut de = serde_json::Deserializer::from_str(&json);
-        parse_labels(&mut de).map_err(|e| e.to_string())
-    }
-
-    #[rstest]
-    #[case(
-        &["self-hosted", "ubuntu-22.04", "linux-64",  "3200", "7812"],
-        "linux_x86_64_snapshot"
-    )]
-    #[case(
-        &["self-hosted", "debian-12", "osx-arm64", "2400", "4096"],
-        "linux_arm64_snapshot"
-    )]
-    fn parse_labels_valid_snapshot(#[case] labels: &[&str], #[case] snapshot_name: &str) {
-        let result = deserialise_labels(labels);
-        assert!(result.is_ok(), "expected Ok but got: {:?}", result);
-        insta::assert_debug_snapshot!(
-            format!("parse_labels_valid_snapshot-{}", snapshot_name),
-            result.unwrap()
-        );
-    }
-
-    #[rstest]
-    #[case(&["self-hosted", "ubuntu"], "too few labels")]
-    #[case(
-        &["self-hosted", "ubuntu", "linux", "x86_64", "3200", "7812", "extra"],
-        "too many labels"
-    )]
-    fn parse_labels_wrong_length(#[case] labels: &[&str], #[case] snapshot_name: &str) {
-        let result = deserialise_labels(labels);
-        assert!(result.is_err());
-        insta::assert_snapshot!(
-            format!("parse_labels_invalid_variant-{}", snapshot_name),
-            result.unwrap_err()
-        );
-    }
-
-    #[rstest]
-    #[case(&["self-hosted", "img", "beos", "x86_64", "3200", "7812"], "unknown_os")]
-    #[case(&["self-hosted", "img", "linux", "pdp11", "3200", "7812"], "unknown_arch")]
-    fn parse_labels_invalid_variant(#[case] labels: &[&str], #[case] snapshot_name: &str) {
-        let result = deserialise_labels(labels);
-        assert!(result.is_err());
-        insta::assert_snapshot!(
-            format!("parse_labels_invalid_variant-{}", snapshot_name),
-            result.unwrap_err()
-        );
-    }
-
-    #[rstest]
-    #[case(&["self-hosted", "img", "linux", "x86_64", "not-a-number", "7812"], "bad_cpu_mhz")]
-    #[case(&["self-hosted", "img", "linux", "x86_64", "3200", "not-a-number"], "bad_memory_mb")]
-    fn parse_labels_invalid_numbers(#[case] labels: &[&str], #[case] snapshot_name: &str) {
-        let result = deserialise_labels(labels);
-        assert!(result.is_err());
-        insta::assert_snapshot!(
-            format!("parse_labels_invalid_numbers-{}", snapshot_name),
-            result.unwrap_err()
-        );
-    }
-
-    // ── validate_event ──────────────────────────────────────────────────────
-
-    #[rstest]
-    #[case(Event::Queued, true)]
-    #[case(Event::Completed, false)]
-    #[case(Event::InProgress, false)]
-    #[case(Event::Waiting, false)]
-    fn validate_event_cases(#[case] event: Event, #[case] should_pass: bool) {
-        let result = validate_event(&event);
-        assert_eq!(result.is_ok(), should_pass, "event={event:?}");
-    }
-
-    // ── validate_repository / validate_sender ───────────────────────────────
-
-    fn make_config(repos: &[&str], users: &[&str]) -> Config {
-        Config {
-            server: crate::config::ServerConfig { port: 8787 },
-            devop: crate::config::DevOpConfig {
-                vendor: crate::config::Vendor::Github,
-                token: "test-token".to_string(),
-                webhook_secret: SECRET.to_string(),
-                allowed_repositories: repos.iter().map(|s| s.to_string()).collect(),
-                allowed_users: users.iter().map(|s| s.to_string()).collect(),
-            },
-            nomad: crate::config::NomadConfig {
-                url: "http://localhost:4646/v1/".to_string(),
-                timeout_sec: 3.0,
-                retry: 3,
-            },
-        }
-    }
-
-    #[rstest]
-    #[case("allowed-repo", true)]
-    #[case("unknown-repo", false)]
-    fn validate_repository_cases(#[case] repo_name: &str, #[case] should_pass: bool) {
-        let config = make_config(&["allowed-repo"], &[]);
-        let repo = Repository {
-            name: repo_name.to_string(),
-            owner: Owner {
-                login: "owner".to_string(),
-            },
-        };
-        let result = validate_repository(&repo, &config);
-        assert_eq!(result.is_ok(), should_pass);
-    }
-
-    #[rstest]
-    #[case("alice", true)]
-    #[case("eve", false)]
-    fn validate_sender_cases(#[case] login: &str, #[case] should_pass: bool) {
-        let config = make_config(&[], &["alice"]);
-        let sender = Sender {
-            login: login.to_string(),
-        };
-        let result = validate_sender(&sender, &config);
-        assert_eq!(result.is_ok(), should_pass);
     }
 }

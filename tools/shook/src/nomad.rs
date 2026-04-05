@@ -28,10 +28,21 @@ impl NomadClient {
         Ok(sidefx_web)
     }
     pub async fn dispatch(&self, runner_spec: &RunnerSpec, config: &Config) -> Response {
+        let body = serde_json::json!({"Meta":{
+            "token":config.devop.token,
+        "owner":runner_spec.owner,
+        "repo":runner_spec.repo,
+        "image":runner_spec.image,
+        "platform":runner_spec.platform,
+        "cpu_mhz":runner_spec.cpu_mhz,
+        "memory_mb":runner_spec.memory_mb,
+        }})
+        .to_string();
+        clerk::debug!(body = body);
         let res = match self
             .client
             .post(format!("{}/runner/dispatch", config.nomad.url))
-            .body(runner_spec.nomad_body())
+            .body(body)
             .send()
             .await
         {

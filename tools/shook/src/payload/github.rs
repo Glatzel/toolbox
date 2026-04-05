@@ -16,7 +16,7 @@ use crate::{
 pub struct WebhookPayload {
     #[validate(custom(function = "validate_event"))]
     action: Event,
-    
+
     repository: Repository,
     #[validate(custom(function = "validate_sender", use_context))]
     sender: Sender,

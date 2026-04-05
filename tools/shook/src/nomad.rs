@@ -34,7 +34,7 @@ impl NomadClient {
             "REPO":runner_spec.repo.to_string(),
             "ID":runner_spec.id.to_string()
         }});
-        clerk::debug!("{}",body.to_string());
+        clerk::debug!("{}", body.to_string());
         let res = match self
             .client
             .post(format!(

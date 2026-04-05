@@ -24,7 +24,7 @@ validator = { version = "0.20.0", features = ["derive"] }
 
 
 [dev-dependencies]
-insta = { version = "1.46.1", features = ["filters","json"] }
+insta = { version = "1.46.1", features = ["filters", "json"] }
 rstest = "0.26.1"
 tempfile = "3.27.0"
 tower = "0.5.3"

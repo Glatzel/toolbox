@@ -89,10 +89,10 @@ mod tests {
     // ── Platform Display ─────────────────────────────────────────────────────
 
     #[rstest]
-    #[case(Platform::Win64,        "win-64")]
-    #[case(Platform::Linux64,      "linux-64")]
+    #[case(Platform::Win64, "win-64")]
+    #[case(Platform::Linux64, "linux-64")]
     #[case(Platform::LinuxAarch64, "linux-aarch64")]
-    #[case(Platform::OsxArm64,     "osx-arm64")]
+    #[case(Platform::OsxArm64, "osx-arm64")]
     fn platform_display(#[case] platform: Platform, #[case] expected: &str) {
         assert_eq!(platform.to_string(), expected);
     }
@@ -100,19 +100,19 @@ mod tests {
     // ── Platform serde roundtrip ──────────────────────────────────────────────
 
     #[rstest]
-    #[case(Platform::Win64,        r#""win-64""#)]
-    #[case(Platform::Linux64,      r#""linux-64""#)]
+    #[case(Platform::Win64, r#""win-64""#)]
+    #[case(Platform::Linux64, r#""linux-64""#)]
     #[case(Platform::LinuxAarch64, r#""linux-aarch64""#)]
-    #[case(Platform::OsxArm64,     r#""osx-arm64""#)]
+    #[case(Platform::OsxArm64, r#""osx-arm64""#)]
     fn platform_serialises_to_kebab(#[case] platform: Platform, #[case] expected_json: &str) {
         assert_eq!(serde_json::to_string(&platform).unwrap(), expected_json);
     }
 
     #[rstest]
-    #[case(r#""win-64""#,        Platform::Win64)]
-    #[case(r#""linux-64""#,      Platform::Linux64)]
+    #[case(r#""win-64""#, Platform::Win64)]
+    #[case(r#""linux-64""#, Platform::Linux64)]
     #[case(r#""linux-aarch64""#, Platform::LinuxAarch64)]
-    #[case(r#""osx-arm64""#,     Platform::OsxArm64)]
+    #[case(r#""osx-arm64""#, Platform::OsxArm64)]
     fn platform_deserialises_from_kebab(#[case] json: &str, #[case] expected: Platform) {
         let p: Platform = serde_json::from_str(json).unwrap();
         assert_eq!(p, expected);
@@ -158,11 +158,11 @@ mod tests {
         let value: serde_json::Value = serde_json::from_str(&body).unwrap();
         let meta = &value["Meta"];
 
-        assert_eq!(meta["owner"],     spec.owner.as_str());
-        assert_eq!(meta["repo"],      spec.repo.as_str());
-        assert_eq!(meta["image"],     spec.image.as_str());
-        assert_eq!(meta["platform"],  "linux-64");
-        assert_eq!(meta["cpu_mhz"],   spec.cpu_mhz);
+        assert_eq!(meta["owner"], spec.owner.as_str());
+        assert_eq!(meta["repo"], spec.repo.as_str());
+        assert_eq!(meta["image"], spec.image.as_str());
+        assert_eq!(meta["platform"], "linux-64");
+        assert_eq!(meta["cpu_mhz"], spec.cpu_mhz);
         assert_eq!(meta["memory_mb"], spec.memory_mb);
     }
 
@@ -174,11 +174,11 @@ mod tests {
         let json = serde_json::to_string(&spec).unwrap();
         let back: RunnerSpec = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(back.owner,     spec.owner);
-        assert_eq!(back.repo,      spec.repo);
-        assert_eq!(back.image,     spec.image);
-        assert_eq!(back.platform,  spec.platform);
-        assert_eq!(back.cpu_mhz,   spec.cpu_mhz);
+        assert_eq!(back.owner, spec.owner);
+        assert_eq!(back.repo, spec.repo);
+        assert_eq!(back.image, spec.image);
+        assert_eq!(back.platform, spec.platform);
+        assert_eq!(back.cpu_mhz, spec.cpu_mhz);
         assert_eq!(back.memory_mb, spec.memory_mb);
     }
 }

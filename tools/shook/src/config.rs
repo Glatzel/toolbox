@@ -72,7 +72,7 @@ impl Config {
 
 fn default_nomad_config() -> NomadConfig {
     NomadConfig {
-        url: String::from("http://localhost:4646/v1/"),
+        url: String::from("http://localhost:4646"),
         timeout_sec: 3.0,
         retry: 3,
     }

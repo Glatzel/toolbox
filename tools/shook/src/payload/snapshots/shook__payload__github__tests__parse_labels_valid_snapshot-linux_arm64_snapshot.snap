@@ -2,9 +2,9 @@
 source: src/payload/github.rs
 expression: result.unwrap()
 ---
-RunnerSpec {
-    image: "debian-12",
-    platform: OsxArm64,
-    cpu_mhz: 2400,
-    memory_mb: 4096,
-}
+(
+    "debian-12",
+    OsxArm64,
+    2400,
+    4096,
+)

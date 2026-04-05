@@ -2,4 +2,4 @@
 source: src/payload/github.rs
 expression: result.unwrap_err()
 ---
-invalid length 2, expected 6 labels expected, [self-hosted, image, os, arch, cpu_mhz, memory_mb]
+invalid length 2, expected 5 labels expected, [self-hosted, image, platform, cpu_mhz, memory_mb]

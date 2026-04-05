@@ -122,7 +122,7 @@ mod tests {
         allowed_users        = ["bob", "carol"]
 
         [nomad]
-        url         = "http://nomad.internal:4646/v1/"
+        url         = "http://nomad.internal:4646"
         timeout_sec = 5.0
         retry       = 5
     "#;
@@ -151,7 +151,7 @@ mod tests {
         let cfg = Config::load_toml(f.path()).unwrap();
 
         assert_eq!(cfg.server.port, 8787);
-        assert_eq!(cfg.nomad.url, "http://localhost:4646/v1/");
+        assert_eq!(cfg.nomad.url, "http://localhost:4646");
         assert!((cfg.nomad.timeout_sec - 3.0).abs() < f32::EPSILON);
         assert_eq!(cfg.nomad.retry, 3);
     }
@@ -162,7 +162,7 @@ mod tests {
         let cfg = Config::load_toml(f.path()).unwrap();
 
         assert_eq!(cfg.server.port, 9090);
-        assert_eq!(cfg.nomad.url, "http://nomad.internal:4646/v1/");
+        assert_eq!(cfg.nomad.url, "http://nomad.internal:4646");
         assert!((cfg.nomad.timeout_sec - 5.0).abs() < f32::EPSILON);
         assert_eq!(cfg.nomad.retry, 5);
     }

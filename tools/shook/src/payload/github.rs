@@ -16,7 +16,7 @@ use crate::{
 pub struct WebhookPayload {
     #[validate(custom(function = "validate_event"))]
     action: Event,
-    #[validate(custom(function = "validate_repository", use_context))]
+    
     repository: Repository,
     #[validate(custom(function = "validate_sender", use_context))]
     sender: Sender,
@@ -56,8 +56,7 @@ struct WorkflowJob {
     _name: String,
     id: usize,
     #[serde(deserialize_with = "parse_labels")]
-    #[serde(rename = "labels")]
-    job: String,
+    labels: String,
 }
 
 impl IRunnerSpec for WebhookPayload {
@@ -93,7 +92,7 @@ impl IRunnerSpec for WebhookPayload {
         let runner_spec = RunnerSpec {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
-            job: webhook_payload.workflow_job.job,
+            job: webhook_payload.workflow_job.labels,
             id: webhook_payload.workflow_job.id,
         };
         Ok(runner_spec)
@@ -105,34 +104,9 @@ where
     D: Deserializer<'de>,
 {
     let labels: Vec<String> = Vec::deserialize(deserializer)?;
-
-    clerk::debug!(label_count = labels.len(), "Parsing runner labels");
-
-    if labels.len() != 2 {
-        clerk::warn!(
-            label_count = labels.len(),
-            "Invalid label count, expected 2 [self-hosted, job]"
-        );
-        return Err(serde::de::Error::invalid_length(
-            labels.len(),
-            &"2 labels expected, [self-hosted, job]",
-        ));
-    }
-
-    let job = labels[1].clone();
-
-    clerk::debug!(?job, "Runner labels parsed successfully");
-
-    Ok(job)
-}
-
-fn validate_repository(repo: &Repository, context: &Config) -> Result<(), ValidationError> {
-    if !context.devop.allowed_repositories.contains(&repo.name) {
-        clerk::warn!(repository = %repo.name, "Repository not in allowlist");
-        return Err(ValidationError::new("Repository not allowed"));
-    }
-    clerk::debug!(repository = %repo.name, "Repository validated");
-    Ok(())
+    let labels = labels.join(",");
+    clerk::debug!(?labels, "Runner labels parsed successfully");
+    Ok(labels)
 }
 
 fn validate_sender(sender: &Sender, context: &Config) -> Result<(), ValidationError> {

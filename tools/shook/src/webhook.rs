@@ -1,5 +1,6 @@
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
+use validator::ValidateArgs;
 
 use crate::config::{Config, Vendor};
 use crate::nomad::NomadClient;
@@ -39,6 +40,8 @@ pub async fn webhook(
         Ok(spec) => spec,
         Err(response) => return response,
     };
-    state.client.dispatch(&runner_spec, &state.config).await
-    // StatusCode::OK.into_response()
+    match runner_spec.validate_with_args(&state.config) {
+        Ok(_) => state.client.dispatch(&runner_spec, &state.config).await,
+        Err(err) => (StatusCode::BAD_REQUEST, err.to_string()).into_response(),
+    }
 }

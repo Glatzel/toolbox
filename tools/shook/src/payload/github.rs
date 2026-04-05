@@ -36,6 +36,12 @@ enum Event {
 #[derive(Debug, Serialize, Deserialize)]
 struct Repository {
     name: String,
+    owner: Owner,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Owner {
+    login: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,15 +49,14 @@ struct Sender {
     login: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
 struct WorkflowJob {
     #[serde(rename = "workflow_name")]
     _workflow_name: String,
     #[serde(rename = "name")]
     _name: String,
     #[serde(deserialize_with = "parse_labels")]
-    #[validate(nested)]
-    labels: RunnerSpec,
+    labels: (String, Platform, usize, usize),
 }
 
 impl IRunnerSpec for WebhookPayload {
@@ -84,11 +89,21 @@ impl IRunnerSpec for WebhookPayload {
             sender = %webhook_payload.sender.login,
             "Webhook payload accepted, returning runner spec"
         );
-        Ok(webhook_payload.workflow_job.labels)
+        let runner_spec = RunnerSpec {
+            owner: webhook_payload.repository.owner.login,
+            repo: webhook_payload.repository.name,
+            image: webhook_payload.workflow_job.labels.0,
+            platform: webhook_payload.workflow_job.labels.1,
+            cpu_mhz: webhook_payload.workflow_job.labels.2,
+            memory_mb: webhook_payload.workflow_job.labels.3,
+        };
+        Ok(runner_spec)
     }
 }
 
-pub(super) fn parse_labels<'de, D>(deserializer: D) -> Result<RunnerSpec, D::Error>
+pub(super) fn parse_labels<'de, D>(
+    deserializer: D,
+) -> Result<(String, Platform, usize, usize), D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -135,12 +150,7 @@ where
 
     clerk::debug!(image = %image, ?platform, cpu_mhz, memory_mb, "Runner labels parsed successfully");
 
-    Ok(RunnerSpec {
-        image,
-        platform: platform,
-        cpu_mhz,
-        memory_mb,
-    })
+    Ok((image, platform, cpu_mhz, memory_mb))
 }
 
 fn validate_repository(repo: &Repository, context: &Config) -> Result<(), ValidationError> {
@@ -282,7 +292,7 @@ mod tests {
 
     // Helper: serialise a label vec into a JSON string then deserialise via
     // parse_labels using a raw JSON deserializer.
-    fn deserialise_labels(labels: &[&str]) -> Result<RunnerSpec, String> {
+    fn deserialise_labels(labels: &[&str]) -> Result<(String, Platform, usize, usize), String> {
         let json = serde_json::to_string(labels).unwrap();
         let mut de = serde_json::Deserializer::from_str(&json);
         parse_labels(&mut de).map_err(|e| e.to_string())
@@ -384,6 +394,9 @@ mod tests {
         let config = make_config(&["allowed-repo"], &[]);
         let repo = Repository {
             name: repo_name.to_string(),
+            owner: Owner {
+                login: "owner".to_string(),
+            },
         };
         let result = validate_repository(&repo, &config);
         assert_eq!(result.is_ok(), should_pass);

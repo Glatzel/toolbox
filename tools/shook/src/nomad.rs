@@ -30,10 +30,8 @@ impl NomadClient {
     pub async fn dispatch(&self, runner_spec: &RunnerSpec, config: &Config) -> Response {
         let res = match self
             .client
-            .post(format!(
-                "{}/{}{}{}",
-                config.nomad.url, runner_spec.image, runner_spec.cpu_mhz, runner_spec.memory_mb
-            ))
+            .post(format!("{}/runner/dispatch", config.nomad.url))
+            .body(runner_spec.nomad_body())
             .send()
             .await
         {

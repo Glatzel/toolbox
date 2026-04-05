@@ -34,7 +34,7 @@ impl NomadClient {
             "REPO":runner_spec.repo.to_string(),
             "ID":runner_spec.id.to_string()
         }});
-        // clerk::debug!(body = body);
+        clerk::debug!("{}",body.to_string());
         let res = match self
             .client
             .post(format!(
@@ -48,6 +48,7 @@ impl NomadClient {
         {
             Ok(res) => res,
             Err(e) => {
+                clerk::error!("Nomad request failed: {e}");
                 return (
                     StatusCode::BAD_GATEWAY,
                     format!("Nomad request failed: {e}"),
@@ -62,6 +63,7 @@ impl NomadClient {
         let body = match res.bytes().await {
             Ok(b) => b,
             Err(e) => {
+                clerk::error!("Failed to read response: {e}");
                 return (
                     StatusCode::BAD_GATEWAY,
                     format!("Failed to read response: {e}"),

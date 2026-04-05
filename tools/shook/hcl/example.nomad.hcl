@@ -19,6 +19,7 @@ job "ghar-linux-dev-small" {
         "--env", "GH_REPOSITORY=${NOMAD_META_REPO}",
         "--env", "GH_TOKEN=${NOMAD_META_TOKEN}",
         "--env", "EPHEMERAL=true",
+        "--env", "RUNNER_LABELS=self-hosted,ghar-linux-dev-small",
         "--name", "ghar-linux-dev-small${NOMAD_META_ID}",
         "ghcr.io/glatzel/ghar-linux-dev"
         ]

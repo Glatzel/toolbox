@@ -21,6 +21,14 @@ Set-Location tools/orc
 cargo update
 Set-Location $PSScriptRoot/..
 
+$cargoTomlPath = "./tools/shook/Cargo.toml"
+(Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
+Write-Host "Updated shook version to $version"
+Set-Location tools/shook
+cargo update
+Set-Location $PSScriptRoot/..
+
+
 $cargoTomlPath = "./tools/vinaya/Cargo.toml"
 (Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
 Write-Host "Updated vinaya version to $version"

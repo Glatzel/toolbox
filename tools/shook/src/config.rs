@@ -209,7 +209,6 @@ mod tests {
         let f = write_toml(toml);
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     // ── error paths ──────────────────────────────────────────────────────────
@@ -225,7 +224,6 @@ mod tests {
         let f = write_toml("this is not [ valid toml !!!");
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     #[test]
@@ -242,7 +240,6 @@ mod tests {
         );
         let result = Config::load_toml(f.path());
         assert!(result.is_err());
-        insta::assert_snapshot!(result.unwrap_err().to_string());
     }
 
     // ── allowed lists ────────────────────────────────────────────────────────

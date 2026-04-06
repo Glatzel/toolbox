@@ -16,7 +16,7 @@ pub(super) struct RawConfigRunner {
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
     envs: Option<HashMap<String, String>>,
-    secret: Option<HashMap<String, (String, String)>>,
+    secrets: Option<HashMap<String, (String, String)>>,
 
     #[validate(custom(function = "validate_runners"))]
     runners: HashMap<String, RawRunnerConfigInner>,
@@ -52,9 +52,9 @@ struct RawRunnerConfigInner {
     #[serde(default)]
     envs_strategy: ResolveStrategy,
 
-    secret: Option<HashMap<String, (String, String)>>,
+    secrets: Option<HashMap<String, (String, String)>>,
     #[serde(default)]
-    secret_strategy: ResolveStrategy,
+    secrets_strategy: ResolveStrategy,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigRunner {
@@ -65,7 +65,7 @@ pub struct ConfigRunner {
     pub volumes: HashMap<PathBuf, PathBuf>,
     pub ports: HashMap<u16, u16>,
     pub envs: HashMap<String, String>,
-    pub secret: HashMap<String, (String, String)>,
+    pub secrets: HashMap<String, (String, String)>,
 }
 const fn default_cpus() -> u32 { 1 }
 const fn default_memory() -> u32 { 512 }
@@ -82,7 +82,7 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
             );
             let ports = resolve_map(self.ports.clone(), runner.ports, runner.ports_strategy);
             let envs = resolve_map(self.envs.clone(), runner.envs, runner.envs_strategy);
-            let secret = resolve_map(self.secret.clone(), runner.secret, runner.secret_strategy);
+            let secret = resolve_map(self.secrets.clone(), runner.secrets, runner.secrets_strategy);
 
             let resolved = ConfigRunner {
                 name,
@@ -92,7 +92,7 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
                 volumes,
                 ports,
                 envs,
-                secret,
+                secrets: secret,
             };
 
             result.insert(resolved.name.clone(), resolved);

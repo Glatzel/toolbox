@@ -3,8 +3,6 @@ use std::env;
 mod init;
 mod run;
 
-use axum::Router;
-use axum::routing::post;
 use clap::{Parser, Subcommand};
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;

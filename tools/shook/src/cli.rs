@@ -9,9 +9,7 @@ use clerk::tracing_subscriber::EnvFilter;
 use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-
 use crate::config::Config;
-use crate::nomad::NomadClient;
 use crate::webhook::{AppContext, webhook};
 
 #[derive(Debug, Parser)]
@@ -46,13 +44,9 @@ pub async fn main() -> mischief::Result<()> {
         .init();
 
     clerk::debug!(config_path = %args.config.display(), "Loading configuration");
-    let config = Config::load_toml(&args.config)?;
-
-    clerk::debug!(nomad_url = %config.nomad.url, "Initialising Nomad client");
-    let client = NomadClient::new(&config.nomad)?;
-
+    let config = Config::load_config(&args.config)?;
     let port = config.server.port;
-    let shared_state = Arc::new(AppContext { config, client });
+    let shared_state = Arc::new(AppContext { config });
 
     clerk::debug!("Building router");
     let app = app(shared_state.clone());

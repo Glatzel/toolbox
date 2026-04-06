@@ -1,6 +1,5 @@
 mod cli;
 mod config;
-mod nomad;
 mod payload;
 mod utils;
 mod webhook;

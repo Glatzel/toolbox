@@ -1,18 +1,15 @@
+use std::sync::Arc;
+
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Response};
 use validator::ValidateArgs;
 
 use crate::config::{Config, Vendor};
-use crate::nomad::NomadClient;
 use crate::payload::{IRunnerSpec, github};
-
-use axum::response::{IntoResponse, Response};
-
-use std::sync::Arc;
 
 pub struct AppContext {
     pub config: Config,
-    pub client: NomadClient,
 }
 
 pub async fn webhook(
@@ -41,7 +38,7 @@ pub async fn webhook(
         Err(response) => return response,
     };
     match runner_spec.validate_with_args(&state.config) {
-        Ok(_) => state.client.dispatch(&runner_spec, &state.config).await,
+        Ok(_) => todo!(),
         Err(err) => (StatusCode::BAD_REQUEST, err.to_string()).into_response(),
     }
 }

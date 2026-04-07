@@ -1,7 +1,7 @@
 [package]
-edition.workspace = true
 name = "clerk"
 version.workspace = true
+edition.workspace = true
 
 [dependencies]
 # std logging (host side)
@@ -19,9 +19,9 @@ defmt = { workspace = true, optional = true }
 [features]
 defmt = ["dep:defmt"]
 tracing = [
-  "dep:tracing",
-  "dep:tracing-subscriber",
-  "dep:owo-colors",
   "dep:chrono",
+  "dep:owo-colors",
+  "dep:tracing",
   "dep:tracing-core",
+  "dep:tracing-subscriber",
 ]

@@ -5,11 +5,9 @@ use serde::{Deserialize, Deserializer, Serialize};
 use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
-use crate::{
-    config::Config,
-    payload::{IRunnerSpec, RunnerSpec},
-    utils::constant_time_eq,
-};
+use crate::config::Config;
+use crate::payload::{IRunnerSpec, RunnerSpec};
+use crate::utils::constant_time_eq;
 
 #[derive(Debug, Deserialize, Validate)]
 #[validate(context = Config)]
@@ -168,11 +166,12 @@ fn verify_signature(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use axum::http::HeaderMap;
     use hmac::{Hmac, Mac};
     use rstest::*;
     use sha2::Sha256;
+
+    use super::*;
 
     fn make_signature(secret: &str, body: &str) -> String {
         let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();

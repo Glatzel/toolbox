@@ -1,7 +1,11 @@
 [package]
-edition.workspace = true
 name = "rax"
 version.workspace = true
+edition.workspace = true
+
+[[bench]]
+harness = false
+name = "rules"
 
 [dependencies]
 async-trait = { workspace = true, optional = true }
@@ -9,20 +13,15 @@ clerk.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 
-
 [dev-dependencies]
 async-trait.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
 criterion.workspace = true
 mischief.workspace = true
 serialport.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
+tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
 tokio-serial.workspace = true
 
 [features]
-async = ["tokio", "tokio/io-util", "async-trait", "std"]
+async = ["async-trait", "std", "tokio", "tokio/io-util"]
 std = []
-
-[[bench]]
-harness = false
-name = "rules"

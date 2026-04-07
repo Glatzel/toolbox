@@ -3,10 +3,8 @@ use std::time::Duration;
 use axum::response::{IntoResponse, Response};
 use reqwest::StatusCode;
 
-use crate::{
-    config::{Config, NomadConfig},
-    payload::RunnerSpec,
-};
+use crate::config::{Config, NomadConfig};
+use crate::payload::RunnerSpec;
 
 pub struct NomadClient {
     client: reqwest_middleware::ClientWithMiddleware,

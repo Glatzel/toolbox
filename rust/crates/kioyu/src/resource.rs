@@ -97,7 +97,7 @@ impl ResourcePool {
     /// Frees previously allocated resources.
     /// Returns `Err` if a key is not found or if freeing would underflow.
     /// Validates all entries before mutating — the operation is all-or-nothing.
-    pub fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), ResourceError> {
+    pub(crate) fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), ResourceError> {
         // Validate before mutating.
         for &(k, v) in req {
             let entry = self.resources.get(k).ok_or(ResourceError::NotFound(k))?;

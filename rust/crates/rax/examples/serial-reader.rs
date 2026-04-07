@@ -4,7 +4,7 @@ use std::time::Duration;
 use clerk::Level;
 use rax::io::IRaxReader;
 fn main() -> mischief::Result<()> {
-    clerk::init_log_with_level(Level::TRACE);
+    clerk::init_log_with_level(LevelFilter::TRACE);
     let path = "COM5";
     let port = serialport::new(path, 9600)
         .timeout(Duration::from_millis(3000))

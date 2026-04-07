@@ -7,6 +7,6 @@ pub use filter::level_filter;
 pub use formatter::ClerkFormatter;
 pub use layer::{file_layer, terminal_layer};
 // re-export tracing
-pub use tracing::{self, Level};
 pub use tracing_core;
 pub use tracing_subscriber;
+pub use tracing_subscriber::filter::LevelFilter;

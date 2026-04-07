@@ -48,12 +48,12 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     #[test]
     fn test_new_gbq() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGBQ,RMC*28";
         let mut ctx = StrParserContext::new();
         let gbq = Gbq::new(ctx.init(s.to_string()), Talker::GP)?;

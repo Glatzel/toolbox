@@ -106,7 +106,7 @@ impl Debug for Gbs {
 }
 #[cfg(test)]
 mod tests {
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
     use std::string::ToString;
@@ -114,7 +114,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_gbs() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07";
         let mut ctx = StrParserContext::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();
@@ -123,7 +123,7 @@ mod tests {
     }
     #[test]
     fn test_gbs_4_1() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B";
         let mut ctx = StrParserContext::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();

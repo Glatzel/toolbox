@@ -2,7 +2,7 @@ extern crate std;
 use std::fs::File;
 use std::io;
 
-use clerk::{Level, init_log_with_level};
+use clerk::{LevelFilter, init_log_with_level};
 use rax::io::{IRaxReader, RaxReader};
 use rax::str_parser::StrParserContext;
 use rax_nmea::Dispatcher;
@@ -10,7 +10,7 @@ use rax_nmea::data::*;
 
 #[test]
 fn test_parse_nmea() -> mischief::Result<()> {
-    init_log_with_level(Level::WARN);
+    init_log_with_level(LevelFilter::WARN);
     for f in [
         "data/nmea1.log",
         "data/nmea2.log",

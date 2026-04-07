@@ -19,7 +19,7 @@ static INIT_LOGGING: OnceLock<()> = OnceLock::new();
 ///
 /// ```
 /// use tracing::info;
-/// use clerk::{init_log_with_level, Level};
+/// use clerk::{init_log_with_level, LevelFilter};
 ///
 /// // Initialize global logging (only the first call has an effect).
 /// init_log_with_level(LevelFilter::INFO);

@@ -1,4 +1,4 @@
-use clerk::Level;
+use clerk::LevelFilter;
 use serialport_ext::{DeviceFilter, list_devices};
 
 fn main() -> mischief::Result<()> {

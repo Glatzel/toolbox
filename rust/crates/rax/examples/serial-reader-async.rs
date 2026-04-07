@@ -1,4 +1,4 @@
-use clerk::Level;
+use clerk::LevelFilter;
 use rax::io::{AsyncIRaxReader, AsyncRaxReader};
 use tokio::io::BufReader;
 use tokio_serial::SerialPortBuilderExt;

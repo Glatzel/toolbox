@@ -115,15 +115,15 @@ where
     K: Eq + std::hash::Hash,
 {
     match strategy {
-        ResolveStrategy::Replace => local.unwrap_or_else(HashMap::new),
+        ResolveStrategy::Replace => local.unwrap_or_default(),
         ResolveStrategy::Merge => {
-            let mut base = global.unwrap_or_else(HashMap::new);
+            let mut base = global.unwrap_or_default();
             if let Some(local_map) = local {
                 base.extend(local_map);
             }
             base
         }
-        ResolveStrategy::Ignore => global.unwrap_or_else(HashMap::new),
+        ResolveStrategy::Ignore => global.unwrap_or_default(),
     }
 }
 

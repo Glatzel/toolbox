@@ -133,7 +133,7 @@ jobs:
               if: ${{github.event_name == 'pull_request'}}
               with:
                   name: shook
-                  path: ./target/debug/shook
+                  path: ./tools/shook/target/debug/shook
 
     tools-vinaya:
         needs: changed

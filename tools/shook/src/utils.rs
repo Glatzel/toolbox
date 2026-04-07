@@ -1,5 +1,3 @@
-use clerk;
-
 pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         clerk::debug!(

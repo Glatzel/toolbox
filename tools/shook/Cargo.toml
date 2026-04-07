@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
+kioyu = { path = "../../rust/crates/kioyu" }
 mischief = { path = "../../rust/crates/mischief" }
 
 axum = "0.8.8"

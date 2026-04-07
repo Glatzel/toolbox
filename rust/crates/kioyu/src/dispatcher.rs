@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use tokio::sync::mpsc;
-use tokio::task::JoinHandle;
 
 use crate::job::{IPayload, Job};
 use crate::resource::ResourcePool;
@@ -13,11 +12,11 @@ pub enum DispatchError {
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
     FreeResource(Job<P>),
+    Shutdown,
 }
 
 pub struct DispatcherHandle<P> {
     pub(crate) tx: mpsc::Sender<DispatcherEvent<P>>,
-    pub(crate) join: JoinHandle<()>,
 }
 
 impl<P> DispatcherHandle<P> {
@@ -27,9 +26,8 @@ impl<P> DispatcherHandle<P> {
             .await
             .map_err(|_| DispatchError::Closed)
     }
-    pub async fn shutdown(self) {
-        drop(self.tx);
-        let _ = self.join.await;
+    pub async fn shutdown(&self) {
+        self.tx.send(DispatcherEvent::Shutdown).await.ok();
     }
 }
 pub struct Dispatcher<P> {
@@ -64,6 +62,7 @@ where
                     clerk::debug!("free resource: {}", job.id);
                     let _ = self.pool.free(job.resources.as_slice());
                 }
+                DispatcherEvent::Shutdown => break,
             }
 
             self.schedule(&tx);
@@ -112,12 +111,12 @@ where
 
     let dispatcher = Dispatcher::new(rx, pool);
 
-    let join = tokio::spawn({
+    tokio::spawn({
         let tx_for_jobs = tx.clone();
         async move {
             dispatcher.run(tx_for_jobs).await;
         }
     });
 
-    DispatcherHandle { tx, join }
+    DispatcherHandle { tx }
 }

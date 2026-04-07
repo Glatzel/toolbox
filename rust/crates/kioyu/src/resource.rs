@@ -1,20 +1,6 @@
 use hashbrown::HashMap;
-use thiserror::Error;
 
-#[derive(Debug, PartialEq, Error)]
-pub enum ResourceError {
-    #[error("resource already registered: {0}")]
-    AlreadyRegistered(ResourceKey),
-
-    #[error("resource not found: {0}")]
-    NotFound(ResourceKey),
-
-    #[error("insufficient capacity for: {0}")]
-    InsufficientCapacity(ResourceKey),
-
-    #[error("free would underflow resource: {0}")]
-    Underflow(ResourceKey),
-}
+use crate::error::Error;
 
 pub type ResourceKey = &'static str;
 
@@ -38,9 +24,9 @@ impl ResourcePool {
 
     /// Register a new resource key with a given capacity.
     /// Returns `Err` if the key is already registered.
-    pub fn register(&mut self, key: ResourceKey, capacity: usize) -> Result<(), ResourceError> {
+    pub fn register(&mut self, key: ResourceKey, capacity: usize) -> Result<(), Error> {
         if self.resources.contains_key(key) {
-            return Err(ResourceError::AlreadyRegistered(key));
+            return Err(Error::AlreadyRegistered(key));
         }
         self.resources
             .insert(key, ResourceEntry { capacity, used: 0 });
@@ -49,16 +35,16 @@ impl ResourcePool {
 
     /// Returns available units for a key, or `Err` if the key is not
     /// registered.
-    pub fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
+    pub fn available(&self, key: ResourceKey) -> Result<usize, Error> {
         self.resources
             .get(key)
             .map(|r| r.available())
-            .ok_or(ResourceError::NotFound(key))
+            .ok_or(Error::NotFound(key))
     }
 
     /// Returns `Ok(true)` if all requested amounts can be satisfied.
     /// Returns `Err` if any key is not registered.
-    pub fn can_allocate(&self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
+    pub fn can_allocate(&self, req: &[(ResourceKey, usize)]) -> Result<bool, Error> {
         for &(k, v) in req {
             let avail = self.available(k)?;
             if avail < v {
@@ -72,12 +58,12 @@ impl ResourcePool {
     /// Returns `Ok(true)` on success, `Ok(false)` if any resource has
     /// insufficient capacity, or `Err` if any key is not registered.
     #[must_use = "check whether allocation succeeded"]
-    pub fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
+    pub fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, Error> {
         // Validate everything before mutating — keeps the operation atomic.
         for &(k, v) in req {
             let avail = self.available(k)?;
             if avail < v {
-                clerk::warn!(
+                clerk::info!(
                     "insufficient capacity for resource '{}': need {}, have {}",
                     k,
                     v,
@@ -97,12 +83,12 @@ impl ResourcePool {
     /// Frees previously allocated resources.
     /// Returns `Err` if a key is not found or if freeing would underflow.
     /// Validates all entries before mutating — the operation is all-or-nothing.
-    pub(crate) fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), ResourceError> {
+    pub(crate) fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), Error> {
         // Validate before mutating.
         for &(k, v) in req {
-            let entry = self.resources.get(k).ok_or(ResourceError::NotFound(k))?;
+            let entry = self.resources.get(k).ok_or(Error::NotFound(k))?;
             if v > entry.used {
-                return Err(ResourceError::Underflow(k));
+                return Err(Error::Underflow(k));
             }
         }
         for &(k, v) in req {
@@ -114,11 +100,11 @@ impl ResourcePool {
     }
 
     /// Returns `(used, capacity)` for a key.
-    pub fn utilization(&self, key: ResourceKey) -> Result<(usize, usize), ResourceError> {
+    pub fn utilization(&self, key: ResourceKey) -> Result<(usize, usize), Error> {
         self.resources
             .get(key)
             .map(|e| (e.used, e.capacity))
-            .ok_or(ResourceError::NotFound(key))
+            .ok_or(Error::NotFound(key))
     }
 
     /// Returns an iterator over all keys and their `(used, capacity)`.
@@ -151,7 +137,7 @@ mod tests {
         let mut pool = pool_with(&[("cpu", 8)]);
         assert_eq!(
             pool.register("cpu", 4),
-            Err(ResourceError::AlreadyRegistered("cpu"))
+            Err(Error::AlreadyRegistered("cpu"))
         );
     }
 
@@ -166,7 +152,7 @@ mod tests {
     #[test]
     fn available_unknown_key_errors() {
         let pool = ResourcePool::new();
-        assert_eq!(pool.available("gpu"), Err(ResourceError::NotFound("gpu")));
+        assert_eq!(pool.available("gpu"), Err(Error::NotFound("gpu")));
     }
 
     // --- can_allocate ---
@@ -188,7 +174,7 @@ mod tests {
         let pool = ResourcePool::new();
         assert_eq!(
             pool.can_allocate(&[("gpu", 1)]),
-            Err(ResourceError::NotFound("gpu"))
+            Err(Error::NotFound("gpu"))
         );
     }
 
@@ -223,7 +209,7 @@ mod tests {
     fn allocate_unknown_key_errors_without_mutation() {
         let mut pool = pool_with(&[("cpu", 8)]);
         let result = pool.allocate(&[("cpu", 2), ("ghost", 1)]);
-        assert_eq!(result, Err(ResourceError::NotFound("ghost")));
+        assert_eq!(result, Err(Error::NotFound("ghost")));
         assert_eq!(pool.available("cpu"), Ok(8));
     }
 
@@ -248,10 +234,7 @@ mod tests {
     fn free_underflow_errors() {
         let mut pool = pool_with(&[("cpu", 8)]);
         pool.allocate(&[("cpu", 2)]).unwrap();
-        assert_eq!(
-            pool.free(&[("cpu", 4)]),
-            Err(ResourceError::Underflow("cpu"))
-        );
+        assert_eq!(pool.free(&[("cpu", 4)]), Err(Error::Underflow("cpu")));
         // No mutation occurred.
         assert_eq!(pool.available("cpu"), Ok(6));
     }
@@ -259,10 +242,7 @@ mod tests {
     #[test]
     fn free_unknown_key_errors() {
         let mut pool = ResourcePool::new();
-        assert_eq!(
-            pool.free(&[("gpu", 1)]),
-            Err(ResourceError::NotFound("gpu"))
-        );
+        assert_eq!(pool.free(&[("gpu", 1)]), Err(Error::NotFound("gpu")));
     }
 
     #[test]
@@ -271,7 +251,7 @@ mod tests {
         pool.allocate(&[("cpu", 4), ("mem", 2)]).unwrap();
         // "mem" free would underflow; "cpu" must not be mutated.
         let result = pool.free(&[("cpu", 2), ("mem", 4)]);
-        assert_eq!(result, Err(ResourceError::Underflow("mem")));
+        assert_eq!(result, Err(Error::Underflow("mem")));
         assert_eq!(pool.available("cpu"), Ok(4));
         assert_eq!(pool.available("mem"), Ok(2));
     }
@@ -288,7 +268,7 @@ mod tests {
     #[test]
     fn utilization_unknown_key_errors() {
         let pool = ResourcePool::new();
-        assert_eq!(pool.utilization("cpu"), Err(ResourceError::NotFound("cpu")));
+        assert_eq!(pool.utilization("cpu"), Err(Error::NotFound("cpu")));
     }
 
     // --- iter ---

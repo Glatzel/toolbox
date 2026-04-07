@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::resource::ResourceKey;
@@ -30,4 +31,9 @@ impl<P> Job<P> {
             payload,
         }
     }
+}
+#[async_trait]
+pub trait IPayload: Send + Sync {
+    type Error: std::error::Error;
+    async fn execute(&self) -> Result<(), Self::Error>;
 }

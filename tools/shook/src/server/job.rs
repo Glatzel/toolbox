@@ -37,13 +37,11 @@ impl IPayload for JobSpec {
     type Error = mischief::Report;
 
     async fn execute(&self) -> Result<(), Self::Error> {
-        let mut builder = Sandbox::builder(format!(
-            "{}-{}-{}-{}",
-            self.owner, self.repo, self.job, self.id
-        ))
-        .image(self.runner_spec.image.as_ref())
-        .cpus(self.runner_spec.cpus)
-        .memory(self.runner_spec.memory);
+        let name = format!("{}-{}-{}-{}", self.owner, self.repo, self.job, self.id);
+        let mut builder = Sandbox::builder(&name)
+            .image(self.runner_spec.image.as_ref())
+            .cpus(self.runner_spec.cpus)
+            .memory(self.runner_spec.memory);
         for (host, guest) in self.runner_spec.volumes.iter() {
             builder = builder.volume(guest.to_string_lossy().as_ref(), |m| m.bind(host));
         }
@@ -53,13 +51,13 @@ impl IPayload for JobSpec {
         for (key, (value, url)) in self.runner_spec.secrets.iter() {
             builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
         }
-        clerk::debug!("Sandbox builder configured");
+        clerk::debug!("Sandbox builder configured: {name}");
         let sandbox = builder.create().await?;
-        clerk::debug!("Sandbox created");
+        clerk::debug!("Sandbox created: {name}");
         sandbox.wait().await?;
-        clerk::debug!("Sandbox finished");
+        clerk::debug!("Sandbox finished: {name}");
         Sandbox::remove(sandbox.name()).await?;
-        clerk::debug!("Sandbox removed");
+        clerk::debug!("Sandbox removed: {name}");
         Ok(())
     }
 }

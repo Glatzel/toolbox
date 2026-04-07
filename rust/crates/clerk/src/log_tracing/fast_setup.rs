@@ -7,7 +7,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Layer};
 static INIT_LOGGING: OnceLock<()> = OnceLock::new();
 
-/// Initialize global logging with the given [`Level`].
+/// Initialize global logging with the given [`LevelFilter`].
 ///
 /// This function:
 /// - Installs a [`tracing_subscriber`] registry with your custom terminal

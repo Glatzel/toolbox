@@ -1,161 +1,164 @@
 name: CI
 
 on:
-  workflow_dispatch:
-  workflow_call:
-    inputs:
-      release:
-        type: boolean
-        default: false
-  push:
-    branches: [main]
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - ready_for_review
-  schedule:
-    - cron: 0 16 * * *
+    workflow_dispatch:
+    workflow_call:
+        inputs:
+            release:
+                type: boolean
+                default: false
+    push:
+        branches: [main]
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - ready_for_review
+    schedule:
+        - cron: 0 16 * * *
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  lefthook:
-    if: ${{ github.event_name != 'schedule' }}
-    uses: ./.github/workflows/ci-lefthook.yml
-    permissions:
-      contents: write
-      pull-requests: write
-  changed:
-    outputs:
-      changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
-      changed-python: ${{ steps.main.outputs.python_any_changed }}
-      changed-rust: ${{ steps.main.outputs.rust_any_changed }}
+    lefthook:
+        if: ${{ github.event_name != 'schedule' }}
+        uses: ./.github/workflows/ci-lefthook.yml
+        permissions:
+            contents: write
+            pull-requests: write
+    changed:
+        outputs:
+            changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
+            changed-python: ${{ steps.main.outputs.python_any_changed }}
+            changed-rust: ${{ steps.main.outputs.rust_any_changed }}
 
-      changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
-      changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
-      changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
-    runs-on: ubuntu-slim
-    steps:
-      - if: ${{github.event_name == 'pull_request' }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: main
-        if: ${{github.event_name == 'pull_request' }}
-        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
-        with:
-          files_yaml: |
-            benchmark:
-              - ./rust/crates/rax/**
-              - ./.github/workflows/benchmark.yml
-            python:
-              - ./python/**
-              - ./.github/actions/python/**
-              - ./.github/workflows/ci-python.yml
-            rust:
-              - ./rust/**
-              - ./.github/actions/rust/**
-              - ./.github/workflows/ci-rust.yml
+            changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
+            changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
+            changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
+        runs-on: ubuntu-slim
+        steps:
+            - if: ${{github.event_name == 'pull_request' }}
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+            - id: main
+              if: ${{github.event_name == 'pull_request' }}
+              uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+              with:
+                  files_yaml: |
+                      benchmark:
+                        - ./rust/crates/rax/**
+                        - ./.github/workflows/benchmark.yml
+                      python:
+                        - ./python/**
+                        - ./.github/actions/python/**
+                        - ./.github/workflows/ci-python.yml
+                      rust:
+                        - ./rust/**
+                        - ./.github/actions/rust/**
+                        - ./.github/workflows/ci-rust.yml
 
-            tools-orc:
-              - ./.github/actions/rust/**
-              - ./tools/orc/**
-            tools-shook:
-              - ./.github/actions/rust/**
-              - ./tools/shook/**
-            tools-vinaya:
-              - ./.github/actions/rust/**
-              - ./tools/vinaya/**
-  benchmark:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
-    uses: ./.github/workflows/benchmark.yml
-  python-ci:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-python != 'false' }}
-    uses: ./.github/workflows/ci-python.yml
-  rust-ci:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-rust != 'false' }}
-    uses: ./.github/workflows/ci-rust.yml
+                      tools-orc:
+                        - ./.github/actions/rust/**
+                        - ./tools/orc/**
+                      tools-shook:
+                        - ./.github/actions/rust/**
+                        - ./tools/shook/**
+                      tools-vinaya:
+                        - ./.github/actions/rust/**
+                        - ./tools/vinaya/**
+    benchmark:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
+        uses: ./.github/workflows/benchmark.yml
+    python-ci:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-python != 'false' }}
+        uses: ./.github/workflows/ci-python.yml
+    rust-ci:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-rust != 'false' }}
+        uses: ./.github/workflows/ci-rust.yml
 
-  tools-orc:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-tools-orc != 'false' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.machine }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
-      - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          working-directory: ./tools/orc
-      - uses: ./.github/actions/rust/cargo-test
-        with:
-          working-directory: ./tools/orc
-          global-args: --all-features
-          doc: false
-      - uses: ./.github/actions/common/codecov
-        if: ${{!cancelled()}}
-  tools-shook:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
-      - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          working-directory: ./tools/shook
-      - uses: ./.github/actions/rust/cargo-test
-        with:
-          working-directory: ./tools/shook
-          doc: false
-      - uses: ./.github/actions/common/codecov
-        if: ${{!cancelled()}}
-  tools-vinaya:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
-      - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          working-directory: ./tools/vinaya
-      - uses: ./.github/actions/rust/cargo-test
-        with:
-          working-directory: ./tools/vinaya
-          doc: false
-      - uses: ./.github/actions/common/codecov
-        if: ${{!cancelled()}}
+    tools-orc:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-tools-orc != 'false' }}
+        strategy:
+            fail-fast: false
+            matrix:
+                machine: [windows-latest, ubuntu-latest]
+        runs-on: ${{ matrix.machine }}
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+            - uses: ./.github/actions/rust/setup-rust
+              with:
+                  toolchain: nightly
+                  components: clippy
+            - uses: ./.github/actions/rust/cargo-clippy
+              with:
+                  working-directory: ./tools/orc
+            - uses: ./.github/actions/rust/cargo-test
+              with:
+                  working-directory: ./tools/orc
+                  global-args: --all-features
+                  doc: false
+            - uses: ./.github/actions/common/codecov
+              if: ${{!cancelled()}}
 
-  check-point:
-    if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs:
-      [
-        benchmark,
-        changed,
-        lefthook,
-        python-ci,
-        rust-ci,
-        tools-orc,
-        tools-shook,
-        tools-vinaya,
-      ]
-    runs-on: ubuntu-slim
-    steps:
-      - run: exit 1
+    tools-shook:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+            - run: sudo apt-get update && sudo apt-get install -y libcap-ng-dev gcc make flex bison libelf-dev bc python3-pyelftools
+            - uses: ./.github/actions/rust/setup-rust
+              with:
+                  toolchain: nightly
+                  components: clippy
+            - uses: ./.github/actions/rust/cargo-clippy
+              with:
+                  working-directory: ./tools/shook
+            - uses: ./.github/actions/rust/cargo-test
+              with:
+                  working-directory: ./tools/shook
+                  doc: false
+            - uses: ./.github/actions/common/codecov
+              if: ${{!cancelled()}}
+
+    tools-vinaya:
+        needs: changed
+        if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+            - uses: ./.github/actions/rust/setup-rust
+              with:
+                  toolchain: nightly
+                  components: clippy
+            - uses: ./.github/actions/rust/cargo-clippy
+              with:
+                  working-directory: ./tools/vinaya
+            - uses: ./.github/actions/rust/cargo-test
+              with:
+                  working-directory: ./tools/vinaya
+                  doc: false
+            - uses: ./.github/actions/common/codecov
+              if: ${{!cancelled()}}
+
+    check-point:
+        if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
+        needs:
+            [
+                benchmark,
+                changed,
+                lefthook,
+                python-ci,
+                rust-ci,
+                tools-orc,
+                tools-shook,
+                tools-vinaya,
+            ]
+        runs-on: ubuntu-slim
+        steps:
+            - run: exit 1

@@ -12,5 +12,4 @@ allowed_users = [""]
 cpus = 1
 memory = 512
 ports = {}
-ports = {}
 secrets = {}

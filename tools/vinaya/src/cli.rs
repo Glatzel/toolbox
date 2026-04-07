@@ -39,7 +39,7 @@ pub async fn main() {
     clerk::tracing_subscriber::registry()
         .with(
             clerk::terminal_layer(true)
-                .with_filter(clerk::level_filter(args.verbose.tracing_level().unwrap())),
+                .with_filter(clerk::level_filter(args.verbose.tracing_level_filter())),
         )
         .init();
 

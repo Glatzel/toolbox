@@ -80,13 +80,13 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 #[cfg(test)]
 mod tests {
     extern crate std;
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     use super::*;
 
     #[test]
     fn test_until_basic_not_include() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::Discard,
@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_until_basic_include() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::KeepLeft,
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_until_keep_right() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::KeepRight,
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_until_no_delimiter() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::Discard,
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_until_delimiter_at_start() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::KeepLeft,
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_until_empty_input() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilStr {
             pattern: ";",
             mode: super::UntilMode::Discard,

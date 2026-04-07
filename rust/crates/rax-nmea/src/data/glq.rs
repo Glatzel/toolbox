@@ -47,12 +47,12 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
     extern crate std;
     use super::*;
     #[test]
     fn test_new_glq() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$EIGLQ,RMC*26";
         let mut ctx = StrParserContext::new();
         let glq = Glq::new(ctx.init(s.to_string()), Talker::GP)?;

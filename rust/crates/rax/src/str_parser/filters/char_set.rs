@@ -103,12 +103,12 @@ pub const ASCII_LETTERS_DIGITS: CharSetFilter<62> = CharSetFilter::new([
 mod tests {
     extern crate std;
 
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     use super::*;
     #[test]
     fn test_char_set_filter() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let filter = CharSetFilter::<3>::from_str("abc")?;
         assert!(filter.filter(&'a'));
         assert!(filter.filter(&'b'));
@@ -119,7 +119,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_from_str() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let filter: CharSetFilter<3> = CharSetFilter::from_str("abc")?;
         assert!(filter.filter(&'a'));
         assert!(filter.filter(&'b'));
@@ -134,7 +134,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_invalid_length() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("abcd");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -146,7 +146,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_too_short() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("ab");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -159,7 +159,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_empty() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -172,7 +172,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_invalid_chars() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("abce");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_char_set_filter_unicode() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let filter = CharSetFilter::<3>::from_str("あいう")?;
         assert!(filter.filter(&'あ'));
         assert!(filter.filter(&'い'));
@@ -196,7 +196,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_unicode_invalid_length() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("あいうえ");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -208,7 +208,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_unicode_too_short() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("あい");
         assert!(result.is_err());
         if let Err(e) = result {
@@ -221,7 +221,7 @@ mod tests {
     }
     #[test]
     fn test_char_set_filter_unicode_empty() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let result = CharSetFilter::<3>::from_str("");
         assert!(result.is_err());
         if let Err(e) = result {

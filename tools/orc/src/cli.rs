@@ -69,7 +69,7 @@ pub fn main() -> mischief::Result<()> {
     let args = Args::parse();
     clerk::tracing_subscriber::registry()
         .with(
-            clerk::layer::terminal_layer(true).with_filter(
+            clerk::terminal_layer(true).with_filter(
                 EnvFilter::builder()
                     .with_default_directive(
                         format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter())

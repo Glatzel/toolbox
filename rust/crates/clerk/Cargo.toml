@@ -7,7 +7,6 @@ version.workspace = true
 # std logging (host side)
 chrono = { workspace = true, optional = true }
 owo-colors = { workspace = true, optional = true }
-serde = { workspace = true, features = ["derive"], optional = true }
 tracing = { workspace = true, optional = true }
 tracing-core = { workspace = true, optional = true }
 tracing-subscriber = { workspace = true, features = [

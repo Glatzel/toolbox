@@ -2,16 +2,15 @@
 port = 8787
 
 [devop]
-vendor=""
-webhook_secret=""
-allowed_repositories=[""]
-allowed_users=[""]
+vendor = ""
+webhook_secret = ""
+allowed_repositories = [""]
+allowed_users = [""]
 
 [runners]
-
 [runners.self-hosted]
-cpus=1
-memory=512
-ports={}
-ports={}
-secrets={}
+cpus = 1
+memory = 512
+ports = {}
+ports = {}
+secrets = {}

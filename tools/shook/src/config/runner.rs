@@ -82,7 +82,11 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
             );
             let ports = resolve_map(self.ports.clone(), runner.ports, runner.ports_strategy);
             let envs = resolve_map(self.envs.clone(), runner.envs, runner.envs_strategy);
-            let secret = resolve_map(self.secrets.clone(), runner.secrets, runner.secrets_strategy);
+            let secret = resolve_map(
+                self.secrets.clone(),
+                runner.secrets,
+                runner.secrets_strategy,
+            );
 
             let resolved = ConfigRunner {
                 name,

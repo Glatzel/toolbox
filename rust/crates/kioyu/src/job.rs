@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use async_trait::async_trait;
 use uuid::Uuid;
 
@@ -34,6 +36,6 @@ impl<P> Job<P> {
 }
 #[async_trait]
 pub trait IPayload: Send + Sync {
-    type Error: std::error::Error;
+    type Error: Display;
     async fn execute(&self) -> Result<(), Self::Error>;
 }

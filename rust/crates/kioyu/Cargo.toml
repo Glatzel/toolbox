@@ -4,13 +4,22 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+async-trait = { workspace = true }
 clerk = { workspace = true }
 hashbrown = { workspace = true }
-tokio = { workspace = true, features = ["sync"] }
 thiserror = { workspace = true }
-uuid = { workspace = true, features = ["v4"]}
-async-trait = { workspace = true }
+tokio = { workspace = true, features = ["rt", "sync"] }
+uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]
+clerk = { workspace = true, features = ["tracing"] }
 insta.workspace = true
+mischief.workspace = true
 rstest.workspace = true
+tokio = { workspace = true, features = [
+  "macros",
+  "rt",
+  "sync",
+  "test-util",
+  "time"
+] }

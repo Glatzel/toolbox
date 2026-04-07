@@ -1,8 +1,9 @@
 use std::collections::VecDeque;
 
 use tokio::sync::mpsc;
+use tokio::task::JoinHandle;
 
-use crate::job::{IPayload, Job, ResourceRequest};
+use crate::job::{IPayload, Job};
 use crate::resource::ResourcePool;
 
 #[derive(Debug)]
@@ -11,12 +12,12 @@ pub enum DispatchError {
 }
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
-    JobFinished(ResourceRequest),
+    FreeResource(Job<P>),
 }
 
-#[derive(Clone)]
 pub struct DispatcherHandle<P> {
     pub(crate) tx: mpsc::Sender<DispatcherEvent<P>>,
+    pub(crate) join: JoinHandle<()>,
 }
 
 impl<P> DispatcherHandle<P> {
@@ -26,23 +27,22 @@ impl<P> DispatcherHandle<P> {
             .await
             .map_err(|_| DispatchError::Closed)
     }
+    pub async fn shutdown(self) {
+        drop(self.tx);
+        let _ = self.join.await;
+    }
 }
 pub struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
-    tx: mpsc::Sender<DispatcherEvent<P>>,
+
     pool: ResourcePool,
     queue: VecDeque<Job<P>>,
 }
 
 impl<P> Dispatcher<P> {
-    pub fn new(
-        rx: mpsc::Receiver<DispatcherEvent<P>>,
-        tx: mpsc::Sender<DispatcherEvent<P>>,
-        pool: ResourcePool,
-    ) -> Self {
+    pub fn new(rx: mpsc::Receiver<DispatcherEvent<P>>, pool: ResourcePool) -> Self {
         Self {
             rx,
-            tx,
             pool,
             queue: VecDeque::new(),
         }
@@ -53,29 +53,34 @@ impl<P> Dispatcher<P>
 where
     P: IPayload + Send + 'static,
 {
-    pub async fn run(mut self) {
+    pub async fn run(mut self, tx: mpsc::Sender<DispatcherEvent<P>>) {
         while let Some(event) = self.rx.recv().await {
             match event {
                 DispatcherEvent::Submit(job) => {
+                    clerk::debug!("submit job: {}", job.id);
                     self.queue.push_back(job);
                 }
-                DispatcherEvent::JobFinished(resources) => {
-                    let _ = self.pool.free(resources.as_slice());
+                DispatcherEvent::FreeResource(job) => {
+                    clerk::debug!("free resource: {}", job.id);
+                    let _ = self.pool.free(job.resources.as_slice());
                 }
             }
 
-            self.schedule();
+            self.schedule(&tx);
         }
     }
 
-    fn schedule(&mut self) {
+    fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>) {
         while let Some(job) = self.queue.pop_front() {
             match self.pool.allocate(job.resources.as_slice()) {
                 Ok(true) => {
-                    self.spawn_job(job);
+                    clerk::debug!("allocate job: {}", job.id);
+                    self.spawn_job(job, tx.clone());
                 }
                 Ok(false) => {
+                    clerk::debug!("queue job: {}", job.id);
                     self.queue.push_front(job);
+                    break;
                 }
                 Err(e) => {
                     clerk::error!("allocate error: {}", e);
@@ -84,12 +89,18 @@ where
         }
     }
 
-    fn spawn_job(&self, job: Job<P>) {
-        let tx = self.tx.clone();
+    fn spawn_job(&self, job: Job<P>, tx: mpsc::Sender<DispatcherEvent<P>>) {
         tokio::spawn(async move {
-            let _ = job.payload.execute().await ;
-            let _ = tx.send(DispatcherEvent::JobFinished(job.resources)).await;
-        }
+            match job.payload.execute().await {
+                Ok(_) => {
+                    clerk::debug!("job finished: {}", job.id);
+                }
+                Err(e) => {
+                    clerk::error!("payload error: {}", e);
+                }
+            };
+
+            let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
         });
     }
 }
@@ -99,11 +110,14 @@ where
 {
     let (tx, rx) = mpsc::channel(128);
 
-    let dispatcher = Dispatcher::new(rx, tx.clone(), pool);
+    let dispatcher = Dispatcher::new(rx, pool);
 
-    tokio::spawn(async move {
-        dispatcher.run().await;
+    let join = tokio::spawn({
+        let tx_for_jobs = tx.clone();
+        async move {
+            dispatcher.run(tx_for_jobs).await;
+        }
     });
 
-    DispatcherHandle { tx }
+    DispatcherHandle { tx, join }
 }

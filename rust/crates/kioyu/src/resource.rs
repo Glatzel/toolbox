@@ -3,6 +3,21 @@ use hashbrown::HashMap;
 use crate::error::Error;
 
 pub type ResourceKey = &'static str;
+#[derive(Debug, PartialEq, Error)]
+enum ResourceError {
+    // Resource errors
+    #[error("resource already registered: {0}")]
+    AlreadyRegistered(ResourceKey),
+
+    #[error("resource not found: {0}")]
+    NotFound(ResourceKey),
+
+    #[error("insufficient capacity for: {0}")]
+    InsufficientCapacity(ResourceKey),
+
+    #[error("free would underflow resource: {0}")]
+    Underflow(ResourceKey),
+}
 
 #[derive(Debug, Clone)]
 struct ResourceEntry {

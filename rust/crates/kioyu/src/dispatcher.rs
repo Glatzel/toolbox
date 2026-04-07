@@ -87,13 +87,7 @@ where
     fn spawn_job(&self, job: Job<P>) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            match job.payload.execute().await {
-                Ok(_) => ()
-
-                Err(e) => {
-                    clerk::error!("payload error: {}", e);
-                }
-            };
+            let _ = job.payload.execute().await ;
             let _ = tx.send(DispatcherEvent::JobFinished(job.resources)).await;
         }
         });

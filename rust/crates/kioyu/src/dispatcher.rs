@@ -109,6 +109,7 @@ where
     let (tx, rx) = mpsc::channel(128);
 
     let dispatcher = Dispatcher::new(rx, pool);
+    clerk::debug!("dispatcher created");
 
     tokio::spawn({
         let tx_for_jobs = tx.clone();

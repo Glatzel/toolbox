@@ -212,13 +212,13 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
 
     #[test]
     fn test_new_gga1() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
         let mut ctx = StrParserContext::new();
         let gga = Gga::new(ctx.init(s.to_string()), Talker::GN)?;

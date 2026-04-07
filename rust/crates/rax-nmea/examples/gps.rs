@@ -3,12 +3,12 @@ fn main() -> mischief::Result<()> {
     use std::io::BufReader;
     use std::time::Duration;
 
-    use clerk::Level;
+    use clerk::LevelFilter;
     use rax::io::IRaxReader;
     use rax::str_parser::StrParserContext;
     use rax_nmea::Dispatcher;
     use rax_nmea::data::*;
-    clerk::init_log_with_level(Level::WARN);
+    clerk::init_log_with_level(LevelFilter::WARN);
     let path = "COM5";
     let port = serialport::new(path, 9600)
         .timeout(Duration::from_millis(3000))

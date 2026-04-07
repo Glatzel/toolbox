@@ -5,10 +5,9 @@ use std::sync::Arc;
 use axum::Router;
 use axum::routing::post;
 use clap::Parser;
-use clerk::tracing_subscriber::EnvFilter;
-use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer};
 
 use crate::config::Config;
 use crate::nomad::NomadClient;

@@ -15,13 +15,13 @@ use tracing_subscriber::registry::LookupSpan;
 /// # Example
 ///
 /// ```
-/// use clerk::Level;
+/// use clerk::LevelFilter;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::{EnvFilter, Layer};
 /// tracing_subscriber::registry()
-///     .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(Level::TRACE)))
+///     .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(LevelFilter::TRACE)))
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -53,7 +53,7 @@ where
 /// ```
 /// use std::path::PathBuf;
 ///
-/// use clerk::Level;
+/// use clerk::LevelFilter;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
@@ -66,7 +66,7 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::file_layer(f, true).with_filter(clerk::level_filter(Level::TRACE)))
+///     .with(clerk::file_layer(f, true).with_filter(clerk::level_filter(LevelFilter::TRACE)))
 ///     .init();
 ///
 /// trace!("Trace message");

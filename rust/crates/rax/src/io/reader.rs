@@ -104,13 +104,13 @@ impl<R: BufRead> IRaxReader for RaxReader<R> {
 mod tests {
     use std::io::Cursor;
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
 
     #[test]
     fn test_read_line_some() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading lines from a multi-line string
         let data = "hello\nworld\n";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_less_than_available() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading fewer lines than available
         let data = "a\nb\nc\n";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_more_than_available() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading more lines than available (should stop at EOF)
         let data = "x\ny\n";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_zero() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading zero lines (should return empty vec)
         let data = "foo\nbar\n";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_read_line_empty_input() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading from empty input (should return None)
         let data = "";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_empty_input() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading lines from empty input (should return empty vec)
         let data = "";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_read_line_single_line_no_newline() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading a single line without a trailing newline
         let data = "singleline";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_exact() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test reading exactly the number of lines available
         let data = "1\n2\n3\n";
         let mut reader = RaxReader::new(Cursor::new(data));
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_read_lines_by_count_with_logging() {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         // Test with logging enabled (output will be printed)
         let data = "log1\nlog2\n";
         let mut reader = RaxReader::new(Cursor::new(data));

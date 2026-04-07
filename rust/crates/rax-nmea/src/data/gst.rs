@@ -95,12 +95,12 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     #[test]
     fn test_new_gst() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
         let mut ctx = StrParserContext::new();
         let vtg = Gst::new(ctx.init(s.to_string()), Talker::GN)?;

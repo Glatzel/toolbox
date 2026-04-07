@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Shook by @Glatzel in [#435](https://github.com/Glatzel/toolbox/pull/435)
 
+### Fixed
+
+- Log level filter by @Glatzel in [#443](https://github.com/Glatzel/toolbox/pull/443)
+
 ### Refactor
 
 - Clerk by @Glatzel in [#441](https://github.com/Glatzel/toolbox/pull/441)

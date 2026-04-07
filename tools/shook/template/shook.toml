@@ -7,8 +7,12 @@ webhook_secret = ""
 allowed_repositories = [""]
 allowed_users = [""]
 
+[kioyu]
+memory=1024
+
 [runners]
 [runners.self-hosted]
+image=""
 cpus = 1
 memory = 512
 ports = {}

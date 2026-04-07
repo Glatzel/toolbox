@@ -50,8 +50,7 @@ struct Sender {
 struct WorkflowJob {
     #[serde(rename = "workflow_name")]
     _workflow_name: String,
-    #[serde(rename = "name")]
-    _name: String,
+    name: String,
     id: usize,
     #[serde(deserialize_with = "parse_labels")]
     labels: String,
@@ -90,8 +89,9 @@ impl IRunnerSpec for WebhookPayload {
         let runner_spec = RunnerSpec {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
-            job: webhook_payload.workflow_job.labels,
+            job: webhook_payload.workflow_job.name,
             id: webhook_payload.workflow_job.id,
+            runner: webhook_payload.workflow_job.labels,
         };
         Ok(runner_spec)
     }

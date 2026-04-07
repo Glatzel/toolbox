@@ -25,7 +25,7 @@ pub struct Job<P> {
 }
 
 impl<P> Job<P> {
-    pub fn new(payload: P, name: impl Into<String>, resources: ResourceRequest) -> Self {
+    pub fn new(name: impl Into<String>, payload: P, resources: ResourceRequest) -> Self {
         Self {
             id: Uuid::new_v4(),
             name: name.into(),

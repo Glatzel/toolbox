@@ -1,5 +1,7 @@
+use async_trait::async_trait;
 use axum::http::HeaderMap;
 use axum::response::Response;
+use kioyu::job::IPayload;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -23,6 +25,7 @@ pub struct RunnerSpec {
     pub repo: String,
     pub job: String,
     pub id: usize,
+    pub runner: String,
 }
 
 fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
@@ -32,4 +35,15 @@ fn validate_repository(repo: &String, context: &Config) -> Result<(), Validation
     }
     clerk::debug!(repository = %repo, "Repository validated");
     Ok(())
+}
+
+#[async_trait]
+impl IPayload for RunnerSpec {
+    type Error = mischief::Report;
+
+    async fn execute(&self) -> Result<(), Self::Error> {
+        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        clerk::info!("Executing runner spec", id = self.id);
+        Ok(())
+    }
 }

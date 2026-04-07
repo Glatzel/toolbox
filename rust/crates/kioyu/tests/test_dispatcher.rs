@@ -35,25 +35,25 @@ async fn test_dispatcher() {
     let handle = start_dispatcher::<TestPayload>(pool);
 
     let job1 = Job::new(
+        "job1",
         TestPayload {
             counter: counter.clone(),
         },
-        "job1",
         ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]),
     );
 
     let job2 = Job::new(
+        "job2",
         TestPayload {
             counter: counter.clone(),
         },
-        "job2",
         ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]),
     );
     let job3 = Job::new(
+        "job3",
         TestPayload {
             counter: counter.clone(),
         },
-        "job3",
         ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]),
     );
     handle.submit(job1).await.unwrap();

@@ -1,13 +1,16 @@
-use std::path::Path;
 mod devop;
+mod kioyu;
+mod runner;
 mod server;
+use std::path::Path;
+
+pub use devop::*;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
-mod runner;
-pub use devop::*;
 
 use crate::config::devop::{ConfigDevOp, RawConfigDevOp};
+use crate::config::kioyu::{ConfigKioyu, RawConfigKioyu};
 use crate::config::runner::{ConfigRunner, RawConfigRunner};
 use crate::config::server::{ConfigServer, RawConfigServer};
 
@@ -21,6 +24,8 @@ struct RawConfig {
     #[validate(nested)]
     pub devop: RawConfigDevOp,
     #[validate(nested)]
+    pub kioyu: RawConfigKioyu,
+    #[validate(nested)]
     pub runners: RawConfigRunner,
 }
 
@@ -28,6 +33,7 @@ struct RawConfig {
 pub struct Config {
     pub server: ConfigServer,
     pub devop: ConfigDevOp,
+    pub kioyu: ConfigKioyu,
     pub runners: HashMap<String, ConfigRunner>,
 }
 impl Config {
@@ -47,6 +53,7 @@ impl Config {
         let config = Config {
             server: raw_config.server.resolve(),
             devop: raw_config.devop.resolve(),
+            kioyu: raw_config.kioyu.resolve(),
             runners: raw_config.runners.resolve(),
         };
 

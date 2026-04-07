@@ -5,8 +5,9 @@ use tokio::sync::mpsc;
 use crate::job::{IPayload, Job};
 use crate::resource::ResourcePool;
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum DispatchError {
+    #[error("closed")]
     Closed,
 }
 pub enum DispatcherEvent<P> {

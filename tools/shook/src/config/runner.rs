@@ -18,7 +18,7 @@ pub(super) struct RawConfigRunner {
     envs: Option<HashMap<String, String>>,
     secrets: Option<HashMap<String, (String, String)>>,
 
-    #[validate(custom(function = "validate_runners"))]
+    #[validate(length(min = 1), custom(function = "validate_runners"))]
     runners: HashMap<String, RawRunnerConfigInner>,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
@@ -37,7 +37,7 @@ struct RawRunnerConfigInner {
     cpus: u32,
     #[serde(default = "default_memory")]
     #[validate(range(min = 1))]
-    memory: u32,
+    memory: usize,
 
     volumes: Option<HashMap<PathBuf, PathBuf>>,
     #[serde(default)]
@@ -61,14 +61,14 @@ pub struct ConfigRunner {
     pub name: String,
     pub image: String,
     pub cpus: u32,
-    pub memory: u32,
+    pub memory: usize,
     pub volumes: HashMap<PathBuf, PathBuf>,
     pub ports: HashMap<u16, u16>,
     pub envs: HashMap<String, String>,
     pub secrets: HashMap<String, (String, String)>,
 }
 const fn default_cpus() -> u32 { 1 }
-const fn default_memory() -> u32 { 512 }
+const fn default_memory() -> usize { 512 }
 
 impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
     fn resolve(self) -> HashMap<String, ConfigRunner> {

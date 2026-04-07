@@ -161,13 +161,13 @@ mod test {
     use std::fs::File;
     use std::io;
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
     use rax::io::{IRaxReader, RaxReader};
 
     use crate::Dispatcher;
     #[test]
     fn test_dispatcher() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
 
         for f in [
             "data/nmea1.log",

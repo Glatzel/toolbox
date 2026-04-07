@@ -45,7 +45,7 @@ impl fmt::Debug for Gpq {
 #[cfg(test)]
 mod test {
 
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
     use std::string::ToString;
@@ -53,7 +53,7 @@ mod test {
     use super::*;
     #[test]
     fn test_new_gpq() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGPQ,RMC*3A";
         let mut ctx = StrParserContext::new();
         let gpq = Gpq::new(ctx.init(s.to_string()), Talker::GP)?;

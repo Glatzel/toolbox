@@ -93,7 +93,7 @@ impl fmt::Debug for Vtg {
 
 #[cfg(test)]
 mod test {
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
     use std::string::ToString;
@@ -101,7 +101,7 @@ mod test {
     use super::*;
     #[test]
     fn test_new_vtg() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
         let mut ctx = StrParserContext::new();
         let vtg = Vtg::new(ctx.init(s.to_string()), Talker::GN)?;

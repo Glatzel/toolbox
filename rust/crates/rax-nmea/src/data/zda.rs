@@ -78,7 +78,7 @@ impl fmt::Debug for Zda {
 
 #[cfg(test)]
 mod test {
-    use clerk::{Level, init_log_with_level};
+    use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
     use std::string::ToString;
@@ -86,7 +86,7 @@ mod test {
     use super::*;
     #[test]
     fn test_new_zda() -> mischief::Result<()> {
-        init_log_with_level(Level::TRACE);
+        init_log_with_level(LevelFilter::TRACE);
         let s = "$GPZDA,160012.71,11,03,2004,-1,00*7D";
         let mut ctx = StrParserContext::new();
         let zda = Zda::new(ctx.init(s.to_string()), Talker::GN)?;

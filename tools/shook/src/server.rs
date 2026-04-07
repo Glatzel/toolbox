@@ -48,7 +48,10 @@ async fn webhook(
     let job_spec = match state.config.devop.vendor {
         Vendor::Github => {
             clerk::debug!("Dispatching to GitHub webhook parser");
-            github::WebhookPayload::job_spec(&headers, &body, &state.config)
+            match github::WebhookPayload::job_spec(&headers, &body, &state.config) {
+                Ok(spec) => spec,
+                Err(response) => return response,
+            }
         }
         unsupported => {
             clerk::error!(vendor = ?unsupported, "Unsupported vendor");
@@ -58,10 +61,6 @@ async fn webhook(
             )
                 .into_response();
         }
-    };
-    let job_spec = match job_spec {
-        Ok(spec) => spec,
-        Err(response) => return response,
     };
     clerk::debug!("{:?}", job_spec);
     match job_spec.validate_with_args(&state.config) {

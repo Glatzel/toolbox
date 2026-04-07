@@ -1,7 +1,7 @@
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use hmac::{Hmac, KeyInit, Mac};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
@@ -52,8 +52,7 @@ struct WorkflowJob {
     _workflow_name: String,
     name: String,
     id: usize,
-    #[serde(deserialize_with = "parse_labels")]
-    labels: String,
+    labels: Vec<String>,
 }
 
 impl IJobSpec for WebhookPayload {
@@ -82,10 +81,27 @@ impl IJobSpec for WebhookPayload {
             sender = %webhook_payload.sender.login,
             "Webhook payload accepted, returning runner spec"
         );
-        let runner: ConfigRunner = match config.runners.get(&webhook_payload.workflow_job.labels) {
+        let runner_name = match webhook_payload.workflow_job.labels.get(1) {
+            Some(name) => name.clone(),
+            None => {
+                return Err((
+                    StatusCode::NOT_FOUND,
+                    format!(
+                        "Runner label not found: {:?}",
+                        webhook_payload.workflow_job.labels
+                    ),
+                )
+                    .into_response());
+            }
+        };
+        let runner: ConfigRunner = match config.runners.get(&runner_name) {
             Some(r) => r.clone(),
             None => {
-                return Err((StatusCode::NOT_FOUND, "Runner not found".to_string()).into_response());
+                return Err((
+                    StatusCode::NOT_FOUND,
+                    format!("Runner not found: {}", runner_name),
+                )
+                    .into_response());
             }
         };
         let job_spec = JobSpec {
@@ -97,16 +113,6 @@ impl IJobSpec for WebhookPayload {
         };
         Ok(job_spec)
     }
-}
-
-pub(super) fn parse_labels<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let labels: Vec<String> = Vec::deserialize(deserializer)?;
-    let labels = labels.join(",");
-    clerk::debug!(?labels, "Runner labels parsed successfully");
-    Ok(labels)
 }
 
 fn validate_sender(sender: &Sender, context: &Config) -> Result<(), ValidationError> {

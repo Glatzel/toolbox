@@ -4,9 +4,9 @@ mod init;
 mod run;
 
 use clap::{Parser, Subcommand};
+use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-use clerk::tracing_subscriber::{EnvFilter, Layer};
 
 use crate::cli::run::RunArgs;
 
@@ -27,20 +27,22 @@ enum Commands {
 pub async fn main() -> mischief::Result<()> {
     let args = Args::parse();
 
+    // clerk::tracing_subscriber::registry()
+    //     .with(
+    //         clerk::terminal_layer(true).with_filter(
+    //             EnvFilter::builder()
+    //                 .with_default_directive(
+    //                     format!("{}={}", env!("CARGO_PKG_NAME"),
+    // args.verbose.filter())                         .parse()
+    //                         .unwrap(),
+    //                 )
+    //                 .from_env_lossy(),
+    //         ),
+    //     )
+    //     .init();
     clerk::tracing_subscriber::registry()
-        .with(
-            clerk::terminal_layer(true).with_filter(
-                EnvFilter::builder()
-                    .with_default_directive(
-                        format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter())
-                            .parse()
-                            .unwrap(),
-                    )
-                    .from_env_lossy(),
-            ),
-        )
+        .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(args.verbose.tra)))
         .init();
-
     match args.commands {
         Commands::Init => init::execute()?,
         Commands::Run(args) => {

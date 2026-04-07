@@ -88,14 +88,14 @@ impl IJobSpec for WebhookPayload {
                 return Err((StatusCode::NOT_FOUND, "Runner not found".to_string()).into_response());
             }
         };
-        let runner_spec = JobSpec {
+        let job_spec = JobSpec {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
             job: webhook_payload.workflow_job.name,
             id: webhook_payload.workflow_job.id,
             runner_spec: runner,
         };
-        Ok(runner_spec)
+        Ok(job_spec)
     }
 }
 

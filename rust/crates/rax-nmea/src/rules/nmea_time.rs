@@ -50,9 +50,8 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
         };
 
         let parse_field = |range: core::ops::Range<usize>, _label: &str| {
-            res.get(range).and_then(|s| s.parse::<u32>().ok()).ok_or({
-                clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
-            })
+            clerk::warn!("{}: failed to parse {} ', input='{}'", self, _label, input);
+            res.get(range).and_then(|s| s.parse::<u32>().ok()).ok_or(())
         };
 
         let hour = match parse_field(0..2, "hour") {

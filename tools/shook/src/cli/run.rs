@@ -28,7 +28,7 @@ pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
 
     // init kioyu
     let mut pool = kioyu::resource::ResourcePool::new();
-    pool.register("memory_mb", config.kioyu.memory_mb)?;
+    pool.register("memory", config.kioyu.memory)?;
     let kioyu_handle = start_dispatcher::<RunnerSpec>(pool);
 
     // init server

@@ -18,7 +18,7 @@ pub(super) struct RawConfigRunner {
     envs: Option<HashMap<String, String>>,
     secrets: Option<HashMap<String, (String, String)>>,
 
-    #[validate(length(min = 1), custom(function = "validate_runners"))]
+    #[validate(custom(function = "validate_runners"))]
     runners: HashMap<String, RawRunnerConfigInner>,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
@@ -142,6 +142,9 @@ fn validate_ports(ports: &HashMap<u16, u16>) -> Result<(), ValidationError> {
 fn validate_runners(
     runners: &HashMap<String, RawRunnerConfigInner>,
 ) -> Result<(), ValidationError> {
+    if runners.is_empty() {
+        return Err(ValidationError::new("At least one runner is required"));
+    }
     for (name, runner) in runners {
         runner.validate().map_err(|e| {
             let mut err = ValidationError::new("invalid_runner");

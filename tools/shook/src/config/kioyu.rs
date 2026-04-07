@@ -7,9 +7,9 @@ pub(super) type RawConfigKioyu = ConfigKioyu;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Validate)]
 #[serde(default = "default_config_kioyu")]
 pub struct ConfigKioyu {
-    pub memory_mb: usize,
+    pub memory: usize,
 }
-fn default_config_kioyu() -> ConfigKioyu { ConfigKioyu { memory_mb: 1024 } }
+fn default_config_kioyu() -> ConfigKioyu { ConfigKioyu { memory: 1024 } }
 impl IResolve<ConfigKioyu> for RawConfigKioyu {
     fn resolve(self) -> ConfigKioyu { self }
 }

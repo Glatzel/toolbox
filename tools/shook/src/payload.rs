@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use axum::http::HeaderMap;
 use axum::response::Response;
 use kioyu::job::IPayload;
+use microsandbox::Sandbox;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -42,8 +43,17 @@ impl IPayload for RunnerSpec {
     type Error = mischief::Report;
 
     async fn execute(&self) -> Result<(), Self::Error> {
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-        clerk::info!("Executing runner spec", id = self.id);
+        let sandbox = Sandbox::builder("my-sandbox")
+            .image("python")
+            .cpus(1)
+            .memory(512)
+            .create()
+            .await?;
+
+        let output = sandbox.shell("print('Hello from a microVM!')").await?;
+        println!("{}", output.stdout()?);
+
+        Sandbox::remove(sandbox.name()).await?;
         Ok(())
     }
 }

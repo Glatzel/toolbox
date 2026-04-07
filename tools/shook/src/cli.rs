@@ -33,7 +33,7 @@ pub async fn main() -> mischief::Result<()> {
 
     clerk::tracing_subscriber::registry()
         .with(
-            clerk::layer::terminal_layer(true).with_filter(
+            clerk::terminal_layer(true).with_filter(
                 EnvFilter::builder()
                     .with_default_directive(
                         format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter())

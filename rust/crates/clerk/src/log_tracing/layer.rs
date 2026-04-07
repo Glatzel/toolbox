@@ -1,6 +1,6 @@
 extern crate std;
 
-use std::path::PathBuf;
+use std::path::Path;
 
 use tracing_subscriber::Layer;
 use tracing_subscriber::registry::LookupSpan;
@@ -15,19 +15,13 @@ use tracing_subscriber::registry::LookupSpan;
 /// # Example
 ///
 /// ```
-/// use clerk::LogLevel;
+/// use clerk::Level;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
 /// use tracing_subscriber::{EnvFilter, Layer};
 /// tracing_subscriber::registry()
-///     .with(
-///         clerk::layer::terminal_layer(true).with_filter(
-///             EnvFilter::builder()
-///                 .with_default_directive(LogLevel::TRACE.into())
-///                 .from_env_lossy(),
-///         ),
-///     )
+///     .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(Level::TRACE)))
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -59,7 +53,7 @@ where
 /// ```
 /// use std::path::PathBuf;
 ///
-/// use clerk::LogLevel;
+/// use clerk::Level;
 /// use tracing::{debug, error, info, trace, warn};
 /// use tracing_subscriber::layer::SubscriberExt;
 /// use tracing_subscriber::util::SubscriberInitExt;
@@ -72,13 +66,7 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(
-///         clerk::layer::file_layer(f, true).with_filter(
-///             EnvFilter::builder()
-///                 .with_default_directive(LogLevel::TRACE.into())
-///                 .from_env_lossy(),
-///         ),
-///     )
+///     .with(clerk::file_layer(f, true).with_filter(clerk::level_filter(Level::TRACE)))
 ///     .init();
 ///
 /// trace!("Trace message");
@@ -87,17 +75,20 @@ where
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn file_layer<S>(filepath: PathBuf, overwrite: bool) -> impl Layer<S> + Send + Sync
+pub fn file_layer<F, S>(filepath: F, overwrite: bool) -> impl Layer<S> + Send + Sync
 where
+    F: AsRef<Path>,
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
+    let filepath = filepath.as_ref();
     if !filepath.parent().unwrap().exists() {
         std::fs::create_dir_all(filepath.parent().unwrap()).unwrap();
     }
     let a = std::fs::File::options()
-        .write(!filepath.exists() || overwrite)
-        .append(filepath.exists() && !overwrite)
+        .write(true)
+        .truncate(overwrite)
+        .append(!overwrite)
         .create(true)
         .open(filepath)
         .unwrap();

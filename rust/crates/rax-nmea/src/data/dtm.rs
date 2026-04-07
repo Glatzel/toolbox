@@ -100,12 +100,12 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     use super::*;
     #[test]
     fn test_new_dtm() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
         let mut ctx = StrParserContext::new();
         let dtm = Dtm::new(ctx.init(s.to_string()), Talker::GP)?;

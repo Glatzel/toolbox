@@ -100,7 +100,7 @@ impl fmt::Debug for Rmc {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     extern crate std;
     use std::println;
@@ -109,7 +109,7 @@ mod test {
     use super::*;
     #[test]
     fn test_new_rmc1() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPRMC,110125,A,5505.337580,N,03858.653666,E,148.8,84.6,310317,8.9,E,D*2E";
         let mut ctx = StrParserContext::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;
@@ -119,7 +119,7 @@ mod test {
     }
     #[test]
     fn test_new_rmc2() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPRMC,,V,,,,,,,,,,N*53";
         let mut ctx = StrParserContext::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;

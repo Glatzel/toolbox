@@ -52,12 +52,12 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     use super::*;
     #[test]
     fn test_parse() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPTHS,77.52,E*34";
         let mut ctx = StrParserContext::new();
         let ths = Ths::new(ctx.init(s.to_string()), Talker::GP)?;

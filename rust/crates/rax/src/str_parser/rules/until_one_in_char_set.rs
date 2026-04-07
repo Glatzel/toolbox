@@ -78,14 +78,14 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
 
 #[cfg(test)]
 mod tests {
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
     extern crate std;
     use super::*;
     use crate::str_parser::filters::{ASCII_LETTERS, DIGITS};
 
     #[test]
     fn test_until_one_in_char_set_discard() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &DIGITS,
             mode: UntilMode::Discard,
@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_until_one_in_char_set_keep_left() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &DIGITS,
             mode: UntilMode::KeepLeft,
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_until_one_in_char_set_keep_right_first_char() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &ASCII_LETTERS,
             mode: UntilMode::KeepRight,
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_until_one_in_char_set_keep_right_not_first_char() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &DIGITS,
             mode: UntilMode::KeepRight,
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_until_one_in_char_set_no_match() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &DIGITS,
             mode: UntilMode::Discard,
@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_until_one_in_char_set_empty_input() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = UntilOneInCharSet {
             filter: &DIGITS,
             mode: UntilMode::Discard,

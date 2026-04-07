@@ -23,7 +23,7 @@ fn app(shared_state: Arc<AppContext>) -> Router {
         .route("/webhook", post(webhook))
         .with_state(shared_state)
 }
-pub async  fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()> {
+pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()> {
     let app = app(shared_state.clone());
     let addr = format!("0.0.0.0:{}", shared_state.config.server.port);
     clerk::info!(address = %addr, "Binding listener");
@@ -67,7 +67,7 @@ async fn webhook(
         Ok(_) => {
             clerk::debug!("Validated runner spec");
             let resource_request =
-                ResourceRequest::new(vec![("memory", job_spec.runner_spec.memory)]);
+                ResourceRequest::new(vec![("memory", job_spec.runner_spec.memory as usize)]);
             match state
                 .kioyu_handle
                 .submit(Job::new(job_spec.job.clone(), job_spec, resource_request))

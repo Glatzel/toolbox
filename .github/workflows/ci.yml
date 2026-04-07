@@ -125,6 +125,15 @@ jobs:
                   doc: false
             - uses: ./.github/actions/common/codecov
               if: ${{!cancelled()}}
+            - uses: ./.github/actions/rust/cargo-build
+              if: ${{github.event_name == 'pull_request'}}
+              with:
+                  working-directory: ./tools/shook
+            - uses: actions/upload-artifact@v4
+              if: ${{github.event_name == 'pull_request'}}
+              with:
+                  name: shook
+                  path: ./target/debug/shook
 
     tools-vinaya:
         needs: changed

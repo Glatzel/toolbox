@@ -37,17 +37,29 @@ impl IPayload for JobSpec {
     type Error = mischief::Report;
 
     async fn execute(&self) -> Result<(), Self::Error> {
-        let sandbox = Sandbox::builder("my-sandbox")
-            .image("python")
-            .cpus(1)
-            .memory(512)
-            .create()
-            .await?;
-
-        let output = sandbox.shell("print('Hello from a microVM!')").await?;
-        println!("{}", output.stdout()?);
-
+        let mut builder = Sandbox::builder(format!(
+            "{}-{}-{}-{}",
+            self.owner, self.repo, self.job, self.id
+        ))
+        .image(self.runner_spec.image.as_ref())
+        .cpus(self.runner_spec.cpus)
+        .memory(self.runner_spec.memory);
+        for (host, guest) in self.runner_spec.volumes.iter() {
+            builder = builder.volume(guest.to_string_lossy().as_ref(), |m| m.bind(host));
+        }
+        for (key, value) in self.runner_spec.envs.iter() {
+            builder = builder.env(key, value);
+        }
+        for (key, (value, url)) in self.runner_spec.secrets.iter() {
+            builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
+        }
+        clerk::debug!("Sandbox builder configured");
+        let sandbox = builder.create().await?;
+        clerk::debug!("Sandbox created");
+        sandbox.wait().await?;
+        clerk::debug!("Sandbox finished");
         Sandbox::remove(sandbox.name()).await?;
+        clerk::debug!("Sandbox removed");
         Ok(())
     }
 }

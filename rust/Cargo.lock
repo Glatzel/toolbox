@@ -211,7 +211,6 @@ dependencies = [
  "chrono",
  "defmt",
  "owo-colors",
- "serde",
  "tracing",
  "tracing-core",
  "tracing-subscriber",

@@ -52,30 +52,18 @@ impl ResourcePool {
 
     /// Returns available units for a key, or `Err` if the key is not
     /// registered.
-    pub fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
+    pub(crate) fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
         self.resources
             .get(key)
             .map(|r| r.available())
             .ok_or(ResourceError::NotFound(key))
     }
 
-    /// Returns `Ok(true)` if all requested amounts can be satisfied.
-    /// Returns `Err` if any key is not registered.
-    pub fn can_allocate(&self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
-        for &(k, v) in req {
-            let avail = self.available(k)?;
-            if avail < v {
-                return Ok(false);
-            }
-        }
-        Ok(true)
-    }
-
     /// Atomically allocates all requested resources.
     /// Returns `Ok(true)` on success, `Ok(false)` if any resource has
     /// insufficient capacity, or `Err` if any key is not registered.
     #[must_use = "check whether allocation succeeded"]
-    pub fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
+    pub(crate) fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
         // Validate everything before mutating — keeps the operation atomic.
         for &(k, v) in req {
             let avail = self.available(k)?;
@@ -170,29 +158,6 @@ mod tests {
     fn available_unknown_key_errors() {
         let pool = ResourcePool::new();
         assert_eq!(pool.available("gpu"), Err(ResourceError::NotFound("gpu")));
-    }
-
-    // --- can_allocate ---
-
-    #[test]
-    fn can_allocate_returns_true_when_sufficient() {
-        let pool = pool_with(&[("cpu", 8)]);
-        assert_eq!(pool.can_allocate(&[("cpu", 4)]), Ok(true));
-    }
-
-    #[test]
-    fn can_allocate_returns_false_when_insufficient() {
-        let pool = pool_with(&[("cpu", 2)]);
-        assert_eq!(pool.can_allocate(&[("cpu", 4)]), Ok(false));
-    }
-
-    #[test]
-    fn can_allocate_unknown_key_errors() {
-        let pool = ResourcePool::new();
-        assert_eq!(
-            pool.can_allocate(&[("gpu", 1)]),
-            Err(ResourceError::NotFound("gpu"))
-        );
     }
 
     // --- allocate ---

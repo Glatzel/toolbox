@@ -6,27 +6,21 @@ use microsandbox::Sandbox;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
-use crate::config::Config;
+use crate::config::{Config, ConfigRunner};
 
-pub mod github;
-
-pub trait IRunnerSpec {
-    fn runner_spec(
-        headers: &HeaderMap,
-        body: &str,
-        config: &Config,
-    ) -> Result<RunnerSpec, Response>;
+pub trait IJobSpec {
+    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, Response>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[validate(context = Config)]
-pub struct RunnerSpec {
+pub struct JobSpec {
     pub owner: String,
     #[validate(custom(function = "validate_repository", use_context))]
     pub repo: String,
     pub job: String,
     pub id: usize,
-    pub runner: String,
+    pub runner_spec: ConfigRunner,
 }
 
 fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
@@ -39,7 +33,7 @@ fn validate_repository(repo: &String, context: &Config) -> Result<(), Validation
 }
 
 #[async_trait]
-impl IPayload for RunnerSpec {
+impl IPayload for JobSpec {
     type Error = mischief::Report;
 
     async fn execute(&self) -> Result<(), Self::Error> {

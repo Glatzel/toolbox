@@ -5,8 +5,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
-use crate::config::Config;
-use crate::payload::{IRunnerSpec, RunnerSpec};
+use crate::config::{Config, ConfigRunner};
+use crate::server::job::{IJobSpec, JobSpec};
 use crate::utils::constant_time_eq;
 
 #[derive(Debug, Deserialize, Validate)]
@@ -56,12 +56,8 @@ struct WorkflowJob {
     labels: String,
 }
 
-impl IRunnerSpec for WebhookPayload {
-    fn runner_spec(
-        headers: &HeaderMap,
-        body: &str,
-        config: &Config,
-    ) -> Result<RunnerSpec, Response> {
+impl IJobSpec for WebhookPayload {
+    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, Response> {
         clerk::debug!("Verifying webhook signature");
         verify_signature(body, &config.devop.webhook_secret, headers)?;
 
@@ -86,12 +82,18 @@ impl IRunnerSpec for WebhookPayload {
             sender = %webhook_payload.sender.login,
             "Webhook payload accepted, returning runner spec"
         );
-        let runner_spec = RunnerSpec {
+        let runner: ConfigRunner = match config.runners.get(&webhook_payload.workflow_job.labels) {
+            Some(r) => r.clone(),
+            None => {
+                return Err((StatusCode::NOT_FOUND, "Runner not found".to_string()).into_response());
+            }
+        };
+        let runner_spec = JobSpec {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
             job: webhook_payload.workflow_job.name,
             id: webhook_payload.workflow_job.id,
-            runner: webhook_payload.workflow_job.labels,
+            runner_spec: runner,
         };
         Ok(runner_spec)
     }

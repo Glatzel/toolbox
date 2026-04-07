@@ -5,15 +5,14 @@ mod server;
 use std::path::Path;
 
 pub use devop::*;
+use devop::{ConfigDevOp, RawConfigDevOp};
 use hashbrown::HashMap;
+use kioyu::{ConfigKioyu, RawConfigKioyu};
+pub use runner::ConfigRunner;
+use runner::RawConfigRunner;
 use serde::{Deserialize, Serialize};
+use server::{ConfigServer, RawConfigServer};
 use validator::Validate;
-
-use crate::config::devop::{ConfigDevOp, RawConfigDevOp};
-use crate::config::kioyu::{ConfigKioyu, RawConfigKioyu};
-use crate::config::runner::{ConfigRunner, RawConfigRunner};
-use crate::config::server::{ConfigServer, RawConfigServer};
-
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }

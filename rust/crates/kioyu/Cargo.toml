@@ -1,0 +1,16 @@
+[package]
+name = "kioyu"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clerk = { workspace = true }
+hashbrown = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }
+thiserror = { workspace = true }
+uuid = { workspace = true, features = ["v4"]}
+async-trait = { workspace = true }
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true

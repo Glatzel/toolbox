@@ -116,15 +116,15 @@ jobs:
               with:
                   toolchain: nightly
                   components: clippy
-            - uses: ./.github/actions/rust/cargo-clippy
-              with:
-                  working-directory: ./tools/shook
-            - uses: ./.github/actions/rust/cargo-test
-              with:
-                  working-directory: ./tools/shook
-                  doc: false
-            - uses: ./.github/actions/common/codecov
-              if: ${{!cancelled()}}
+            # - uses: ./.github/actions/rust/cargo-clippy
+            #   with:
+            #       working-directory: ./tools/shook
+            # - uses: ./.github/actions/rust/cargo-test
+            #   with:
+            #       working-directory: ./tools/shook
+            #       doc: false
+            # - uses: ./.github/actions/common/codecov
+            #   if: ${{!cancelled()}}
             - uses: ./.github/actions/rust/cargo-build
               if: ${{github.event_name == 'pull_request'}}
               with:

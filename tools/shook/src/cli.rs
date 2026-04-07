@@ -41,7 +41,10 @@ pub async fn main() -> mischief::Result<()> {
     //     )
     //     .init();
     clerk::tracing_subscriber::registry()
-        .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(args.verbose.tra)))
+        .with(
+            clerk::terminal_layer(true)
+                .with_filter(clerk::level_filter(args.verbose.tracing_level_filter())),
+        )
         .init();
     match args.commands {
         Commands::Init => init::execute()?,

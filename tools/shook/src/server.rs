@@ -63,6 +63,7 @@ async fn webhook(
         Ok(spec) => spec,
         Err(response) => return response,
     };
+    clerk::debug!("{:?}", job_spec);
     match job_spec.validate_with_args(&state.config) {
         Ok(_) => {
             clerk::debug!("Validated runner spec");

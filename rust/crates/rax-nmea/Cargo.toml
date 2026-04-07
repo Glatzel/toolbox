@@ -1,7 +1,15 @@
 [package]
-edition.workspace = true
 name = "rax-nmea"
 version.workspace = true
+edition.workspace = true
+
+[[bench]]
+harness = false
+name = "nmea"
+
+[[bench]]
+harness = false
+name = "rules"
 
 [dependencies]
 chrono.workspace = true
@@ -22,13 +30,5 @@ rax = { workspace = true, features = ["async"] }
 serialport.workspace = true
 
 [features]
-serde = ["std", "dep:serde", "chrono/serde"]
+serde = ["chrono/serde", "dep:serde", "std"]
 std = ["rax/std"]
-
-[[bench]]
-harness = false
-name = "nmea"
-
-[[bench]]
-harness = false
-name = "rules"

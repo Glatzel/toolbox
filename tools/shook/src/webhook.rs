@@ -1,14 +1,13 @@
+use std::sync::Arc;
+
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Response};
 use validator::ValidateArgs;
 
 use crate::config::{Config, Vendor};
 use crate::nomad::NomadClient;
 use crate::payload::{IRunnerSpec, github};
-
-use axum::response::{IntoResponse, Response};
-
-use std::sync::Arc;
 
 pub struct AppContext {
     pub config: Config,

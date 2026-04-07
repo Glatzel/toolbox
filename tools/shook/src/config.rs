@@ -78,9 +78,7 @@ fn default_nomad_config() -> NomadConfig {
     }
 }
 
-fn default_server_config() -> ServerConfig {
-    ServerConfig { port: 8787 }
-}
+fn default_server_config() -> ServerConfig { ServerConfig { port: 8787 } }
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -88,10 +86,12 @@ fn default_server_config() -> ServerConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use rstest::*;
     use std::io::Write;
+
+    use rstest::*;
     use tempfile::NamedTempFile;
+
+    use super::*;
 
     // ── helpers ─────────────────────────────────────────────────────────────
 

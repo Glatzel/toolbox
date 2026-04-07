@@ -1,7 +1,7 @@
 [package]
-edition.workspace = true
 name = "mischief"
 version.workspace = true
+edition.workspace = true
 
 [dependencies]
 arbor.workspace = true
@@ -16,7 +16,7 @@ terminal_size = { workspace = true, optional = true }
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["fancy", "arbor/default", "macros"]
+default = ["arbor/default", "fancy", "macros"]
 fancy = [
   "arbor/textwrap",
   "owo-colors",
@@ -26,7 +26,7 @@ fancy = [
   "terminal_size",
 ]
 macros = ["mischief-macros"]
-textwrap-hyphenation = ["fancy", "arbor/textwrap-hyphenation"]
-textwrap-smawk = ["fancy", "arbor/textwrap-smawk"]
-textwrap-unicode-linebreak = ["fancy", "arbor/textwrap-unicode-linebreak"]
-textwrap-unicode-width = ["fancy", "arbor/textwrap-unicode-width"]
+textwrap-hyphenation = ["arbor/textwrap-hyphenation", "fancy"]
+textwrap-smawk = ["arbor/textwrap-smawk", "fancy"]
+textwrap-unicode-linebreak = ["arbor/textwrap-unicode-linebreak", "fancy"]
+textwrap-unicode-width = ["arbor/textwrap-unicode-width", "fancy"]

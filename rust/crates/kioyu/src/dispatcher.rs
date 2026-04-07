@@ -62,7 +62,7 @@ where
                     clerk::debug!("free resource: {}", job.id);
                     let _ = self.pool.free(job.resources.as_slice());
                 }
-                DispatcherEvent::Shutdown => break,
+                DispatcherEvent::Shutdown => return ,
             }
 
             self.schedule(&tx);

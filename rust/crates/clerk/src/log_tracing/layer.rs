@@ -66,7 +66,7 @@ where
 /// let f = PathBuf::from(f);
 ///
 /// tracing_subscriber::registry()
-///     .with(clerk::layer::file_layer(f, true).with_filter(clerk::level_filter(Level::TRACE)))
+///     .with(clerk::file_layer(f, true).with_filter(clerk::level_filter(Level::TRACE)))
 ///     .init();
 ///
 /// trace!("Trace message");

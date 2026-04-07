@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "2026.4.3"
+version = "2026.4.7"
 
 [workspace.dependencies]
 arbor = { path = "./crates/arbor/", default-features = false }

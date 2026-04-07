@@ -44,13 +44,13 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
 }
 #[cfg(test)]
 mod test {
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
     use float_cmp::assert_approx_eq;
 
     use super::*;
     #[test]
     fn test_nmea_degree() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = NmeaDegree;
         let input = "123.45,N,other_data";
         let (result, rest) = rule.apply(input);
@@ -60,7 +60,7 @@ mod test {
     }
     #[test]
     fn test_nmea_degree_negative() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = NmeaDegree;
         let input = "123.45,S,other_data";
         let (result, rest) = rule.apply(input);
@@ -70,7 +70,7 @@ mod test {
     }
     #[test]
     fn test_nmea_degree_invalid() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = NmeaDegree;
         let input = "invalid_input";
         let (result, rest) = rule.apply(input);
@@ -79,7 +79,7 @@ mod test {
     }
     #[test]
     fn test_nmea_degree_no_second_comma() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = NmeaDegree;
         let input = "12345.6789,Nother_data";
         let (result, rest) = rule.apply(input);
@@ -88,7 +88,7 @@ mod test {
     }
     #[test]
     fn test_nmea_degree_null() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let rule = NmeaDegree;
         let input = ",,Nother_data";
         let (result, rest) = rule.apply(input);

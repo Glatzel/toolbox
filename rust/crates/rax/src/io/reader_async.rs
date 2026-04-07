@@ -97,7 +97,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
     use tokio::io::BufReader;
 
     use super::*;
@@ -109,7 +109,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_line_some() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let mut reader = make_reader("foo\nbar\n");
         let line1 = reader.read_line().await.unwrap();
         assert_eq!(line1.as_deref(), Some("foo\n"));
@@ -121,7 +121,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_lines_by_count_partial() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let mut reader = make_reader("a\nb\nc\n");
         let lines = reader.read_lines_by_count(2).await.unwrap();
         assert_eq!(lines, vec!["a\n".to_string(), "b\n".to_string()]);
@@ -133,7 +133,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_lines_by_count_empty() {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let mut reader = make_reader("");
         let lines = reader.read_lines_by_count(3).await.unwrap();
         assert!(lines.is_empty());

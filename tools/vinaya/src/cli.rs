@@ -4,9 +4,9 @@ mod package;
 mod preference;
 mod sidefx;
 use clap::{Parser, Subcommand};
+use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-use clerk::tracing_subscriber::{EnvFilter, Layer};
 pub(crate) use common_arg::{ArgMajor, ArgMinor, ArgNoCheck, ArgPatch, HOUDINI_OPTIONS};
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -38,13 +38,8 @@ pub async fn main() {
     let args = VinayaArgs::parse();
     clerk::tracing_subscriber::registry()
         .with(
-            clerk::layer::terminal_layer(true).with_filter(
-                EnvFilter::builder()
-                    .with_default_directive(
-                        clerk::tracing_core::LevelFilter::from(args.verbose.filter()).into(),
-                    )
-                    .from_env_lossy(),
-            ),
+            clerk::terminal_layer(true)
+                .with_filter(clerk::level_filter(args.verbose.tracing_level().unwrap())),
         )
         .init();
 

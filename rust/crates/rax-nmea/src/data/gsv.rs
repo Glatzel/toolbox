@@ -156,13 +156,13 @@ mod test {
     use std::println;
     use std::string::ToString;
 
-    use clerk::{LogLevel, init_log_with_level};
+    use clerk::{Level, init_log_with_level};
 
     use super::*;
     extern crate std;
     #[test]
     fn test_new_gsv() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPGSV,3,1,10,25,68,053,47,21,59,306,49,29,56,161,49,31,36,265,49*79\r\n$GPGSV,3,2,10,12,29,048,49,05,22,123,49,18,13,000,49,01,00,000,49*72\r\n$GPGSV,3,3,10,14,00,000,03,16,00,000,27*7C";
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
@@ -173,7 +173,7 @@ mod test {
 
     #[test]
     fn test_new_gsv_4() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPGSV,1,1,4,02,35,291,,03,09,129,,05,14,305,,06,38,226,*4E";
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
@@ -184,7 +184,7 @@ mod test {
 
     #[test]
     fn test_new_gsv_3() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPGSV,1,1,3,02,35,291,,03,09,129,,05,14,305,*72";
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
@@ -207,7 +207,7 @@ mod test {
     }
     #[test]
     fn test_new_gsv_0() -> mischief::Result<()> {
-        init_log_with_level(LogLevel::TRACE);
+        init_log_with_level(Level::TRACE);
         let s = "$GPGSV,1,1,0,*65";
         let mut ctx = StrParserContext::new();
         let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;

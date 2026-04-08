@@ -43,10 +43,12 @@ impl ResourcePool {
         capacity: usize,
     ) -> Result<&mut Self, ResourceError> {
         if self.resources.contains_key(key) {
+            clerk::warn!("register failed: resource '{}' is already registered", key);
             return Err(ResourceError::AlreadyRegistered(key));
         }
         self.resources
             .insert(key, ResourceEntry { capacity, used: 0 });
+        clerk::debug!("registered resource '{}' with capacity {}", key, capacity);
         Ok(self)
     }
 
@@ -56,7 +58,10 @@ impl ResourcePool {
         self.resources
             .get(key)
             .map(|r| r.available())
-            .ok_or(ResourceError::NotFound(key))
+            .ok_or_else(|| {
+                clerk::warn!("available query failed: resource '{}' not found", key);
+                ResourceError::NotFound(key)
+            })
     }
 
     /// Atomically allocates all requested resources.
@@ -80,8 +85,17 @@ impl ResourcePool {
         for &(k, v) in req {
             if let Some(entry) = self.resources.get_mut(k) {
                 entry.used += v;
+                clerk::debug!(
+                    "allocated {} units of '{}': used {}/{} (available {})",
+                    v,
+                    k,
+                    entry.used,
+                    entry.capacity,
+                    entry.available()
+                );
             }
         }
+        clerk::debug!("allocation succeeded for {} resource(s)", req.len());
         Ok(true)
     }
 
@@ -91,16 +105,34 @@ impl ResourcePool {
     pub(crate) fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), ResourceError> {
         // Validate before mutating.
         for &(k, v) in req {
-            let entry = self.resources.get(k).ok_or(ResourceError::NotFound(k))?;
+            let entry = self.resources.get(k).ok_or_else(|| {
+                clerk::warn!("free failed: resource '{}' not found", k);
+                ResourceError::NotFound(k)
+            })?;
             if v > entry.used {
+                clerk::warn!(
+                    "free would underflow resource '{}': tried to free {}, only {} in use",
+                    k,
+                    v,
+                    entry.used
+                );
                 return Err(ResourceError::Underflow(k));
             }
         }
         for &(k, v) in req {
             if let Some(entry) = self.resources.get_mut(k) {
                 entry.used -= v;
+                clerk::debug!(
+                    "freed {} units of '{}': used {}/{} (available {})",
+                    v,
+                    k,
+                    entry.used,
+                    entry.capacity,
+                    entry.available()
+                );
             }
         }
+        clerk::debug!("free succeeded for {} resource(s)", req.len());
         Ok(())
     }
 
@@ -109,7 +141,10 @@ impl ResourcePool {
         self.resources
             .get(key)
             .map(|e| (e.used, e.capacity))
-            .ok_or(ResourceError::NotFound(key))
+            .ok_or_else(|| {
+                clerk::warn!("utilization query failed: resource '{}' not found", key);
+                ResourceError::NotFound(key)
+            })
     }
 
     /// Returns an iterator over all keys and their `(used, capacity)`.

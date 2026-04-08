@@ -1,21 +1,28 @@
 use std::fmt::Display;
-
 use async_trait::async_trait;
 use uuid::Uuid;
-
 use crate::resource::ResourceKey;
+
 pub type ResourceAmount = usize;
 
 #[derive(Debug, Clone)]
 pub struct ResourceRequest(Vec<(ResourceKey, ResourceAmount)>);
 
 impl ResourceRequest {
-    pub fn new(req: Vec<(ResourceKey, ResourceAmount)>) -> Self { Self(req) }
+    pub fn new(req: Vec<(ResourceKey, ResourceAmount)>) -> Self {
+        clerk::debug!("creating resource request with {} resource(s)", req.len());
+        Self(req)
+    }
 
-    pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> { self.0.iter() }
+    pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> {
+        self.0.iter()
+    }
 
-    pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] { &self.0 }
+    pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] {
+        &self.0
+    }
 }
+
 #[derive(Debug, Clone)]
 pub struct Job<P> {
     pub id: Uuid,
@@ -26,16 +33,21 @@ pub struct Job<P> {
 
 impl<P> Job<P> {
     pub fn new(name: impl Into<String>, payload: P, resources: ResourceRequest) -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: name.into(),
-            resources,
-            payload,
-        }
+        let name = name.into();
+        let id = Uuid::new_v4();
+        clerk::debug!(
+            "created job '{}' (id={}) with {} resource(s)",
+            name,
+            id,
+            resources.as_slice().len()
+        );
+        Self { id, name, resources, payload }
     }
 }
+
 #[async_trait]
 pub trait IPayload: Send + Sync {
     type Error: Display;
+
     async fn execute(&self) -> Result<(), Self::Error>;
 }

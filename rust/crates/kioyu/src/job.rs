@@ -1,6 +1,8 @@
 use std::fmt::Display;
+
 use async_trait::async_trait;
 use uuid::Uuid;
+
 use crate::resource::ResourceKey;
 
 pub type ResourceAmount = usize;
@@ -14,13 +16,9 @@ impl ResourceRequest {
         Self(req)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> {
-        self.0.iter()
-    }
+    pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> { self.0.iter() }
 
-    pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] {
-        &self.0
-    }
+    pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] { &self.0 }
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +39,12 @@ impl<P> Job<P> {
             id,
             resources.as_slice().len()
         );
-        Self { id, name, resources, payload }
+        Self {
+            id,
+            name,
+            resources,
+            payload,
+        }
     }
 }
 

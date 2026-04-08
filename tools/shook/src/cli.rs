@@ -2,7 +2,6 @@ mod init;
 mod run;
 
 use clap::{Parser, Subcommand};
-
 use run::RunArgs;
 
 #[derive(Debug, Parser)]

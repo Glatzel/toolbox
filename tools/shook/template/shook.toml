@@ -8,11 +8,11 @@ allowed_repositories = [""]
 allowed_users = [""]
 
 [kioyu]
-memory=1024
+memory = 1024
 
 [runners]
 [runners.self-hosted]
-image=""
+image = ""
 cpus = 1
 memory = 512
 ports = {}

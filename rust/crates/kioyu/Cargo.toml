@@ -5,15 +5,18 @@ edition.workspace = true
 
 [dependencies]
 async-trait = { workspace = true }
+chrono = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
 hashbrown = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
 uuid = { workspace = true, features = ["v4"] }
-chrono = { workspace = true }
 
 [dev-dependencies]
+arbor.workspace = true
+insta = { workspace = true, features = ["filters"] }
 mischief.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = [
   "macros",
   "rt",
@@ -21,6 +24,3 @@ tokio = { workspace = true, features = [
   "test-util",
   "time"
 ] }
-tempfile.workspace = true
-arbor.workspace = true
-insta={workspace = true, features = ["filters"] }

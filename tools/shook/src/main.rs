@@ -1,7 +1,7 @@
 mod cli;
 mod config;
+mod log;
 mod server;
 mod utils;
-mod log;
 #[tokio::main]
 async fn main() -> mischief::Result<()> { cli::main().await }

@@ -2345,6 +2345,7 @@ name = "kioyu"
 version = "2026.4.7"
 dependencies = [
  "async-trait",
+ "chrono",
  "clerk",
  "hashbrown 0.16.1",
  "thiserror 2.0.18",

@@ -1,12 +1,10 @@
-use std::fmt;
-extern crate std;
-use std::format;
-use std::string::{String, ToString};
+use std::io;
 
 use owo_colors::OwoColorize;
-use tracing::{Event, Level, Subscriber};
-use tracing_subscriber::fmt::format::{FormatEvent, FormatFields};
-use tracing_subscriber::fmt::{FmtContext, format};
+use tracing::{Event, Level};
+use tracing_core::Subscriber;
+use tracing_subscriber::fmt::FmtContext;
+use tracing_subscriber::fmt::format::{FormatEvent, FormatFields, Writer};
 use tracing_subscriber::registry::LookupSpan;
 
 /// A custom [`tracing`] event formatter for use with
@@ -31,16 +29,15 @@ use tracing_subscriber::registry::LookupSpan;
 /// If `color` is `false`, plain text is used.
 pub struct ClerkFormatter {
     /// Whether to enable colored output for log levels.
-    pub(crate) color: bool,
+    pub color: bool,
 }
 
 impl ClerkFormatter {
     /// Format a log [`Level`] into a string, applying color if enabled.
-    fn color_level(&self, level: tracing::Level) -> String {
+    fn color_level(&self, level: Level) -> String {
         if !self.color {
             return format!("{}", level);
         }
-
         match level {
             Level::TRACE => "TRACE".purple().to_string(),
             Level::DEBUG => "DEBUG".blue().to_string(),
@@ -69,21 +66,20 @@ where
     fn format_event(
         &self,
         ctx: &FmtContext<'_, S, N>,
-        mut writer: format::Writer<'_>,
+        mut writer: Writer<'_>,
         event: &Event<'_>,
-    ) -> fmt::Result {
+    ) -> std::fmt::Result {
         write!(
             writer,
-            "[{}] [",
+            "[{}] [{}]",
             chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            self.color_level(*event.metadata().level()),
         )?;
-
-        write!(writer, "{}]", self.color_level(*event.metadata().level()))?;
 
         #[cfg(debug_assertions)]
         write!(
             writer,
-            "[{}] [{}:{}] ",
+            "[{}] [{}:{}]",
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),
@@ -91,5 +87,59 @@ where
 
         ctx.field_format().format_fields(writer.by_ref(), event)?;
         writeln!(writer)
+    }
+}
+
+pub trait FormatEventToWriter {
+    fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>);
+}
+
+impl FormatEventToWriter for ClerkFormatter {
+    fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>) {
+        let meta = event.metadata();
+
+        write!(
+            writer,
+            "[{}] [{}]",
+            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            self.color_level(*meta.level()),
+        )
+        .ok();
+
+        #[cfg(debug_assertions)]
+        write!(
+            writer,
+            "[{}] [{}:{}]",
+            meta.target(),
+            meta.file().unwrap_or("<file>"),
+            meta.line().unwrap_or(0),
+        )
+        .ok();
+
+        let mut visitor = WriterFieldVisitor { writer };
+        event.record(&mut visitor);
+        writeln!(writer).ok();
+    }
+}
+
+struct WriterFieldVisitor<'a, W: io::Write> {
+    writer: &'a mut W,
+}
+
+impl<'a, W: io::Write> tracing_core::field::Visit for WriterFieldVisitor<'a, W> {
+    fn record_str(&mut self, field: &tracing_core::Field, value: &str) {
+        if field.name() == "message" {
+            write!(self.writer, " {}", value).ok();
+        } else {
+            write!(self.writer, " {}={}", field.name(), value).ok();
+        }
+    }
+
+    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn std::fmt::Debug) {
+        if field.name() == "message" {
+            write!(self.writer, " {:?}", value).ok();
+        } else {
+            write!(self.writer, " {}={:?}", field.name(), value).ok();
+        }
     }
 }

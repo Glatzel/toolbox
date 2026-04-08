@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use axum::http::HeaderMap;
 use axum::response::Response;
-use kioyu::job::IPayload;
+use kioyu::IPayload;
 use microsandbox::Sandbox;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};

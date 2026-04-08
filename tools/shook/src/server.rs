@@ -8,7 +8,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 pub use job::{IJobSpec, JobSpec};
-use kioyu::job::{Job, ResourceRequest};
+use kioyu::{DispatcherHandle, Job, ResourceRequest};
 use validator::ValidateArgs;
 use vendor::*;
 
@@ -16,7 +16,7 @@ use crate::config::{Config, Vendor};
 
 pub struct AppContext {
     pub config: Config,
-    pub kioyu_handle: kioyu::dispatcher::DispatcherHandle<JobSpec>,
+    pub kioyu_handle: DispatcherHandle<JobSpec>,
 }
 fn app(shared_state: Arc<AppContext>) -> Router {
     Router::new()

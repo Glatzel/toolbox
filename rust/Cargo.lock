@@ -771,10 +771,14 @@ dependencies = [
 name = "kioyu"
 version = "2026.4.7"
 dependencies = [
+ "arbor",
  "async-trait",
+ "chrono",
  "clerk",
  "hashbrown 0.16.1",
+ "insta",
  "mischief",
+ "tempfile",
  "thiserror",
  "tokio",
  "uuid",

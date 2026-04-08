@@ -32,7 +32,7 @@ impl<P> DispatcherHandle<P> {
     pub async fn shutdown(&self) { self.tx.send(DispatcherEvent::Shutdown).await.ok(); }
 }
 
-pub struct Dispatcher<P> {
+struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
     pool: ResourcePool,
     queue: VecDeque<Job<P>>,
@@ -140,14 +140,46 @@ mod tests {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
+    use arbor::indents::UnicodeIndent;
+    use arbor::renders::OwnedRender;
+    use arbor::trees::OwnedTree;
     use async_trait::async_trait;
-    use clerk::LevelFilter;
+    use clerk::tracing_subscriber::Layer;
+    use clerk::tracing_subscriber::layer::SubscriberExt;
+    use clerk::tracing_subscriber::util::SubscriberInitExt;
+    use clerk::{LevelFilter, tracing_subscriber};
+    use tempfile::tempdir;
     use tokio::time::{Duration, sleep};
 
     use super::*;
     use crate::job::ResourceRequest;
+    use crate::kioyu_layers;
     use crate::resource::ResourceKey;
+    fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
+        let name = dir
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| dir.to_string_lossy().into_owned());
 
+        let mut node = OwnedTree::new(name);
+
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            let mut paths: Vec<_> = entries.filter_map(|e| e.ok()).map(|e| e.path()).collect();
+            paths.sort();
+
+            for path in paths {
+                if path.is_dir() {
+                    node.push(dir_tree(&path));
+                } else {
+                    node.push(OwnedTree::new(
+                        path.file_name().unwrap().to_string_lossy().into_owned(),
+                    ));
+                }
+            }
+        }
+
+        node
+    }
     struct TestPayload {
         counter: Arc<AtomicUsize>,
     }
@@ -166,7 +198,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatcher() {
-        clerk::init_log_with_level(LevelFilter::TRACE);
+        let log_root = tempdir().unwrap();
+
+        clerk::tracing_subscriber::registry()
+            .with(
+                kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+                    .with_filter(clerk::level_filter(LevelFilter::TRACE)),
+            )
+            .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(LevelFilter::TRACE)))
+            .init();
         let counter = Arc::new(AtomicUsize::new(0));
 
         let mut pool = ResourcePool::new();
@@ -203,5 +243,21 @@ mod tests {
         sleep(Duration::from_millis(300)).await;
         handle.shutdown().await;
         assert_eq!(counter.load(Ordering::SeqCst), 3);
+
+        //check log output
+        let tree = dir_tree(log_root.path());
+        let render = OwnedRender {
+            tree: &tree,
+            indent: UnicodeIndent,
+            width: 0,
+        };
+        println!("{}", render);
+        insta::with_settings!({filters => vec![
+            (r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "[UUID]"),
+            (r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-\d{3}", "[TIMESTAMP]"),
+            (r"\.tmp\w+", "[LOG_ROOT_DIR]")
+        ]}, {
+            insta::assert_snapshot!("kioyu_log_dir_tree", render);
+        });
     }
 }

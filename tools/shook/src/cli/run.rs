@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use clap::Args;
-use kioyu::dispatcher::start_dispatcher;
+use kioyu::start_dispatcher;
 
 use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
@@ -17,7 +17,7 @@ pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
     let config = Config::load_config(&config_path)?;
 
     // init kioyu
-    let mut pool = kioyu::resource::ResourcePool::new();
+    let mut pool = kioyu::ResourcePool::new();
     pool.register("memory", config.kioyu.memory as usize)?;
     let kioyu_handle = start_dispatcher::<JobSpec>(pool);
 

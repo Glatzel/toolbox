@@ -195,8 +195,9 @@ mod tests {
         async fn execute(&self) -> Result<(), Self::Error> {
             self.counter.fetch_add(1, Ordering::SeqCst);
             clerk::trace!(
-                "{}, {}",
+                "{}, {}[{}]",
                 self.counter.load(Ordering::SeqCst),
+                Span::current().metadata().unwrap().target(),
                 Span::current().metadata().unwrap().name()
             );
             sleep(Duration::from_millis(50)).await;
@@ -267,7 +268,7 @@ mod tests {
         println!("{}", render);
         insta::with_settings!({filters => vec![
             (r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "[UUID]"),
-            (r"\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-\d{3}", "[TIMESTAMP]"),
+            (r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{6}Z", "[TIMESTAMP]"),
             (r"\.tmp\w+", "[LOG_ROOT_DIR]")
         ]}, {
             insta::assert_snapshot!("kioyu_log_dir_tree", render);

@@ -71,15 +71,15 @@ where
     ) -> std::fmt::Result {
         write!(
             writer,
-            "[{}] [{}]",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            "[{}][{}]",
+            chrono::Local::now().format("%Y-%m-%dT%H:%M:%S%.6fZ"),
             self.color_level(*event.metadata().level()),
         )?;
 
         #[cfg(debug_assertions)]
         write!(
             writer,
-            "[{}] [{}:{}]",
+            "[{}][{}:{}] ",
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),
@@ -100,8 +100,8 @@ impl FormatEventToWriter for ClerkFormatter {
 
         write!(
             writer,
-            "[{}] [{}]",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            "[{}][{}]",
+            chrono::Local::now().format("%Y-%m-%dT%H:%M:%S%.6f"),
             self.color_level(*meta.level()),
         )
         .ok();
@@ -109,7 +109,7 @@ impl FormatEventToWriter for ClerkFormatter {
         #[cfg(debug_assertions)]
         write!(
             writer,
-            "[{}] [{}:{}]",
+            "[{}][{}:{}] ",
             meta.target(),
             meta.file().unwrap_or("<file>"),
             meta.line().unwrap_or(0),

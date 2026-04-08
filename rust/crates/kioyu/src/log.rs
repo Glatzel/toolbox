@@ -107,7 +107,7 @@ where
             let filename = format!(
                 "{}.{}.{}.log",
                 job_id.1, // job name
-                Local::now().format("%Y-%m-%d-%H-%M-%S-%3f"),
+                Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ"),
                 job_id.0, // job id
             );
             OpenOptions::new()
@@ -145,7 +145,7 @@ where
     let run_dir = log_root
         .as_ref()
         .join("kioyu")
-        .join(Local::now().format("%Y-%m-%d-%H-%M-%S-%3f").to_string());
+        .join(Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ").to_string());
 
     let jobs_dir = run_dir.join("jobs");
     std::fs::create_dir_all(&jobs_dir).unwrap();

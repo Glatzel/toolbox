@@ -106,12 +106,14 @@ where
         );
 
         tokio::spawn(async move {
-            let _enter = span.enter();
             clerk::debug!("executing");
 
-            match job.payload.execute().await {
-                Ok(_) => clerk::debug!("finished"),
-                Err(e) => clerk::error!("payload error: {}", e),
+            {
+                let _enter = span.enter();
+                match job.payload.execute().await {
+                    Ok(_) => clerk::debug!("finished"),
+                    Err(e) => clerk::error!("payload error: {}", e),
+                }
             }
 
             clerk::debug!("releasing resources");
@@ -144,9 +146,10 @@ mod tests {
     use arbor::renders::OwnedRender;
     use arbor::trees::OwnedTree;
     use async_trait::async_trait;
-    use clerk::tracing_subscriber::Layer;
+    use clerk::tracing::Span;
     use clerk::tracing_subscriber::layer::SubscriberExt;
     use clerk::tracing_subscriber::util::SubscriberInitExt;
+    use clerk::tracing_subscriber::{EnvFilter, Layer};
     use clerk::{LevelFilter, tracing_subscriber};
     use tempfile::tempdir;
     use tokio::time::{Duration, sleep};
@@ -171,6 +174,8 @@ mod tests {
                 if path.is_dir() {
                     node.push(dir_tree(&path));
                 } else {
+                    // let content = std::fs::read_to_string(&path).unwrap_or_default();
+                    // clerk::debug!("{}: `{}`", path.to_string_lossy().into_owned(), content);
                     node.push(OwnedTree::new(
                         path.file_name().unwrap().to_string_lossy().into_owned(),
                     ));
@@ -187,10 +192,13 @@ mod tests {
     #[async_trait]
     impl IPayload for TestPayload {
         type Error = mischief::Report;
-
         async fn execute(&self) -> Result<(), Self::Error> {
             self.counter.fetch_add(1, Ordering::SeqCst);
-            clerk::trace!("{}", self.counter.load(Ordering::SeqCst));
+            clerk::trace!(
+                "{}, {}",
+                self.counter.load(Ordering::SeqCst),
+                Span::current().metadata().unwrap().name()
+            );
             sleep(Duration::from_millis(50)).await;
             Ok(())
         }
@@ -205,7 +213,12 @@ mod tests {
                 kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
                     .with_filter(clerk::level_filter(LevelFilter::TRACE)),
             )
-            .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(LevelFilter::TRACE)))
+            .with(
+                clerk::terminal_layer(true).with_filter(
+                    EnvFilter::new(LevelFilter::TRACE.to_string())
+                        .add_directive("kioyu[job]=off".parse().unwrap()),
+                ),
+            )
             .init();
         let counter = Arc::new(AtomicUsize::new(0));
 

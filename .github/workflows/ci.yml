@@ -120,15 +120,26 @@ jobs:
         with:
           workspaces: ./tools/shook
 
-      # - uses: ./.github/actions/rust/cargo-clippy
-      #   with:
-      #       working-directory: ./tools/shook
-      # - uses: ./.github/actions/rust/cargo-test
-      #   with:
-      #       working-directory: ./tools/shook
-      #       doc: false
-      # - uses: ./.github/actions/common/codecov
-      #   if: ${{!cancelled()}}
+      - uses: ./.github/actions/rust/cargo-clippy
+        with:
+            working-directory: ./tools/shook
+      - uses: ./.github/actions/rust/cargo-test
+        with:
+            working-directory: ./tools/shook
+            doc: false
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}
+  upload-shook:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools libcap-ng-dev gcc make flex bison libelf-dev bc python3-pyelftools libdbus-1-dev
+      - uses: ./.github/actions/rust/setup-rust
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          workspaces: ./tools/shook
       - uses: ./.github/actions/rust/cargo-build
         if: ${{github.event_name == 'pull_request'}}
         with:
@@ -138,7 +149,6 @@ jobs:
         with:
           name: shook
           path: ./tools/shook/target/debug/shook
-
   tools-vinaya:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}

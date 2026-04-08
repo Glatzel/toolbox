@@ -1,7 +1,7 @@
 use std::io::{BufReader, Cursor};
 
 use rax::io::{IRaxReader, RaxReader}; // your crate
-
+#[test]
 fn main() -> mischief::Result<()> {
     // ---------- in‑memory text ------------------------------------------------
     let data = "alpha\nbravo\ncharlie"; // <- your string literal

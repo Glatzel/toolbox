@@ -10,13 +10,14 @@ use hashbrown::HashMap;
 use kioyu::{ConfigKioyu, RawConfigKioyu};
 pub use runner::ConfigRunner;
 use runner::RawConfigRunner;
+use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
 use server::{ConfigServer, RawConfigServer};
 use validator::Validate;
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 struct RawConfig {
     #[validate(nested)]
     pub server: RawConfigServer,
@@ -63,5 +64,18 @@ impl Config {
         );
 
         Ok(config)
+    }
+}
+
+pub fn schema() -> Schema { schema_for!(RawConfig) }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_schema() {
+        let schema = schema();
+        insta::assert_json_snapshot!(schema);
     }
 }

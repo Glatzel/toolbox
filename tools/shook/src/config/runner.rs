@@ -1,27 +1,39 @@
 use std::path::PathBuf;
 
 use hashbrown::HashMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
 use crate::config::IResolve;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 pub(super) struct RawConfigRunner {
     #[validate(range(min = 1))]
     cpus: Option<u32>,
+
     #[validate(range(min = 1))]
     memory: Option<u32>,
+
+    #[schemars(with = "Option<std::collections::HashMap<PathBuf, PathBuf>>")]
     volumes: Option<HashMap<PathBuf, PathBuf>>,
+
+    #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
+
+    #[schemars(with = "Option<std::collections::HashMap<String, String>>")]
     envs: Option<HashMap<String, String>>,
+
+    #[schemars(with = "Option<std::collections::HashMap<String, (String, String)>>")]
     secrets: Option<HashMap<String, (String, String)>>,
 
     #[validate(custom(function = "validate_runners"))]
+    #[serde(flatten)]
+    #[schemars(with = "std::collections::HashMap<String, RawRunnerConfigInner>")]
     runners: HashMap<String, RawRunnerConfigInner>,
 }
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 enum ResolveStrategy {
     Replace,
@@ -29,7 +41,7 @@ enum ResolveStrategy {
     Merge,
     Ignore,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 struct RawRunnerConfigInner {
     image: String,
     #[serde(default = "default_cpus")]
@@ -39,19 +51,23 @@ struct RawRunnerConfigInner {
     #[validate(range(min = 1))]
     memory: u32,
 
+    #[schemars(with = "Option<std::collections::HashMap<PathBuf, PathBuf>>")]
     volumes: Option<HashMap<PathBuf, PathBuf>>,
     #[serde(default)]
     volumes_strategy: ResolveStrategy,
 
+    #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
     #[serde(default)]
     ports_strategy: ResolveStrategy,
 
+    #[schemars(with = "Option<std::collections::HashMap<String, String>>")]
     envs: Option<HashMap<String, String>>,
     #[serde(default)]
     envs_strategy: ResolveStrategy,
 
+    #[schemars(with = "Option<std::collections::HashMap<String, (String, String)>>")]
     secrets: Option<HashMap<String, (String, String)>>,
     #[serde(default)]
     secrets_strategy: ResolveStrategy,

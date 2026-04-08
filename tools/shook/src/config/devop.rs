@@ -1,9 +1,10 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::config::IResolve;
 pub(super) type RawConfigDevOp = ConfigDevOp;
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Vendor {
     #[serde(rename = "bitbucket", alias = "atlassian")]
@@ -14,7 +15,7 @@ pub enum Vendor {
     Gitlab,
     Woodpecker,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 pub struct ConfigDevOp {
     pub vendor: Vendor,
     pub webhook_secret: String,

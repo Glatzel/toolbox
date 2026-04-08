@@ -1,9 +1,10 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::config::IResolve;
 pub(super) type RawConfigServer = ConfigServer;
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 #[serde(default = "default_config_server")]
 pub struct ConfigServer {
     #[validate(range(min = 1, max = 65535))]

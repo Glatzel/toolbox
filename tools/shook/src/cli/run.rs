@@ -7,7 +7,7 @@ use kioyu::dispatcher::start_dispatcher;
 use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
 #[derive(Debug, Args)]
-pub struct RunArgs {
+pub(super) struct RunArgs {
     pub config: Option<PathBuf>,
 }
 

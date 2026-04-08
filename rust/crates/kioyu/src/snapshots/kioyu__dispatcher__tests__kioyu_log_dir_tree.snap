@@ -1,0 +1,12 @@
+---
+source: crates/kioyu/src/dispatcher.rs
+expression: render
+---
+[LOG_ROOT_DIR]
+╰── kioyu
+    ╰── [TIMESTAMP]
+        ├── jobs
+        │   ├── job1.[TIMESTAMP].[UUID].log
+        │   ├── job2.[TIMESTAMP].[UUID].log
+        │   ╰── job3.[TIMESTAMP].[UUID].log
+        ╰── kioyu.log

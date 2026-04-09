@@ -1,3 +1,4 @@
+mod error;
 mod job;
 mod vendor;
 use std::sync::Arc;
@@ -7,6 +8,7 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
+use error::Error;
 pub use job::{IJobSpec, JobSpec};
 use kioyu::{DispatcherHandle, Job, ResourceRequest};
 use validator::ValidateArgs;
@@ -50,7 +52,7 @@ async fn webhook(
             clerk::debug!("Dispatching to GitHub webhook parser");
             match github::WebhookPayload::job_spec(&headers, &body, &state.config) {
                 Ok(spec) => spec,
-                Err(response) => return response,
+                Err(response) => return response.into_response(),
             }
         }
         unsupported => {

@@ -1,0 +1,38 @@
+---
+source: src/config.rs
+expression: config
+---
+{
+  "server": {
+    "port": 8787
+  },
+  "devop": {
+    "vendor": "github",
+    "token": "token_xxxxx",
+    "webhook_secret": "webhook_secret_xxxxxxx",
+    "allowed_repositories": [
+      "self-host-runner"
+    ],
+    "allowed_users": [
+      "Glatzel"
+    ]
+  },
+  "kioyu": {
+    "memory": 1024
+  },
+  "runners": {
+    "ghar-linux-dev-small": {
+      "name": "ghar-linux-dev-small",
+      "image": "ghcr.io/glatzel/ghar-linux-dev",
+      "cpus": 1,
+      "memory": 512,
+      "volumes": {},
+      "ports": {},
+      "envs": {
+        "RUNNER_LABELS": "self-hosted,ghar-linux-dev-small",
+        "EPHEMERAL": "true"
+      },
+      "secrets": {}
+    }
+  }
+}

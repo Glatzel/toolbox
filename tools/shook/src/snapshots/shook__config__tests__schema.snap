@@ -44,6 +44,9 @@ expression: schema
           },
           "minItems": 1
         },
+        "token": {
+          "type": "string"
+        },
         "vendor": {
           "$ref": "#/$defs/Vendor"
         },
@@ -51,8 +54,10 @@ expression: schema
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "vendor",
+        "token",
         "webhook_secret",
         "allowed_repositories",
         "allowed_users"
@@ -67,7 +72,8 @@ expression: schema
           "default": 1024,
           "minimum": 0
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ConfigServer": {
       "type": "object",
@@ -79,7 +85,8 @@ expression: schema
           "maximum": 65535,
           "minimum": 1
         }
-      }
+      },
+      "additionalProperties": false
     },
     "RawConfigRunner": {
       "type": "object",

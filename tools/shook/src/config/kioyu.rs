@@ -6,7 +6,7 @@ use crate::config::IResolve;
 
 pub(super) type RawConfigKioyu = ConfigKioyu;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Validate, JsonSchema)]
-#[serde(default = "default_config_kioyu")]
+#[serde(deny_unknown_fields, default = "default_config_kioyu")]
 pub struct ConfigKioyu {
     pub memory: u32,
 }

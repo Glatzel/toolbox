@@ -71,11 +71,26 @@ pub fn schema() -> Schema { schema_for!(RawConfig) }
 
 #[cfg(test)]
 mod tests {
+
+    use rstest::rstest;
+
     use super::*;
 
     #[test]
     fn test_schema() {
         let schema = schema();
         insta::assert_json_snapshot!(schema);
+    }
+    #[rstest]
+    #[case("minimal")]
+    fn test_valid_config(#[case] config_name: &str) -> mischief::Result<()> {
+        use std::path::PathBuf;
+        let config = Config::load_config(&PathBuf::from(format!(
+            "{}/test_data/config/valid/{}.toml",
+            env!("CARGO_MANIFEST_DIR"),
+            config_name
+        )))?;
+        insta::assert_json_snapshot!(format!("test_valid_config-{}", config_name), config);
+        Ok(())
     }
 }

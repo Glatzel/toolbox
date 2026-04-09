@@ -16,8 +16,10 @@ pub enum Vendor {
     Woodpecker,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ConfigDevOp {
     pub vendor: Vendor,
+    pub token: String,
     pub webhook_secret: String,
     #[validate(length(min = 1))]
     pub allowed_repositories: Vec<String>,

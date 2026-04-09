@@ -1,0 +1,25 @@
+name: shook
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  run-if-labeled:
+    if: contains(github.event.pull_request.labels.*.name, 'shook')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools libcap-ng-dev gcc make flex bison libelf-dev bc python3-pyelftools libdbus-1-dev
+      - uses: ./.github/actions/rust/setup-rust
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          workspaces: ./tools/shook
+      - uses: ./.github/actions/rust/cargo-build
+        with:
+          working-directory: ./tools/shook
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: shook
+          path: ./tools/shook/target/debug/shook
+      

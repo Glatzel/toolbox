@@ -3,6 +3,9 @@ name = "shook"
 version = "2026.4.7"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["dbus"]
+
 [dependencies]
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 kioyu = { path = "../../rust/crates/kioyu" }

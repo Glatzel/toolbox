@@ -6,7 +6,7 @@ use tracing_core::Subscriber;
 use tracing_subscriber::fmt::FmtContext;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields, Writer};
 use tracing_subscriber::registry::LookupSpan;
-
+const TIME_FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S%.6fZ";
 /// A custom [`tracing`] event formatter for use with
 /// [`tracing_subscriber`]'s `fmt` layer.
 ///
@@ -69,17 +69,21 @@ where
         mut writer: Writer<'_>,
         event: &Event<'_>,
     ) -> std::fmt::Result {
+        #[cfg(not(debug_assertions))]
         write!(
             writer,
-            "[{}][{}]",
-            chrono::Local::now().format("%Y-%m-%dT%H:%M:%S%.6fZ"),
+            "[{}][{}][{}]",
+            chrono::Local::now().format(TIME_FORMAT),
             self.color_level(*event.metadata().level()),
+            event.metadata().target(),
         )?;
 
         #[cfg(debug_assertions)]
         write!(
             writer,
-            "[{}][{}:{}] ",
+            "[{}][{}][{}][{}:{}] ",
+            chrono::Local::now().format(TIME_FORMAT),
+            self.color_level(*event.metadata().level()),
             event.metadata().target(),
             event.metadata().file().unwrap_or("<file>"),
             event.metadata().line().unwrap_or(0),
@@ -97,19 +101,22 @@ pub trait FormatEventToWriter {
 impl FormatEventToWriter for ClerkFormatter {
     fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>) {
         let meta = event.metadata();
-
+        #[cfg(not(debug_assertions))]
         write!(
             writer,
-            "[{}][{}]",
-            chrono::Local::now().format("%Y-%m-%dT%H:%M:%S%.6f"),
+            "[{}][{}][{}]",
+            chrono::Local::now().format(TIME_FORMAT),
             self.color_level(*meta.level()),
+            event.metadata().target(),
         )
         .ok();
 
         #[cfg(debug_assertions)]
         write!(
             writer,
-            "[{}][{}:{}] ",
+            "[{}][{}][{}][{}:{}] ",
+            chrono::Local::now().format(TIME_FORMAT),
+            self.color_level(*event.metadata().level()),
             meta.target(),
             meta.file().unwrap_or("<file>"),
             meta.line().unwrap_or(0),

@@ -6,7 +6,7 @@ expression: render
 ╰── kioyu
     ╰── [TIMESTAMP]
         ├── jobs
-        │   ├── job1.[TIMESTAMP].[UUID].log
-        │   ├── job2.[TIMESTAMP].[UUID].log
-        │   ╰── job3.[TIMESTAMP].[UUID].log
+        │   ├── [TIMESTAMP].job1.[UUID].log
+        │   ├── [TIMESTAMP].job2.[UUID].log
+        │   ╰── [TIMESTAMP].job3.[UUID].log
         ╰── kioyu.log

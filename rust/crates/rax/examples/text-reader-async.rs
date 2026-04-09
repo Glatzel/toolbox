@@ -1,11 +1,10 @@
 use std::io::Cursor;
 
-use mischief::Result;
 use rax::io::{AsyncIRaxReader, AsyncRaxReader};
 use tokio::io::BufReader; // async API
-#[test]
+
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> mischief::Result<()> {
     // ---------- in‑memory text -----------------------------------------------
     let data = "delta\necho\nfoxtrot";
     let cursor = Cursor::new(data.as_bytes());
@@ -21,3 +20,5 @@ async fn main() -> Result<()> {
     print!("{full_text}");
     Ok(())
 }
+#[tokio::test]
+async fn test() -> mischief::Result<()> { main().await }

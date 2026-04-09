@@ -177,6 +177,7 @@ mod tests {
     use super::*;
 
     fn make_signature(secret: &str, body: &str) -> String {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();
         mac.update(body.as_bytes());
         format!("sha256={}", hex::encode(mac.finalize().into_bytes()))
@@ -195,6 +196,7 @@ mod tests {
     #[case(r#"{"event":"Queued"}"#)]
     #[case("")]
     fn verify_signature_valid(#[case] body: &str) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let sig = make_signature(SECRET, body);
         let headers = headers_with_sig(&sig);
         assert!(verify_signature(body, SECRET, &headers).is_ok());
@@ -204,6 +206,7 @@ mod tests {
     #[case("wrong-secret")]
     #[case("")]
     fn verify_signature_bad_secret(#[case] bad_secret: &str) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let body = "some payload";
         let sig = make_signature(bad_secret, body);
         let headers = headers_with_sig(&sig);
@@ -215,6 +218,7 @@ mod tests {
 
     #[test]
     fn verify_signature_missing_header() {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let headers = HeaderMap::new(); // no sig header
         let result = verify_signature("body", SECRET, &headers);
         assert!(result.is_err());
@@ -222,6 +226,7 @@ mod tests {
 
     #[test]
     fn verify_signature_tampered_body() {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let original = "original body";
         let sig = make_signature(SECRET, original);
         let headers = headers_with_sig(&sig);

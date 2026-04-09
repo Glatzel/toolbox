@@ -84,6 +84,7 @@ mod tests {
 
     #[test]
     fn test_schema() {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let schema = schema();
         insta::assert_json_snapshot!(schema);
     }
@@ -94,6 +95,7 @@ mod tests {
     #[case("minimal")]
     #[case("runners_with_default")]
     fn test_valid_config(#[case] config_name: &str) -> mischief::Result<()> {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         use std::path::PathBuf;
         let config = Config::load_config(&PathBuf::from(format!(
             "{}/test_data/config/valid/{}.toml",

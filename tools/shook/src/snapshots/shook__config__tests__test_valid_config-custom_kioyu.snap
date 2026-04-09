@@ -15,7 +15,7 @@ expression: "serde_json::to_string_pretty(&config).unwrap()"
     "webhook_secret": "webhook_secret_xxxxxxx"
   },
   "kioyu": {
-    "memory": 1024
+    "memory": 8192
   },
   "runners": {
     "ghar-linux-dev-small": {

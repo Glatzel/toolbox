@@ -2,29 +2,35 @@ mod devop;
 mod kioyu;
 mod runner;
 mod server;
+
 use std::path::Path;
 
 pub use devop::*;
 use devop::{ConfigDevOp, RawConfigDevOp};
 use hashbrown::HashMap;
-use kioyu::{ConfigKioyu, RawConfigKioyu};
+use kioyu::{ConfigKioyu, RawConfigKioyu, default_config_kioyu};
 pub use runner::ConfigRunner;
 use runner::RawConfigRunner;
 use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
-use server::{ConfigServer, RawConfigServer};
+use server::{ConfigServer, RawConfigServer, default_config_server};
 use validator::Validate;
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 struct RawConfig {
+    #[serde(default = "default_config_server")]
     #[validate(nested)]
     pub server: RawConfigServer,
+
     #[validate(nested)]
     pub devop: RawConfigDevOp,
+
+    #[serde(default = "default_config_kioyu")]
     #[validate(nested)]
     pub kioyu: RawConfigKioyu,
+
     #[validate(nested)]
     pub runners: RawConfigRunner,
 }
@@ -82,6 +88,8 @@ mod tests {
         insta::assert_json_snapshot!(schema);
     }
     #[rstest]
+    #[case("custom_kioyu")]
+    #[case("custom_server")]
     #[case("minimal")]
     fn test_valid_config(#[case] config_name: &str) -> mischief::Result<()> {
         use std::path::PathBuf;
@@ -90,7 +98,12 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))?;
-        insta::assert_json_snapshot!(format!("test_valid_config-{}", config_name), config);
+        let mut config = serde_json::to_value(config)?;
+        config.sort_all_objects();
+        insta::assert_snapshot!(
+            format!("test_valid_config-{}", config_name),
+            serde_json::to_string_pretty(&config).unwrap()
+        );
         Ok(())
     }
 }

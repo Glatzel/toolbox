@@ -33,6 +33,6 @@ expression: "serde_json::to_string_pretty(&config).unwrap()"
     }
   },
   "server": {
-    "port": 8787
+    "port": 8888
   }
 }

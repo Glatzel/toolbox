@@ -11,19 +11,23 @@ expression: schema
       "$ref": "#/$defs/ConfigDevOp"
     },
     "kioyu": {
-      "$ref": "#/$defs/ConfigKioyu"
+      "$ref": "#/$defs/ConfigKioyu",
+      "default": {
+        "memory": 1024
+      }
     },
     "runners": {
       "$ref": "#/$defs/RawConfigRunner"
     },
     "server": {
-      "$ref": "#/$defs/ConfigServer"
+      "$ref": "#/$defs/ConfigServer",
+      "default": {
+        "port": 8787
+      }
     }
   },
   "required": [
-    "server",
     "devop",
-    "kioyu",
     "runners"
   ],
   "$defs": {
@@ -252,6 +256,7 @@ expression: schema
           "default": "merge"
         }
       },
+      "additionalProperties": false,
       "required": [
         "image"
       ]

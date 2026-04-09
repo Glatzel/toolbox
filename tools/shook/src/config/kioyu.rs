@@ -10,7 +10,7 @@ pub(super) type RawConfigKioyu = ConfigKioyu;
 pub struct ConfigKioyu {
     pub memory: u32,
 }
-fn default_config_kioyu() -> ConfigKioyu { ConfigKioyu { memory: 1024 } }
+pub(super) fn default_config_kioyu() -> ConfigKioyu { ConfigKioyu { memory: 1024 } }
 impl IResolve<ConfigKioyu> for RawConfigKioyu {
     fn resolve(self) -> ConfigKioyu { self }
 }

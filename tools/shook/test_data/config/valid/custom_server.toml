@@ -1,3 +1,6 @@
+[server]
+port = 8888
+
 [devop]
 vendor = "github"
 token = "token_xxxxx"

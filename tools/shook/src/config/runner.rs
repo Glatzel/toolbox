@@ -42,6 +42,7 @@ enum ResolveStrategy {
     Ignore,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
+#[serde(deny_unknown_fields)]
 struct RawRunnerConfigInner {
     image: String,
     #[serde(default = "default_cpus")]

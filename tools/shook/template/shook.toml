@@ -15,5 +15,6 @@ memory = 1024
 image = ""
 cpus = 1
 memory = 512
+envs = {}
 ports = {}
 secrets = {}

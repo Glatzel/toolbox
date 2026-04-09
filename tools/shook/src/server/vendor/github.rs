@@ -56,7 +56,11 @@ struct WorkflowJob {
 }
 
 impl IJobSpec for WebhookPayload {
-    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, ShookServerError> {
+    fn job_spec(
+        headers: &HeaderMap,
+        body: &str,
+        config: &Config,
+    ) -> Result<JobSpec, ShookServerError> {
         clerk::debug!("Verifying webhook signature");
         verify_signature(body, &config.devop.webhook_secret, headers)?;
 
@@ -93,7 +97,10 @@ impl IJobSpec for WebhookPayload {
         let runner: ConfigRunner = match config.runners.get(&runner_name) {
             Some(r) => r.clone(),
             None => {
-                return Err(ShookServerError::Parse(format!("Runner not found: {}", runner_name)));
+                return Err(ShookServerError::Parse(format!(
+                    "Runner not found: {}",
+                    runner_name
+                )));
             }
         };
         let job_spec = JobSpec {

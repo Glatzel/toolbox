@@ -8,7 +8,11 @@ use validator::{Validate, ValidationError};
 use crate::config::{Config, ConfigRunner};
 
 pub trait IJobSpec {
-    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, super::ShookServerError>;
+    fn job_spec(
+        headers: &HeaderMap,
+        body: &str,
+        config: &Config,
+    ) -> Result<JobSpec, super::ShookServerError>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]

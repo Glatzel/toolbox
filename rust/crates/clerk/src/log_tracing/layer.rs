@@ -110,8 +110,8 @@ mod tests {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(f1, true))
-            .with(file_layer(f2, false))
+            .with(file_layer(f1, true).with_filter(crate::level_filter(crate::LevelFilter::TRACE)))
+            .with(file_layer(f2, false).with_filter(crate::level_filter(crate::LevelFilter::TRACE)))
             .init();
         trace!("Trace message");
         debug!("Debug message");
@@ -122,7 +122,7 @@ mod tests {
     #[test]
     fn test_log_term() {
         tracing_subscriber::registry()
-            .with(terminal_layer(true))
+            .with(terminal_layer(true).with_filter(crate::level_filter(crate::LevelFilter::TRACE)))
             .init();
         trace!("Trace message");
         debug!("Debug message");

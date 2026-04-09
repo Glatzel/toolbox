@@ -1,0 +1,48 @@
+---
+source: src/config.rs
+expression: "serde_json::to_string_pretty(&config).unwrap()"
+---
+{
+  "devop": {
+    "allowed_repositories": [
+      "self-host-runner"
+    ],
+    "allowed_users": [
+      "Glatzel"
+    ],
+    "token": "token_xxxxx",
+    "vendor": "github",
+    "webhook_secret": "webhook_secret_xxxxxxx"
+  },
+  "kioyu": {
+    "memory": 1024
+  },
+  "runners": {
+    "ghar-linux-dev-small": {
+      "cpus": 2,
+      "envs": {
+        "FOO": "BAR"
+      },
+      "image": "ghcr.io/glatzel/ghar-linux-dev",
+      "memory": 2048,
+      "name": "ghar-linux-dev-small",
+      "ports": {
+        "123": 456,
+        "456": 123
+      },
+      "secrets": {
+        "SFOO": [
+          "SBAR",
+          "https://www.google.com/"
+        ]
+      },
+      "volumes": {
+        "/host_dir": "/target_dir",
+        "/host_dir1": "/target_dir1/default"
+      }
+    }
+  },
+  "server": {
+    "port": 8787
+  }
+}

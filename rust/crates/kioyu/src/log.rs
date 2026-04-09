@@ -106,8 +106,8 @@ where
         let file = handles.entry(job_id.0.clone()).or_insert_with(|| {
             let filename = format!(
                 "{}.{}.{}.log",
-                job_id.1, // job name
                 Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ"),
+                job_id.1, // job name
                 job_id.0, // job id
             );
             OpenOptions::new()
@@ -133,7 +133,7 @@ where
 ///     └── 2024-01-15-14-30-00-123/
 ///         ├── kioyu.log
 ///         └── jobs/
-///             ├── <name>.<time>.<id>.log
+///             ├── <time>.<name>.<id>.log
 ///             └── ...
 /// ```
 ///

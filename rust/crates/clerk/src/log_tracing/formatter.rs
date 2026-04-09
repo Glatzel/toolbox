@@ -52,7 +52,7 @@ macro_rules! write_header {
             $writer,
             "[{}][{}][{}]",
             chrono::Local::now().format(TIME_FORMAT),
-            self.color_level(*event.metadata().level()),
+            $self.color_level(*$meta.level()),
             $meta.target(),
         );
 

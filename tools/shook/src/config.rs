@@ -122,7 +122,10 @@ mod tests {
             config_name
         )))
         .unwrap_err();
-        insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), config);
+        insta::assert_snapshot!(
+            format!("test_invalid_config-{}", config_name),
+            config.to_string().trim()
+        );
         Ok(())
     }
 }

@@ -126,6 +126,7 @@ expression: schema
             "null"
           ],
           "additionalProperties": false,
+          "default": null,
           "patternProperties": {
             "^\\d+$": {
               "type": "integer",
@@ -206,6 +207,7 @@ expression: schema
             "null"
           ],
           "additionalProperties": false,
+          "default": null,
           "patternProperties": {
             "^\\d+$": {
               "type": "integer",

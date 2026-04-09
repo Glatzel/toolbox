@@ -20,10 +20,7 @@ expression: "serde_json::to_string_pretty(&config).unwrap()"
   "runners": {
     "ghar-linux-dev-small": {
       "cpus": 1,
-      "envs": {
-        "EPHEMERAL": "true",
-        "RUNNER_LABELS": "self-hosted,ghar-linux-dev-small"
-      },
+      "envs": {},
       "image": "ghcr.io/glatzel/ghar-linux-dev",
       "memory": 512,
       "name": "ghar-linux-dev-small",

@@ -3,10 +3,11 @@ use std::path::PathBuf;
 use hashbrown::HashMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_with::{DisplayFromStr, serde_as};
 use validator::{Validate, ValidationError};
 
 use crate::config::IResolve;
-
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 pub(super) struct RawConfigRunner {
     #[validate(range(min = 1))]
@@ -19,6 +20,7 @@ pub(super) struct RawConfigRunner {
     volumes: Option<HashMap<PathBuf, PathBuf>>,
 
     #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
+    #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
 
@@ -41,6 +43,7 @@ enum ResolveStrategy {
     Merge,
     Ignore,
 }
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct RawRunnerConfigInner {
@@ -58,6 +61,7 @@ struct RawRunnerConfigInner {
     volumes_strategy: ResolveStrategy,
 
     #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
+    #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
     #[serde(default)]

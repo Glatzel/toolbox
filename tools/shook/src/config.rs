@@ -90,7 +90,9 @@ mod tests {
     #[rstest]
     #[case("custom_kioyu")]
     #[case("custom_server")]
+    #[case("full_runners_config")]
     #[case("minimal")]
+    #[case("runners_with_default")]
     fn test_valid_config(#[case] config_name: &str) -> mischief::Result<()> {
         use std::path::PathBuf;
         let config = Config::load_config(&PathBuf::from(format!(

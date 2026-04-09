@@ -1,6 +1,6 @@
 mod cli;
 mod config;
-mod log;
+
 mod server;
 mod utils;
 #[tokio::main]

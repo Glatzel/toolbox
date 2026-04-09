@@ -1,16 +1,17 @@
 mod init;
+mod log;
 mod run;
-
 use clap::{Parser, Subcommand};
+use log::init_log;
 use run::RunArgs;
 
 #[derive(Debug, Parser)]
 #[command(author = "Glatzel", version, long_about = None)]
-struct Args {
+pub struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
     #[command(subcommand)]
-    pub commands: Commands,
+    commands: Commands,
 }
 #[derive(Debug, Subcommand)]
 enum Commands {
@@ -20,7 +21,7 @@ enum Commands {
 
 pub async fn main() -> mischief::Result<()> {
     let args = Args::parse();
-    crate::log::init_log(args.verbose.tracing_level_filter());
+    init_log(&args);
 
     match args.commands {
         Commands::Init => init::execute()?,

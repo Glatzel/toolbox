@@ -8,13 +8,12 @@ use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
 #[derive(Debug, Args)]
 pub(super) struct RunArgs {
-    pub config: Option<PathBuf>,
+    #[arg(default_value_os_t)]
+    pub config: PathBuf,
 }
 
 pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
-    // init config
-    let config_path = args.config.unwrap_or_else(|| PathBuf::from("shook.toml"));
-    let config = Config::load_config(&config_path)?;
+    let config = Config::load_config(&args.config)?;
 
     // init kioyu
     let mut pool = kioyu::ResourcePool::new();
@@ -27,4 +26,11 @@ pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
         kioyu_handle,
     });
     start_server(shared_state).await
+}
+impl Default for RunArgs {
+    fn default() -> Self {
+        Self {
+            config: PathBuf::from("shook.toml"),
+        }
+    }
 }

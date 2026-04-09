@@ -1,0 +1,23 @@
+{
+    "lsp": {
+        "rust-analyzer": {
+            "initialization_options": {
+                "cargo": {
+                    "extraEnv": {
+                        "LIBRARY_PATH": "./.pixi/envs/default/lib"
+                    }
+                },
+                "runnables": {
+                    "extraEnv": {
+                        "LIBRARY_PATH": "./.pixi/envs/default/lib"
+                    }
+                },
+                "server": {
+                    "extraEnv": {
+                        "LIBRARY_PATH": "./.pixi/envs/default/lib"
+                    }
+                }
+            }
+        }
+    }
+}

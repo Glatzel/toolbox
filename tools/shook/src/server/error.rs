@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 
 #[derive(Debug, thiserror::Error)]
-pub enum Error {
+pub enum ShookServerError {
     #[error(transparent)]
     Microsandbox(#[from] microsandbox::MicrosandboxError),
     #[error(transparent)]
@@ -17,20 +17,20 @@ pub enum Error {
     #[error("{0}")]
     Parse(String),
 }
-impl IntoResponse for Error {
+impl IntoResponse for ShookServerError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            Error::Microsandbox(_) => {
+            ShookServerError::Microsandbox(_) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
             }
-            Error::SerdeJson(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
-            Error::Validator(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            ShookServerError::SerdeJson(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            ShookServerError::Validator(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
 
-            Error::MissingHeader(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
-            Error::RequestSignaturesMismatch => {
+            ShookServerError::MissingHeader(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            ShookServerError::RequestSignaturesMismatch => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            Error::Parse(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            ShookServerError::Parse(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
         }
     }
 }

@@ -8,7 +8,7 @@ use validator::{Validate, ValidationError};
 use crate::config::{Config, ConfigRunner};
 
 pub trait IJobSpec {
-    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, super::Error>;
+    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, super::ShookServerError>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
@@ -33,7 +33,7 @@ fn validate_repository(repo: &String, context: &Config) -> Result<(), Validation
 
 #[async_trait]
 impl IPayload for JobSpec {
-    type Error = super::Error;
+    type Error = super::ShookServerError;
 
     async fn execute(&self) -> Result<(), Self::Error> {
         let name = format!("{}-{}-{}-{}", self.owner, self.repo, self.job, self.id);

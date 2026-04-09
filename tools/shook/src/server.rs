@@ -8,7 +8,7 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
-use error::Error;
+use error::ShookServerError;
 pub use job::{IJobSpec, JobSpec};
 use kioyu::{DispatcherHandle, Job, ResourceRequest};
 use validator::ValidateArgs;

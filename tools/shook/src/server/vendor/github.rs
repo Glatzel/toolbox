@@ -5,7 +5,7 @@ use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
 use crate::config::{Config, ConfigRunner};
-use crate::server::error::Error;
+use crate::server::error::ShookServerError;
 use crate::server::job::{IJobSpec, JobSpec};
 use crate::utils::constant_time_eq;
 
@@ -56,14 +56,14 @@ struct WorkflowJob {
 }
 
 impl IJobSpec for WebhookPayload {
-    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, Error> {
+    fn job_spec(headers: &HeaderMap, body: &str, config: &Config) -> Result<JobSpec, ShookServerError> {
         clerk::debug!("Verifying webhook signature");
         verify_signature(body, &config.devop.webhook_secret, headers)?;
 
         clerk::debug!("Parsing webhook JSON payload");
         let webhook_payload: WebhookPayload = serde_json::from_str(body).map_err(|e| {
             clerk::warn!(error = %e, "Failed to parse webhook JSON payload");
-            Error::SerdeJson(e)
+            ShookServerError::SerdeJson(e)
         })?;
 
         clerk::debug!(
@@ -73,7 +73,7 @@ impl IJobSpec for WebhookPayload {
         );
         webhook_payload.validate_with_args(config).map_err(|e| {
             clerk::warn!(error = %e, "Webhook payload validation failed");
-            Error::Validator(e)
+            ShookServerError::Validator(e)
         })?;
 
         clerk::info!(
@@ -84,7 +84,7 @@ impl IJobSpec for WebhookPayload {
         let runner_name = match webhook_payload.workflow_job.labels.get(1) {
             Some(name) => name.clone(),
             None => {
-                return Err(Error::Parse(format!(
+                return Err(ShookServerError::Parse(format!(
                     "Runner label not found: {:?}",
                     webhook_payload.workflow_job.labels
                 )));
@@ -93,7 +93,7 @@ impl IJobSpec for WebhookPayload {
         let runner: ConfigRunner = match config.runners.get(&runner_name) {
             Some(r) => r.clone(),
             None => {
-                return Err(Error::Parse(format!("Runner not found: {}", runner_name)));
+                return Err(ShookServerError::Parse(format!("Runner not found: {}", runner_name)));
             }
         };
         let job_spec = JobSpec {
@@ -133,7 +133,7 @@ fn verify_signature(
     payload_body: &str,
     secret_token: &str,
     headers: &HeaderMap,
-) -> Result<(), Error> {
+) -> Result<(), ShookServerError> {
     let signature_header = headers
         .get("X-Hub-Signature-256")
         .and_then(|value| value.to_str().ok())
@@ -145,7 +145,7 @@ fn verify_signature(
 
     let mut mac = Hmac::<Sha256>::new_from_slice(secret_token.as_bytes()).map_err(|e| {
         clerk::error!(error = %e, "Failed to initialise HMAC with secret token");
-        Error::MissingHeader("X-Hub-Signature-256".to_string())
+        ShookServerError::MissingHeader("X-Hub-Signature-256".to_string())
     })?;
 
     mac.update(payload_body.as_bytes());
@@ -153,7 +153,7 @@ fn verify_signature(
 
     if !constant_time_eq(expected_signature.as_bytes(), signature_header.as_bytes()) {
         clerk::error!("Webhook signature mismatch — request rejected");
-        return Err(Error::RequestSignaturesMismatch);
+        return Err(ShookServerError::RequestSignaturesMismatch);
     }
 
     clerk::debug!("Webhook signature verified successfully");

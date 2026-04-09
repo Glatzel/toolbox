@@ -133,8 +133,39 @@ where
 ///     └── 2024-01-15-14-30-00-123/
 ///         ├── kioyu.log
 ///         └── jobs/
-///             ├── <job-id>.log
+///             ├── <name>.<time>.<id>.log
 ///             └── ...
+/// ```
+///
+/// # Span filter limitation
+///
+/// `kioyu[job]=off` currently does **not work** as expected due to a limitation
+/// in `tracing` span filtering.
+///
+/// See: https://github.com/tokio-rs/tracing/issues/1181
+///
+/// # Examples
+///
+/// ```
+/// use clerk::tracing_subscriber::layer::SubscriberExt;
+/// use clerk::tracing_subscriber::util::SubscriberInitExt;
+/// use clerk::tracing_subscriber::{EnvFilter, Layer};
+/// use clerk::{LevelFilter, tracing_subscriber};
+/// use tempfile::tempdir;
+///
+/// let log_root = tempdir().unwrap();
+/// clerk::tracing_subscriber::registry()
+///     .with(
+///         kioyu::kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+///             .with_filter(clerk::level_filter(LevelFilter::TRACE)),
+///     )
+///     .with(
+///         clerk::terminal_layer(true).with_filter(
+///             EnvFilter::new(LevelFilter::TRACE.to_string())
+///                 .add_directive("kioyu=off".parse().unwrap()),
+///         ),
+///     )
+///     .init();
 /// ```
 pub fn kioyu_layers<S>(
     log_root: impl AsRef<std::path::Path>,

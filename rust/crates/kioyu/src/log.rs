@@ -142,7 +142,7 @@ where
 /// `kioyu[job]=off` currently does **not work** as expected due to a limitation
 /// in `tracing` span filtering.
 ///
-/// See: https://github.com/tokio-rs/tracing/issues/1181
+/// See: <https://github.com/tokio-rs/tracing/issues/1181>
 ///
 /// # Examples
 ///

@@ -3,7 +3,9 @@ name: shook
 on:
   pull_request:
     types: [opened, synchronize, labeled]
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   run-if-labeled:
     if: contains(github.event.pull_request.labels.*.name, 'shook')
@@ -22,4 +24,3 @@ jobs:
         with:
           name: shook
           path: ./tools/shook/target/debug/shook
-      

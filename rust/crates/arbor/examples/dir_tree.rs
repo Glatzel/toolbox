@@ -27,8 +27,7 @@ fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
 
     node
 }
-#[test]
-fn main() {
+fn wrapper() {
     let tree = dir_tree(std::path::Path::new(env!("CARGO_MANIFEST_DIR")));
     let render = OwnedRender {
         tree: &tree,
@@ -37,3 +36,7 @@ fn main() {
     };
     println!("{}", render);
 }
+
+fn main() { wrapper(); }
+#[test]
+fn test() { wrapper(); }

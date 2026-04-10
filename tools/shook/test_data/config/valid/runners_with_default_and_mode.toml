@@ -1,0 +1,30 @@
+[devop]
+vendor = "github"
+token = "token_xxxxx"
+webhook_secret = "webhook_secret_xxxxxxx"
+allowed_repositories = ["self-host-runner"]
+allowed_users = ["Glatzel"]
+
+[kioyu]
+memory = 10000
+
+[runners]
+cpus = 10
+memory = 8192
+volumes = { "/host_dir" = "/target_dir/default", "/host_dir1" = "/target_dir1/default" }
+ports = { 123 = 789, 456 = 123 }
+envs = { "FOO" = "BAR_DEFAULT" }
+secrets = { "SFOO" = ["SBAR_DEFAULT", "https://www.google.com/123"] }
+
+[runners.ghar-linux-dev-small]
+image = "ghcr.io/glatzel/ghar-linux-dev"
+cpus = 2
+memory = 2048
+volumes = { "/host_dir" = "/target_dir" }
+volumes_mode = "replace"
+ports = { 123 = 456 }
+ports_mode = "replace"
+envs = { "FOO" = "BAR" }
+envs_mode = "ignore"
+secrets = { "SFOO" = ["SBAR", "https://www.google.com/"] }
+secrets_mode = "ignore"

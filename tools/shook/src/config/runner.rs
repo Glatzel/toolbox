@@ -37,7 +37,7 @@ pub(super) struct RawConfigRunner {
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, JsonSchema)]
 #[serde(rename_all = "lowercase")]
-enum ResolveStrategy {
+enum RunnerResolveMode {
     Replace,
     #[default]
     Merge,
@@ -58,24 +58,24 @@ struct RawRunnerConfigInner {
     #[schemars(with = "Option<std::collections::HashMap<PathBuf, PathBuf>>")]
     volumes: Option<HashMap<PathBuf, PathBuf>>,
     #[serde(default)]
-    volumes_strategy: ResolveStrategy,
+    volumes_mode: RunnerResolveMode,
 
     #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
     #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
     #[serde(default)]
-    ports_strategy: ResolveStrategy,
+    ports_mode: RunnerResolveMode,
 
     #[schemars(with = "Option<std::collections::HashMap<String, String>>")]
     envs: Option<HashMap<String, String>>,
     #[serde(default)]
-    envs_strategy: ResolveStrategy,
+    envs_mode: RunnerResolveMode,
 
     #[schemars(with = "Option<std::collections::HashMap<String, (String, String)>>")]
     secrets: Option<HashMap<String, (String, String)>>,
     #[serde(default)]
-    secrets_strategy: ResolveStrategy,
+    secrets_mode: RunnerResolveMode,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigRunner {
@@ -99,14 +99,14 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
             let volumes = resolve_map(
                 self.volumes.clone(),
                 runner.volumes,
-                runner.volumes_strategy,
+                runner.volumes_mode,
             );
-            let ports = resolve_map(self.ports.clone(), runner.ports, runner.ports_strategy);
-            let envs = resolve_map(self.envs.clone(), runner.envs, runner.envs_strategy);
+            let ports = resolve_map(self.ports.clone(), runner.ports, runner.ports_mode);
+            let envs = resolve_map(self.envs.clone(), runner.envs, runner.envs_mode);
             let secret = resolve_map(
                 self.secrets.clone(),
                 runner.secrets,
-                runner.secrets_strategy,
+                runner.secrets_mode,
             );
 
             let resolved = ConfigRunner {
@@ -130,21 +130,21 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
 fn resolve_map<K, V>(
     global: Option<HashMap<K, V>>,
     local: Option<HashMap<K, V>>,
-    strategy: ResolveStrategy,
+    strategy: RunnerResolveMode,
 ) -> HashMap<K, V>
 where
     K: Eq + std::hash::Hash,
 {
     match strategy {
-        ResolveStrategy::Replace => local.unwrap_or_default(),
-        ResolveStrategy::Merge => {
+        RunnerResolveMode::Replace => local.unwrap_or_default(),
+        RunnerResolveMode::Merge => {
             let mut base = global.unwrap_or_default();
             if let Some(local_map) = local {
                 base.extend(local_map);
             }
             base
         }
-        ResolveStrategy::Ignore => global.unwrap_or_default(),
+        RunnerResolveMode::Ignore => global.unwrap_or_default(),
     }
 }
 

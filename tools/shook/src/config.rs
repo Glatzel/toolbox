@@ -112,6 +112,7 @@ mod tests {
     #[case("full_runners_config")]
     #[case("minimal")]
     #[case("runners_with_default")]
+    #[case("runners_with_default_and_mode")]
     fn test_valid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         use std::path::PathBuf;
@@ -130,9 +131,10 @@ mod tests {
     }
     #[rstest]
     #[case("not_exist")]
-    #[case("invalid_server_port")]
     #[case("null")]
     #[case("resource")]
+    #[case("runner_port")]
+    #[case("server_port")]
     #[case("zero_runner")]
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);

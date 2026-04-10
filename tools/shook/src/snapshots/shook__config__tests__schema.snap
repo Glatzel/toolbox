@@ -188,8 +188,8 @@ expression: schema
             "type": "string"
           }
         },
-        "envs_strategy": {
-          "$ref": "#/$defs/ResolveStrategy",
+        "envs_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
           "default": "merge"
         },
         "image": {
@@ -217,8 +217,8 @@ expression: schema
             }
           }
         },
-        "ports_strategy": {
-          "$ref": "#/$defs/ResolveStrategy",
+        "ports_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
           "default": "merge"
         },
         "secrets": {
@@ -240,8 +240,8 @@ expression: schema
             ]
           }
         },
-        "secrets_strategy": {
-          "$ref": "#/$defs/ResolveStrategy",
+        "secrets_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
           "default": "merge"
         },
         "volumes": {
@@ -253,8 +253,8 @@ expression: schema
             "type": "string"
           }
         },
-        "volumes_strategy": {
-          "$ref": "#/$defs/ResolveStrategy",
+        "volumes_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
           "default": "merge"
         }
       },
@@ -263,7 +263,7 @@ expression: schema
         "image"
       ]
     },
-    "ResolveStrategy": {
+    "RunnerResolveMode": {
       "type": "string",
       "enum": [
         "replace",

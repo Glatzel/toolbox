@@ -116,7 +116,7 @@ mod tests {
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         use std::path::PathBuf;
-        let config = Config::load_config(&PathBuf::from(format!(
+        let err = Config::load_config(&PathBuf::from(format!(
             "{}/test_data/config/invalid/{}.toml",
             env!("CARGO_MANIFEST_DIR"),
             config_name
@@ -124,7 +124,7 @@ mod tests {
         .unwrap_err();
         insta::assert_snapshot!(
             format!("test_invalid_config-{}", config_name),
-            config.to_string().replace(" \n", "\n")
+            err.to_string().trim_end()
         );
         Ok(())
     }

@@ -112,7 +112,9 @@ mod tests {
     }
     #[rstest]
     #[case("not_exist")]
+    #[case("invalid_server_port")]
     #[case("null")]
+    #[case("zero_runner")]
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         use std::path::PathBuf;
@@ -124,7 +126,11 @@ mod tests {
         .unwrap_err();
         insta::assert_snapshot!(
             format!("test_invalid_config-{}", config_name),
-            err.to_string().trim_end()
+            err.to_string()
+                .lines()
+                .map(|l| l.trim_end())
+                .collect::<Vec<_>>()
+                .join("\n")
         );
         Ok(())
     }

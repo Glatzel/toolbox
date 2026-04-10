@@ -124,7 +124,7 @@ mod tests {
         .unwrap_err();
         insta::assert_snapshot!(
             format!("test_invalid_config-{}", config_name),
-            config.to_string().trim()
+            config.to_string().replace(" \n", "\n")
         );
         Ok(())
     }

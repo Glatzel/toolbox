@@ -14,7 +14,7 @@ use runner::RawConfigRunner;
 use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
 use server::{ConfigServer, RawConfigServer, default_config_server};
-use validator::Validate;
+use validator::{Validate, ValidationError};
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
@@ -36,6 +36,7 @@ struct RawConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+
 pub struct Config {
     pub server: ConfigServer,
     pub devop: ConfigDevOp,
@@ -62,6 +63,7 @@ impl Config {
             kioyu: raw_config.kioyu.resolve(),
             runners: raw_config.runners.resolve(),
         };
+        config.validate()?;
 
         clerk::info!(
             path = %path.display(),
@@ -70,6 +72,22 @@ impl Config {
         );
 
         Ok(config)
+    }
+    fn validate(&self) -> Result<(), ValidationError> {
+        for (name, runner) in self.runners.iter() {
+            if self.kioyu.memory <= runner.memory {
+                let mut err = ValidationError::new("invalid_runner");
+                err.message = Some(
+                    format!(
+                        "Runner {} has memory {} which is less than or equal to Kioyu memory {}",
+                        name, runner.memory, self.kioyu.memory
+                    )
+                    .into(),
+                );
+                return Err(err);
+            }
+        }
+        Ok(())
     }
 }
 

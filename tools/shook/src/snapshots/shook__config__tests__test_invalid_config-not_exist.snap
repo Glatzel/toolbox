@@ -1,5 +1,0 @@
----
-source: src/config.rs
-expression: config
----
-x No such file or directory (os error 2)

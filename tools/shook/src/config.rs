@@ -127,10 +127,6 @@ mod tests {
         insta::assert_snapshot!(
             format!("test_invalid_config-{}", config_name),
             err.to_string()
-                .lines()
-                .map(|l| l.trim_end())
-                .collect::<Vec<_>>()
-                .join("\n")
         );
         Ok(())
     }

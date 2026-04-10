@@ -132,6 +132,7 @@ mod tests {
     #[case("not_exist")]
     #[case("invalid_server_port")]
     #[case("null")]
+    #[case("resource")]
     #[case("zero_runner")]
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);

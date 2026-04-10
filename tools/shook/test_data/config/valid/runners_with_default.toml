@@ -5,6 +5,9 @@ webhook_secret = "webhook_secret_xxxxxxx"
 allowed_repositories = ["self-host-runner"]
 allowed_users = ["Glatzel"]
 
+[kioyu]
+memory = 10000
+
 [runners]
 cpus = 10
 memory = 8192

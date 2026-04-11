@@ -67,7 +67,7 @@ runs:
         }
 
         Write-Output "::group::report"
-        copy-item *.profraw  ./target/llvm-cov-target -ErrorAction SilentlyContinue # temporary situation for llvm-cov
+       # copy-item *.profraw  ./target/llvm-cov-target -ErrorAction SilentlyContinue # temporary situation for llvm-cov
         cargo +nightly llvm-cov report
         cargo +nightly llvm-cov report --lcov --output-path lcov.info
         Write-Output "::endgroup::"

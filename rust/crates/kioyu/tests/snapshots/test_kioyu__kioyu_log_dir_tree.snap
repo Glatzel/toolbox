@@ -1,5 +1,5 @@
 ---
-source: crates/kioyu/src/dispatcher.rs
+source: crates/kioyu/tests/test_kioyu.rs
 expression: render
 ---
 [LOG_ROOT_DIR]

@@ -1,7 +1,7 @@
-
+use clerk::NotInSpanFilter;
+use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-use clerk::tracing_subscriber::{EnvFilter, Layer};
 use kioyu::kioyu_layers;
 
 use super::Args;
@@ -23,7 +23,8 @@ pub fn init_log(args: &Args) {
                 .with(kioyu_layers(log_dir).with_filter(level))
                 .with(
                     clerk::terminal_layer(true)
-                        .with_filter(EnvFilter::new(format!("shook={}", level))),
+                        .with_filter(level)
+                        .with_filter(NotInSpanFilter("kioyu-job")),
                 )
                 .init()
         }

@@ -101,24 +101,19 @@ where
         // since the executor may run this on a different thread.
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
-            "job",
+            "kioyu-job",
             job.id = %job.id,
             job.name = %job.name,
         );
-        clerk::debug!("executing");
-        tokio::spawn(
-            async move {
-                clerk::debug!("executing");
-                match job.payload.execute().await {
-                    Ok(_) => clerk::debug!("finished"),
-                    Err(e) => clerk::error!("payload error: {}", e),
-                }
-
-                let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
+        tokio::spawn(async move {
+            clerk::debug!("executing");
+            match job.payload.execute().instrument(span).await {
+                Ok(_) => clerk::debug!("finished"),
+                Err(e) => clerk::error!("payload error: {}", e),
             }
-            .instrument(span),
-        );
-        clerk::debug!("releasing resources");
+            clerk::debug!("releasing resources");
+            let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
+        });
     }
 }
 

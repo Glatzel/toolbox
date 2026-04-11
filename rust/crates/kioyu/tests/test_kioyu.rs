@@ -6,11 +6,13 @@ use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
 use async_trait::async_trait;
 use clerk::tracing::Span;
+use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-use clerk::tracing_subscriber::{EnvFilter, Layer};
-use clerk::{LevelFilter, tracing_subscriber};
-use kioyu::{IPayload, Job, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers, start_dispatcher};
+use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
+use kioyu::{
+    IPayload, Job, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers, start_dispatcher,
+};
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
 
@@ -68,13 +70,12 @@ async fn test_dispatcher() {
     clerk::tracing_subscriber::registry()
         .with(
             kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
-                .with_filter(clerk::level_filter(LevelFilter::TRACE)),
+                .with_filter(LevelFilter::TRACE),
         )
         .with(
-            clerk::terminal_layer(true).with_filter(
-                EnvFilter::new(LevelFilter::TRACE.to_string())
-                    .add_directive("kioyu[job]=off".parse().unwrap()),
-            ),
+            clerk::terminal_layer(true)
+                .with_filter(LevelFilter::TRACE)
+                .with_filter(NotInSpanFilter("kioyu-job")),
         )
         .init();
     let counter = Arc::new(AtomicUsize::new(0));

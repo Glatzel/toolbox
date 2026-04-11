@@ -78,7 +78,7 @@ where
         id: &tracing_core::span::Id,
         ctx: Context<'_, S>,
     ) {
-        if attrs.metadata().name() != "job" {
+        if attrs.metadata().name() != "kioyu-job" {
             return;
         }
         let mut visitor = JobIdVisitor::new();
@@ -92,7 +92,7 @@ where
 
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
-            std::iter::successors(Some(span), |s| s.parent()).find(|s| s.name() == "job")
+            std::iter::successors(Some(span), |s| s.parent()).find(|s| s.name() == "kioyu-job")
         });
 
         let Some(job_span) = job_span else { return };
@@ -140,7 +140,7 @@ where
 /// # Span filter limitation
 ///
 /// `kioyu[job]=off` currently does **not work** as expected due to a limitation
-/// in `tracing` span filtering.
+/// in `tracing` span filtering. Use [`clerk::NotInSpanFilter`] instead.
 ///
 /// See: <https://github.com/tokio-rs/tracing/issues/1181>
 ///
@@ -157,13 +157,12 @@ where
 /// clerk::tracing_subscriber::registry()
 ///     .with(
 ///         kioyu::kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
-///             .with_filter(clerk::level_filter(LevelFilter::TRACE)),
+///             .with_filter(LevelFilter::TRACE),
 ///     )
 ///     .with(
-///         clerk::terminal_layer(true).with_filter(
-///             EnvFilter::new(LevelFilter::TRACE.to_string())
-///                 .add_directive("kioyu=off".parse().unwrap()),
-///         ),
+///         clerk::terminal_layer(true)
+///             .with_filter(LevelFilter::TRACE)
+///             .with_filter(NotInSpanFilter("kioyu-job")),
 ///     )
 ///     .init();
 /// ```
@@ -185,10 +184,7 @@ where
         tracing_subscriber::filter::filter_fn(|meta| meta.target().starts_with("kioyu")),
     );
 
-    let job_log =
-        JobFileLayer::new(jobs_dir).with_filter(tracing_subscriber::filter::filter_fn(|meta| {
-            meta.target().starts_with("kioyu")
-        }));
+    let job_log = JobFileLayer::new(jobs_dir);
 
     vec![kioyu_log.boxed(), job_log.boxed()]
 }

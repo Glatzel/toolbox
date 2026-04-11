@@ -3,7 +3,7 @@ mod filter;
 mod formatter;
 mod layer;
 pub use fast_setup::init_log_with_level;
-pub use filter::level_filter;
+pub use filter::NotInSpanFilter;
 pub use formatter::{ClerkFormatter, FormatEventToWriter};
 pub use layer::{file_layer, terminal_layer};
 // re-export tracing

@@ -1,4 +1,4 @@
-use clerk::level_filter;
+
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
@@ -10,7 +10,7 @@ pub fn init_log(args: &Args) {
     let level = args.verbose.tracing_level_filter();
     match &args.commands {
         super::Commands::Init => clerk::tracing_subscriber::registry()
-            .with(clerk::terminal_layer(true).with_filter(clerk::level_filter(level)))
+            .with(clerk::terminal_layer(true).with_filter(level))
             .init(),
 
         super::Commands::Run(RunArgs { config }) => {
@@ -20,7 +20,7 @@ pub fn init_log(args: &Args) {
                 .join("log")
                 .to_path_buf();
             clerk::tracing_subscriber::registry()
-                .with(kioyu_layers(log_dir).with_filter(level_filter(level)))
+                .with(kioyu_layers(log_dir).with_filter(level))
                 .with(
                     clerk::terminal_layer(true)
                         .with_filter(EnvFilter::new(format!("shook={}", level))),

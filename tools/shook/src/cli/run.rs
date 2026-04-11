@@ -8,7 +8,7 @@ use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
 #[derive(Debug, Args)]
 pub(super) struct RunArgs {
-    #[arg(default_value_os_t)]
+    #[arg(default_value_os_t=PathBuf::from("shook.toml"))]
     pub config: PathBuf,
 }
 

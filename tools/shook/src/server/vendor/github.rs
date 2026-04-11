@@ -107,6 +107,7 @@ impl IJobSpec for WebhookPayload {
             owner: webhook_payload.repository.owner.login,
             repo: webhook_payload.repository.name,
             job: webhook_payload.workflow_job.name,
+            token: config.devop.token.clone(),
             id: webhook_payload.workflow_job.id,
             runner_spec: runner,
         };

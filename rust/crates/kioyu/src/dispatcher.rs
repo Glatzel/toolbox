@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use clerk::tracing::Instrument;
 use tokio::sync::mpsc;
 
 use crate::job::{IPayload, Job};
@@ -107,15 +108,10 @@ where
 
         tokio::spawn(async move {
             clerk::debug!("executing");
-
-            {
-                let _enter = span.enter();
-                match job.payload.execute().await {
-                    Ok(_) => clerk::debug!("finished"),
-                    Err(e) => clerk::error!("payload error: {}", e),
-                }
+            match job.payload.execute().instrument(span).await {
+                Ok(_) => clerk::debug!("finished"),
+                Err(e) => clerk::error!("payload error: {}", e),
             }
-
             clerk::debug!("releasing resources");
             let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
         });

@@ -150,7 +150,7 @@ where
 /// use clerk::tracing_subscriber::layer::SubscriberExt;
 /// use clerk::tracing_subscriber::util::SubscriberInitExt;
 /// use clerk::tracing_subscriber::{EnvFilter, Layer};
-/// use clerk::{LevelFilter, tracing_subscriber};
+/// use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
 /// use tempfile::tempdir;
 ///
 /// let log_root = tempdir().unwrap();

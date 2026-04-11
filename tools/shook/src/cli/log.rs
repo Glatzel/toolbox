@@ -23,8 +23,8 @@ pub fn init_log(args: &Args) {
                 .with(kioyu_layers(log_dir).with_filter(level))
                 .with(
                     clerk::terminal_layer(true)
-                        .with_filter(level)
-                        .with_filter(NotInSpanFilter("kioyu-job")),
+                        .with_filter(NotInSpanFilter("kioyu-job"))
+                        .with_filter(level),
                 )
                 .init()
         }

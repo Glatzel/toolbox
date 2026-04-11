@@ -83,7 +83,7 @@ impl IPayload for JobSpec {
             }
         }
         clerk::debug!("Sandbox finished: {name}");
-        sandbox.stop().await?;
+        sandbox.stop_and_wait().await?;
         Sandbox::remove(sandbox.name()).await?;
         clerk::debug!("Sandbox removed: {name}");
         Ok(())

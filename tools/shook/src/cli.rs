@@ -1,9 +1,9 @@
 mod init;
 mod log;
-mod run;
+mod serve;
 use clap::{Parser, Subcommand};
 use log::init_log;
-use run::RunArgs;
+use serve::ServeArgs;
 
 #[derive(Debug, Parser)]
 #[command(author = "Glatzel", version, long_about = None)]
@@ -16,7 +16,7 @@ pub struct Args {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Init,
-    Run(RunArgs),
+    Serve(ServeArgs),
 }
 
 pub async fn main() -> mischief::Result<()> {
@@ -25,8 +25,8 @@ pub async fn main() -> mischief::Result<()> {
 
     match args.commands {
         Commands::Init => init::execute()?,
-        Commands::Run(args) => {
-            run::execute(args).await?;
+        Commands::Serve(args) => {
+            serve::execute(args).await?;
         }
     }
 

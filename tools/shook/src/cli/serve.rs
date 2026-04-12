@@ -7,12 +7,12 @@ use kioyu::start_dispatcher;
 use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
 #[derive(Debug, Args)]
-pub(super) struct RunArgs {
-    // #[arg(default_value_os_t=PathBuf::from("shook.toml"))]
+pub(super) struct ServeArgs {
+    #[arg(default_value_os_t=PathBuf::from("shook.toml"))]
     pub config: PathBuf,
 }
 
-pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
+pub(super) async fn execute(args: ServeArgs) -> mischief::Result<()> {
     let config = Config::load_config(&args.config)?;
 
     // init kioyu
@@ -27,7 +27,7 @@ pub(super) async fn execute(args: RunArgs) -> mischief::Result<()> {
     });
     start_server(shared_state).await
 }
-impl Default for RunArgs {
+impl Default for ServeArgs {
     fn default() -> Self {
         Self {
             config: PathBuf::from("shook.toml"),

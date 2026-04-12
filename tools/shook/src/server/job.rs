@@ -87,6 +87,7 @@ impl IPayload for JobSpec {
                     clerk::debug!("Sandbox exited with code: {code}");
                     break;
                 }
+                _ => {}
             }
         }
         clerk::debug!("Sandbox finished: {name}");

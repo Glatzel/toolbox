@@ -114,15 +114,15 @@ jobs:
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly
-          components: clippy 
+          components: clippy
 
       - uses: ./.github/actions/rust/cargo-clippy
         with:
-            working-directory: ./tools/shook
+          working-directory: ./tools/shook
       - uses: ./.github/actions/rust/cargo-test
         with:
-            working-directory: ./tools/shook
-            doc: false
+          working-directory: ./tools/shook
+          doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 

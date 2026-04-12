@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use axum::http::HeaderMap;
 use kioyu::IPayload;
-use microsandbox::{ExecEvent, Sandbox};
+use microsandbox::Sandbox;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -73,9 +73,13 @@ impl IPayload for JobSpec {
             .await?;
         while let Some(event) = handle.recv().await {
             match event {
-                ExecEvent::Stdout(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
-                ExecEvent::Stderr(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
-                ExecEvent::Exited { code } => {
+                microsandbox::ExecEvent::Stdout(data) => {
+                    clerk::debug!("{}", String::from_utf8_lossy(&data))
+                }
+                microsandbox::ExecEvent::Stderr(data) => {
+                    clerk::debug!("{}", String::from_utf8_lossy(&data))
+                }
+                microsandbox::ExecEvent::Exited { code } => {
                     clerk::debug!("Sandbox exited with code: {code}");
                     break;
                 }

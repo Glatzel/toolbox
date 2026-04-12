@@ -71,21 +71,21 @@ impl IPayload for JobSpec {
                 ],
             )
             .await?;
-        // while let Some(event) = handle.recv().await {
-        //     match event {
-        //         microsandbox::ExecEvent::Stdout(data) => {
-        //             clerk::debug!("{}", String::from_utf8_lossy(&data))
-        //         }
-        //         microsandbox::ExecEvent::Stderr(data) => {
-        //             clerk::debug!("{}", String::from_utf8_lossy(&data))
-        //         }
-        //         microsandbox::ExecEvent::Exited { code } => {
-        //             clerk::debug!("Sandbox exited with code: {code}");
-        //             break;
-        //         }
-        //         _ => {}
-        //     }
-        // }
+        while let Some(event) = handle.recv().await {
+            match event {
+                // microsandbox::ExecEvent::Stdout(data) => {
+                //     clerk::debug!("{}", String::from_utf8_lossy(&data))
+                // }
+                //         microsandbox::ExecEvent::Stderr(data) => {
+                //             clerk::debug!("{}", String::from_utf8_lossy(&data))
+                //         }
+                //         microsandbox::ExecEvent::Exited { code } => {
+                //             clerk::debug!("Sandbox exited with code: {code}");
+                //             break;
+                //         }
+                _ => {}
+            }
+        }
         clerk::debug!("Sandbox finished: {name}");
         sandbox.stop_and_wait().await?;
         Sandbox::remove(sandbox.name()).await?;

@@ -14,7 +14,7 @@ use runner::RawConfigRunner;
 use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
 use server::{ConfigServer, RawConfigServer, default_config_server};
-use validator::{Validate, ValidationError};
+use validator::Validate;
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
@@ -43,6 +43,29 @@ pub struct Config {
     pub kioyu: ConfigKioyu,
     pub runners: HashMap<String, ConfigRunner>,
 }
+impl IResolve<Config> for RawConfig {
+    fn resolve(self) -> Config {
+        let mut config = Config {
+            server: self.server.resolve(),
+            devop: self.devop.resolve(),
+            kioyu: self.kioyu.resolve(),
+            runners: self.runners.resolve(),
+        };
+        for (name, runner) in config.runners.iter() {
+            if config.kioyu.memory <= runner.memory {
+                clerk::info!(
+                    "Runner {} has memory {} which is less than or equal to Kioyu memory {}, updating Kioyu memory to {}.",
+                    name,
+                    runner.memory,
+                    config.kioyu.memory,
+                    runner.memory,
+                );
+                config.kioyu.memory = runner.memory;
+            }
+        }
+        config
+    }
+}
 impl Config {
     pub fn load_config(path: &Path) -> mischief::Result<Self> {
         clerk::debug!(path = %path.display(), "Loading config file");
@@ -57,13 +80,7 @@ impl Config {
         clerk::debug!(?raw_config);
         raw_config.validate()?;
 
-        let config = Config {
-            server: raw_config.server.resolve(),
-            devop: raw_config.devop.resolve(),
-            kioyu: raw_config.kioyu.resolve(),
-            runners: raw_config.runners.resolve(),
-        };
-        config.validate()?;
+        let config = raw_config.resolve();
 
         clerk::info!(
             path = %path.display(),
@@ -72,22 +89,6 @@ impl Config {
         );
 
         Ok(config)
-    }
-    fn validate(&self) -> Result<(), ValidationError> {
-        for (name, runner) in self.runners.iter() {
-            if self.kioyu.memory <= runner.memory {
-                let mut err = ValidationError::new("invalid_runner");
-                err.message = Some(
-                    format!(
-                        "Runner {} has memory {} which is less than or equal to Kioyu memory {}",
-                        name, runner.memory, self.kioyu.memory
-                    )
-                    .into(),
-                );
-                return Err(err);
-            }
-        }
-        Ok(())
     }
 }
 
@@ -132,7 +133,6 @@ mod tests {
     #[rstest]
     #[case("not_exist")]
     #[case("null")]
-    #[case("resource")]
     #[case("runner_port")]
     #[case("server_port")]
     #[case("zero_runner")]

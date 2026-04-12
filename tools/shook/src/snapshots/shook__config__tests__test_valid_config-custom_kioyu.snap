@@ -15,14 +15,14 @@ expression: "serde_json::to_string_pretty(&config).unwrap()"
     "webhook_secret": "webhook_secret_xxxxxxx"
   },
   "kioyu": {
-    "memory": 8192
+    "memory": 4096
   },
   "runners": {
     "ghar-linux-dev-small": {
       "cpus": 1,
       "envs": {},
       "image": "ghcr.io/glatzel/ghar-linux-dev",
-      "memory": 512,
+      "memory": 4096,
       "name": "ghar-linux-dev-small",
       "ports": {},
       "secrets": {},

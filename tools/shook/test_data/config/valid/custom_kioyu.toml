@@ -6,9 +6,9 @@ allowed_repositories = ["self-host-runner"]
 allowed_users = ["Glatzel"]
 
 [kioyu]
-memory = 8192
+memory = 2048
 
 [runners.ghar-linux-dev-small]
 image = "ghcr.io/glatzel/ghar-linux-dev"
 cpus = 1
-memory = 512
+memory = 4096

@@ -31,10 +31,10 @@ toml = "1.1.2"
 validator = { version = "0.20.0", features = ["derive"] }
 
 [dev-dependencies]
+assert_cmd = "2.2.0"
 insta = { version = "1.46.1", features = ["json"] }
 rstest = "0.26.1"
 tempfile = "3.27.0"
-tower = "0.5.3"
 
 [profile.dev.package]
 insta.opt-level = 3

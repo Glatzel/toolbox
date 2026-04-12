@@ -2,7 +2,7 @@ use clerk::NotInSpanFilter;
 use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-use kioyu::kioyu_layers;
+use kioyu::{KIOYU_JOB_SPAN, kioyu_layers};
 
 use super::Args;
 use crate::cli::RunArgs;
@@ -23,7 +23,7 @@ pub fn init_log(args: &Args) {
                 .with(kioyu_layers(log_dir).with_filter(level))
                 .with(
                     clerk::terminal_layer(true)
-                        .with_filter(NotInSpanFilter("kioyu-job"))
+                        .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN))
                         .with_filter(level),
                 )
                 .init()

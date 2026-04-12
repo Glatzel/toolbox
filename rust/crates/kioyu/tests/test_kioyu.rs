@@ -11,7 +11,8 @@ use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
 use kioyu::{
-    IPayload, Job, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers, start_dispatcher,
+    IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers,
+    start_dispatcher,
 };
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
@@ -75,7 +76,7 @@ async fn test_dispatcher() {
         .with(
             clerk::terminal_layer(true)
                 .with_filter(LevelFilter::TRACE)
-                .with_filter(NotInSpanFilter("kioyu-job")),
+                .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN)),
         )
         .init();
     let counter = Arc::new(AtomicUsize::new(0));

@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use clerk::tracing::Instrument;
 use tokio::sync::mpsc;
 
+use crate::KIOYU_JOB_SPAN;
 use crate::job::{IPayload, Job};
 use crate::resource::ResourcePool;
 
@@ -101,7 +102,7 @@ where
         // since the executor may run this on a different thread.
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
-            "kioyu-job",
+            KIOYU_JOB_SPAN,
             job.id = %job.id,
             job.name = %job.name,
         );

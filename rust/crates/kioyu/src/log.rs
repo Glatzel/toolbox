@@ -9,7 +9,7 @@ use clerk::tracing_subscriber::registry::LookupSpan;
 use clerk::tracing_subscriber::{self, Layer};
 use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
 use tracing_core::{Event, Subscriber};
-
+pub const KIOYU_JOB_SPAN: &str = "kioyu-job";
 // ---------------------------------------------------------------------------
 // Span extension — caches job id so we visit fields once, not per event
 // ---------------------------------------------------------------------------
@@ -78,7 +78,7 @@ where
         id: &tracing_core::span::Id,
         ctx: Context<'_, S>,
     ) {
-        if attrs.metadata().name() != "kioyu-job" {
+        if attrs.metadata().name() != KIOYU_JOB_SPAN {
             return;
         }
         let mut visitor = JobIdVisitor::new();
@@ -92,7 +92,7 @@ where
 
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
-            std::iter::successors(Some(span), |s| s.parent()).find(|s| s.name() == "kioyu-job")
+            std::iter::successors(Some(span), |s| s.parent()).find(|s| s.name() == KIOYU_JOB_SPAN)
         });
 
         let Some(job_span) = job_span else { return };
@@ -162,7 +162,7 @@ where
 ///     .with(
 ///         clerk::terminal_layer(true)
 ///             .with_filter(LevelFilter::TRACE)
-///             .with_filter(NotInSpanFilter("kioyu-job")),
+///             .with_filter(NotInSpanFilter(kioyu::KIOYU_JOB_SPAN)),
 ///     )
 ///     .init();
 /// ```

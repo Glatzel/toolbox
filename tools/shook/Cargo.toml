@@ -3,30 +3,38 @@ name = "shook"
 version = "2026.4.7"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["dbus"]
+
 [dependencies]
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
+kioyu = { path = "../../rust/crates/kioyu" }
 mischief = { path = "../../rust/crates/mischief" }
 
+async-trait = "0.1.89"
 axum = "0.8.8"
 clap = { version = "4.6.0", features = ["derive"] }
-clap-verbosity-flag = "3.0.4"
+clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
+dbus = { version = "0.9.10", features = ["vendored"] }
+hashbrown = { version = "0.16.1", features = ["serde"] }
 hex = "0.4.3"
 hmac = "0.13.0"
-reqwest = { version = "0.13.0", features = ["json"] }
-reqwest-middleware = { version = "0.5.0", features = ["json"] }
-reqwest-retry = "0.9.0"
+microsandbox = "0.3.12"
+schemars = "1.2.1"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.145"
+serde_with = { version = "3.18.0", features = ["hashbrown_0_16"] }
 sha2 = "0.11.0"
+thiserror = "2.0.18"
 tokio = { version = "1.48.0", features = ["rt-multi-thread"] }
-toml = "1.0"
+toml = "1.1.2"
 validator = { version = "0.20.0", features = ["derive"] }
 
 [dev-dependencies]
-insta = { version = "1.46.1", features = ["filters", "json"] }
+assert_cmd = "2.2.0"
+insta = { version = "1.46.1", features = ["json"] }
 rstest = "0.26.1"
 tempfile = "3.27.0"
-tower = "0.5.3"
 
 [profile.dev.package]
 insta.opt-level = 3

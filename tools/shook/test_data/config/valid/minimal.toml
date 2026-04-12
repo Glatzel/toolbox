@@ -1,0 +1,11 @@
+[devop]
+vendor = "github"
+token = "token_xxxxx"
+webhook_secret = "webhook_secret_xxxxxxx"
+allowed_repositories = ["self-host-runner"]
+allowed_users = ["Glatzel"]
+
+[runners.ghar-linux-dev-small]
+image = "ghcr.io/glatzel/ghar-linux-dev"
+cpus = 1
+memory = 512

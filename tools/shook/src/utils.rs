@@ -1,5 +1,3 @@
-use clerk;
-
 pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         clerk::debug!(
@@ -39,6 +37,7 @@ mod tests {
     #[case(&[0u8; 32], &[0u8; 32])]
     #[case(&[0xFF; 32], &[0xFF; 32])]
     fn equal_inputs_return_true(#[case] a: &[u8], #[case] b: &[u8]) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         assert!(constant_time_eq(a, b));
     }
 
@@ -51,6 +50,7 @@ mod tests {
     #[case(&[0x00u8; 32], &[0x01u8; 32])]
     #[case(&[0xFFu8; 32], &[0x00u8; 32])]
     fn unequal_same_length_returns_false(#[case] a: &[u8], #[case] b: &[u8]) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         assert!(!constant_time_eq(a, b));
     }
 
@@ -62,6 +62,7 @@ mod tests {
     #[case(b"nonempty", b"")]
     #[case(&[0u8; 31], &[0u8; 32])]
     fn length_mismatch_returns_false(#[case] a: &[u8], #[case] b: &[u8]) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         assert!(!constant_time_eq(a, b));
     }
 
@@ -73,6 +74,7 @@ mod tests {
 
     #[test]
     fn detects_difference_at_every_position() {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         const LEN: usize = 64;
         let base = vec![0xABu8; LEN];
 
@@ -92,6 +94,7 @@ mod tests {
     #[case(b"abc", b"xyz")]
     #[case(b"same", b"same")]
     fn symmetric(#[case] a: &[u8], #[case] b: &[u8]) {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         assert_eq!(constant_time_eq(a, b), constant_time_eq(b, a));
     }
 
@@ -102,6 +105,7 @@ mod tests {
 
     #[test]
     fn no_overflow_on_long_equal_slices() {
+        clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         let a = vec![0xFFu8; 4096];
         assert!(constant_time_eq(&a, &a));
     }

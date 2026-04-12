@@ -104,6 +104,7 @@ jobs:
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+
   tools-shook:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
@@ -114,6 +115,7 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
+
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/shook
@@ -123,6 +125,7 @@ jobs:
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+
   tools-vinaya:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}

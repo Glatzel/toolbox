@@ -43,39 +43,32 @@ impl ResourcePool {
         capacity: usize,
     ) -> Result<&mut Self, ResourceError> {
         if self.resources.contains_key(key) {
+            clerk::warn!("register failed: resource '{}' is already registered", key);
             return Err(ResourceError::AlreadyRegistered(key));
         }
         self.resources
             .insert(key, ResourceEntry { capacity, used: 0 });
+        clerk::debug!("registered resource '{}' with capacity {}", key, capacity);
         Ok(self)
     }
 
     /// Returns available units for a key, or `Err` if the key is not
     /// registered.
-    pub fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
+    pub(crate) fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
         self.resources
             .get(key)
             .map(|r| r.available())
-            .ok_or(ResourceError::NotFound(key))
-    }
-
-    /// Returns `Ok(true)` if all requested amounts can be satisfied.
-    /// Returns `Err` if any key is not registered.
-    pub fn can_allocate(&self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
-        for &(k, v) in req {
-            let avail = self.available(k)?;
-            if avail < v {
-                return Ok(false);
-            }
-        }
-        Ok(true)
+            .ok_or_else(|| {
+                clerk::warn!("available query failed: resource '{}' not found", key);
+                ResourceError::NotFound(key)
+            })
     }
 
     /// Atomically allocates all requested resources.
     /// Returns `Ok(true)` on success, `Ok(false)` if any resource has
     /// insufficient capacity, or `Err` if any key is not registered.
     #[must_use = "check whether allocation succeeded"]
-    pub fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
+    pub(crate) fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
         // Validate everything before mutating — keeps the operation atomic.
         for &(k, v) in req {
             let avail = self.available(k)?;
@@ -92,8 +85,17 @@ impl ResourcePool {
         for &(k, v) in req {
             if let Some(entry) = self.resources.get_mut(k) {
                 entry.used += v;
+                clerk::debug!(
+                    "allocated {} units of '{}': used {}/{} (available {})",
+                    v,
+                    k,
+                    entry.used,
+                    entry.capacity,
+                    entry.available()
+                );
             }
         }
+        clerk::debug!("allocation succeeded for {} resource(s)", req.len());
         Ok(true)
     }
 
@@ -103,16 +105,34 @@ impl ResourcePool {
     pub(crate) fn free(&mut self, req: &[(ResourceKey, usize)]) -> Result<(), ResourceError> {
         // Validate before mutating.
         for &(k, v) in req {
-            let entry = self.resources.get(k).ok_or(ResourceError::NotFound(k))?;
+            let entry = self.resources.get(k).ok_or_else(|| {
+                clerk::warn!("free failed: resource '{}' not found", k);
+                ResourceError::NotFound(k)
+            })?;
             if v > entry.used {
+                clerk::warn!(
+                    "free would underflow resource '{}': tried to free {}, only {} in use",
+                    k,
+                    v,
+                    entry.used
+                );
                 return Err(ResourceError::Underflow(k));
             }
         }
         for &(k, v) in req {
             if let Some(entry) = self.resources.get_mut(k) {
                 entry.used -= v;
+                clerk::debug!(
+                    "freed {} units of '{}': used {}/{} (available {})",
+                    v,
+                    k,
+                    entry.used,
+                    entry.capacity,
+                    entry.available()
+                );
             }
         }
+        clerk::debug!("free succeeded for {} resource(s)", req.len());
         Ok(())
     }
 
@@ -121,7 +141,10 @@ impl ResourcePool {
         self.resources
             .get(key)
             .map(|e| (e.used, e.capacity))
-            .ok_or(ResourceError::NotFound(key))
+            .ok_or_else(|| {
+                clerk::warn!("utilization query failed: resource '{}' not found", key);
+                ResourceError::NotFound(key)
+            })
     }
 
     /// Returns an iterator over all keys and their `(used, capacity)`.
@@ -170,29 +193,6 @@ mod tests {
     fn available_unknown_key_errors() {
         let pool = ResourcePool::new();
         assert_eq!(pool.available("gpu"), Err(ResourceError::NotFound("gpu")));
-    }
-
-    // --- can_allocate ---
-
-    #[test]
-    fn can_allocate_returns_true_when_sufficient() {
-        let pool = pool_with(&[("cpu", 8)]);
-        assert_eq!(pool.can_allocate(&[("cpu", 4)]), Ok(true));
-    }
-
-    #[test]
-    fn can_allocate_returns_false_when_insufficient() {
-        let pool = pool_with(&[("cpu", 2)]);
-        assert_eq!(pool.can_allocate(&[("cpu", 4)]), Ok(false));
-    }
-
-    #[test]
-    fn can_allocate_unknown_key_errors() {
-        let pool = ResourcePool::new();
-        assert_eq!(
-            pool.can_allocate(&[("gpu", 1)]),
-            Err(ResourceError::NotFound("gpu"))
-        );
     }
 
     // --- allocate ---

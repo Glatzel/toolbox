@@ -20,18 +20,25 @@ use crate::protocol::{IIndent, Layer, Line};
 pub struct UniversalIndent {
     /// Prefix used for the first line of the root node.
     pub root_first: String,
+
     /// Prefix used for continuation lines of the root node.
     pub root_other: String,
+
     /// Prefix used for the first line of a top layer node.
     pub top_first: String,
+
     /// Prefix used for continuation lines of a top layer node.
     pub top_other: String,
+
     /// Prefix used for the first line of a middle layer node.
     pub mid_first: String,
+
     /// Prefix used for continuation lines of a middle layer node.
     pub mid_other: String,
+
     /// Prefix used for the first line of a bottom layer node.
     pub bottom_first: String,
+
     /// Prefix used for continuation lines of a bottom layer node.
     pub bottom_other: String,
 }

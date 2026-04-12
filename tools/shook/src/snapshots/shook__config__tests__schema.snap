@@ -1,0 +1,286 @@
+---
+source: src/config.rs
+expression: schema
+---
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RawConfig",
+  "type": "object",
+  "properties": {
+    "devop": {
+      "$ref": "#/$defs/ConfigDevOp"
+    },
+    "kioyu": {
+      "$ref": "#/$defs/ConfigKioyu",
+      "default": {
+        "memory": 1024
+      }
+    },
+    "runners": {
+      "$ref": "#/$defs/RawConfigRunner"
+    },
+    "server": {
+      "$ref": "#/$defs/ConfigServer",
+      "default": {
+        "port": 8787
+      }
+    }
+  },
+  "required": [
+    "devop",
+    "runners"
+  ],
+  "$defs": {
+    "ConfigDevOp": {
+      "type": "object",
+      "properties": {
+        "allowed_repositories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "allowed_users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "token": {
+          "type": "string"
+        },
+        "vendor": {
+          "$ref": "#/$defs/Vendor"
+        },
+        "webhook_secret": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "vendor",
+        "token",
+        "webhook_secret",
+        "allowed_repositories",
+        "allowed_users"
+      ]
+    },
+    "ConfigKioyu": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 1024,
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConfigServer": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "format": "uint16",
+          "default": 8787,
+          "maximum": 65535,
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "RawConfigRunner": {
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 1
+        },
+        "envs": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "memory": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 1
+        },
+        "ports": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "default": null,
+          "patternProperties": {
+            "^\\d+$": {
+              "type": "integer",
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0
+            }
+          }
+        },
+        "secrets": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "volumes": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/RawRunnerConfigInner"
+      }
+    },
+    "RawRunnerConfigInner": {
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "type": "integer",
+          "format": "uint8",
+          "default": 1,
+          "maximum": 255,
+          "minimum": 1
+        },
+        "envs": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "envs_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
+          "default": "merge"
+        },
+        "image": {
+          "type": "string"
+        },
+        "memory": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 512,
+          "minimum": 1
+        },
+        "ports": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "default": null,
+          "patternProperties": {
+            "^\\d+$": {
+              "type": "integer",
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0
+            }
+          }
+        },
+        "ports_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
+          "default": "merge"
+        },
+        "secrets": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "secrets_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
+          "default": "merge"
+        },
+        "volumes": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "volumes_mode": {
+          "$ref": "#/$defs/RunnerResolveMode",
+          "default": "merge"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "image"
+      ]
+    },
+    "RunnerResolveMode": {
+      "type": "string",
+      "enum": [
+        "replace",
+        "merge",
+        "ignore"
+      ]
+    },
+    "Vendor": {
+      "type": "string",
+      "enum": [
+        "bitbucket",
+        "forgejo",
+        "gitea",
+        "github",
+        "gitlab",
+        "woodpecker"
+      ]
+    }
+  }
+}

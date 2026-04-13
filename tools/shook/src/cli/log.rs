@@ -5,15 +5,11 @@ use clerk::tracing_subscriber::util::SubscriberInitExt;
 use kioyu::{KIOYU_JOB_SPAN, kioyu_layers};
 
 use super::Args;
-use crate::cli::ServeArgs;
+use crate::cli::CommonArgs;
 pub fn init_log(args: &Args) {
     let level = args.verbose.tracing_level_filter();
     match &args.commands {
-        super::Commands::Init => clerk::tracing_subscriber::registry()
-            .with(clerk::terminal_layer(true).with_filter(level))
-            .init(),
-
-        super::Commands::Serve(ServeArgs { config }) => {
+        super::Commands::Serve(CommonArgs { config }) => {
             let log_dir = config
                 .parent()
                 .expect("Config not exist.")
@@ -28,5 +24,8 @@ pub fn init_log(args: &Args) {
                 )
                 .init()
         }
+        _ => clerk::tracing_subscriber::registry()
+            .with(clerk::terminal_layer(true).with_filter(level))
+            .init(),
     };
 }

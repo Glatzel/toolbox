@@ -29,6 +29,7 @@ thiserror = "2.0.18"
 tokio = { version = "1.48.0", features = ["rt-multi-thread"] }
 toml = "1.1.2"
 validator = { version = "0.20.0", features = ["derive"] }
+futures = "0.3.32"
 
 [dev-dependencies]
 assert_cmd = "2.2.0"

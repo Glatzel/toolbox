@@ -34,7 +34,7 @@ pub(super) struct RawConfigRunner {
     #[validate(custom(function = "validate_runners"))]
     #[serde(flatten)]
     #[schemars(with = "std::collections::HashMap<String, RawRunnerConfigInner>")]
-    runners: HashMap<String, RawRunnerConfigInner>,
+    pub(super) runners: HashMap<String, RawRunnerConfigInner>,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, JsonSchema)]
 #[serde(rename_all = "lowercase")]
@@ -46,12 +46,12 @@ enum RunnerResolveMode {
 }
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
-struct RawRunnerConfigInner {
+pub(super) struct RawRunnerConfigInner {
     image: String,
 
     #[serde(default = "default_count")]
     #[validate(range(min = 1))]
-    count: u8,
+    pub(super) count: u8,
 
     #[serde(default = "default_cpus")]
     #[validate(range(min = 1))]

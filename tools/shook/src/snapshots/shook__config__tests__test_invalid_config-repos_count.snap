@@ -1,0 +1,5 @@
+---
+source: src/config.rs
+expression: err.description()
+---
+__all__: Validation error: Only one repository is allowed when runner count > 1. [{}]

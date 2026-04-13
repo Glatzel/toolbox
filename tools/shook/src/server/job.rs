@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use axum::http::HeaderMap;
 use kioyu::IPayload;
-use microsandbox::{ExecEvent, Sandbox};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
 use crate::config::{Config, ConfigRunner};
+use crate::vm::{build_sandbox, drain_sandbox_handle, start_runner, stop_and_remove_sandbox};
 
 pub trait IJobSpec {
     fn job_spec(
@@ -41,59 +41,20 @@ impl IPayload for JobSpec {
     type Error = super::ShookServerError;
 
     async fn execute(&self) -> Result<(), Self::Error> {
-        let name = format!("{}-{}-{}-{}", self.owner, self.repo, self.job, self.id);
-        let mut builder = Sandbox::builder(&name)
-            .image(self.runner_spec.image.as_ref())
-            .cpus(self.runner_spec.cpus)
-            .memory(self.runner_spec.memory)
-            .replace()
-            .entrypoint(["bash"]);
-        for (host, guest) in self.runner_spec.volumes.iter() {
-            builder = builder.volume(guest.to_string_lossy().as_ref(), |m| m.bind(host));
-        }
-        for (key, value) in self.runner_spec.envs.iter() {
-            builder = builder.env(key, value);
-        }
-        for (key, (value, url)) in self.runner_spec.secrets.iter() {
-            builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
-        }
-        clerk::debug!("Sandbox builder configured: {name}");
-        let sandbox = builder.create().await?;
-        clerk::debug!("Sandbox created: {name}");
-        let mut handle = sandbox
-            .exec_stream(
-                "bash",
-                [
-                    "./start-runner.sh",
-                    self.owner.as_str(),
-                    self.repo.as_str(),
-                    self.token.as_str(),
-                ],
-            )
-            .await?;
-        loop {
-            let event = match handle.recv().await {
-                Some(event) => event,
-                None => break,
-            };
-            match event {
-                ExecEvent::Stdout(data) => {
-                    clerk::debug!("{}", String::from_utf8_lossy(&data))
-                }
-                ExecEvent::Stderr(data) => {
-                    clerk::debug!("{}", String::from_utf8_lossy(&data))
-                }
-                ExecEvent::Exited { code } => {
-                    clerk::debug!("Sandbox exited with code: {code}");
-                    break;
-                }
-                _ => {}
-            }
-        }
-        clerk::debug!("Sandbox finished: {name}");
-        sandbox.stop_and_wait().await?;
-        Sandbox::remove(sandbox.name()).await?;
-        clerk::debug!("Sandbox removed: {name}");
+        let sandbox_name = format!("{}-{}-{}-{}", self.owner, self.repo, self.job, self.id);
+        let sandbox = build_sandbox(
+            &sandbox_name,
+            self.runner_spec.image.as_ref(),
+            self.runner_spec.cpus,
+            self.runner_spec.memory,
+            &self.runner_spec.volumes,
+            &self.runner_spec.envs,
+            &self.runner_spec.secrets,
+        )
+        .await?;
+        let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
+        drain_sandbox_handle(handle).await;
+        stop_and_remove_sandbox(&sandbox).await;
         Ok(())
     }
 }

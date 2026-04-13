@@ -13,5 +13,5 @@ platforms = ["win-64", "linux-64", "osx-arm64", "linux-aarch64"]
 python = "3.13.*"
 # test
 pyfakefs = "==6.1.6"
-pytest = "==9.0.2"
+pytest = "==9.0.3"
 pytest-cov = "==7.1.0"

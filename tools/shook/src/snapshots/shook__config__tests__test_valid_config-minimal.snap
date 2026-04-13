@@ -19,6 +19,7 @@ expression: "serde_json::to_string_pretty(&config).unwrap()"
   },
   "runners": {
     "ghar-linux-dev-small": {
+      "count": 1,
       "cpus": 1,
       "envs": {},
       "image": "ghcr.io/glatzel/ghar-linux-dev",

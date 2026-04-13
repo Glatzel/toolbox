@@ -9,6 +9,7 @@ use validator::{Validate, ValidationError};
 use crate::config::IResolve;
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
+#[validate(schema(function = "Self::validate_raw_config_runner"))]
 pub(super) struct RawConfigRunner {
     #[validate(range(min = 1))]
     cpus: Option<u32>,
@@ -45,12 +46,17 @@ enum RunnerResolveMode {
 }
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
-#[serde(deny_unknown_fields)]
 struct RawRunnerConfigInner {
     image: String,
+
+    #[serde(default = "default_count")]
+    #[validate(range(min = 1))]
+    count: u8,
+
     #[serde(default = "default_cpus")]
     #[validate(range(min = 1))]
     cpus: u8,
+
     #[serde(default = "default_memory")]
     #[validate(range(min = 1))]
     memory: u32,
@@ -80,6 +86,7 @@ struct RawRunnerConfigInner {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigRunner {
     pub name: String,
+    pub count: u8,
     pub image: String,
     pub cpus: u8,
     pub memory: u32,
@@ -88,6 +95,7 @@ pub struct ConfigRunner {
     pub envs: HashMap<String, String>,
     pub secrets: HashMap<String, (String, String)>,
 }
+const fn default_count() -> u8 { 1 }
 const fn default_cpus() -> u8 { 1 }
 const fn default_memory() -> u32 { 512 }
 
@@ -96,21 +104,13 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
         let mut result = HashMap::new();
 
         for (name, runner) in self.runners {
-            let volumes = resolve_map(
-                self.volumes.clone(),
-                runner.volumes,
-                runner.volumes_mode,
-            );
+            let volumes = resolve_map(self.volumes.clone(), runner.volumes, runner.volumes_mode);
             let ports = resolve_map(self.ports.clone(), runner.ports, runner.ports_mode);
             let envs = resolve_map(self.envs.clone(), runner.envs, runner.envs_mode);
-            let secret = resolve_map(
-                self.secrets.clone(),
-                runner.secrets,
-                runner.secrets_mode,
-            );
-
+            let secret = resolve_map(self.secrets.clone(), runner.secrets, runner.secrets_mode);
             let resolved = ConfigRunner {
                 name,
+                count: runner.count,
                 image: runner.image,
                 cpus: runner.cpus,
                 memory: runner.memory,
@@ -126,7 +126,49 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
         result
     }
 }
-
+impl RawConfigRunner {
+    fn validate_raw_config_runner(config: &Self) -> Result<(), ValidationError> {
+        for (name, runner) in config.runners.iter() {
+            match (
+                runner.count > 1,
+                &config.ports,
+                &runner.ports,
+                runner.ports_mode,
+            ) {
+                (true, _, Some(runner_ports), _) => {
+                    if !runner_ports.is_empty() {
+                        clerk::error!(
+                            "runner '{}' can not share ports with multiple instances",
+                            name
+                        );
+                        return Err(ValidationError::new(
+                            "runner can not share ports with multiple instances",
+                        ));
+                    }
+                }
+                (
+                    true,
+                    Some(runner_ports),
+                    _,
+                    RunnerResolveMode::Merge | RunnerResolveMode::Replace,
+                ) => {
+                    if !runner_ports.is_empty() {
+                        clerk::error!(
+                            "runner '{}' can not share global ports with multiple instances",
+                            name
+                        );
+                        return Err(ValidationError::new(
+                            "runner can not share global ports with multiple instances",
+                        ));
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }
+}
+impl RawRunnerConfigInner {}
 fn resolve_map<K, V>(
     global: Option<HashMap<K, V>>,
     local: Option<HashMap<K, V>>,

@@ -1,0 +1,5 @@
+---
+source: src/config.rs
+expression: err
+---
+x runners.__all__: Validation error: runner can not share ports with multiple instances [{}]

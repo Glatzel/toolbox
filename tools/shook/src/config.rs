@@ -19,6 +19,7 @@ pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
+#[serde(deny_unknown_fields)]
 struct RawConfig {
     #[serde(default = "default_config_server")]
     #[validate(nested)]
@@ -135,16 +136,21 @@ mod tests {
     #[case("null")]
     #[case("runner_port")]
     #[case("server_port")]
+    #[case("share_port")]
+    #[case("unknown_field")]
+    #[case("share_global_port")]
     #[case("zero_runner")]
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);
         use std::path::PathBuf;
-        Config::load_config(&PathBuf::from(format!(
+        let err = Config::load_config(&PathBuf::from(format!(
             "{}/test_data/config/invalid/{}.toml",
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))
         .unwrap_err();
+        println!("{}", err);
+        insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err);
         Ok(())
     }
 }

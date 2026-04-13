@@ -1,18 +1,12 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
-use clap::Args;
 use kioyu::start_dispatcher;
 
+use crate::cli::CommonArgs;
 use crate::config::Config;
 use crate::server::{AppContext, JobSpec, start_server};
-#[derive(Debug, Args)]
-pub(super) struct ServeArgs {
-    #[arg(default_value_os_t=PathBuf::from("shook.toml"))]
-    pub config: PathBuf,
-}
 
-pub(super) async fn execute(args: ServeArgs) -> mischief::Result<()> {
+pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
     let config = Config::load_config(&args.config)?;
 
     // init kioyu
@@ -26,11 +20,4 @@ pub(super) async fn execute(args: ServeArgs) -> mischief::Result<()> {
         kioyu_handle,
     });
     start_server(shared_state).await
-}
-impl Default for ServeArgs {
-    fn default() -> Self {
-        Self {
-            config: PathBuf::from("shook.toml"),
-        }
-    }
 }

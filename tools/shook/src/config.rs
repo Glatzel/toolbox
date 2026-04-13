@@ -20,6 +20,7 @@ pub trait IResolve<T> {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, JsonSchema)]
 #[serde(deny_unknown_fields)]
+#[validate(schema(function = "Self::validate_config"))]
 struct RawConfig {
     #[serde(default = "default_config_server")]
     #[validate(nested)]
@@ -37,7 +38,6 @@ struct RawConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-
 pub struct Config {
     pub server: ConfigServer,
     pub devop: ConfigDevOp,
@@ -93,6 +93,29 @@ impl Config {
     }
 }
 
+impl RawConfig {
+    fn validate_config(config: &Self) -> Result<(), validator::ValidationError> {
+        if config
+            .runners
+            .runners
+            .iter()
+            .any(|(_, runner)| runner.count > 1)
+        {
+            if config.devop.allowed_users.iter().count() > 1 {
+                const MSG: &str = "Only one user is allowed when runner count > 1.";
+                clerk::error!(MSG);
+                return Err(validator::ValidationError::new(MSG));
+            }
+            if config.devop.allowed_repositories.iter().count() > 1 {
+                const MSG: &str = "Only one repository is allowed when runner count > 1.";
+                clerk::error!(MSG);
+                return Err(validator::ValidationError::new(MSG));
+            }
+        }
+        Ok(())
+    }
+}
+
 pub fn schema() -> Schema { schema_for!(RawConfig) }
 
 #[cfg(test)]
@@ -135,11 +158,13 @@ mod tests {
     #[rstest]
     #[case("not_exist")]
     #[case("null")]
+    #[case("repos_count")]
     #[case("runner_port")]
     #[case("server_port")]
     #[case("share_port")]
     #[case("unknown_field")]
     #[case("share_global_port")]
+    #[case("users_counts")]
     #[case("zero_runner")]
     fn test_invalid_config(#[case] config_name: &str) -> mischief::Result<()> {
         clerk::init_log_with_level(clerk::LevelFilter::TRACE);
@@ -149,7 +174,8 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))
-        .unwrap_err().inner;
+        .unwrap_err()
+        .inner;
         println!("{}", err.description());
         insta::with_settings!({filters => vec![
             (r"\n│\n", "\n")

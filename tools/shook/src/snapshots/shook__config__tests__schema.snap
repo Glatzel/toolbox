@@ -36,18 +36,10 @@ expression: schema
       "type": "object",
       "properties": {
         "allowed_repositories": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
+          "$ref": "#/$defs/OneOrMany(string,PreferOne)"
         },
         "allowed_users": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
+          "$ref": "#/$defs/OneOrMany(string,PreferOne)"
         },
         "token": {
           "type": "string"
@@ -89,6 +81,19 @@ expression: schema
           "minimum": 1
         }
       }
+    },
+    "OneOrMany(string,PreferOne)": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "RawConfigRunner": {
       "type": "object",

@@ -28,12 +28,10 @@ pub struct ConfigDevOp {
 
     #[serde_as(as = "OneOrMany<_>")]
     #[validate(length(min = 1))]
-    #[schemars(with = "Vec<String>")]
     pub allowed_repositories: Vec<String>,
 
     #[serde_as(as = "OneOrMany<_>")]
     #[validate(length(min = 1))]
-    #[schemars(with = "Vec<String>")]
     pub allowed_users: Vec<String>,
 }
 impl IResolve<ConfigDevOp> for RawConfigDevOp {

@@ -1,5 +1,5 @@
 ---
 source: src/config.rs
-expression: err
+expression: err.description()
 ---
-x No such file or directory (os error 2)
+No such file or directory (os error 2)

@@ -98,6 +98,7 @@ pub fn schema() -> Schema { schema_for!(RawConfig) }
 #[cfg(test)]
 mod tests {
 
+    use mischief::IDiagnostic;
     use rstest::rstest;
 
     use super::*;
@@ -148,9 +149,13 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))
-        .unwrap_err();
-        println!("{}", err);
-        insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err);
+        .unwrap_err().inner;
+        println!("{}", err.description());
+        insta::with_settings!({filters => vec![
+            (r"\n│\n", "\n")
+        ]}, {
+            insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err.description());
+        });
         Ok(())
     }
 }

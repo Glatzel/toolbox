@@ -1,10 +1,9 @@
 ---
 source: src/config.rs
-expression: err
+expression: err.description()
 ---
-x TOML parse error at line 1, column 1
-│   |
-│ 1 | [devop]
-│   | ^
-│ missing field `runners`
-│
+TOML parse error at line 1, column 1
+  |
+1 | [devop]
+  | ^
+missing field `runners`

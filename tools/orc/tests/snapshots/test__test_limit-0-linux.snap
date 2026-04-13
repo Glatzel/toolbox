@@ -3,54 +3,29 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 libraw.so -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.25.0.0
-├── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+├── [RED]libc.so.6
 ├── libgcc_s.so.1 [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libgcc_s.so.1]
-│   ├── ld-linux-x86-64.so.2 -> [GREEN]/usr/lib64/../lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
-│   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   ├── [RED]ld-linux-x86-64.so.2
+│   ╰── [RED]libc.so.6
 ├── libgomp.so.1 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libgomp.so.1.0.0
-│   ├── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │   ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ├── libdl.so.2 [[GREEN]/lib/x86_64-linux-gnu/libdl.so.2]
-│   │   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ╰── libpthread.so.0 [[GREEN]/lib/x86_64-linux-gnu/libpthread.so.0]
-│       ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│           ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   ├── [RED]libc.so.6
+│   ├── [RED]libdl.so.2
+│   ╰── [RED]libpthread.so.0
 ├── libjpeg.so.8 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libjpeg.so.8.3.2
-│   ├── ld-linux-x86-64.so.2 -> [GREEN]/usr/lib64/../lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
-│   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   ├── [RED]ld-linux-x86-64.so.2
+│   ╰── [RED]libc.so.6
 ├── liblcms2.so.2 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/liblcms2.so.2.0.18
-│   ├── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │   ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ├── libm.so.6 [[GREEN]/lib/x86_64-linux-gnu/libm.so.6]
-│   │   ├── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   │   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ╰── libpthread.so.0 [[GREEN]/lib/x86_64-linux-gnu/libpthread.so.0]
-│       ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│           ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-├── libm.so.6 [[GREEN]/lib/x86_64-linux-gnu/libm.so.6]
-│   ├── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   ├── [RED]libc.so.6
+│   ├── [RED]libm.so.6
+│   ╰── [RED]libpthread.so.0
+├── [RED]libm.so.6
 ├── libstdc++.so.6 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libstdc++.so.6.0.34
-│   ├── ld-linux-x86-64.so.2 -> [GREEN]/usr/lib64/../lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
-│   ├── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │   ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ├── libdl.so.2 [[GREEN]/lib/x86_64-linux-gnu/libdl.so.2]
-│   │   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   ├── [RED]ld-linux-x86-64.so.2
+│   ├── [RED]libc.so.6
+│   ├── [RED]libdl.so.2
 │   ├── libgcc_s.so.1 [[GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libgcc_s.so.1]
-│   │   ├── ld-linux-x86-64.so.2 -> [GREEN]/usr/lib64/../lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
-│   │   ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│   │       ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│   ╰── libm.so.6 [[GREEN]/lib/x86_64-linux-gnu/libm.so.6]
-│       ├── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
-│       ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-│           ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+│   │   ├── [RED]ld-linux-x86-64.so.2
+│   │   ╰── [RED]libc.so.6
+│   ╰── [RED]libm.so.6
 ╰── libz.so.1 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libz.so.1.3.2
-    ╰── libc.so.6 [[GREEN]/lib/x86_64-linux-gnu/libc.so.6]
-        ╰── ld-linux-x86-64.so.2 [[GREEN]/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+    ╰── [RED]libc.so.6

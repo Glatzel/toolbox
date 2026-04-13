@@ -3,3 +3,5 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 libraw.so -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.25.0.0
+├── [RED]libc.so.6
+╰── [RED]libm.so.6

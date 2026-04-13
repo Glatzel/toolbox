@@ -9,8 +9,8 @@ environments:
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.2-hb0f4dca_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.2-hb0f4dca_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_18.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_18.conda
 packages:
@@ -27,23 +27,23 @@ packages:
   license_family: BSD
   size: 28948
   timestamp: 1770939786096
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.2-hb0f4dca_0.conda
-  sha256: d19b652d68e150a0b0c454ed87f24a5c50e01b25065c86e3e5604203b9bd87e7
-  md5: 8f948f89fa93171c1f4ee0576ae580f5
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
+  sha256: 17f974a1a73a1682774bae57bc93d8aa9b3be685c785db689758518c9f941f55
+  md5: bb93acdb9b3e459f4a7be3a5f65e5bba
   depends:
-  - libgcc >=14
   - __glibc >=2.28,<3.0.a0
-  - libcap-ng-rt >=0.9.2,<0.10.0a0
-  size: 20157
-  timestamp: 1774455834293
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.2-hb0f4dca_0.conda
-  sha256: c7ac6e0adb8df12baa495fad0a51ed9c95920d35b87bc96ffc61f60120262901
-  md5: 59b33fcca30785c592ee2f7a4f3ee9bd
+  - libgcc >=14
+  - libcap-ng-rt >=0.9.3,<0.10.0a0
+  size: 18164
+  timestamp: 1775754874420
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
+  sha256: d74226e14d7afbbc445a5fb39f7658d37910de57e6a023382565525b0e8be8c1
+  md5: a75d5ea469360d3238b3746967a6a58f
   depends:
-  - libgcc >=14
   - __glibc >=2.28,<3.0.a0
-  size: 22929
-  timestamp: 1774455834293
+  - libgcc >=14
+  size: 24451
+  timestamp: 1775754874420
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_18.conda
   sha256: faf7d2017b4d718951e3a59d081eb09759152f93038479b768e3d612688f83f5
   md5: 0aa00f03f9e39fb9876085dee11a85d4

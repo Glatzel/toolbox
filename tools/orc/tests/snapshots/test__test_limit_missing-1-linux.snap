@@ -3,4 +3,6 @@ source: tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
 libraw.so -> [CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.25.0.0
-╰── libjpeg.so.8 -> [RED][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libjpeg.so.8.3.2
+├── [RED]libc.so.6
+├── libjpeg.so.8 -> [RED][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libjpeg.so.8.3.2
+╰── [RED]libm.so.6

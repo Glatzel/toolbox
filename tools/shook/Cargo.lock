@@ -4528,7 +4528,6 @@ dependencies = [
  "clap-verbosity-flag",
  "clerk",
  "dbus",
- "futures",
  "hashbrown 0.16.1",
  "hex",
  "hmac 0.13.0",

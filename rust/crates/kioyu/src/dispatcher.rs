@@ -134,22 +134,22 @@ where
             job.id = %job.id,
             job.name = %job.name,
         );
-        tokio::spawn(async move {
-            clerk::debug!("executing");
-            match job.payload.execute().instrument(span.clone()).await {
-                Ok(_) => clerk::debug!("finished"),
-                Err(e) => clerk::error!("payload error: {}", e),
+        tokio::spawn(
+            async move {
+                clerk::debug!("executing");
+                match job.payload.execute().await {
+                    Ok(_) => clerk::debug!("finished"),
+                    Err(e) => clerk::error!("payload error: {}", e),
+                }
+
+                clerk::debug!("post processing");
+                job.payload.post_process(cancel.is_cancelled()).await;
+
+                clerk::debug!("releasing resources");
+                let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
             }
-
-            clerk::debug!("post processing");
-            job.payload
-                .post_process(cancel.is_cancelled())
-                .instrument(span)
-                .await;
-
-            clerk::debug!("releasing resources");
-            let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
-        });
+            .instrument(span),
+        );
     }
 }
 

@@ -23,6 +23,7 @@ pub enum DispatcherEvent<P> {
 pub struct DispatcherHandle<P> {
     pub(crate) tx: mpsc::Sender<DispatcherEvent<P>>,
     pub(crate) cancel: CancellationToken,
+    pub(crate) join: tokio::task::JoinHandle<()>,
 }
 
 impl<P> DispatcherHandle<P> {
@@ -33,9 +34,10 @@ impl<P> DispatcherHandle<P> {
             .map_err(|_| DispatchError::Closed)
     }
 
-    pub async fn shutdown(&self) {
+    pub async fn shutdown(self) {
         self.cancel.cancel();
         self.tx.send(DispatcherEvent::Shutdown).await.ok();
+        self.join.await.ok();
     }
 }
 
@@ -91,18 +93,16 @@ where
                 }
                 DispatcherEvent::Shutdown => {
                     clerk::debug!("dispatcher shutting down");
-
-                    // wait running jobs
-                    for handle in self.handles.drain(..) {
-                        handle.await.ok();
-                    }
-
-                    clerk::debug!("dispatcher all jobs done");
-                    return;
+                    break;
                 }
             }
             self.schedule(&tx, &cancel);
+        } // wait running jobs
+        for handle in self.handles.drain(..) {
+            handle.await.ok();
         }
+        clerk::debug!("dispatcher all jobs done");
+        return;
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
@@ -149,7 +149,7 @@ where
         let handle = tokio::spawn(
             async move {
                 clerk::debug!("executing");
-                match job.payload.execute().await {
+                match job.payload.execute(cancel.clone()).await {
                     Ok(_) => clerk::debug!("finished"),
                     Err(e) => clerk::error!("payload error: {}", e),
                 }
@@ -194,10 +194,10 @@ where
     let cancel = CancellationToken::new();
     let dispatcher = Dispatcher::new(rx, mode);
     clerk::debug!("dispatcher started");
-    tokio::spawn({
+    let join = tokio::spawn({
         let tx_for_jobs = tx.clone();
         let cancel_for_dispatcher = cancel.clone();
         async move { dispatcher.run(tx_for_jobs, cancel_for_dispatcher).await }
     });
-    DispatcherHandle { tx, cancel }
+    DispatcherHandle { tx, cancel, join }
 }

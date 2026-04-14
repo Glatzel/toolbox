@@ -12,7 +12,7 @@ use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
 use kioyu::{
     IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers,
-    start_dispatcher,
+    start_dispatcher, start_dispatcher_unlimited,
 };
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
@@ -130,5 +130,70 @@ async fn test_dispatcher() {
         (r"\.tmp\w+", "[LOG_ROOT_DIR]")
     ]}, {
         insta::assert_snapshot!("kioyu_log_dir_tree", render);
+    });
+}
+#[tokio::test]
+async fn test_dispatcher_unlimited() {
+    let log_root = tempdir().unwrap();
+
+    clerk::tracing_subscriber::registry()
+        .with(
+            kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+                .with_filter(LevelFilter::TRACE),
+        )
+        .with(
+            clerk::terminal_layer(true)
+                .with_filter(LevelFilter::TRACE)
+                .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN)),
+        )
+        .init();
+    let counter = Arc::new(AtomicUsize::new(0));
+
+    let handle = start_dispatcher_unlimited::<TestPayload>();
+
+    let job1 = Job::new(
+        "job1",
+        TestPayload {
+            counter: counter.clone(),
+        },
+        ResourceRequest::none(),
+    );
+
+    let job2 = Job::new(
+        "job2",
+        TestPayload {
+            counter: counter.clone(),
+        },
+        ResourceRequest::none(),
+    );
+    let job3 = Job::new(
+        "job3",
+        TestPayload {
+            counter: counter.clone(),
+        },
+        ResourceRequest::none(),
+    );
+    handle.submit(job1).await.unwrap();
+    handle.submit(job2).await.unwrap();
+    handle.submit(job3).await.unwrap();
+
+    sleep(Duration::from_millis(300)).await;
+    handle.shutdown().await;
+    assert_eq!(counter.load(Ordering::SeqCst), 3);
+
+    //check log output
+    let tree = dir_tree(log_root.path());
+    let render = OwnedRender {
+        tree: &tree,
+        indent: UnicodeIndent,
+        width: 0,
+    };
+    println!("{}", render);
+    insta::with_settings!({filters => vec![
+        (r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "[UUID]"),
+        (r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{6}Z", "[TIMESTAMP]"),
+        (r"\.tmp\w+", "[LOG_ROOT_DIR]")
+    ]}, {
+        insta::assert_snapshot!("kioyu_unlimited_log_dir_tree", render);
     });
 }

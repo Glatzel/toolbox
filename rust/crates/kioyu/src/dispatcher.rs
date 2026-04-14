@@ -149,7 +149,7 @@ where
         let handle = tokio::spawn(
             async move {
                 clerk::debug!("executing");
-                match job.payload.execute(cancel).await {
+                match job.payload.execute(cancel.clone()).await {
                     Ok(_) => clerk::debug!("finished"),
                     Err(e) => clerk::error!("payload error: {}", e),
                 }
@@ -159,9 +159,11 @@ where
                     Ok(_) => clerk::debug!("post processed"),
                     Err(e) => clerk::error!("post process error: {}", e),
                 }
-
-                clerk::debug!("releasing resources");
-                let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
+                clerk::debug!("post process returned");
+                if !cancel.is_cancelled() {
+                    clerk::debug!("releasing resources");
+                    let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
+                }
             }
             .instrument(span),
         );

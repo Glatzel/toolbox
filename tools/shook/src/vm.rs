@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use async_trait::async_trait;
 use hashbrown::HashMap;
-use kioyu::IPayload;
+use kioyu::{CancellationToken, IPayload};
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
 use tokio::sync::OnceCell;
 use validator::{Validate, ValidationError};
@@ -85,7 +85,7 @@ impl Debug for RunnerPayload {
 #[async_trait]
 impl IPayload for RunnerPayload {
     type Error = mischief::Report;
-    async fn execute(&self) -> mischief::Result<()> {
+    async fn execute(&self, cancel: CancellationToken) -> mischief::Result<()> {
         let sandbox = build_sandbox(
             &self.sandbox_name,
             &self.image,
@@ -99,10 +99,10 @@ impl IPayload for RunnerPayload {
         .await?;
         let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
         self.sandbox.set(sandbox).ok();
-        drain_sandbox_handle(handle).await;
+        drain_sandbox_handle(handle, &cancel).await;
         Ok(())
     }
-    async fn post_process(&self, _cancelled: bool) {
+    async fn post_process(&self) {
         if let Some(sandbox) = self.sandbox.get() {
             stop_and_remove_sandbox(sandbox).await;
         } else {
@@ -160,20 +160,25 @@ async fn start_runner(
         .await?;
     Ok(handle)
 }
-async fn drain_sandbox_handle(mut handle: ExecHandle) {
+async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken) {
     loop {
-        let event = match handle.recv().await {
-            Some(event) => event,
-            None => break,
-        };
-        match event {
-            ExecEvent::Stdout(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
-            ExecEvent::Stderr(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
-            ExecEvent::Exited { code } => {
-                clerk::debug!("Sandbox exited with code: {code}");
-                break;
+        tokio::select! {
+            _ = cancel.cancelled() => break,
+            event = handle.recv() => {
+                let event = match event {
+                    Some(event) => event,
+                    None => break,
+                };
+                match event {
+                    ExecEvent::Stdout(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
+                    ExecEvent::Stderr(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
+                    ExecEvent::Exited { code } => {
+                        clerk::debug!("Sandbox exited with code: {code}");
+                        break;
+                    }
+                    _ => {}
+                }
             }
-            _ => {}
         }
     }
 }

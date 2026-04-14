@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use async_trait::async_trait;
+use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::resource::ResourceKey;
@@ -55,6 +56,6 @@ impl<P> Job<P> {
 pub trait IPayload: Send + Sync {
     type Error: Display;
 
-    async fn execute(&self) -> Result<(), Self::Error>;
-    async fn post_process(&self, _cancelled: bool) {}
+    async fn execute(&self, cancel: CancellationToken) -> Result<(), Self::Error>;
+    async fn post_process(&self) {}
 }

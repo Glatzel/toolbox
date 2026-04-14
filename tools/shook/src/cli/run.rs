@@ -31,6 +31,8 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
             dispatcher.submit(job).await?;
         }
     }
-
+    tokio::signal::ctrl_c().await?;
+    clerk::info!("Ctrl-C received, stopping all sandboxes...");
+    dispatcher.shutdown().await;
     Ok(())
 }

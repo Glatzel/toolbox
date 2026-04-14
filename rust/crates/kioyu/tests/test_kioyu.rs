@@ -11,8 +11,7 @@ use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
 use kioyu::{
-    IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers,
-    start_dispatcher, start_dispatcher_unlimited,
+    CancellationToken, IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers, start_dispatcher, start_dispatcher_unlimited
 };
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
@@ -51,7 +50,7 @@ struct TestPayload {
 #[async_trait]
 impl IPayload for TestPayload {
     type Error = mischief::Report;
-    async fn execute(&self) -> Result<(), Self::Error> {
+    async fn execute(&self, _cancel: CancellationToken) -> Result<(), Self::Error> {
         self.counter.fetch_add(1, Ordering::SeqCst);
         clerk::trace!(
             "{}, {}[{}]",

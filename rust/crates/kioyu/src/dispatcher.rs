@@ -39,19 +39,18 @@ impl<P> DispatcherHandle<P> {
     }
 }
 
-// --- NEW ---
 pub enum ResourceMode {
     /// Normal mode: allocate/free via the pool.
     Pooled(ResourcePool),
     /// Unlimited mode: skip allocation entirely, spawn immediately.
     Unlimited,
 }
-// -----------
 
 struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
     mode: ResourceMode, // replaces bare `pool` field
     queue: VecDeque<Job<P>>,
+    handles: Vec<tokio::task::JoinHandle<()>>,
 }
 
 impl<P> Dispatcher<P> {
@@ -60,6 +59,7 @@ impl<P> Dispatcher<P> {
             rx,
             mode,
             queue: VecDeque::new(),
+            handles: Vec::new(),
         }
     }
 }
@@ -68,7 +68,11 @@ impl<P> Dispatcher<P>
 where
     P: IPayload + Send + 'static,
 {
-    async fn run(mut self, tx: mpsc::Sender<DispatcherEvent<P>>, cancel: CancellationToken) {
+    pub(crate) async fn run(
+        mut self,
+        tx: mpsc::Sender<DispatcherEvent<P>>,
+        cancel: CancellationToken,
+    ) {
         clerk::debug!("dispatcher running");
         while let Some(event) = self.rx.recv().await {
             match event {
@@ -87,11 +91,18 @@ where
                 }
                 DispatcherEvent::Shutdown => {
                     clerk::debug!("dispatcher shutting down");
+
+                    // wait running jobs
+                    for handle in self.handles.drain(..) {
+                        handle.await.ok();
+                    }
+
+                    clerk::debug!("dispatcher all jobs done");
                     return;
                 }
             }
-            self.schedule(&tx, &cancel);
         }
+        self.schedule(&tx, &cancel);
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
@@ -100,14 +111,14 @@ where
                 // --- Unlimited: always spawn immediately, no allocation. ---
                 ResourceMode::Unlimited => {
                     clerk::debug!("unlimited mode, spawning immediately");
-                    self.spawn_job(job, tx.clone(), cancel.clone());
+                    self.spawn_job(job, tx.clone(), cancel);
                 }
                 // --- Pooled: original allocation logic unchanged. ----------
                 ResourceMode::Pooled(ref mut pool) => match pool.allocate(job.resources.as_slice())
                 {
                     Ok(true) => {
                         clerk::debug!("allocated, spawning");
-                        self.spawn_job(job, tx.clone(), cancel.clone());
+                        self.spawn_job(job, tx.clone(), cancel);
                     }
                     Ok(false) => {
                         clerk::debug!("insufficient resources, re-queued");
@@ -123,10 +134,10 @@ where
     }
 
     fn spawn_job(
-        &self,
+        &mut self,
         job: Job<P>,
         tx: mpsc::Sender<DispatcherEvent<P>>,
-        cancel: CancellationToken,
+        cancel: &CancellationToken,
     ) {
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
@@ -134,22 +145,24 @@ where
             job.id = %job.id,
             job.name = %job.name,
         );
-        tokio::spawn(
+        let cancel = cancel.clone();
+        let handle = tokio::spawn(
             async move {
                 clerk::debug!("executing");
-                match job.payload.execute().await {
+                match job.payload.execute(cancel).await {
                     Ok(_) => clerk::debug!("finished"),
                     Err(e) => clerk::error!("payload error: {}", e),
                 }
 
                 clerk::debug!("post processing");
-                job.payload.post_process(cancel.is_cancelled()).await;
+                job.payload.post_process().await;
 
                 clerk::debug!("releasing resources");
                 let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
             }
             .instrument(span),
         );
+        self.handles.push(handle);
     }
 }
 

@@ -101,6 +101,7 @@ impl IPayload for RunnerPayload {
     }
     async fn post_process(&self) -> mischief::Result<()> {
         let name = &self.sandbox_name;
+
         if Sandbox::list().await?.iter().all(|s| s.name() != name) {
             clerk::debug!("Sandbox {name} is not exists, skipping stop and remove");
             return Ok(());
@@ -109,7 +110,6 @@ impl IPayload for RunnerPayload {
         if let Err(e) = Sandbox::remove(name).await {
             clerk::error!("Failed to remove sandbox {name}: {e}");
         }
-
         Ok(())
     }
 }

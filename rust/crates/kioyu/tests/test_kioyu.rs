@@ -11,7 +11,8 @@ use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::{LevelFilter, NotInSpanFilter, tracing_subscriber};
 use kioyu::{
-    CancellationToken, IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest, kioyu_layers, start_dispatcher, start_dispatcher_unlimited
+    CancellationToken, IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest,
+    kioyu_layers, start_dispatcher, start_dispatcher_unlimited,
 };
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};

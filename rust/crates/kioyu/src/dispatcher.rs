@@ -155,7 +155,10 @@ where
                 }
 
                 clerk::debug!("post processing");
-                job.payload.post_process().await;
+                match job.payload.post_process().await {
+                    Ok(_) => clerk::debug!("post processed"),
+                    Err(e) => clerk::error!("post process error: {}", e),
+                }
 
                 clerk::debug!("releasing resources");
                 let _ = tx.send(DispatcherEvent::FreeResource(job)).await;

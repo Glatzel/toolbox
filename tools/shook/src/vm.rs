@@ -5,7 +5,6 @@ use async_trait::async_trait;
 use hashbrown::HashMap;
 use kioyu::{CancellationToken, IPayload};
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
-use tokio::sync::OnceCell;
 use validator::{Validate, ValidationError};
 
 use crate::config::Config;
@@ -24,7 +23,6 @@ pub struct RunnerPayload {
     #[validate(custom(function = "Self::validate_repository", use_context))]
     pub repo: String,
     pub token: String,
-    sandbox: OnceCell<Sandbox>,
 }
 
 impl RunnerPayload {
@@ -53,7 +51,6 @@ impl RunnerPayload {
             owner,
             repo,
             token,
-            sandbox: OnceCell::new(),
         }
     }
     fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
@@ -98,19 +95,22 @@ impl IPayload for RunnerPayload {
         )
         .await?;
         let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
-        self.sandbox.set(sandbox).ok();
+
         drain_sandbox_handle(handle, &cancel).await;
         Ok(())
     }
-    async fn post_process(&self) {
-        if let Some(sandbox) = self.sandbox.get() {
-            stop_and_remove_sandbox(sandbox).await;
-        } else {
-            clerk::warn!(
-                "runner '{}' has no sandbox to clean up (build may have failed)",
-                self.sandbox_name
-            );
+    async fn post_process(&self) -> mischief::Result<()> {
+        let name = &self.sandbox_name;
+        if Sandbox::list().await?.iter().all(|s| s.name() != name) {
+            clerk::debug!("Sandbox {name} is not exists, skipping stop and remove");
+            return Ok(());
         }
+
+        if let Err(e) = Sandbox::remove(name).await {
+            clerk::error!("Failed to remove sandbox {name}: {e}");
+        }
+
+        Ok(())
     }
 }
 pub async fn build_sandbox(
@@ -180,24 +180,5 @@ async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken
                 }
             }
         }
-    }
-}
-async fn stop_and_remove_sandbox(sandbox: &Sandbox) {
-    let name = sandbox.name();
-    if Sandbox::list()
-        .await
-        .unwrap()
-        .iter()
-        .all(|s| s.name() != name)
-    {
-        clerk::debug!("Sandbox {name} is not exists, skipping stop and remove");
-        return;
-    }
-
-    if let Err(e) = sandbox.stop_and_wait().await {
-        clerk::error!("Failed to stop sandbox {name}: {e}");
-    }
-    if let Err(e) = Sandbox::remove(name).await {
-        clerk::error!("Failed to remove sandbox {name}: {e}");
     }
 }

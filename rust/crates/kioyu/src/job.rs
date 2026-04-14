@@ -57,5 +57,5 @@ pub trait IPayload: Send + Sync {
     type Error: Display;
 
     async fn execute(&self, cancel: CancellationToken) -> Result<(), Self::Error>;
-    async fn post_process(&self) {}
+    async fn post_process(&self) -> Result<(), Self::Error> { Ok(()) }
 }

@@ -163,7 +163,7 @@ async fn start_runner(
 async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken) {
     loop {
         tokio::select! {
-            _ = cancel.cancelled() => break,
+            _ = cancel.cancelled() => { clerk::debug!("Sandbox cancelled, breaking"); break; },
             event = handle.recv() => {
                 let event = match event {
                     Some(event) => event,
@@ -188,9 +188,9 @@ async fn stop_and_remove_sandbox(sandbox: &Sandbox) {
         .await
         .unwrap()
         .iter()
-        .any(|s| s.name() == name)
+        .all(|s| s.name() != name)
     {
-        clerk::debug!("Sandbox {name} already exists, skipping stop and remove");
+        clerk::debug!("Sandbox {name} is not exists, skipping stop and remove");
         return;
     }
 

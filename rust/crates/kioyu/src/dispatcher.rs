@@ -101,8 +101,8 @@ where
                     return;
                 }
             }
+            self.schedule(&tx, &cancel);
         }
-        self.schedule(&tx, &cancel);
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {

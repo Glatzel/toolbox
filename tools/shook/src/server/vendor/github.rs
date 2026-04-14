@@ -5,9 +5,10 @@ use sha2::Sha256;
 use validator::{Validate, ValidateArgs, ValidationError};
 
 use crate::config::{Config, ConfigRunner};
+use crate::server::IRunnerPayload;
 use crate::server::error::ShookServerError;
-use crate::server::job::{IJobSpec, JobSpec};
 use crate::utils::constant_time_eq;
+use crate::vm::RunnerPayload;
 
 #[derive(Debug, Deserialize, Validate)]
 #[validate(context = Config)]
@@ -55,12 +56,12 @@ struct WorkflowJob {
     labels: Vec<String>,
 }
 
-impl IJobSpec for WebhookPayload {
-    fn job_spec(
+impl IRunnerPayload for WebhookPayload {
+    fn runner_payload(
         headers: &HeaderMap,
         body: &str,
         config: &Config,
-    ) -> Result<JobSpec, ShookServerError> {
+    ) -> Result<RunnerPayload, ShookServerError> {
         clerk::debug!("Verifying webhook signature");
         verify_signature(body, &config.devop.webhook_secret, headers)?;
 
@@ -86,7 +87,7 @@ impl IJobSpec for WebhookPayload {
             "Webhook payload accepted, returning runner spec"
         );
         let runner_name = match webhook_payload.workflow_job.labels.get(1) {
-            Some(name) => name.clone(),
+            Some(name) => name,
             None => {
                 return Err(ShookServerError::Parse(format!(
                     "Runner label not found: {:?}",
@@ -94,7 +95,7 @@ impl IJobSpec for WebhookPayload {
                 )));
             }
         };
-        let runner: ConfigRunner = match config.runners.get(&runner_name) {
+        let runner: ConfigRunner = match config.runners.get(runner_name) {
             Some(r) => r.clone(),
             None => {
                 return Err(ShookServerError::Parse(format!(
@@ -103,14 +104,25 @@ impl IJobSpec for WebhookPayload {
                 )));
             }
         };
-        let job_spec = JobSpec {
-            owner: webhook_payload.repository.owner.login,
-            repo: webhook_payload.repository.name,
-            job: webhook_payload.workflow_job.name,
-            token: config.devop.token.clone(),
-            id: webhook_payload.workflow_job.id,
-            runner_spec: runner,
-        };
+        let job_spec = RunnerPayload::new(
+            format!(
+                "{}-{}-{}-{}",
+                webhook_payload.repository.owner.login,
+                webhook_payload.repository.name,
+                webhook_payload.workflow_job.name,
+                webhook_payload.workflow_job.id
+            ),
+            runner.image,
+            runner.cpus,
+            runner.memory,
+            runner.volumes,
+            runner.ports,
+            runner.envs,
+            runner.secrets,
+            webhook_payload.repository.owner.login,
+            webhook_payload.repository.name,
+            config.devop.token.clone(),
+        );
         Ok(job_spec)
     }
 }

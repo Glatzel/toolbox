@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use clerk::tracing::Instrument;
 use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 
 use crate::KIOYU_JOB_SPAN;
 use crate::job::{IPayload, Job};
@@ -21,6 +22,7 @@ pub enum DispatcherEvent<P> {
 
 pub struct DispatcherHandle<P> {
     pub(crate) tx: mpsc::Sender<DispatcherEvent<P>>,
+    pub(crate) cancel: CancellationToken,
 }
 
 impl<P> DispatcherHandle<P> {
@@ -31,7 +33,10 @@ impl<P> DispatcherHandle<P> {
             .map_err(|_| DispatchError::Closed)
     }
 
-    pub async fn shutdown(&self) { self.tx.send(DispatcherEvent::Shutdown).await.ok(); }
+    pub async fn shutdown(&self) {
+        self.cancel.cancel();
+        self.tx.send(DispatcherEvent::Shutdown).await.ok();
+    }
 }
 
 // --- NEW ---
@@ -63,7 +68,7 @@ impl<P> Dispatcher<P>
 where
     P: IPayload + Send + 'static,
 {
-    async fn run(mut self, tx: mpsc::Sender<DispatcherEvent<P>>) {
+    async fn run(mut self, tx: mpsc::Sender<DispatcherEvent<P>>, cancel: CancellationToken) {
         clerk::debug!("dispatcher running");
         while let Some(event) = self.rx.recv().await {
             match event {
@@ -85,24 +90,24 @@ where
                     return;
                 }
             }
-            self.schedule(&tx);
+            self.schedule(&tx, &cancel);
         }
     }
 
-    fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>) {
+    fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
         while let Some(job) = self.queue.pop_front() {
             match self.mode {
                 // --- Unlimited: always spawn immediately, no allocation. ---
                 ResourceMode::Unlimited => {
                     clerk::debug!("unlimited mode, spawning immediately");
-                    self.spawn_job(job, tx.clone());
+                    self.spawn_job(job, tx.clone(), cancel.clone());
                 }
                 // --- Pooled: original allocation logic unchanged. ----------
                 ResourceMode::Pooled(ref mut pool) => match pool.allocate(job.resources.as_slice())
                 {
                     Ok(true) => {
                         clerk::debug!("allocated, spawning");
-                        self.spawn_job(job, tx.clone());
+                        self.spawn_job(job, tx.clone(), cancel.clone());
                     }
                     Ok(false) => {
                         clerk::debug!("insufficient resources, re-queued");
@@ -117,7 +122,12 @@ where
         }
     }
 
-    fn spawn_job(&self, job: Job<P>, tx: mpsc::Sender<DispatcherEvent<P>>) {
+    fn spawn_job(
+        &self,
+        job: Job<P>,
+        tx: mpsc::Sender<DispatcherEvent<P>>,
+        cancel: CancellationToken,
+    ) {
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
             KIOYU_JOB_SPAN,
@@ -126,11 +136,17 @@ where
         );
         tokio::spawn(async move {
             clerk::debug!("executing");
-            match job.payload.execute().instrument(span).await {
+            match job.payload.execute().instrument(span.clone()).await {
                 Ok(_) => clerk::debug!("finished"),
                 Err(e) => clerk::error!("payload error: {}", e),
             }
-            // FreeResource is a no-op in Unlimited mode but harmless to send.
+
+            clerk::debug!("post processing");
+            job.payload
+                .post_process(cancel.is_cancelled())
+                .instrument(span)
+                .await;
+
             clerk::debug!("releasing resources");
             let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
         });
@@ -157,11 +173,13 @@ where
     P: IPayload + Send + 'static,
 {
     let (tx, rx) = mpsc::channel(128);
+    let cancel = CancellationToken::new();
     let dispatcher = Dispatcher::new(rx, mode);
     clerk::debug!("dispatcher started");
     tokio::spawn({
         let tx_for_jobs = tx.clone();
-        async move { dispatcher.run(tx_for_jobs).await }
+        let cancel_for_dispatcher = cancel.clone();
+        async move { dispatcher.run(tx_for_jobs, cancel_for_dispatcher).await }
     });
-    DispatcherHandle { tx }
+    DispatcherHandle { tx, cancel }
 }

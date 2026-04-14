@@ -10,6 +10,7 @@ clerk = { workspace = true, features = ["tracing"] }
 hashbrown = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt", "sync"] }
+tokio-util.workspace = true
 uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]

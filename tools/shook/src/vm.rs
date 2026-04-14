@@ -1,13 +1,18 @@
+use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use async_trait::async_trait;
 use hashbrown::HashMap;
 use kioyu::IPayload;
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
-use tokio::sync::Mutex;
+use tokio::sync::OnceCell;
+use validator::{Validate, ValidationError};
+
+use crate::config::Config;
+#[derive(Validate)]
+#[validate(context = Config)]
 pub struct RunnerPayload {
-    pub runner_name: String,
+    pub sandbox_name: String,
     pub image: String,
     pub cpus: u8,
     pub memory: u32,
@@ -16,16 +21,73 @@ pub struct RunnerPayload {
     pub envs: HashMap<String, String>,
     pub secrets: HashMap<String, (String, String)>,
     pub owner: String,
+    #[validate(custom(function = "Self::validate_repository", use_context))]
     pub repo: String,
     pub token: String,
-    pub sandboxes: Arc<Mutex<HashMap<String, Sandbox>>>,
+    sandbox: OnceCell<Sandbox>,
+}
+
+impl RunnerPayload {
+    pub fn new(
+        sandbox_name: String,
+        image: String,
+        cpus: u8,
+        memory: u32,
+        volumes: HashMap<PathBuf, PathBuf>,
+        ports: HashMap<u16, u16>,
+        envs: HashMap<String, String>,
+        secrets: HashMap<String, (String, String)>,
+        owner: String,
+        repo: String,
+        token: String,
+    ) -> Self {
+        Self {
+            sandbox_name,
+            image,
+            cpus,
+            memory,
+            volumes,
+            ports,
+            envs,
+            secrets,
+            owner,
+            repo,
+            token,
+            sandbox: OnceCell::new(),
+        }
+    }
+    fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
+        if !context.devop.allowed_repositories.contains(repo) {
+            clerk::warn!(repository = %repo, "Repository not in allowlist");
+            return Err(ValidationError::new("Repository not allowed"));
+        }
+        clerk::debug!(repository = %repo, "Repository validated");
+        Ok(())
+    }
+}
+impl Debug for RunnerPayload {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RunnerPayload")
+            .field("sandbox_name", &self.sandbox_name)
+            .field("image", &self.image)
+            .field("cpus", &self.cpus)
+            .field("memory", &self.memory)
+            .field("volumes", &self.volumes)
+            .field("ports", &self.ports)
+            .field("envs", &self.envs)
+            .field("secrets", &self.secrets)
+            .field("owner", &self.owner)
+            .field("repo", &self.repo)
+            .field("token", &self.token)
+            .finish()
+    }
 }
 #[async_trait]
 impl IPayload for RunnerPayload {
     type Error = mischief::Report;
     async fn execute(&self) -> mischief::Result<()> {
         let sandbox = build_sandbox(
-            &self.runner_name,
+            &self.sandbox_name,
             &self.image,
             self.cpus,
             self.memory,
@@ -36,17 +98,23 @@ impl IPayload for RunnerPayload {
         )
         .await?;
         let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
-        self.sandboxes
-            .lock()
-            .await
-            .insert(self.runner_name.clone(), sandbox);
+        self.sandbox.set(sandbox).ok();
         drain_sandbox_handle(handle).await;
-        stop_and_remove_sandbox(&self.sandboxes.lock().await.get(&self.runner_name).unwrap()).await;
         Ok(())
+    }
+    async fn post_process(&self, _cancelled: bool) {
+        if let Some(sandbox) = self.sandbox.get() {
+            stop_and_remove_sandbox(sandbox).await;
+        } else {
+            clerk::warn!(
+                "runner '{}' has no sandbox to clean up (build may have failed)",
+                self.sandbox_name
+            );
+        }
     }
 }
 pub async fn build_sandbox(
-    name: &str,
+    sandbox_name: &str,
     image: &str,
     cpus: u8,
     memory: u32,
@@ -55,7 +123,7 @@ pub async fn build_sandbox(
     envs: &HashMap<String, String>,
     secrets: &HashMap<String, (String, String)>,
 ) -> Result<Sandbox, MicrosandboxError> {
-    let mut builder = Sandbox::builder(name)
+    let mut builder = Sandbox::builder(sandbox_name)
         .image(image)
         .cpus(cpus)
         .memory(memory)
@@ -75,13 +143,13 @@ pub async fn build_sandbox(
         builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
     }
 
-    clerk::debug!("Sandbox builder configured: {name}");
+    clerk::debug!("Sandbox builder configured: {sandbox_name}");
     let sandbox = builder.create().await?;
-    clerk::debug!("Sandbox created: {name}");
+    clerk::debug!("Sandbox created: {sandbox_name}");
 
     Ok(sandbox)
 }
-pub async fn start_runner(
+async fn start_runner(
     sandbox: &Sandbox,
     owner: &str,
     repo: &str,
@@ -92,7 +160,7 @@ pub async fn start_runner(
         .await?;
     Ok(handle)
 }
-pub async fn drain_sandbox_handle(mut handle: ExecHandle) {
+async fn drain_sandbox_handle(mut handle: ExecHandle) {
     loop {
         let event = match handle.recv().await {
             Some(event) => event,
@@ -109,7 +177,7 @@ pub async fn drain_sandbox_handle(mut handle: ExecHandle) {
         }
     }
 }
-pub async fn stop_and_remove_sandbox(sandbox: &Sandbox) {
+async fn stop_and_remove_sandbox(sandbox: &Sandbox) {
     let name = sandbox.name();
     if Sandbox::list()
         .await

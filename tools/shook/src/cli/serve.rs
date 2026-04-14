@@ -4,7 +4,8 @@ use kioyu::start_dispatcher;
 
 use crate::cli::CommonArgs;
 use crate::config::Config;
-use crate::server::{AppContext, JobSpec, start_server};
+use crate::server::{AppContext, start_server};
+use crate::vm::RunnerPayload;
 
 pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
     let config = Config::load_config(&args.config)?;
@@ -12,7 +13,7 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
     // init kioyu
     let mut pool = kioyu::ResourcePool::new();
     pool.register("memory", config.kioyu.memory as usize)?;
-    let kioyu_handle = start_dispatcher::<JobSpec>(pool);
+    let kioyu_handle = start_dispatcher::<RunnerPayload>(pool);
 
     // init server
     let shared_state = Arc::new(AppContext {

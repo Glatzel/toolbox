@@ -9,16 +9,17 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 use error::ShookServerError;
-pub use job::{IJobSpec, JobSpec};
+pub use job::IRunnerPayload;
 use kioyu::{DispatcherHandle, Job, ResourceRequest};
 use validator::ValidateArgs;
 use vendor::*;
 
 use crate::config::{Config, Vendor};
+use crate::vm::RunnerPayload;
 
 pub struct AppContext {
     pub config: Config,
-    pub kioyu_handle: DispatcherHandle<JobSpec>,
+    pub kioyu_handle: DispatcherHandle<RunnerPayload>,
 }
 fn app(shared_state: Arc<AppContext>) -> Router {
     Router::new()
@@ -47,10 +48,10 @@ async fn webhook(
 ) -> Response {
     clerk::debug!(vendor = ?state.config.devop.vendor, "Received webhook request");
 
-    let job_spec = match state.config.devop.vendor {
+    let runner_payload = match state.config.devop.vendor {
         Vendor::Github => {
             clerk::debug!("Dispatching to GitHub webhook parser");
-            match github::WebhookPayload::job_spec(&headers, &body, &state.config) {
+            match github::WebhookPayload::runner_payload(&headers, &body, &state.config) {
                 Ok(spec) => spec,
                 Err(response) => return response.into_response(),
             }
@@ -64,15 +65,19 @@ async fn webhook(
                 .into_response();
         }
     };
-    clerk::debug!("{:?}", job_spec);
-    match job_spec.validate_with_args(&state.config) {
+    clerk::debug!("{:?}", runner_payload);
+    match runner_payload.validate_with_args(&state.config) {
         Ok(_) => {
             clerk::debug!("Validated runner spec");
             let resource_request =
-                ResourceRequest::new(vec![("memory", job_spec.runner_spec.memory as usize)]);
+                ResourceRequest::new(vec![("memory", runner_payload.memory as usize)]);
             match state
                 .kioyu_handle
-                .submit(Job::new(job_spec.job.clone(), job_spec, resource_request))
+                .submit(Job::new(
+                    runner_payload.sandbox_name.clone(),
+                    runner_payload,
+                    resource_request,
+                ))
                 .await
             {
                 Ok(_) => (StatusCode::OK, "OK".to_string()).into_response(),

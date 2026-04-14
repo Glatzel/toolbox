@@ -2441,6 +2441,7 @@ dependencies = [
  "hashbrown 0.16.1",
  "thiserror 2.0.18",
  "tokio",
+ "tokio-util",
  "uuid",
 ]
 

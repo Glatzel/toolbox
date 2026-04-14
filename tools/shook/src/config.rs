@@ -101,12 +101,12 @@ impl RawConfig {
             .iter()
             .any(|(_, runner)| runner.count > 1)
         {
-            if config.devop.allowed_users.iter().count() > 1 {
+            if config.devop.allowed_users.len() > 1 {
                 const MSG: &str = "Only one user is allowed when runner count > 1.";
                 clerk::error!(MSG);
                 return Err(validator::ValidationError::new(MSG));
             }
-            if config.devop.allowed_repositories.iter().count() > 1 {
+            if config.devop.allowed_repositories.len() > 1 {
                 const MSG: &str = "Only one repository is allowed when runner count > 1.";
                 clerk::error!(MSG);
                 return Err(validator::ValidationError::new(MSG));

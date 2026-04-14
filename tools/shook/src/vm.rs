@@ -27,6 +27,7 @@ pub struct RunnerPayload {
 }
 
 impl RunnerPayload {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         sandbox_name: String,
         image: String,
@@ -132,7 +133,7 @@ impl IPayload for RunnerPayload {
         Ok(())
     }
 }
-
+#[allow(clippy::too_many_arguments)]
 pub async fn build_sandbox(
     sandbox_name: &str,
     image: &str,

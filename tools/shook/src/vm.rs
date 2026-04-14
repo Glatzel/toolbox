@@ -1,8 +1,50 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use hashbrown::HashMap;
+use kioyu::IPayload;
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
-
+use tokio::sync::Mutex;
+pub struct RunnerPayload {
+    pub runner_name: String,
+    pub image: String,
+    pub cpus: u8,
+    pub memory: u32,
+    pub volumes: HashMap<PathBuf, PathBuf>,
+    pub ports: HashMap<u16, u16>,
+    pub envs: HashMap<String, String>,
+    pub secrets: HashMap<String, (String, String)>,
+    pub owner: String,
+    pub repo: String,
+    pub token: String,
+    pub sandboxes: Arc<Mutex<HashMap<String, Sandbox>>>,
+}
+#[async_trait]
+impl IPayload for RunnerPayload {
+    type Error = mischief::Report;
+    async fn execute(&self) -> mischief::Result<()> {
+        let sandbox = build_sandbox(
+            &self.runner_name,
+            &self.image,
+            self.cpus,
+            self.memory,
+            &self.volumes,
+            &self.ports,
+            &self.envs,
+            &self.secrets,
+        )
+        .await?;
+        let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
+        self.sandboxes
+            .lock()
+            .await
+            .insert(self.runner_name.clone(), sandbox);
+        drain_sandbox_handle(handle).await;
+        stop_and_remove_sandbox(&self.sandboxes.lock().await.get(&self.runner_name).unwrap()).await;
+        Ok(())
+    }
+}
 pub async fn build_sandbox(
     name: &str,
     image: &str,
@@ -69,6 +111,16 @@ pub async fn drain_sandbox_handle(mut handle: ExecHandle) {
 }
 pub async fn stop_and_remove_sandbox(sandbox: &Sandbox) {
     let name = sandbox.name();
+    if Sandbox::list()
+        .await
+        .unwrap()
+        .iter()
+        .any(|s| s.name() == name)
+    {
+        clerk::debug!("Sandbox {name} already exists, skipping stop and remove");
+        return;
+    }
+
     if let Err(e) = sandbox.stop_and_wait().await {
         clerk::error!("Failed to stop sandbox {name}: {e}");
     }

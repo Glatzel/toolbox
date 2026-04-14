@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use clerk::tracing::Instrument;
 use tokio::sync::mpsc;
+use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
 use crate::KIOYU_JOB_SPAN;
@@ -17,7 +18,6 @@ pub enum DispatchError {
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
     FreeResource(Job<P>),
-    Shutdown,
 }
 
 pub struct DispatcherHandle<P> {
@@ -36,7 +36,7 @@ impl<P> DispatcherHandle<P> {
 
     pub async fn shutdown(self) {
         self.cancel.cancel();
-        let _ = self.tx.send(DispatcherEvent::Shutdown).await;
+        drop(self.tx);
         let _ = self.join.await;
     }
 }
@@ -50,7 +50,7 @@ struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
     mode: ResourceMode,
     queue: VecDeque<Job<P>>,
-    handles: Vec<tokio::task::JoinHandle<()>>,
+    joinset: JoinSet<()>,
 }
 
 impl<P> Dispatcher<P> {
@@ -59,7 +59,7 @@ impl<P> Dispatcher<P> {
             rx,
             mode,
             queue: VecDeque::new(),
-            handles: Vec::new(),
+            joinset: JoinSet::new(),
         }
     }
 }
@@ -75,36 +75,66 @@ where
     ) {
         clerk::debug!("dispatcher started");
 
-        while let Some(event) = self.rx.recv().await {
-            match event {
-                DispatcherEvent::Submit(job) => {
-                    self.queue.push_back(job);
-                }
+        loop {
+            tokio::select! {
+                event = self.rx.recv() => {
+                    match event {
+                        Some(event) => {
+                            self.handle_event(event, &tx, &cancel);
+                        }
 
-                DispatcherEvent::FreeResource(job) => {
-                    if let ResourceMode::Pooled(ref mut pool) = self.mode {
-                        if let Err(e) = pool.free(job.resources.as_slice()) {
-                            clerk::error!("resource free failed: {}", e);
+                        None => {
+                            clerk::debug!("dispatcher channel closed");
+                            break;
                         }
                     }
                 }
 
-                DispatcherEvent::Shutdown => {
-                    clerk::debug!("dispatcher shutting down");
+                Some(res) = self.joinset.join_next() => {
+                    if let Err(e) = res {
+                        clerk::error!("job panicked: {}", e);
+                    }
+                }
+
+                _ = cancel.cancelled() => {
+                    clerk::debug!("dispatcher cancelled");
                     break;
                 }
             }
-
-            self.schedule(&tx, &cancel);
         }
 
-        for handle in self.handles.drain(..) {
-            let _ = handle.await;
+        clerk::debug!("waiting for jobs to finish");
+
+        while let Some(res) = self.joinset.join_next().await {
+            if let Err(e) = res {
+                clerk::error!("job panicked: {}", e);
+            }
         }
 
         clerk::debug!("dispatcher stopped");
     }
+    fn handle_event(
+        &mut self,
+        event: DispatcherEvent<P>,
+        tx: &mpsc::Sender<DispatcherEvent<P>>,
+        cancel: &CancellationToken,
+    ) {
+        match event {
+            DispatcherEvent::Submit(job) => {
+                self.queue.push_back(job);
+            }
 
+            DispatcherEvent::FreeResource(job) => {
+                if let ResourceMode::Pooled(ref mut pool) = self.mode {
+                    if let Err(e) = pool.free(job.resources.as_slice()) {
+                        clerk::error!("resource free failed: {}", e);
+                    }
+                }
+            }
+        }
+
+        self.schedule(tx, cancel);
+    }
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
         while let Some(job) = self.queue.pop_front() {
             match self.mode {
@@ -145,7 +175,7 @@ where
 
         let cancel = cancel.clone();
 
-        let handle = tokio::spawn(
+        self.joinset.spawn(
             async move {
                 clerk::debug!("job executing");
 
@@ -159,16 +189,12 @@ where
                     clerk::error!("payload post process error: {}", e);
                 }
 
-                if !cancel.is_cancelled() {
-                    let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
-                }
+                let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
 
                 clerk::debug!("job finished");
             }
             .instrument(span),
         );
-
-        self.handles.push(handle);
     }
 }
 

@@ -5,7 +5,6 @@ use async_trait::async_trait;
 use hashbrown::HashMap;
 use kioyu::{CancellationToken, IPayload};
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
-use tokio::sync::{Mutex, OnceCell};
 use validator::{Validate, ValidationError};
 
 use crate::config::Config;
@@ -24,8 +23,6 @@ pub struct RunnerPayload {
     #[validate(custom(function = "Self::validate_repository", use_context))]
     pub repo: String,
     pub token: String,
-    sandbox: OnceCell<Sandbox>,
-    sandbox_handle: OnceCell<Mutex<ExecHandle>>,
 }
 
 impl RunnerPayload {
@@ -54,8 +51,6 @@ impl RunnerPayload {
             owner,
             repo,
             token,
-            sandbox: OnceCell::new(),
-            sandbox_handle: OnceCell::new(),
         }
     }
     fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
@@ -100,36 +95,20 @@ impl IPayload for RunnerPayload {
         )
         .await?;
         let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
-        self.sandbox.set(sandbox).ok();
-        self.sandbox_handle.set(Mutex::new(handle)).ok();
-        if let Some(h) = self.sandbox_handle.get() {
-            drain_sandbox_handle(&mut *h.lock().await, &cancel).await;
-        }
+        drain_sandbox_handle(handle, &cancel).await;
         Ok(())
     }
     async fn post_process(&self) -> mischief::Result<()> {
         let name = &self.sandbox_name;
         if Sandbox::list().await?.iter().all(|s| s.name() != name) {
-            clerk::debug!("Sandbox {name} is not exists, skipping stop and remove");
+            clerk::debug!("post_process: sandbox not found, skipping");
             return Ok(());
         }
-        if let Some(sandbox) = self.sandbox.get() {
-            match sandbox.stop_and_wait().await {
-                Ok(_) => clerk::debug!("Sandbox stopped successfully"),
-                Err(e) => {
-                    clerk::error!("Failed to stop sandbox {name}: {e}");
-                }
-            }
-        }
         match Sandbox::remove(name).await {
-            Ok(()) => clerk::debug!("Sandbox removed successfully"),
-            Err(e) => {
-                clerk::error!("Failed to remove sandbox {name}: {e}");
-            }
+            Ok(()) => clerk::debug!("post_process: sandbox removed"),
+            Err(e) => clerk::error!("post_process: remove failed: {e}"),
         }
-        if let Some(h) = self.sandbox_handle.get() {
-            drop(h.lock().await);
-        }
+        clerk::debug!("post_process: done");
         Ok(())
     }
 }
@@ -164,7 +143,7 @@ pub async fn build_sandbox(
     }
 
     clerk::debug!("Sandbox builder configured: {sandbox_name}");
-    let sandbox = builder.create().await?;
+    let sandbox = builder.create_detached().await?;
     clerk::debug!("Sandbox created: {sandbox_name}");
 
     Ok(sandbox)
@@ -180,10 +159,13 @@ async fn start_runner(
         .await?;
     Ok(handle)
 }
-async fn drain_sandbox_handle(handle: &mut ExecHandle, cancel: &CancellationToken) {
+async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken) {
     loop {
         tokio::select! {
-            _ = cancel.cancelled() => { clerk::debug!("Sandbox cancelled, breaking"); break; },
+            _ = cancel.cancelled() => {
+                clerk::debug!("Sandbox cancelled, breaking");
+                break;
+            },
             event = handle.recv() => {
                 let event = match event {
                     Some(event) => event,

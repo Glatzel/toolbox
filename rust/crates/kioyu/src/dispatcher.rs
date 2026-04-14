@@ -34,17 +34,26 @@ impl<P> DispatcherHandle<P> {
     pub async fn shutdown(&self) { self.tx.send(DispatcherEvent::Shutdown).await.ok(); }
 }
 
+// --- NEW ---
+pub enum ResourceMode {
+    /// Normal mode: allocate/free via the pool.
+    Pooled(ResourcePool),
+    /// Unlimited mode: skip allocation entirely, spawn immediately.
+    Unlimited,
+}
+// -----------
+
 struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
-    pool: ResourcePool,
+    mode: ResourceMode, // replaces bare `pool` field
     queue: VecDeque<Job<P>>,
 }
 
 impl<P> Dispatcher<P> {
-    pub fn new(rx: mpsc::Receiver<DispatcherEvent<P>>, pool: ResourcePool) -> Self {
+    pub fn new(rx: mpsc::Receiver<DispatcherEvent<P>>, mode: ResourceMode) -> Self {
         Self {
             rx,
-            pool,
+            mode,
             queue: VecDeque::new(),
         }
     }
@@ -63,9 +72,12 @@ where
                     self.queue.push_back(job);
                 }
                 DispatcherEvent::FreeResource(job) => {
-                    clerk::debug!("freeing resources");
-                    if let Err(e) = self.pool.free(job.resources.as_slice()) {
-                        clerk::error!("free failed: {}", e);
+                    // Only meaningful in Pooled mode; ignored in Unlimited.
+                    if let ResourceMode::Pooled(ref mut pool) = self.mode {
+                        clerk::debug!("freeing resources");
+                        if let Err(e) = pool.free(job.resources.as_slice()) {
+                            clerk::error!("free failed: {}", e);
+                        }
                     }
                 }
                 DispatcherEvent::Shutdown => {
@@ -73,33 +85,39 @@ where
                     return;
                 }
             }
-
             self.schedule(&tx);
         }
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>) {
         while let Some(job) = self.queue.pop_front() {
-            match self.pool.allocate(job.resources.as_slice()) {
-                Ok(true) => {
-                    clerk::debug!("allocated, spawning");
+            match self.mode {
+                // --- Unlimited: always spawn immediately, no allocation. ---
+                ResourceMode::Unlimited => {
+                    clerk::debug!("unlimited mode, spawning immediately");
                     self.spawn_job(job, tx.clone());
                 }
-                Ok(false) => {
-                    clerk::debug!("insufficient resources, re-queued");
-                    self.queue.push_front(job);
-                    break;
-                }
-                Err(e) => {
-                    clerk::error!("allocation error: {}", e);
-                }
+                // --- Pooled: original allocation logic unchanged. ----------
+                ResourceMode::Pooled(ref mut pool) => match pool.allocate(job.resources.as_slice())
+                {
+                    Ok(true) => {
+                        clerk::debug!("allocated, spawning");
+                        self.spawn_job(job, tx.clone());
+                    }
+                    Ok(false) => {
+                        clerk::debug!("insufficient resources, re-queued");
+                        self.queue.push_front(job);
+                        break;
+                    }
+                    Err(e) => {
+                        clerk::error!("allocation error: {}", e);
+                    }
+                },
             }
         }
     }
 
     fn spawn_job(&self, job: Job<P>, tx: mpsc::Sender<DispatcherEvent<P>>) {
-        // The span must be created before spawn and explicitly moved in,
-        // since the executor may run this on a different thread.
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
             KIOYU_JOB_SPAN,
@@ -112,24 +130,38 @@ where
                 Ok(_) => clerk::debug!("finished"),
                 Err(e) => clerk::error!("payload error: {}", e),
             }
+            // FreeResource is a no-op in Unlimited mode but harmless to send.
             clerk::debug!("releasing resources");
             let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
         });
     }
 }
 
+// Two constructors on the public API — callers pick their mode.
 pub fn start_dispatcher<P>(pool: ResourcePool) -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,
 {
-    let (tx, rx) = mpsc::channel(128);
-    let dispatcher = Dispatcher::new(rx, pool);
-    clerk::debug!("dispatcher started");
+    start_dispatcher_with_mode(ResourceMode::Pooled(pool))
+}
 
+pub fn start_dispatcher_unlimited<P>() -> DispatcherHandle<P>
+where
+    P: IPayload + Send + 'static,
+{
+    start_dispatcher_with_mode(ResourceMode::Unlimited)
+}
+
+fn start_dispatcher_with_mode<P>(mode: ResourceMode) -> DispatcherHandle<P>
+where
+    P: IPayload + Send + 'static,
+{
+    let (tx, rx) = mpsc::channel(128);
+    let dispatcher = Dispatcher::new(rx, mode);
+    clerk::debug!("dispatcher started");
     tokio::spawn({
         let tx_for_jobs = tx.clone();
         async move { dispatcher.run(tx_for_jobs).await }
     });
-
     DispatcherHandle { tx }
 }

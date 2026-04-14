@@ -9,7 +9,8 @@ chrono = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
 hashbrown = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt", "sync"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
+tokio-util.workspace = true
 uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]

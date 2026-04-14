@@ -92,7 +92,7 @@ pub trait FormatEventToWriter {
 
 impl FormatEventToWriter for ClerkFormatter {
     fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>) {
-        let _ = write_header!(self, writer, event.metadata());
+        write_header!(self, writer, event.metadata());
         let mut visitor = WriterFieldVisitor { writer };
         event.record(&mut visitor);
         let _ = writeln!(writer);

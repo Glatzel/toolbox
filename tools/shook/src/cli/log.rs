@@ -9,7 +9,8 @@ use crate::cli::CommonArgs;
 pub fn init_log(args: &Args) {
     let level = args.verbose.tracing_level_filter();
     match &args.commands {
-        super::Commands::Serve(CommonArgs { config }) => {
+        super::Commands::Serve(CommonArgs { config })
+        | super::Commands::Run(CommonArgs { config }) => {
             let log_dir = config
                 .parent()
                 .expect("Config not exist.")

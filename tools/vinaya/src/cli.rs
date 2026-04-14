@@ -37,10 +37,7 @@ async fn execute(commands: Commands) -> mischief::Result<()> {
 pub async fn main() {
     let args = VinayaArgs::parse();
     clerk::tracing_subscriber::registry()
-        .with(
-            clerk::terminal_layer(true)
-                .with_filter(args.verbose.tracing_level_filter()),
-        )
+        .with(clerk::terminal_layer(true).with_filter(args.verbose.tracing_level_filter()))
         .init();
 
     // run

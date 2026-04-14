@@ -56,7 +56,7 @@ fn execute(args: Args) -> mischief::Result<()> {
     );
     clerk::debug!("Dependency tree root created");
     let render = arbor::renders::LazyRender {
-        tree: tree,
+        tree,
         indent: UnicodeIndent,
         width: 0,
     };

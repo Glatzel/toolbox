@@ -1,0 +1,12 @@
+---
+source: crates/kioyu/tests/test_kioyu.rs
+expression: render
+---
+[LOG_ROOT_DIR]
+╰── kioyu
+    ╰── [TIMESTAMP]
+        ├── jobs
+        │   ├── [TIMESTAMP].job1.[UUID].log
+        │   ├── [TIMESTAMP].job2.[UUID].log
+        │   ╰── [TIMESTAMP].job3.[UUID].log
+        ╰── kioyu.log

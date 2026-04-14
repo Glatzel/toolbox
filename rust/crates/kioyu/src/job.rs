@@ -15,7 +15,10 @@ impl ResourceRequest {
         clerk::debug!("creating resource request with {} resource(s)", req.len());
         Self(req)
     }
-
+    pub fn none() -> Self {
+        clerk::debug!("creating empty resource request (no resources)");
+        Self(Vec::new())
+    }
     pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> { self.0.iter() }
 
     pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] { &self.0 }

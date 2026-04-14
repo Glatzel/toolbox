@@ -48,6 +48,7 @@ impl IPayload for JobSpec {
             self.runner_spec.cpus,
             self.runner_spec.memory,
             &self.runner_spec.volumes,
+            &self.runner_spec.ports,
             &self.runner_spec.envs,
             &self.runner_spec.secrets,
         )

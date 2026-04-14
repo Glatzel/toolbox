@@ -36,21 +36,19 @@ impl<P> DispatcherHandle<P> {
 
     pub async fn shutdown(self) {
         self.cancel.cancel();
-        self.tx.send(DispatcherEvent::Shutdown).await.ok();
-        self.join.await.ok();
+        let _ = self.tx.send(DispatcherEvent::Shutdown).await;
+        let _ = self.join.await;
     }
 }
 
 pub enum ResourceMode {
-    /// Normal mode: allocate/free via the pool.
     Pooled(ResourcePool),
-    /// Unlimited mode: skip allocation entirely, spawn immediately.
     Unlimited,
 }
 
 struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
-    mode: ResourceMode, // replaces bare `pool` field
+    mode: ResourceMode,
     queue: VecDeque<Job<P>>,
     handles: Vec<tokio::task::JoinHandle<()>>,
 }
@@ -75,60 +73,59 @@ where
         tx: mpsc::Sender<DispatcherEvent<P>>,
         cancel: CancellationToken,
     ) {
-        clerk::debug!("dispatcher running");
+        clerk::debug!("dispatcher started");
+
         while let Some(event) = self.rx.recv().await {
             match event {
                 DispatcherEvent::Submit(job) => {
-                    clerk::debug!("submitted");
                     self.queue.push_back(job);
                 }
+
                 DispatcherEvent::FreeResource(job) => {
-                    // Only meaningful in Pooled mode; ignored in Unlimited.
                     if let ResourceMode::Pooled(ref mut pool) = self.mode {
-                        clerk::debug!("freeing resources");
                         if let Err(e) = pool.free(job.resources.as_slice()) {
-                            clerk::error!("free failed: {}", e);
+                            clerk::error!("resource free failed: {}", e);
                         }
                     }
                 }
+
                 DispatcherEvent::Shutdown => {
                     clerk::debug!("dispatcher shutting down");
                     break;
                 }
             }
+
             self.schedule(&tx, &cancel);
-        } // wait running jobs
-        for handle in self.handles.drain(..) {
-            handle.await.ok();
         }
-        clerk::debug!("dispatcher all jobs done");
-        return;
+
+        for handle in self.handles.drain(..) {
+            let _ = handle.await;
+        }
+
+        clerk::debug!("dispatcher stopped");
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
         while let Some(job) = self.queue.pop_front() {
             match self.mode {
-                // --- Unlimited: always spawn immediately, no allocation. ---
                 ResourceMode::Unlimited => {
-                    clerk::debug!("unlimited mode, spawning immediately");
                     self.spawn_job(job, tx.clone(), cancel);
                 }
-                // --- Pooled: original allocation logic unchanged. ----------
-                ResourceMode::Pooled(ref mut pool) => match pool.allocate(job.resources.as_slice())
-                {
-                    Ok(true) => {
-                        clerk::debug!("allocated, spawning");
-                        self.spawn_job(job, tx.clone(), cancel);
+
+                ResourceMode::Pooled(ref mut pool) => {
+                    match pool.allocate(job.resources.as_slice()) {
+                        Ok(true) => {
+                            self.spawn_job(job, tx.clone(), cancel);
+                        }
+                        Ok(false) => {
+                            self.queue.push_front(job);
+                            break;
+                        }
+                        Err(e) => {
+                            clerk::error!("resource allocation failed: {}", e);
+                        }
                     }
-                    Ok(false) => {
-                        clerk::debug!("insufficient resources, re-queued");
-                        self.queue.push_front(job);
-                        break;
-                    }
-                    Err(e) => {
-                        clerk::error!("allocation error: {}", e);
-                    }
-                },
+                }
             }
         }
     }
@@ -145,33 +142,36 @@ where
             job.id = %job.id,
             job.name = %job.name,
         );
+
         let cancel = cancel.clone();
+
         let handle = tokio::spawn(
             async move {
-                clerk::debug!("executing");
-                match job.payload.execute(cancel.clone()).await {
-                    Ok(_) => clerk::debug!("finished"),
-                    Err(e) => clerk::error!("payload error: {}", e),
+                clerk::debug!("job executing");
+
+                if let Err(e) = job.payload.execute(cancel.clone()).await {
+                    clerk::error!("payload execute error: {}", e);
                 }
 
-                clerk::debug!("post processing");
-                match job.payload.post_process().await {
-                    Ok(_) => clerk::debug!("post processed"),
-                    Err(e) => clerk::error!("post process error: {}", e),
+                clerk::debug!("job post processing");
+
+                if let Err(e) = job.payload.post_process().await {
+                    clerk::error!("payload post process error: {}", e);
                 }
-                clerk::debug!("post process returned");
+
                 if !cancel.is_cancelled() {
-                    clerk::debug!("releasing resources");
                     let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
                 }
+
+                clerk::debug!("job finished");
             }
             .instrument(span),
         );
+
         self.handles.push(handle);
     }
 }
 
-// Two constructors on the public API — callers pick their mode.
 pub fn start_dispatcher<P>(pool: ResourcePool) -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,
@@ -191,13 +191,19 @@ where
     P: IPayload + Send + 'static,
 {
     let (tx, rx) = mpsc::channel(128);
+
     let cancel = CancellationToken::new();
+
     let dispatcher = Dispatcher::new(rx, mode);
-    clerk::debug!("dispatcher started");
+
     let join = tokio::spawn({
         let tx_for_jobs = tx.clone();
         let cancel_for_dispatcher = cancel.clone();
-        async move { dispatcher.run(tx_for_jobs, cancel_for_dispatcher).await }
+
+        async move {
+            dispatcher.run(tx_for_jobs, cancel_for_dispatcher).await;
+        }
     });
+
     DispatcherHandle { tx, cancel, join }
 }

@@ -8,6 +8,7 @@ use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
 use validator::{Validate, ValidationError};
 
 use crate::config::Config;
+
 #[derive(Validate)]
 #[validate(context = Config)]
 pub struct RunnerPayload {
@@ -53,15 +54,18 @@ impl RunnerPayload {
             token,
         }
     }
+
     fn validate_repository(repo: &String, context: &Config) -> Result<(), ValidationError> {
         if !context.devop.allowed_repositories.contains(repo) {
-            clerk::warn!(repository = %repo, "Repository not in allowlist");
-            return Err(ValidationError::new("Repository not allowed"));
+            clerk::warn!(repo = %repo, "repository rejected (not in allowlist)");
+            return Err(ValidationError::new("repository_not_allowed"));
         }
-        clerk::debug!(repository = %repo, "Repository validated");
+
+        clerk::debug!(repo = %repo, "repository validated");
         Ok(())
     }
 }
+
 impl Debug for RunnerPayload {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RunnerPayload")
@@ -75,14 +79,22 @@ impl Debug for RunnerPayload {
             .field("secrets", &self.secrets)
             .field("owner", &self.owner)
             .field("repo", &self.repo)
-            .field("token", &self.token)
             .finish()
     }
 }
+
 #[async_trait]
 impl IPayload for RunnerPayload {
     type Error = mischief::Report;
+
     async fn execute(&self, cancel: CancellationToken) -> mischief::Result<()> {
+        clerk::debug!(
+            sandbox = %self.sandbox_name,
+            image = %self.image,
+            repo = %self.repo,
+            "starting runner sandbox"
+        );
+
         let sandbox = build_sandbox(
             &self.sandbox_name,
             &self.image,
@@ -94,24 +106,33 @@ impl IPayload for RunnerPayload {
             &self.secrets,
         )
         .await?;
+
         let handle = start_runner(&sandbox, &self.owner, &self.repo, &self.token).await?;
+
         drain_sandbox_handle(handle, &cancel).await;
+
+        clerk::debug!(sandbox = %self.sandbox_name, "runner execution finished");
+
         Ok(())
     }
+
     async fn post_process(&self) -> mischief::Result<()> {
         let name = &self.sandbox_name;
+
         if Sandbox::list().await?.iter().all(|s| s.name() != name) {
-            clerk::debug!("post_process: sandbox not found, skipping");
+            clerk::debug!(sandbox = %name, "sandbox already removed");
             return Ok(());
         }
+
         match Sandbox::remove(name).await {
-            Ok(()) => clerk::debug!("post_process: sandbox removed"),
-            Err(e) => clerk::error!("post_process: remove failed: {e}"),
+            Ok(()) => clerk::debug!(sandbox = %name, "sandbox removed"),
+            Err(e) => clerk::error!(sandbox = %name, error = %e, "sandbox removal failed"),
         }
-        clerk::debug!("post_process: done");
+
         Ok(())
     }
 }
+
 pub async fn build_sandbox(
     sandbox_name: &str,
     image: &str,
@@ -129,56 +150,86 @@ pub async fn build_sandbox(
         .replace()
         .entrypoint(["bash"]);
 
-    for (host, guest) in volumes.iter() {
+    for (host, guest) in volumes {
         builder = builder.volume(guest.to_string_lossy().as_ref(), |m| m.bind(host));
     }
-    for (host, guest) in ports.iter() {
+
+    for (host, guest) in ports {
         builder = builder.port(*host, *guest);
     }
-    for (key, value) in envs.iter() {
+
+    for (key, value) in envs {
         builder = builder.env(key, value);
     }
-    for (key, (value, url)) in secrets.iter() {
+
+    for (key, (value, url)) in secrets {
         builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
     }
 
-    clerk::debug!("Sandbox builder configured: {sandbox_name}");
+    clerk::debug!(
+        sandbox = %sandbox_name,
+        image = %image,
+        cpus,
+        memory,
+        "creating sandbox"
+    );
+
     let sandbox = builder.create_detached().await?;
-    clerk::debug!("Sandbox created: {sandbox_name}");
+
+    clerk::debug!(sandbox = %sandbox_name, "sandbox created");
 
     Ok(sandbox)
 }
+
 async fn start_runner(
     sandbox: &Sandbox,
     owner: &str,
     repo: &str,
     token: &str,
 ) -> Result<ExecHandle, MicrosandboxError> {
+    clerk::debug!(
+        sandbox = %sandbox.name(),
+        owner = %owner,
+        repo = %repo,
+        "starting runner process"
+    );
+
     let handle = sandbox
         .exec_stream("bash", ["./start-runner.sh", owner, repo, token])
         .await?;
+
     Ok(handle)
 }
+
 async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken) {
     loop {
         tokio::select! {
             _ = cancel.cancelled() => {
-                clerk::debug!("Sandbox cancelled, breaking");
+                clerk::debug!("sandbox cancellation received");
                 handle.kill().await.ok();
                 break;
-            },
+            }
+
             event = handle.recv() => {
-                let event = match event {
-                    Some(event) => event,
-                    None => break,
+                let Some(event) = event else {
+                    clerk::debug!("sandbox stream closed");
+                    break;
                 };
+
                 match event {
-                    ExecEvent::Stdout(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
-                    ExecEvent::Stderr(data) => clerk::debug!("{}", String::from_utf8_lossy(&data)),
+                    ExecEvent::Stdout(data) => {
+                        clerk::debug!("{}", String::from_utf8_lossy(&data));
+                    }
+
+                    ExecEvent::Stderr(data) => {
+                        clerk::debug!("{}", String::from_utf8_lossy(&data));
+                    }
+
                     ExecEvent::Exited { code } => {
-                        clerk::debug!("Sandbox exited with code: {code}");
+                        clerk::debug!(exit_code = code, "sandbox process exited");
                         break;
                     }
+
                     _ => {}
                 }
             }

@@ -149,7 +149,7 @@ where
         let handle = tokio::spawn(
             async move {
                 clerk::debug!("executing");
-                match job.payload.execute(cancel.clone()).await {
+                match job.payload.execute().await {
                     Ok(_) => clerk::debug!("finished"),
                     Err(e) => clerk::error!("payload error: {}", e),
                 }

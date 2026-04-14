@@ -83,10 +83,10 @@ where
         }
         let mut visitor = JobIdVisitor::new();
         attrs.record(&mut visitor);
-        if let (Some(job_id), Some(job_name)) = (visitor.id, visitor.name) {
-            if let Some(span) = ctx.span(id) {
-                span.extensions_mut().insert(JobId(job_id, job_name));
-            }
+        if let (Some(job_id), Some(job_name)) = (visitor.id, visitor.name)
+            && let Some(span) = ctx.span(id)
+        {
+            span.extensions_mut().insert(JobId(job_id, job_name));
         }
     }
 

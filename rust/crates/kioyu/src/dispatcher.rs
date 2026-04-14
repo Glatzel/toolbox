@@ -125,10 +125,10 @@ where
             }
 
             DispatcherEvent::FreeResource(job) => {
-                if let ResourceMode::Pooled(ref mut pool) = self.mode {
-                    if let Err(e) = pool.free(job.resources.as_slice()) {
-                        clerk::error!("resource free failed: {}", e);
-                    }
+                if let ResourceMode::Pooled(ref mut pool) = self.mode
+                    && let Err(e) = pool.free(job.resources.as_slice())
+                {
+                    clerk::error!("resource free failed: {}", e);
                 }
             }
         }

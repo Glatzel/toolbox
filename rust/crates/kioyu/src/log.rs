@@ -10,10 +10,7 @@ use clerk::tracing_subscriber::{self, Layer};
 use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
 use tracing_core::{Event, Subscriber};
 pub const KIOYU_JOB_SPAN: &str = "kioyu-job";
-// ---------------------------------------------------------------------------
-// Span extension — caches job id so we visit fields once, not per event
-// ---------------------------------------------------------------------------
-// store (id, name)
+
 struct JobId(String, String);
 
 struct JobIdVisitor {
@@ -47,10 +44,6 @@ impl tracing_core::field::Visit for JobIdVisitor {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// JobFileLayer
-// ---------------------------------------------------------------------------
 
 struct JobFileLayer {
     jobs_dir: PathBuf,
@@ -120,10 +113,6 @@ where
         self.formatter.format_to_writer(file, event);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Public entry point
-// ---------------------------------------------------------------------------
 
 /// Sets up kioyu's logging layers under `log_root`.
 ///

@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
-use hashbrown::HashMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::{DisplayFromStr, serde_as};
@@ -17,23 +17,18 @@ pub(super) struct RawConfigRunner {
     #[validate(range(min = 1))]
     memory: Option<u32>,
 
-    #[schemars(with = "Option<std::collections::HashMap<PathBuf, PathBuf>>")]
     volumes: Option<HashMap<PathBuf, PathBuf>>,
 
-    #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
     #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
 
-    #[schemars(with = "Option<std::collections::HashMap<String, String>>")]
     envs: Option<HashMap<String, String>>,
 
-    #[schemars(with = "Option<std::collections::HashMap<String, (String, String)>>")]
     secrets: Option<HashMap<String, (String, String)>>,
 
     #[validate(custom(function = "validate_runners"))]
     #[serde(flatten)]
-    #[schemars(with = "std::collections::HashMap<String, RawRunnerConfigInner>")]
     pub(super) runners: HashMap<String, RawRunnerConfigInner>,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, JsonSchema)]
@@ -61,24 +56,20 @@ pub(super) struct RawRunnerConfigInner {
     #[validate(range(min = 1))]
     memory: u32,
 
-    #[schemars(with = "Option<std::collections::HashMap<PathBuf, PathBuf>>")]
     volumes: Option<HashMap<PathBuf, PathBuf>>,
     #[serde(default)]
     volumes_mode: RunnerResolveMode,
 
-    #[schemars(with = "Option<std::collections::HashMap<u16, u16>>")]
     #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     #[validate(custom(function = "validate_ports"))]
     ports: Option<HashMap<u16, u16>>,
     #[serde(default)]
     ports_mode: RunnerResolveMode,
 
-    #[schemars(with = "Option<std::collections::HashMap<String, String>>")]
     envs: Option<HashMap<String, String>>,
     #[serde(default)]
     envs_mode: RunnerResolveMode,
 
-    #[schemars(with = "Option<std::collections::HashMap<String, (String, String)>>")]
     secrets: Option<HashMap<String, (String, String)>>,
     #[serde(default)]
     secrets_mode: RunnerResolveMode,

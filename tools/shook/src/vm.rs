@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
 
 use async_trait::async_trait;
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use kioyu::{CancellationToken, IPayload};
 use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
 use validator::{Validate, ValidationError};

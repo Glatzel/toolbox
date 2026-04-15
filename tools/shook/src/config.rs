@@ -7,7 +7,7 @@ use std::path::Path;
 
 pub use devop::*;
 use devop::{ConfigDevOp, RawConfigDevOp};
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use kioyu::{ConfigKioyu, RawConfigKioyu, default_config_kioyu};
 pub use runner::ConfigRunner;
 use runner::RawConfigRunner;

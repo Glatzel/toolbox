@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo doc
     required: false
-    default: --all-features --no-deps
+    default: --all-features --no-deps -- -D warnings
 
 runs:
   using: composite
@@ -25,5 +25,3 @@ runs:
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
         cargo doc ${{ inputs.args }}
-      env:
-        RUSTDOCFLAGS: "-D warnings"

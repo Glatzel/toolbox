@@ -126,32 +126,28 @@ impl RawConfigRunner {
                 &runner.ports,
                 runner.ports_mode,
             ) {
-                (true, _, Some(runner_ports), _) => {
-                    if !runner_ports.is_empty() {
-                        clerk::error!(
-                            "runner '{}' can not share ports with multiple instances",
-                            name
-                        );
-                        return Err(ValidationError::new(
-                            "runner can not share ports with multiple instances",
-                        ));
-                    }
+                (true, _, Some(runner_ports), _) if !runner_ports.is_empty() => {
+                    clerk::error!(
+                        "runner '{}' can not share ports with multiple instances",
+                        name
+                    );
+                    return Err(ValidationError::new(
+                        "runner can not share ports with multiple instances",
+                    ));
                 }
                 (
                     true,
                     Some(runner_ports),
                     _,
                     RunnerResolveMode::Merge | RunnerResolveMode::Replace,
-                ) => {
-                    if !runner_ports.is_empty() {
-                        clerk::error!(
-                            "runner '{}' can not share global ports with multiple instances",
-                            name
-                        );
-                        return Err(ValidationError::new(
-                            "runner can not share global ports with multiple instances",
-                        ));
-                    }
+                ) if !runner_ports.is_empty() => {
+                    clerk::error!(
+                        "runner '{}' can not share global ports with multiple instances",
+                        name
+                    );
+                    return Err(ValidationError::new(
+                        "runner can not share global ports with multiple instances",
+                    ));
                 }
                 _ => {}
             }

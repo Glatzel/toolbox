@@ -128,16 +128,13 @@ expression: schema
             "object",
             "null"
           ],
-          "additionalProperties": false,
-          "default": null,
-          "patternProperties": {
-            "^\\d+$": {
-              "type": "integer",
-              "format": "uint16",
-              "maximum": 65535,
-              "minimum": 0
-            }
-          }
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0
+          },
+          "default": null
         },
         "secrets": {
           "type": [
@@ -216,16 +213,13 @@ expression: schema
             "object",
             "null"
           ],
-          "additionalProperties": false,
-          "default": null,
-          "patternProperties": {
-            "^\\d+$": {
-              "type": "integer",
-              "format": "uint16",
-              "maximum": 65535,
-              "minimum": 0
-            }
-          }
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0
+          },
+          "default": null
         },
         "ports_mode": {
           "$ref": "#/$defs/RunnerResolveMode",

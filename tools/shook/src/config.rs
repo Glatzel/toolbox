@@ -3,11 +3,11 @@ mod kioyu;
 mod runner;
 mod server;
 
+use std::collections::HashMap;
 use std::path::Path;
 
 pub use devop::*;
 use devop::{ConfigDevOp, RawConfigDevOp};
-use hashbrown::HashMap;
 use kioyu::{ConfigKioyu, RawConfigKioyu, default_config_kioyu};
 pub use runner::ConfigRunner;
 use runner::RawConfigRunner;

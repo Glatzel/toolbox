@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 pub type ResourceKey = &'static str;
 #[derive(Debug, PartialEq, thiserror::Error)]

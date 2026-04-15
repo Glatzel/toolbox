@@ -19,7 +19,7 @@ criterion = { package = "codspeed-criterion-compat", version = "4.2.0" }
 defmt = "1.0.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 float-cmp = "0.10.0"
-hashbrown = "0.16.0"
+hashbrown = "0.17.0"
 insta = "1.46.1"
 owo-colors = "4.2.2"
 quote = "1.0.40"

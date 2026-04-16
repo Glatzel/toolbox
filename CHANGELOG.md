@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.4.16] - 2026-04-16
+
+### Changed
+
+- Kioyu by @Glatzel in [#447](https://github.com/Glatzel/toolbox/pull/447)
+- Shook msb by @Glatzel in [#440](https://github.com/Glatzel/toolbox/pull/440)
+- Shook add run mode by @Glatzel in [#452](https://github.com/Glatzel/toolbox/pull/452)
+- Use kioyu in shook run by @Glatzel in [#456](https://github.com/Glatzel/toolbox/pull/456)
+
+### Fixed
+
+- Update dispatcher.rs by @Glatzel in [#448](https://github.com/Glatzel/toolbox/pull/448)
+- Shook options by @Glatzel in [#451](https://github.com/Glatzel/toolbox/pull/451)
+
+### Removed
+
+- Remove useless comment by @Glatzel in [#462](https://github.com/Glatzel/toolbox/pull/462)
+
+### Testing
+
+- Simplify kioyu test by @Glatzel in [#461](https://github.com/Glatzel/toolbox/pull/461)
+
 ## [2026.4.7] - 2026-04-07
 
 ### Changed
@@ -394,6 +416,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.4.16]: https://github.com/Glatzel/toolbox/compare/v2026.4.7..v2026.4.16
 [2026.4.7]: https://github.com/Glatzel/toolbox/compare/v2026.4.3..v2026.4.7
 [2026.4.3]: https://github.com/Glatzel/toolbox/compare/v2026.3.17..v2026.4.3
 [2026.3.17]: https://github.com/Glatzel/toolbox/compare/v2026.3.14..v2026.3.17

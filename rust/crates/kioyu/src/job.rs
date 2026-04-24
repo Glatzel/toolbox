@@ -32,6 +32,7 @@ pub struct Job<P> {
     pub resources: ResourceRequest,
     pub payload: P,
     pub max_retries: usize,
+    pub(crate) attempt: usize,
 }
 
 impl<P> Job<P> {
@@ -55,6 +56,7 @@ impl<P> Job<P> {
             resources,
             payload,
             max_retries,
+            attempt: 0,
         }
     }
 }

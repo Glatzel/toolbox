@@ -110,6 +110,7 @@ async fn run_dispatcher_test(mode: DispatcherMode, snapshot_name: &str) {
                     counter: counter.clone(),
                 },
                 resource_request.clone(),
+                1,
             ))
             .await
             .unwrap();

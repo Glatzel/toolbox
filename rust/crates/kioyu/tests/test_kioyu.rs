@@ -205,6 +205,7 @@ async fn test_dispatcher_unlimited() {
 /// successfully. `post_process` must be called exactly once.
 #[tokio::test]
 async fn test_retry_succeeds() {
+    clerk::init_log_with_level(LevelFilter::TRACE);
     let handle = start_dispatcher_unlimited::<FailingPayload>();
 
     let (payload, execute_count, post_process_count) = FailingPayload::new(1);
@@ -239,6 +240,7 @@ async fn test_retry_succeeds() {
 /// times and then abandoned. `post_process` must never be called.
 #[tokio::test]
 async fn test_retry_exhausted() {
+    clerk::init_log_with_level(LevelFilter::TRACE);
     let handle = start_dispatcher_unlimited::<FailingPayload>();
 
     // fails_first=99 ensures the payload never succeeds.
@@ -275,9 +277,10 @@ async fn test_retry_exhausted() {
 /// a pool with capacity 1 and asserts the normal job eventually completes.
 #[tokio::test]
 async fn test_retry_exhaustion_frees_resources() {
+    clerk::init_log_with_level(LevelFilter::TRACE);
     let mut pool = ResourcePool::new();
     pool.register(ResourceKey::from("cpu"), 1).unwrap();
-    let resource = ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]);
+    let _resource = ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]);
 
     // Use a two-element dispatcher that can hold both payload types by making
     // the channel accept a common wrapper. Here we just run them sequentially

@@ -142,7 +142,7 @@ where
             }
 
             DispatcherEvent::RetryJob { job, attempt } => {
-                if attempt < job.max_retries {
+                if attempt <= job.max_retries {
                     clerk::debug!(
                         job.id    = %job.id,
                         job.name  = %job.name,

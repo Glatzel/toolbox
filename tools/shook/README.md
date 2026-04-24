@@ -1,3 +1,4 @@
+```mermaid
 flowchart TD
     EXT(["caller"])
 
@@ -56,3 +57,4 @@ flowchart TD
     EXEC -->|"Ok(())"| OK_PATH
     OK_PATH -->|"FreeResource"| TX
     EXEC -->|"Err(e)"| TX
+```

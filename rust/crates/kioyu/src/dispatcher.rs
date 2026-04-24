@@ -14,25 +14,13 @@ pub enum DispatchError {
     #[error("closed")]
     Closed,
 }
-#[derive(Debug)]
-struct RunningJob<P> {
-    job: Job<P>,
-    attempt: usize,
-}
-
-impl<P> RunningJob<P> {
-    fn new(job: Job<P>) -> Self { Self { job, attempt: 0 } }
-}
 
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
     FreeResource(Job<P>),
     /// Sent by a worker when `execute` fails. `attempt` is the number of
     /// attempts already completed (1-based: first failure → attempt = 1).
-    RetryJob {
-        job: Job<P>,
-        attempt: usize,
-    },
+    RetryJob(Job<P>),
 }
 
 pub struct DispatcherHandle<P> {
@@ -64,7 +52,7 @@ pub enum ResourceMode {
 struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
     mode: ResourceMode,
-    queue: VecDeque<RunningJob<P>>,
+    queue: VecDeque<Job<P>>,
     joinset: JoinSet<()>,
 }
 
@@ -134,23 +122,24 @@ where
     ) {
         match event {
             DispatcherEvent::Submit(job) => {
-                self.queue.push_back(RunningJob::new(job));
+                self.queue.push_back(job);
             }
 
             DispatcherEvent::FreeResource(job) => {
                 self.free_resources(&job);
             }
 
-            DispatcherEvent::RetryJob { job, attempt } => {
-                if attempt <= job.max_retries {
+            DispatcherEvent::RetryJob(mut job) => {
+                job.attempt += 1;
+                if job.attempt <= job.max_retries {
                     clerk::debug!(
                         job.id    = %job.id,
                         job.name  = %job.name,
-                        attempt,
+                        job.attempt = %job.attempt,
                         max       = job.max_retries,
                         "job failed, scheduling retry",
                     );
-                    self.queue.push_back(RunningJob { job, attempt });
+                    self.queue.push_back(job);
                 } else {
                     clerk::error!(
                         job.id   = %job.id,
@@ -175,19 +164,19 @@ where
     }
 
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
-        while let Some(running) = self.queue.pop_front() {
+        while let Some(job) = self.queue.pop_front() {
             match self.mode {
                 ResourceMode::Unlimited => {
-                    self.spawn_job(running, tx.clone(), cancel);
+                    self.spawn_job(job, tx.clone(), cancel);
                 }
 
                 ResourceMode::Pooled(ref mut pool) => {
-                    match pool.allocate(running.job.resources.as_slice()) {
+                    match pool.allocate(job.resources.as_slice()) {
                         Ok(true) => {
-                            self.spawn_job(running, tx.clone(), cancel);
+                            self.spawn_job(job, tx.clone(), cancel);
                         }
                         Ok(false) => {
-                            self.queue.push_front(running);
+                            self.queue.push_front(job);
                             break;
                         }
                         Err(e) => {
@@ -201,27 +190,22 @@ where
 
     fn spawn_job(
         &mut self,
-        running: RunningJob<P>,
+        job: Job<P>,
         tx: mpsc::Sender<DispatcherEvent<P>>,
         cancel: &CancellationToken,
     ) {
-        let RunningJob { job, attempt } = running;
-
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
             KIOYU_JOB_SPAN,
             job.id      = %job.id,
             job.name    = %job.name,
-            job.attempt = attempt,
+            job.attempt = %job.attempt,
         );
 
         let cancel = cancel.clone();
-        // This attempt number, completed whether it succeeds or fails.
-        let next_attempt = attempt + 1;
-
         self.joinset.spawn(
             async move {
-                clerk::debug!(attempt, "job executing");
+                clerk::debug!("job executing");
 
                 match job.payload.execute(cancel.clone()).await {
                     Ok(()) => {
@@ -237,14 +221,9 @@ where
                     }
 
                     Err(e) => {
-                        clerk::error!(attempt = next_attempt, "job execute failed: {}", e);
+                        clerk::error!(attempt = %job.attempt, "job execute failed: {}", e);
 
-                        let _ = tx
-                            .send(DispatcherEvent::RetryJob {
-                                job,
-                                attempt: next_attempt,
-                            })
-                            .await;
+                        let _ = tx.send(DispatcherEvent::RetryJob(job)).await;
                     }
                 }
             }

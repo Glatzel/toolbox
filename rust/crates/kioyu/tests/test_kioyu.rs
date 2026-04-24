@@ -45,7 +45,8 @@ fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
     node
 }
 
-// ── payloads ──────────────────────────────────────────────────────────────────
+// ── payloads
+// ──────────────────────────────────────────────────────────────────
 
 struct TestPayload {
     counter: Arc<AtomicUsize>,
@@ -100,9 +101,9 @@ impl IPayload for FailingPayload {
         let attempt = self.execute_count.fetch_add(1, Ordering::SeqCst) + 1;
         sleep(Duration::from_millis(50)).await;
         if attempt <= self.fails_first {
-            Err(mischief::Report::msg(format!(
+            Err(mischief::mischief!(
                 "intentional failure on attempt {attempt}"
-            )))
+            ))
         } else {
             Ok(())
         }
@@ -197,7 +198,8 @@ async fn test_dispatcher_unlimited() {
     run_dispatcher_test(DispatcherMode::Unlimited, "kioyu_unlimited_log_dir_tree").await;
 }
 
-// ── retry tests ───────────────────────────────────────────────────────────────
+// ── retry tests
+// ───────────────────────────────────────────────────────────────
 
 /// A job that fails once and then succeeds should be retried and complete
 /// successfully. `post_process` must be called exactly once.

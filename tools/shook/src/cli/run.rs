@@ -27,6 +27,7 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
                     config.devop.token.clone(),
                 ),
                 ResourceRequest::none(), // no resource constraints in unlimited mode
+                config.kioyu.max_retries,
             );
             dispatcher.submit(job).await?;
         }

@@ -77,6 +77,7 @@ async fn webhook(
                     runner_payload.sandbox_name.clone(),
                     runner_payload,
                     resource_request,
+                    state.config.kioyu.max_retries,
                 ))
                 .await
             {

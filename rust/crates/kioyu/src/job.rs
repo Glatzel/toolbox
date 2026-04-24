@@ -31,10 +31,16 @@ pub struct Job<P> {
     pub name: String,
     pub resources: ResourceRequest,
     pub payload: P,
+    pub max_retries: usize,
 }
 
 impl<P> Job<P> {
-    pub fn new(name: impl Into<String>, payload: P, resources: ResourceRequest) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        payload: P,
+        resources: ResourceRequest,
+        max_retries: usize,
+    ) -> Self {
         let name = name.into();
         let id = Uuid::new_v4();
         clerk::debug!(
@@ -48,13 +54,14 @@ impl<P> Job<P> {
             name,
             resources,
             payload,
+            max_retries,
         }
     }
 }
 
 #[async_trait]
 pub trait IPayload: Send + Sync {
-    type Error: Display;
+    type Error: Display + Send;
 
     async fn execute(&self, cancel: CancellationToken) -> Result<(), Self::Error>;
     async fn post_process(&self) -> Result<(), Self::Error> { Ok(()) }

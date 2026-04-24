@@ -13,6 +13,7 @@ expression: schema
     "kioyu": {
       "$ref": "#/$defs/ConfigKioyu",
       "default": {
+        "max_retries": 1,
         "memory": 1024
       }
     },
@@ -62,6 +63,12 @@ expression: schema
     "ConfigKioyu": {
       "type": "object",
       "properties": {
+        "max_retries": {
+          "type": "integer",
+          "format": "uint",
+          "default": 1,
+          "minimum": 0
+        },
         "memory": {
           "type": "integer",
           "format": "uint32",

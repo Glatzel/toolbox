@@ -14,10 +14,25 @@ pub enum DispatchError {
     #[error("closed")]
     Closed,
 }
+#[derive(Debug)]
+struct RunningJob<P> {
+    job: Job<P>,
+    attempt: usize,
+}
+
+impl<P> RunningJob<P> {
+    fn new(job: Job<P>) -> Self { Self { job, attempt: 0 } }
+}
 
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
     FreeResource(Job<P>),
+    /// Sent by a worker when `execute` fails. `attempt` is the number of
+    /// attempts already completed (1-based: first failure → attempt = 1).
+    RetryJob {
+        job: Job<P>,
+        attempt: usize,
+    },
 }
 
 pub struct DispatcherHandle<P> {
@@ -49,7 +64,7 @@ pub enum ResourceMode {
 struct Dispatcher<P> {
     rx: mpsc::Receiver<DispatcherEvent<P>>,
     mode: ResourceMode,
-    queue: VecDeque<Job<P>>,
+    queue: VecDeque<RunningJob<P>>,
     joinset: JoinSet<()>,
 }
 
@@ -79,10 +94,7 @@ where
             tokio::select! {
                 event = self.rx.recv() => {
                     match event {
-                        Some(event) => {
-                            self.handle_event(event, &tx, &cancel);
-                        }
-
+                        Some(event) => self.handle_event(event, &tx, &cancel),
                         None => {
                             clerk::debug!("dispatcher channel closed");
                             break;
@@ -113,6 +125,7 @@ where
 
         clerk::debug!("dispatcher stopped");
     }
+
     fn handle_event(
         &mut self,
         event: DispatcherEvent<P>,
@@ -121,34 +134,60 @@ where
     ) {
         match event {
             DispatcherEvent::Submit(job) => {
-                self.queue.push_back(job);
+                self.queue.push_back(RunningJob::new(job));
             }
 
             DispatcherEvent::FreeResource(job) => {
-                if let ResourceMode::Pooled(ref mut pool) = self.mode
-                    && let Err(e) = pool.free(job.resources.as_slice())
-                {
-                    clerk::error!("resource free failed: {}", e);
+                self.free_resources(&job);
+            }
+
+            DispatcherEvent::RetryJob { job, attempt } => {
+                if attempt <= job.max_retries {
+                    clerk::debug!(
+                        job.id    = %job.id,
+                        job.name  = %job.name,
+                        attempt,
+                        max       = job.max_retries,
+                        "job failed, scheduling retry",
+                    );
+                    self.queue.push_back(RunningJob { job, attempt });
+                } else {
+                    clerk::error!(
+                        job.id   = %job.id,
+                        job.name = %job.name,
+                        "job exhausted {} retries, giving up",
+                        job.max_retries,
+                    );
+                    self.free_resources(&job);
                 }
             }
         }
 
         self.schedule(tx, cancel);
     }
+
+    fn free_resources(&mut self, job: &Job<P>) {
+        if let ResourceMode::Pooled(ref mut pool) = self.mode
+            && let Err(e) = pool.free(job.resources.as_slice())
+        {
+            clerk::error!("resource free failed: {}", e);
+        }
+    }
+
     fn schedule(&mut self, tx: &mpsc::Sender<DispatcherEvent<P>>, cancel: &CancellationToken) {
-        while let Some(job) = self.queue.pop_front() {
+        while let Some(running) = self.queue.pop_front() {
             match self.mode {
                 ResourceMode::Unlimited => {
-                    self.spawn_job(job, tx.clone(), cancel);
+                    self.spawn_job(running, tx.clone(), cancel);
                 }
 
                 ResourceMode::Pooled(ref mut pool) => {
-                    match pool.allocate(job.resources.as_slice()) {
+                    match pool.allocate(running.job.resources.as_slice()) {
                         Ok(true) => {
-                            self.spawn_job(job, tx.clone(), cancel);
+                            self.spawn_job(running, tx.clone(), cancel);
                         }
                         Ok(false) => {
-                            self.queue.push_front(job);
+                            self.queue.push_front(running);
                             break;
                         }
                         Err(e) => {
@@ -162,36 +201,52 @@ where
 
     fn spawn_job(
         &mut self,
-        job: Job<P>,
+        running: RunningJob<P>,
         tx: mpsc::Sender<DispatcherEvent<P>>,
         cancel: &CancellationToken,
     ) {
+        let RunningJob { job, attempt } = running;
+
         let span = clerk::tracing::span!(
             clerk::tracing::Level::DEBUG,
             KIOYU_JOB_SPAN,
-            job.id = %job.id,
-            job.name = %job.name,
+            job.id      = %job.id,
+            job.name    = %job.name,
+            job.attempt = attempt,
         );
 
         let cancel = cancel.clone();
+        // This attempt number, completed whether it succeeds or fails.
+        let next_attempt = attempt + 1;
 
         self.joinset.spawn(
             async move {
-                clerk::debug!("job executing");
+                clerk::debug!(attempt, "job executing");
 
-                if let Err(e) = job.payload.execute(cancel.clone()).await {
-                    clerk::error!("payload execute error: {}", e);
+                match job.payload.execute(cancel.clone()).await {
+                    Ok(()) => {
+                        clerk::debug!("job execute succeeded, post processing");
+
+                        if let Err(e) = job.payload.post_process().await {
+                            clerk::error!("payload post process error: {}", e);
+                        }
+
+                        let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
+
+                        clerk::debug!("job finished");
+                    }
+
+                    Err(e) => {
+                        clerk::error!(attempt = next_attempt, "job execute failed: {}", e);
+
+                        let _ = tx
+                            .send(DispatcherEvent::RetryJob {
+                                job,
+                                attempt: next_attempt,
+                            })
+                            .await;
+                    }
                 }
-
-                clerk::debug!("job post processing");
-
-                if let Err(e) = job.payload.post_process().await {
-                    clerk::error!("payload post process error: {}", e);
-                }
-
-                let _ = tx.send(DispatcherEvent::FreeResource(job)).await;
-
-                clerk::debug!("job finished");
             }
             .instrument(span),
         );
@@ -217,15 +272,12 @@ where
     P: IPayload + Send + 'static,
 {
     let (tx, rx) = mpsc::channel(128);
-
     let cancel = CancellationToken::new();
-
     let dispatcher = Dispatcher::new(rx, mode);
 
     let join = tokio::spawn({
         let tx_for_jobs = tx.clone();
         let cancel_for_dispatcher = cancel.clone();
-
         async move {
             dispatcher.run(tx_for_jobs, cancel_for_dispatcher).await;
         }

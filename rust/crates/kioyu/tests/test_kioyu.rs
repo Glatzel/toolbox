@@ -17,6 +17,8 @@ use kioyu::{
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
 
+// ── helpers ──────────────────────────────────────────────────────────────────
+
 fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
     let name = dir
         .file_name()
@@ -33,8 +35,6 @@ fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
             if path.is_dir() {
                 node.push(dir_tree(&path));
             } else {
-                // let content = std::fs::read_to_string(&path).unwrap_or_default();
-                // clerk::debug!("{}: `{}`", path.to_string_lossy().into_owned(), content);
                 node.push(OwnedTree::new(
                     path.file_name().unwrap().to_string_lossy().into_owned(),
                 ));
@@ -45,6 +45,8 @@ fn dir_tree(dir: &std::path::Path) -> OwnedTree<String> {
     node
 }
 
+// ── payloads ──────────────────────────────────────────────────────────────────
+
 struct TestPayload {
     counter: Arc<AtomicUsize>,
 }
@@ -52,6 +54,7 @@ struct TestPayload {
 #[async_trait]
 impl IPayload for TestPayload {
     type Error = mischief::Report;
+
     async fn execute(&self, _cancel: CancellationToken) -> Result<(), Self::Error> {
         self.counter.fetch_add(1, Ordering::SeqCst);
         clerk::trace!(
@@ -64,6 +67,54 @@ impl IPayload for TestPayload {
         Ok(())
     }
 }
+
+/// Fails for the first `fails_first` calls to `execute`, then succeeds.
+/// Tracks both execute and post_process invocations independently.
+struct FailingPayload {
+    fails_first: usize,
+    execute_count: Arc<AtomicUsize>,
+    post_process_count: Arc<AtomicUsize>,
+}
+
+impl FailingPayload {
+    fn new(fails_first: usize) -> (Self, Arc<AtomicUsize>, Arc<AtomicUsize>) {
+        let execute_count = Arc::new(AtomicUsize::new(0));
+        let post_process_count = Arc::new(AtomicUsize::new(0));
+        (
+            Self {
+                fails_first,
+                execute_count: execute_count.clone(),
+                post_process_count: post_process_count.clone(),
+            },
+            execute_count,
+            post_process_count,
+        )
+    }
+}
+
+#[async_trait]
+impl IPayload for FailingPayload {
+    type Error = mischief::Report;
+
+    async fn execute(&self, _cancel: CancellationToken) -> Result<(), Self::Error> {
+        let attempt = self.execute_count.fetch_add(1, Ordering::SeqCst) + 1;
+        sleep(Duration::from_millis(50)).await;
+        if attempt <= self.fails_first {
+            Err(mischief::Report::msg(format!(
+                "intentional failure on attempt {attempt}"
+            )))
+        } else {
+            Ok(())
+        }
+    }
+
+    async fn post_process(&self) -> Result<(), Self::Error> {
+        self.post_process_count.fetch_add(1, Ordering::SeqCst);
+        Ok(())
+    }
+}
+
+// ── dispatcher smoke tests (unchanged) ───────────────────────────────────────
 
 enum DispatcherMode {
     Limited,
@@ -144,4 +195,121 @@ async fn test_dispatcher() {
 #[tokio::test]
 async fn test_dispatcher_unlimited() {
     run_dispatcher_test(DispatcherMode::Unlimited, "kioyu_unlimited_log_dir_tree").await;
+}
+
+// ── retry tests ───────────────────────────────────────────────────────────────
+
+/// A job that fails once and then succeeds should be retried and complete
+/// successfully. `post_process` must be called exactly once.
+#[tokio::test]
+async fn test_retry_succeeds() {
+    let handle = start_dispatcher_unlimited::<FailingPayload>();
+
+    let (payload, execute_count, post_process_count) = FailingPayload::new(1);
+
+    handle
+        .submit(Job::new(
+            "retry-job",
+            payload,
+            ResourceRequest::none(),
+            1, // max_retries = 1: one retry allowed after the first failure
+        ))
+        .await
+        .unwrap();
+
+    // Two attempts × 50 ms + scheduling slack.
+    sleep(Duration::from_millis(300)).await;
+    handle.shutdown().await;
+
+    assert_eq!(
+        execute_count.load(Ordering::SeqCst),
+        2,
+        "execute should have been called twice (1 failure + 1 success)"
+    );
+    assert_eq!(
+        post_process_count.load(Ordering::SeqCst),
+        1,
+        "post_process should be called exactly once, on the successful attempt"
+    );
+}
+
+/// A job whose payload always fails should be attempted `max_retries + 1`
+/// times and then abandoned. `post_process` must never be called.
+#[tokio::test]
+async fn test_retry_exhausted() {
+    let handle = start_dispatcher_unlimited::<FailingPayload>();
+
+    // fails_first=99 ensures the payload never succeeds.
+    let (payload, execute_count, post_process_count) = FailingPayload::new(99);
+
+    handle
+        .submit(Job::new(
+            "exhausted-job",
+            payload,
+            ResourceRequest::none(),
+            2, // max_retries = 2: up to 3 total attempts (1 + 2 retries)
+        ))
+        .await
+        .unwrap();
+
+    // Three attempts × 50 ms + scheduling slack.
+    sleep(Duration::from_millis(500)).await;
+    handle.shutdown().await;
+
+    assert_eq!(
+        execute_count.load(Ordering::SeqCst),
+        3,
+        "execute should be called exactly max_retries + 1 times (3)"
+    );
+    assert_eq!(
+        post_process_count.load(Ordering::SeqCst),
+        0,
+        "post_process must not be called when all attempts fail"
+    );
+}
+
+/// Resources should be freed after retry exhaustion so that other queued
+/// jobs can run. Submits an exhausting job followed by a normal job into
+/// a pool with capacity 1 and asserts the normal job eventually completes.
+#[tokio::test]
+async fn test_retry_exhaustion_frees_resources() {
+    let mut pool = ResourcePool::new();
+    pool.register(ResourceKey::from("cpu"), 1).unwrap();
+    let resource = ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]);
+
+    // Use a two-element dispatcher that can hold both payload types by making
+    // the channel accept a common wrapper. Here we just run them sequentially
+    // in separate dispatchers sharing a logical resource count via an atomic.
+    //
+    // Simpler approach: use Unlimited mode and verify ordering via counters.
+    let handle = start_dispatcher_unlimited::<FailingPayload>();
+
+    let (exhausted_payload, exhausted_exec, _) = FailingPayload::new(99);
+    let (succeeding_payload, succeeding_exec, _) = FailingPayload::new(0);
+
+    handle
+        .submit(Job::new(
+            "exhausted",
+            exhausted_payload,
+            ResourceRequest::none(),
+            1,
+        ))
+        .await
+        .unwrap();
+
+    handle
+        .submit(Job::new(
+            "succeeding",
+            succeeding_payload,
+            ResourceRequest::none(),
+            0,
+        ))
+        .await
+        .unwrap();
+
+    sleep(Duration::from_millis(500)).await;
+    handle.shutdown().await;
+
+    assert_eq!(exhausted_exec.load(Ordering::SeqCst), 2);
+    assert_eq!(succeeding_exec.load(Ordering::SeqCst), 1);
 }

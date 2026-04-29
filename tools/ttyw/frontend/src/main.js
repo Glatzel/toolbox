@@ -16,16 +16,8 @@ term.open(container);
 fit.fit();
 
 // ===== CONNECTION =====
-async function createConnection() {
-  // real backend
-  const sessionId = await fetch("/session", { method: "POST" }).then((r) =>
-    r.text(),
-  );
-
-  return new WebSocket(`ws://${location.host}/ws/${sessionId}`);
-}
-
-const ws = new WebSocket("ws://localhost:7681/ws");
+const protocol = location.protocol === "https:" ? "wss" : "ws";
+const ws = new WebSocket(`${protocol}://${location.host}/ws`);
 ws.binaryType = "arraybuffer";
 
 // ===== DATA FLOW =====

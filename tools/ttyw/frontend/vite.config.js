@@ -1,3 +1,11 @@
 export default {
-  base: "./", // critical for embedding
+  base: "./",
+  server: {
+    proxy: {
+      "/ws": {
+        target: "ws://127.0.0.1:7681",
+        ws: true,
+      },
+    },
+  },
 };

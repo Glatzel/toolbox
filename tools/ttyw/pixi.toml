@@ -1,0 +1,9 @@
+[workspace]
+channels = ["https://prefix.dev/glatzel","conda-forge"]
+platforms = ["win-64"]
+
+[tasks]
+
+[dependencies]
+nodejs = "==25.8.2"
+fonts-cascadia-mono-woff2 = "==3.4.0"

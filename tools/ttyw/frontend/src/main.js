@@ -25,7 +25,7 @@ async function createConnection() {
   return new WebSocket(`ws://${location.host}/ws/${sessionId}`);
 }
 
-const ws = await createConnection();
+const ws = new WebSocket("ws://localhost:7681/ws");
 ws.binaryType = "arraybuffer";
 
 // ===== DATA FLOW =====

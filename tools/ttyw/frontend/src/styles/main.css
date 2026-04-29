@@ -1,21 +1,12 @@
 html,
 body {
     height: 100%;
-    min-height: 100%;
     margin: 0;
     overflow: hidden;
 }
-
-#terminal-container {
-    width: auto;
+#term {
     height: 100%;
-    margin: 0 auto;
-    padding: 0;
-}
-
-#terminal-container .terminal {
-    padding: 5px;
-    height: calc(100% - 10px);
+    width: 100%;
 }
 @font-face {
     font-family: "CaskaydiaMono Nerd Font";

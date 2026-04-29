@@ -14,7 +14,6 @@
   "type": "commonjs",
   "dependencies": {
     "vite": "^8.0.10",
-    "ws": "^8.20.0",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
   }

@@ -1,5 +1,5 @@
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
 import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { ImageAddon } from "@xterm/addon-image";

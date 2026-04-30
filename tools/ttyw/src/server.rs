@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-
+mod message;
 use axum::{
     Router,
     body::Bytes,
@@ -10,19 +10,13 @@ use axum::{
     routing::get,
 };
 use futures::{SinkExt, StreamExt};
+use message::*;
 use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
-use serde::Deserialize;
 
 pub struct AppContext {
     pub args: crate::cli::Args,
 }
-#[derive(Deserialize)]
-struct ResizeMsg {
-    #[serde(rename = "type")]
-    kind: String,
-    cols: u16,
-    rows: u16,
-}
+
 fn app(shared_state: Arc<AppContext>) -> Router {
     Router::new()
         .route("/ws", get(ws_handler))
@@ -52,14 +46,7 @@ async fn ws_handler(
 async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     // ===== PTY SETUP =====
     let pty_system = NativePtySystem::default();
-    let pair = pty_system
-        .openpty(PtySize {
-            rows: 24,
-            cols: 80,
-            pixel_width: 0,
-            pixel_height: 0,
-        })
-        .unwrap();
+    let pair = pty_system.openpty(PtySize::default()).unwrap();
 
     let mut cmd = CommandBuilder::new(&state.args.shell);
     cmd.cwd(&state.args.working_directory);
@@ -96,30 +83,24 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
 
     // ===== WS → PTY =====
     while let Some(Ok(msg)) = receiver.next().await {
-        match msg {
-            Message::Text(text) => {
-                // ===== TRY RESIZE =====
-                if let Ok(msg) = serde_json::from_str::<ResizeMsg>(&text) {
-                    if msg.kind == "resize" {
-                        let _ = pair.master.resize(PtySize {
-                            rows: msg.rows,
-                            cols: msg.cols,
-                            pixel_width: 0,
-                            pixel_height: 0,
-                        });
-                        continue;
-                    }
+        if let Message::Text(text) = msg {
+            match ReceiveMsg::parse(text.as_str()) {
+                Ok(ReceiveMsg::Resize(msg)) => {
+                    let _ = pair.master.resize(PtySize {
+                        rows: msg.rows,
+                        cols: msg.cols,
+                        pixel_width: 0,
+                        pixel_height: 0,
+                    });
                 }
-
-                // ===== NORMAL INPUT =====
-                let mut w = writer.lock().unwrap();
-                let _ = w.write_all(text.as_bytes());
+                Ok(ReceiveMsg::Command(msg)) => {
+                    let mut w = writer.lock().unwrap();
+                    let _ = w.write_all(msg.data.as_bytes());
+                }
+                Err(e) => {
+                    clerk::warn!("{e}")
+                }
             }
-            Message::Binary(data) => {
-                let mut w = writer.lock().unwrap();
-                let _ = w.write_all(&data);
-            }
-            _ => {}
         }
     }
 

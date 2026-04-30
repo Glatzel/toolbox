@@ -5,8 +5,40 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { ImageAddon } from "@xterm/addon-image";
 import { SearchAddon } from "@xterm/addon-search";
 export class TerminalClient {
-  constructor() {
-    this.term = new Terminal();
+  term: Terminal;
+  fitAddon: FitAddon;
+  ws: WebSocket;
+
+  constructor(el: HTMLElement) {
+    this.term = new Terminal({
+      cursorBlink: true,
+      cursorStyle: "block",
+      cursorInactiveStyle: "none",
+      fontSize: 14,
+      fontFamily: "CaskaydiaMono Nerd Font,ui-monospace",
+      fontWeight: "normal",
+      ignoreBracketedPasteMode: true,
+      theme: {
+        background: "#1D2026",
+        selectionBackground: "#33467C",
+        black: "#15161E",
+        red: "#F7768E",
+        green: "#9ECE6A",
+        yellow: "#E0AF68",
+        blue: "#7AA2F7",
+        magenta: "#BB9AF7",
+        cyan: "#7DCFFF",
+        white: "#A9B1D6",
+        brightBlack: "#5F6A99",
+        brightRed: "#F7768E",
+        brightGreen: "#9ECE6A",
+        brightYellow: "#E0AF68",
+        brightBlue: "#7AA2F7",
+        brightMagenta: "#BB9AF7",
+        brightCyan: "#7DCFFF",
+        brightWhite: "#C0CAF5",
+      },
+    });
 
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
@@ -30,18 +62,11 @@ export class TerminalClient {
     };
     const imageAddon = new ImageAddon(customSettings);
     this.term.loadAddon(imageAddon);
-    this.ws = null;
-  }
-
-  mount(el) {
     this.term.open(el);
     this.fitAddon.fit();
-
-    // resize handling
     window.addEventListener("resize", () => this.resize());
-  }
 
-  connect() {
+    // connect to backend
     const protocol = location.protocol === "https:" ? "wss" : "ws";
     const url = `${protocol}://${location.host}/ws`;
     console.log(url);
@@ -72,40 +97,23 @@ export class TerminalClient {
     });
   }
 
-  handleMessage(raw) {
+  handleMessage(raw: string) {
     let msg;
     try {
       msg = JSON.parse(raw);
+      switch (msg.kind) {
+        case "config":
+          this.term.options = { ...this.term.options, ...msg.config };
+          break;
+
+        default:
+          console.warn(`Unknown message kind: ${msg.kind}`);
+          break;
+      }
     } catch {
       // fallback: treat as plain terminal output
       this.term.write(raw);
-      return;
     }
-
-    switch (msg.kind) {
-      case "output":
-        this.term.write(msg.data);
-        break;
-
-      case "set_option":
-        this.term.setOption(msg.key, msg.value);
-        break;
-
-      case "config":
-        for (const [k, v] of Object.entries(msg.options)) {
-          this.term.setOption(k, v);
-        }
-        break;
-
-      case "write":
-        this.term.write(msg.data);
-        break;
-    }
-  }
-
-  // optional: manual API for frontend (rarely needed)
-  setTheme(theme) {
-    this.term.setOption("theme", theme);
   }
   resize() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {

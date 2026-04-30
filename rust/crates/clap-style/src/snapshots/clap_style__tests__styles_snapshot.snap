@@ -1,0 +1,83 @@
+---
+source: crates/clap-style/src/lib.rs
+expression: styles
+---
+Styles {
+    header: Style {
+        fg: Some(
+            Ansi(
+                Yellow,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    error: Style {
+        fg: Some(
+            Ansi(
+                Red,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    usage: Style {
+        fg: Some(
+            Ansi(
+                Yellow,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    literal: Style {
+        fg: Some(
+            Ansi(
+                Blue,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    placeholder: Style {
+        fg: Some(
+            Ansi(
+                Green,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(),
+    },
+    valid: Style {
+        fg: Some(
+            Ansi(
+                Green,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    invalid: Style {
+        fg: Some(
+            Ansi(
+                Red,
+            ),
+        ),
+        bg: None,
+        underline: None,
+        effects: Effects(BOLD),
+    },
+    context: Style {
+        fg: None,
+        bg: None,
+        underline: None,
+        effects: Effects(),
+    },
+    context_value: None,
+}

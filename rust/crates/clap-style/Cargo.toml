@@ -5,3 +5,6 @@ edition.workspace = true
 
 [dependencies]
 clap = { workspace = true }
+
+[dev-dependencies]
+insta.workspace = true

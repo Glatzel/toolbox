@@ -10,3 +10,13 @@ pub fn styles() -> Styles {
         .valid(AnsiColor::Green.on_default() | Effects::BOLD)
         .invalid(AnsiColor::Red.on_default() | Effects::BOLD)
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_styles_snapshot() {
+        let styles = styles();
+        insta::assert_debug_snapshot!(styles);
+    }
+}

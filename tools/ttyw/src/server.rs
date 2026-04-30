@@ -44,6 +44,7 @@ async fn ws_handler(
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
+    clerk::info!("New connection.");
     // ===== PTY SETUP =====
     let pty_system = NativePtySystem::default();
     let pair = pty_system.openpty(PtySize::default()).unwrap();
@@ -86,6 +87,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
         if let Message::Text(text) = msg {
             match ReceiveMsg::parse(text.as_str()) {
                 Ok(ReceiveMsg::Resize(msg)) => {
+                    clerk::debug!("Resize: cols={} rows={}", msg.cols, msg.rows);
                     let _ = pair.master.resize(PtySize {
                         rows: msg.rows,
                         cols: msg.cols,

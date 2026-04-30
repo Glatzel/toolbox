@@ -2,7 +2,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { WebglAddon } from "@xterm/addon-webgl";
-import { ImageAddon, IImageAddonOptions } from "@xterm/addon-image";
+import { ImageAddon } from "@xterm/addon-image";
 import { SearchAddon } from "@xterm/addon-search";
 export class TerminalClient {
   constructor() {
@@ -42,17 +42,21 @@ export class TerminalClient {
   }
 
   connect() {
-    const protocol = location.protocol === "https:" ? "wss" : "ws";
-    const url = `${protocol}://${location.host}/ws`;
+    // const protocol = location.protocol === "https:" ? "wss" : "ws";
+    // const url = `${protocol}://${location.host}/ws`;
+    const url = "ws://127.0.0.1:7681/ws";
 
     this.ws = new WebSocket(url);
+    this.ws.onopen = () => {
+      this.resize();
+    };
 
     // backend → terminal
     this.ws.onmessage = (event) => {
-      if (typeof e.data === "string") {
+      if (typeof event.data === "string") {
         this.handleMessage(event.data);
       } else {
-        term.write(new Uint8Array(e.data));
+        this.term.write(new Uint8Array(event.data));
       }
     };
 
@@ -103,17 +107,18 @@ export class TerminalClient {
     this.term.setOption("theme", theme);
   }
   resize() {
-    if (self.ws.readyState !== WebSocket.OPEN) return;
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.log("WebSocket not open, cannot resize");
+      return;
+    }
     this.fitAddon.fit();
+    console.log(`Resizing: cols=${this.term.cols}, rows=${this.term.rows}`);
     this.ws.send(
       JSON.stringify({
         kind: "resize",
-        cols: term.cols,
-        rows: term.rows,
+        cols: this.term.cols,
+        rows: this.term.rows,
       }),
     );
-  }
-  write(data) {
-    this.term.write(data);
   }
 }

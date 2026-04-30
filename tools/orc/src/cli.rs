@@ -12,7 +12,7 @@ use strum::Display;
 
 use crate::dep_tree::DepTree;
 #[derive(Debug, Parser)]
-#[command(author="Glatzel", version, about="Scan a PE executable or DLL for missing dependencies.", long_about = None)]
+#[command(author="Glatzel", version, about="Scan a PE executable or DLL for missing dependencies.", long_about = None, styles=clap_style::styles())]
 struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,

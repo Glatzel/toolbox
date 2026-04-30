@@ -204,6 +204,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap-style"
+version = "2026.4.16"
+dependencies = [
+ "clap",
+]
+
+[[package]]
 name = "clap-verbosity-flag"
 version = "3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2336,6 +2343,7 @@ version = "2026.4.16"
 dependencies = [
  "base64",
  "clap",
+ "clap-style",
  "clap-verbosity-flag",
  "clerk",
  "comfy-table",

@@ -4,7 +4,7 @@ use clap::Parser;
 use clerk::tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 use dirs::home_dir;
 #[derive(Debug, Parser)]
-#[command(author = "Glatzel", version, long_about = None)]
+#[command(author = "Glatzel", version, long_about = None, styles=clap_style::styles())]
 pub struct Args {
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity,
@@ -12,8 +12,8 @@ pub struct Args {
     pub port: u16,
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]
     pub working_directory: PathBuf,
-    #[cfg_attr(not(windows), arg(long, short,default_value_t=String::from("pwsh")))]
-    #[cfg_attr(windows, arg(long, short,default_value_t=String::from("pwsh")))]
+    #[cfg_attr(not(windows), arg(default_value_t=String::from("pwsh")))]
+    #[cfg_attr(windows, arg(default_value_t=String::from("pwsh")))]
     pub cmd: String,
 }
 pub async fn main() -> mischief::Result<()> {

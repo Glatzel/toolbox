@@ -15,6 +15,7 @@ rax = { path = "./crates/rax/", default-features = false }
 
 async-trait = "0.1.89"
 chrono = { version = "0.4.42", default-features = false, features = ["clock"] }
+clap = "4.6.0"
 criterion = { package = "codspeed-criterion-compat", version = "4.2.0" }
 defmt = "1.0.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }

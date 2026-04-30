@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 arbor = { path = "../../rust/crates/arbor", default-features = false }
+clap-style = { path = "../../rust/crates/clap-style" }
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 mischief = { path = "../../rust/crates/mischief" }
 

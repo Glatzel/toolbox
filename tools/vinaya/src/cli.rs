@@ -9,7 +9,7 @@ use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 pub(crate) use common_arg::{ArgMajor, ArgMinor, ArgNoCheck, ArgPatch, HOUDINI_OPTIONS};
 #[derive(Debug, Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None, styles=clap_style::styles())]
 struct VinayaArgs {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,

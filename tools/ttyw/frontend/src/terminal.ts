@@ -46,8 +46,6 @@ export class TerminalClient {
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
 
-    this.overlayAddon = new OverlayAddon();
-    this.term.loadAddon(this.overlayAddon);
     this.term.loadAddon(new WebglAddon());
     this.term.loadAddon(new ClipboardAddon());
     this.term.loadAddon(new SearchAddon());

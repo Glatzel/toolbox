@@ -35,10 +35,10 @@ jobs:
       changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
     runs-on: ubuntu-slim
     steps:
-      - if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
+      - if: ${{github.event_name == 'pull_request'}}
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: main
-        if: ${{github.event_name == 'pull_request' || github.event_name == 'push'}}
+        if: ${{github.event_name == 'pull_request'}}
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files_yaml: |

@@ -43,14 +43,12 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
         }
     };
 
-    let mut reader = pair.master.try_clone_reader().unwrap();
-    let writer = pair.master.take_writer().unwrap();
-    let writer = Arc::new(Mutex::new(writer));
-    let (mut sender, mut receiver) = socket.split();
+    let mut tty_reader = pair.master.try_clone_reader().unwrap();
+    let tty_writer = Arc::new(Mutex::new(pair.master.take_writer().unwrap()));
+    let (mut ws_sender, mut ws_receiver) = socket.split();
 
     // ===== PTY → WS =====
     let (tx, mut rx) = tokio::sync::mpsc::channel::<Bytes>(32);
-
     // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
         use std::io::Read;
@@ -58,10 +56,10 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
         clerk::debug!("PTY reader thread started");
 
         loop {
-            match reader.read(&mut buf) {
+            match tty_reader.read(&mut buf) {
                 Ok(n) if n > 0 => {
                     let data = Bytes::copy_from_slice(&buf[..n]);
-                    clerk::trace!(bytes = n, "PTY read: {}", String::from_utf8_lossy(&data));
+                    clerk::trace!(bytes = n, "PTY read.");
                     if tx.blocking_send(data).is_err() {
                         clerk::debug!("PTY reader: channel closed, exiting");
                         break;
@@ -89,7 +87,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
                 "PTY -> WS: {}",
                 String::from_utf8_lossy(&data)
             );
-            if let Err(e) = sender.send(Message::Binary(data)).await {
+            if let Err(e) = ws_sender.send(Message::Binary(data)).await {
                 clerk::warn!(error = %e, "Failed to forward PTY output to WebSocket");
                 break;
             }
@@ -98,12 +96,12 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
 
     // ===== WS → PTY =====
     clerk::debug!("Entering WS receive loop");
-    while let Some(Ok(msg)) = receiver.next().await {
+    while let Some(Ok(msg)) = ws_receiver.next().await {
         if let Message::Text(text) = msg {
             clerk::trace!("WS -> PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
                 Ok(ReceiveMsg::Resize(msg)) => {
-                    clerk::debug!(cols = msg.cols, rows = msg.rows, "Terminal resize");
+                    clerk::debug!(cols = msg.cols, rows = msg.rows, "Terminal resize:");
                     if let Err(e) = pair.master.resize(PtySize {
                         rows: msg.rows,
                         cols: msg.cols,
@@ -114,8 +112,8 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
                     }
                 }
                 Ok(ReceiveMsg::Input(msg)) => {
-                    clerk::trace!(msg = msg.data, "WS -> PTY input");
-                    let mut w = writer.lock().await;
+                    clerk::trace!("Input: {}", msg.data);
+                    let mut w = tty_writer.lock().await;
                     if let Err(e) = w.write_all(msg.data.as_bytes()) {
                         clerk::warn!(error = %e, "Failed to write input to PTY");
                     }

@@ -191,6 +191,7 @@ jobs:
         rust-ci,
         tools-orc,
         tools-shook,
+        tools-ttyw,
         tools-vinaya,
       ]
     runs-on: ubuntu-slim

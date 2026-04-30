@@ -129,12 +129,23 @@ jobs:
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+
   tools-ttyw:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@1b2de7f3351f171c8b4dfeb558c639cb58ed4ec0 # v0.9.5
+        with:
+          run-install: false
+      - name: frontend
+        run: |
+          pixi run install
+          pixi run check
+          pixi run build
+        working-directory: ./tools/ttyw
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly

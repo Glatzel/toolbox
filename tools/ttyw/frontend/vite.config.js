@@ -1,3 +1,4 @@
+import process from "node:process";
 export default {
   base: "./",
   server: {
@@ -6,10 +7,10 @@ export default {
         target: "ws://127.0.0.1:7681",
         ChangeOrigin: true,
         ws: true,
-        configure: (proxy) => {
-          console.log("WS proxy active");
-        },
       },
     },
+  },
+  define: {
+    __CONDA_PREFIX__: JSON.stringify(process.env.CONDA_PREFIX),
   },
 };

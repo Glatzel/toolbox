@@ -1,9 +1,10 @@
 [package]
 name = "vinaya"
-version = "2026.4.16"
+version = "2026.4.30"
 edition = "2024"
 
 [dependencies]
+clap-style = { path = "../../rust/crates/clap-style" }
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 mischief = { path = "../../rust/crates/mischief", features = ["fancy"] }
 

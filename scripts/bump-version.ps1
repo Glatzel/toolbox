@@ -28,6 +28,12 @@ Set-Location tools/shook
 cargo update
 Set-Location $PSScriptRoot/..
 
+$cargoTomlPath = "./tools/ttyw/Cargo.toml"
+(Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
+Write-Host "Updated ttyw version to $version"
+Set-Location tools/ttyw
+cargo update
+Set-Location $PSScriptRoot/..
 
 $cargoTomlPath = "./tools/vinaya/Cargo.toml"
 (Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath

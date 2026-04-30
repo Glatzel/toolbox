@@ -36,6 +36,7 @@ jobs:
 
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
       changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
+      changed-tools-ttyw: ${{ steps.main.outputs.tools-ttyw_any_changed }}
       changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
     runs-on: ubuntu-slim
     steps:
@@ -64,6 +65,9 @@ jobs:
             tools-shook:
               - ./.github/actions/rust/**
               - ./tools/shook/**
+            tools-ttyw:
+              - ./.github/actions/rust/**
+              - ./tools/ttyw/**
             tools-vinaya:
               - ./.github/actions/rust/**
               - ./tools/vinaya/**
@@ -122,6 +126,25 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/shook
+          doc: false
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}
+  tools-ttyw:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/rust/setup-rust
+        with:
+          toolchain: nightly
+          components: clippy
+      - uses: ./.github/actions/rust/cargo-clippy
+        with:
+          working-directory: ./tools/ttyw
+      - uses: ./.github/actions/rust/cargo-test
+        with:
+          working-directory: ./tools/ttyw
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

@@ -9,7 +9,7 @@ use common::CommonArgs;
 use log::init_log;
 
 #[derive(Debug, Parser)]
-#[command(author = "Glatzel", version, long_about = None)]
+#[command(author = "Glatzel", version, long_about = None, styles=clap_style::styles())]
 pub struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,

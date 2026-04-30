@@ -1,10 +1,11 @@
 [package]
 name = "orc"
-version = "2026.4.16"
+version = "2026.4.30"
 edition = "2024"
 
 [dependencies]
 arbor = { path = "../../rust/crates/arbor", default-features = false }
+clap-style = { path = "../../rust/crates/clap-style" }
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 mischief = { path = "../../rust/crates/mischief" }
 

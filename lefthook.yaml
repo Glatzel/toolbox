@@ -22,6 +22,7 @@ glob_matcher: doublestar
 
 pre-commit:
   exclude:
+    - "**/.zed/**"
     - "**/external/**"
     - "**/*.snap"
     - "**/*.patch"

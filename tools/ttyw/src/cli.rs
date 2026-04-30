@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use clap::Parser;
+use clap_verbosity_flag::InfoLevel;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
@@ -10,7 +11,7 @@ use dirs::home_dir;
 #[command(author = "Glatzel", version, long_about = None, styles=clap_style::styles())]
 pub struct Args {
     #[command(flatten)]
-    pub verbose: clap_verbosity_flag::Verbosity,
+    pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
     #[arg(long, short, default_value_t = 7681)]
     pub port: u16,
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]

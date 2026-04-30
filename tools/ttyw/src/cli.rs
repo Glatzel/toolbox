@@ -12,7 +12,7 @@ pub struct Args {
     pub port: u16,
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]
     pub working_directory: PathBuf,
-    pub shell: String,
+    pub cmd: String,
 }
 pub async fn main() -> mischief::Result<()> {
     let args = Args::parse();

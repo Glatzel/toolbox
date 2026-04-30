@@ -12,20 +12,30 @@ pub async fn static_handler(uri: axum::http::Uri) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/');
     let path = if path.is_empty() { "index.html" } else { path };
 
+    clerk::trace!(path, "Static file requested");
+
     match FrontEnd::get(path) {
         Some(content) => {
             let mime = mime_guess::from_path(path).first_or_octet_stream();
+            clerk::trace!(path, mime = mime.as_ref(), "Serving embedded asset");
             Response::builder()
                 .header(header::CONTENT_TYPE, mime.as_ref())
-                .body(axum::body::Body::from(content.data))
+                .body(axum::body::Body::from(content.data.into_owned()))
                 .unwrap()
         }
-        None => {
-            // SPA fallback: serve index.html for unknown routes
-            match FrontEnd::get("index.html") {
-                Some(content) => Html(content.data).into_response(),
-                None => StatusCode::NOT_FOUND.into_response(),
+        None => match FrontEnd::get("index.html") {
+            Some(content) => {
+                clerk::debug!(path, "Asset not found, falling back to index.html");
+                Html(String::from_utf8(content.data.into_owned()).unwrap_or_default())
+                    .into_response()
             }
-        }
+            None => {
+                clerk::warn!(
+                    path,
+                    "Asset not found and index.html missing — returning 404"
+                );
+                StatusCode::NOT_FOUND.into_response()
+            }
+        },
     }
 }

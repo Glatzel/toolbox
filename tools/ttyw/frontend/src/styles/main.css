@@ -1,41 +1,41 @@
 html,
 body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 #term {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 @font-face {
-    font-family: "CaskaydiaMono Nerd Font";
-    font-style: normal;
-    font-weight: normal;
-    src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Regular.woff2")
-        format("WOFF2");
-}
-
-@font-face {
-    font-family: "CaskaydiaMono Nerd Font";
-    font-style: italic;
-    font-weight: normal;
-    src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Italic.woff2")
-        format("WOFF2");
+  font-family: "CaskaydiaMono Nerd Font";
+  font-style: normal;
+  font-weight: normal;
+  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Regular.woff2")
+    format("WOFF2");
 }
 
 @font-face {
-    font-family: "CaskaydiaMono Nerd Font";
-    font-style: normal;
-    font-weight: bold;
-    src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Bold.woff2")
-        format("WOFF2");
+  font-family: "CaskaydiaMono Nerd Font";
+  font-style: italic;
+  font-weight: normal;
+  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Italic.woff2")
+    format("WOFF2");
 }
 
 @font-face {
-    font-family: "CaskaydiaMono Nerd Font";
-    font-style: italic;
-    font-weight: bold;
-    src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-BoldItalic.woff2")
-        format("WOFF2");
+  font-family: "CaskaydiaMono Nerd Font";
+  font-style: normal;
+  font-weight: bold;
+  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Bold.woff2")
+    format("WOFF2");
+}
+
+@font-face {
+  font-family: "CaskaydiaMono Nerd Font";
+  font-style: italic;
+  font-weight: bold;
+  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-BoldItalic.woff2")
+    format("WOFF2");
 }

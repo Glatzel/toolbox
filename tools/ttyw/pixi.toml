@@ -3,6 +3,9 @@ channels = ["https://prefix.dev/glatzel", "conda-forge"]
 platforms = ["win-64"]
 
 [tasks]
+build = { cmd = "npm run build", cwd = "./frontend" }
+check = { cmd = "npx eslint . ;npx prettier --check .", cwd = "./frontend" }
+fix = { cmd = "npx eslint . --fix ; npx prettier --write .", cwd = "./frontend" }
 
 [dependencies]
 nodejs = "==25.8.2"

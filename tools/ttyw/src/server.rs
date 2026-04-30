@@ -41,7 +41,7 @@ pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()>
         })?;
 
     #[cfg(debug_assertions)]
-    clerk::info!("Frontend: disabled in debug mode (serving from disk via tower-http or similar)");
+    clerk::info!("Frontend: disabled in debug mode (serving from disk via vite)");
     #[cfg(not(debug_assertions))]
     clerk::info!("Frontend: embedded assets enabled");
 

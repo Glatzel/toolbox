@@ -7,7 +7,9 @@ import { SearchAddon } from "@xterm/addon-search";
 export class TerminalClient {
   term: Terminal;
   fitAddon: FitAddon;
-  ws: WebSocket;
+  ws!: WebSocket;
+  reconnectAttempts: number = 0;
+  maxReconnectAttempts = 10;
 
   constructor(el: HTMLElement) {
     this.term = new Terminal({
@@ -65,15 +67,31 @@ export class TerminalClient {
     this.term.open(el);
     this.fitAddon.fit();
     window.addEventListener("resize", () => this.resize());
-
-    // connect to backend
+    this.connect();
+  }
+  scheduleReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error("Max reconnect attempts reached");
+      return;
+    }
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 10000);
+    console.log(`Reconnecting in ${delay} ms`);
+    setTimeout(() => {
+      this.reconnectAttempts++;
+      this.connect();
+    }, delay);
+  }
+  connect() {
     const protocol = location.protocol === "https:" ? "wss" : "ws";
     const url = `${protocol}://${location.host}/ws`;
     console.log(url);
 
     this.ws = new WebSocket(url);
     this.ws.binaryType = "arraybuffer";
+
     this.ws.onopen = () => {
+      console.log("WS connected");
+      this.reconnectAttempts = 0;
       this.resize();
     };
 
@@ -88,13 +106,22 @@ export class TerminalClient {
 
     // terminal → backend
     this.term.onData((data) => {
-      this.ws.send(
-        JSON.stringify({
-          kind: "input",
-          data,
-        }),
-      );
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(data);
+      } else {
+        console.warn("WS not open, dropping message");
+      }
     });
+
+    this.ws.onclose = () => {
+      console.warn("WS closed");
+      this.scheduleReconnect();
+    };
+
+    this.ws.onerror = (err) => {
+      console.error("WS error", err);
+      this.ws.close(); // ensures onclose fires
+    };
   }
 
   handleMessage(raw: string) {

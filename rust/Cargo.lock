@@ -237,6 +237,7 @@ name = "clap-style"
 version = "2026.4.30"
 dependencies = [
  "clap",
+ "insta",
 ]
 
 [[package]]

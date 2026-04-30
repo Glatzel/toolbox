@@ -4,6 +4,8 @@ import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { ImageAddon } from "@xterm/addon-image";
 import { SearchAddon } from "@xterm/addon-search";
+import { ReconnectOverlayAddon } from "./addon/overlay";
+
 export class TerminalClient {
   term: Terminal;
   fitAddon: FitAddon;
@@ -11,6 +13,8 @@ export class TerminalClient {
   reconnectAttempts: number = 0;
   maxReconnectAttempts = 10;
   reconnectTimer: number | null = null;
+
+  private _reconnectOverlay: ReconnectOverlayAddon;
 
   constructor(el: HTMLElement) {
     this.term = new Terminal({
@@ -65,6 +69,10 @@ export class TerminalClient {
     };
     const imageAddon = new ImageAddon(customSettings);
     this.term.loadAddon(imageAddon);
+
+    this._reconnectOverlay = new ReconnectOverlayAddon();
+    this.term.loadAddon(this._reconnectOverlay);
+
     this.term.open(el);
     this.fitAddon.fit();
     window.addEventListener("resize", () => this.resize());
@@ -80,6 +88,12 @@ export class TerminalClient {
 
     const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 10000);
     console.log(`Reconnecting in ${delay} ms`);
+
+    this._reconnectOverlay.show(
+      this.reconnectAttempts + 1,
+      this.maxReconnectAttempts,
+      delay,
+    );
 
     this.reconnectTimer = window.setTimeout(() => {
       this.reconnectTimer = null;
@@ -97,6 +111,7 @@ export class TerminalClient {
 
     this.ws.onopen = () => {
       console.log("WS connected");
+      this._reconnectOverlay.hide();
       this.reconnectAttempts = 0;
       this.resize();
     };

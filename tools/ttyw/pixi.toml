@@ -1,6 +1,6 @@
 [workspace]
 channels = ["https://prefix.dev/glatzel", "conda-forge"]
-platforms = ["win-64"]
+platforms = ["win-64", "linux-64"]
 
 [tasks]
 build = { cmd = "npm run build", cwd = "./frontend" }

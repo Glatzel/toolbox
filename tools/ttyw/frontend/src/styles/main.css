@@ -12,7 +12,7 @@ body {
   font-family: "CaskaydiaMono Nerd Font";
   font-style: normal;
   font-weight: normal;
-  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Regular.woff2")
+  src: url("__CONDA_PREFIX__/fonts/CaskaydiaMonoNerdFont-Regular.woff2")
     format("WOFF2");
 }
 
@@ -20,7 +20,7 @@ body {
   font-family: "CaskaydiaMono Nerd Font";
   font-style: italic;
   font-weight: normal;
-  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Italic.woff2")
+  src: url("__CONDA_PREFIX__/fonts/CaskaydiaMonoNerdFont-Italic.woff2")
     format("WOFF2");
 }
 
@@ -28,7 +28,7 @@ body {
   font-family: "CaskaydiaMono Nerd Font";
   font-style: normal;
   font-weight: bold;
-  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-Bold.woff2")
+  src: url("__CONDA_PREFIX__/fonts/CaskaydiaMonoNerdFont-Bold.woff2")
     format("WOFF2");
 }
 
@@ -36,6 +36,6 @@ body {
   font-family: "CaskaydiaMono Nerd Font";
   font-style: italic;
   font-weight: bold;
-  src: url("../../../.pixi/envs/default/fonts/CaskaydiaMonoNerdFont-BoldItalic.woff2")
+  src: url("__CONDA_PREFIX__/fonts/CaskaydiaMonoNerdFont-BoldItalic.woff2")
     format("WOFF2");
 }

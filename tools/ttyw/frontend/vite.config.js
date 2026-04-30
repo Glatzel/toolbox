@@ -1,3 +1,4 @@
+import process from "node:process";
 export default {
   base: "./",
   server: {
@@ -8,5 +9,8 @@ export default {
         ws: true,
       },
     },
+  },
+  define: {
+    __CONDA_PREFIX__: JSON.stringify(process.env.CONDA_PREFIX),
   },
 };

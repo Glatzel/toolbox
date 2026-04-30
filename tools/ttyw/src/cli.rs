@@ -1,7 +1,10 @@
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use clap::Parser;
-use clerk::tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
+use clerk::tracing_subscriber::layer::SubscriberExt;
+use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer};
 use dirs::home_dir;
 #[derive(Debug, Parser)]
 #[command(author = "Glatzel", version, long_about = None, styles=clap_style::styles())]

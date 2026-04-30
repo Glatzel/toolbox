@@ -1,16 +1,14 @@
 use std::sync::Arc;
 
-use crate::server::{AppContext, message::ReceiveMsg};
-use axum::{
-    body::Bytes,
-    extract::{
-        State, WebSocketUpgrade,
-        ws::{Message, WebSocket},
-    },
-};
+use axum::body::Bytes;
+use axum::extract::ws::{Message, WebSocket};
+use axum::extract::{State, WebSocketUpgrade};
 use futures::{SinkExt, StreamExt};
 use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
 use tokio::sync::Mutex;
+
+use crate::server::AppContext;
+use crate::server::message::ReceiveMsg;
 
 pub async fn xterm_handler(
     ws: WebSocketUpgrade,
@@ -134,18 +132,21 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
 }
 #[cfg(test)]
 mod tests {
-    use crate::cli::Args;
-    use crate::server::AppContext;
-    use clap_verbosity_flag::Verbosity;
-    use clerk::tracing_subscriber::{
-        self, EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt,
-    };
-    use futures::{SinkExt, StreamExt};
-    use rstest::*;
     use std::sync::Arc;
     use std::time::Duration;
+
+    use clap_verbosity_flag::Verbosity;
+    use clerk::tracing_subscriber::layer::SubscriberExt;
+    use clerk::tracing_subscriber::util::SubscriberInitExt;
+    use clerk::tracing_subscriber::{self, EnvFilter, Layer};
+    use futures::{SinkExt, StreamExt};
+    use rstest::*;
     use tokio::time::timeout;
-    use tokio_tungstenite::{connect_async, tungstenite::Message};
+    use tokio_tungstenite::connect_async;
+    use tokio_tungstenite::tungstenite::Message;
+
+    use crate::cli::Args;
+    use crate::server::AppContext;
 
     // ===== Fixture =====
 

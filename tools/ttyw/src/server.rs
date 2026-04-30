@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::Router;
+use axum::routing::get;
 mod xterm;
 
 #[cfg(not(debug_assertions))]

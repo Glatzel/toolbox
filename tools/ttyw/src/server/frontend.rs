@@ -1,7 +1,5 @@
-use axum::{
-    http::{StatusCode, header},
-    response::{Html, IntoResponse, Response},
-};
+use axum::http::{StatusCode, header};
+use axum::response::{Html, IntoResponse, Response};
 use rust_embed::Embed;
 
 #[derive(Embed)]

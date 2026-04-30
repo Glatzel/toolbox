@@ -129,6 +129,7 @@ jobs:
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+
   tools-ttyw:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}
@@ -141,6 +142,7 @@ jobs:
           run-install: false
       - name: frontend
         run: |
+          pixi run install
           pixi run check
           pixi run build
         working-directory: ./tools/ttyw

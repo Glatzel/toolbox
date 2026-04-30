@@ -1,4 +1,3 @@
-import "xterm/css/xterm.css";
 import { TerminalClient } from "./terminal.js";
 const term_element = document.getElementById("term");
 if (term_element) {

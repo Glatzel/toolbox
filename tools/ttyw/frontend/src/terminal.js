@@ -47,6 +47,7 @@ export class TerminalClient {
     const url = "ws://127.0.0.1:7681/ws";
 
     this.ws = new WebSocket(url);
+    this.ws.binaryType = "arraybuffer";
     this.ws.onopen = () => {
       this.resize();
     };

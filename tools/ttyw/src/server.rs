@@ -44,7 +44,6 @@ async fn ws_handler(
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
-    clerk::info!("New connection.");
     // ===== PTY SETUP =====
     let pty_system = NativePtySystem::default();
     let pair = pty_system.openpty(PtySize::default()).unwrap();
@@ -54,24 +53,19 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     let mut child = pair.slave.spawn_command(cmd).unwrap();
 
     let mut reader = pair.master.try_clone_reader().unwrap();
-    let writer = pair.master.take_writer().unwrap();
-
-    let writer = Arc::new(Mutex::new(writer));
-
-    // ===== PTY → WS =====
+    let writer = Arc::new(Mutex::new(pair.master.take_writer().unwrap()));
     let (mut sender, mut receiver) = socket.split();
 
+    // ===== PTY → WS =====
     tokio::task::spawn_blocking(move || {
         use std::io::Read;
-
         let mut buf = [0u8; 1024];
-
         loop {
             match reader.read(&mut buf) {
                 Ok(n) if n > 0 => {
                     // cannot .await here → use blocking_send pattern
                     let data = buf[..n].to_vec();
-
+                    clerk::trace!("PTY -> WS: {}", String::from_utf8_lossy(&data));
                     // use a channel OR block_on
                     futures::executor::block_on(async {
                         let _ = sender.send(Message::Binary(Bytes::from(data))).await;
@@ -85,9 +79,10 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     // ===== WS → PTY =====
     while let Some(Ok(msg)) = receiver.next().await {
         if let Message::Text(text) = msg {
+            clerk::trace!("WS → PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
                 Ok(ReceiveMsg::Resize(msg)) => {
-                    clerk::debug!("Resize: cols={} rows={}", msg.cols, msg.rows);
+                    clerk::trace!("Resize: cols={} rows={}", msg.cols, msg.rows);
                     let _ = pair.master.resize(PtySize {
                         rows: msg.rows,
                         cols: msg.cols,
@@ -95,7 +90,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
                         pixel_height: 0,
                     });
                 }
-                Ok(ReceiveMsg::Command(msg)) => {
+                Ok(ReceiveMsg::Input(msg)) => {
                     let mut w = writer.lock().unwrap();
                     let _ = w.write_all(msg.data.as_bytes());
                 }
@@ -107,4 +102,5 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     }
 
     let _ = child.kill();
+    clerk::debug!("Children killed.")
 }

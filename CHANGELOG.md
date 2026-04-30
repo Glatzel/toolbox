@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.4.30] - 2026-04-30
+
+### Added
+
+- **(ttyw)** Add frontend check by @Glatzel in [#478](https://github.com/Glatzel/toolbox/pull/478)
+
+### Changed
+
+- Kioyu retry by @Glatzel in [#471](https://github.com/Glatzel/toolbox/pull/471)
+- Kioyu simplify retry by @Glatzel in [#472](https://github.com/Glatzel/toolbox/pull/472)
+- Ttyw by @Glatzel in [#477](https://github.com/Glatzel/toolbox/pull/477)
+
 ## [2026.4.16] - 2026-04-16
 
 ### Changed
@@ -416,6 +428,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.4.30]: https://github.com/Glatzel/toolbox/compare/v2026.4.16..v2026.4.30
 [2026.4.16]: https://github.com/Glatzel/toolbox/compare/v2026.4.7..v2026.4.16
 [2026.4.7]: https://github.com/Glatzel/toolbox/compare/v2026.4.3..v2026.4.7
 [2026.4.3]: https://github.com/Glatzel/toolbox/compare/v2026.3.17..v2026.4.3

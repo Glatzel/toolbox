@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::server::{AppContext, message::ReceiveMsg};
 use axum::{
     body::Bytes,
@@ -8,7 +10,6 @@ use axum::{
 };
 use futures::{SinkExt, StreamExt};
 use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
-use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub async fn xterm_handler(
@@ -43,24 +44,28 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     };
 
     let mut reader = pair.master.try_clone_reader().unwrap();
-    let writer = Arc::new(Mutex::new(pair.master.take_writer().unwrap()));
+    let writer = pair.master.take_writer().unwrap();
+    let writer = Arc::new(Mutex::new(writer));
     let (mut sender, mut receiver) = socket.split();
 
     // ===== PTY → WS =====
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Bytes>(32);
+
+    // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
         use std::io::Read;
         let mut buf = [0u8; 1024];
         clerk::debug!("PTY reader thread started");
+
         loop {
             match reader.read(&mut buf) {
                 Ok(n) if n > 0 => {
-                    let data = buf[..n].to_vec();
-                    clerk::trace!(bytes = n, "PTY -> WS: {}", String::from_utf8_lossy(&data));
-                    futures::executor::block_on(async {
-                        if let Err(e) = sender.send(Message::Binary(Bytes::from(data))).await {
-                            clerk::warn!(error = %e, "Failed to forward PTY output to WebSocket");
-                        }
-                    });
+                    let data = Bytes::copy_from_slice(&buf[..n]);
+                    clerk::trace!(bytes = n, "PTY read: {}", String::from_utf8_lossy(&data));
+                    if tx.blocking_send(data).is_err() {
+                        clerk::debug!("PTY reader: channel closed, exiting");
+                        break;
+                    }
                 }
                 Ok(_) => {
                     clerk::debug!("PTY reader reached EOF");
@@ -72,7 +77,23 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
                 }
             }
         }
+
         clerk::debug!("PTY reader thread exited");
+    });
+
+    // Async task: drains the channel and forwards to WebSocket
+    tokio::spawn(async move {
+        while let Some(data) = rx.recv().await {
+            clerk::trace!(
+                bytes = data.len(),
+                "PTY -> WS: {}",
+                String::from_utf8_lossy(&data)
+            );
+            if let Err(e) = sender.send(Message::Binary(data)).await {
+                clerk::warn!(error = %e, "Failed to forward PTY output to WebSocket");
+                break;
+            }
+        }
     });
 
     // ===== WS → PTY =====
@@ -93,7 +114,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
                     }
                 }
                 Ok(ReceiveMsg::Input(msg)) => {
-                    clerk::trace!(bytes = msg.data.len(), "WS -> PTY input");
+                    clerk::trace!(msg = msg.data, "WS -> PTY input");
                     let mut w = writer.lock().await;
                     if let Err(e) = w.write_all(msg.data.as_bytes()) {
                         clerk::warn!(error = %e, "Failed to write input to PTY");
@@ -118,6 +139,9 @@ mod tests {
     use crate::cli::Args;
     use crate::server::AppContext;
     use clap_verbosity_flag::Verbosity;
+    use clerk::tracing_subscriber::{
+        self, EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt,
+    };
     use futures::{SinkExt, StreamExt};
     use rstest::*;
     use std::sync::Arc;
@@ -129,13 +153,26 @@ mod tests {
 
     #[fixture]
     fn state() -> Arc<AppContext> {
+        tracing_subscriber::registry()
+            .with(
+                clerk::terminal_layer(true).with_filter(
+                    EnvFilter::builder()
+                        .with_default_directive(
+                            format!("{}={}", env!("CARGO_PKG_NAME"), "trace")
+                                .parse()
+                                .unwrap(),
+                        )
+                        .from_env_lossy(),
+                ),
+            )
+            .init();
         Arc::new(AppContext {
             args: Args {
                 port: 0,
                 #[cfg(unix)]
                 cmd: "/bin/sh".into(),
                 #[cfg(windows)]
-                cmd: "cmd.exe".into(),
+                cmd: "cmd".into(),
                 working_directory: std::env::temp_dir(),
                 verbose: Verbosity::new(1, 1),
             },
@@ -143,14 +180,16 @@ mod tests {
     }
 
     /// Spin up the axum server on a random port, return the bound address.
-    async fn spawn_server(state: Arc<AppContext>) -> std::net::SocketAddr {
-        let app = crate::server::app(state); // extract app() to pub(crate) for testing
+    async fn spawn_server(
+        state: Arc<AppContext>,
+    ) -> (std::net::SocketAddr, tokio::task::JoinHandle<()>) {
+        let app = crate::server::app(state);
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             axum::serve(listener, app).await.unwrap();
         });
-        addr
+        (addr, handle)
     }
 
     // ===== Tests =====
@@ -159,16 +198,15 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn receives_pty_output_on_connect(state: Arc<AppContext>) {
-        let addr = spawn_server(state).await;
+        let (addr, _handle) = spawn_server(state).await;
+        clerk::debug!("server started on {addr}");
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
-
-        // Send a command that produces known output
-        ws.send(Message::Text("echo hello_from_test\n".into()))
+        ws.send(Message::Text("echo hello_from_test\r\n".into()))
             .await
             .unwrap();
 
         // Collect output until we see our marker or timeout
-        let output = timeout(Duration::from_secs(2), async {
+        let output = timeout(Duration::from_secs(3), async {
             let mut buf = String::new();
             while let Some(Ok(msg)) = ws.next().await {
                 if let Message::Binary(b) = msg {
@@ -190,7 +228,7 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn resize_message_accepted(state: Arc<AppContext>) {
-        let addr = spawn_server(state).await;
+        let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
         ws.send(Message::Text(
@@ -226,7 +264,7 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn two_tabs_get_independent_shells(state: Arc<AppContext>) {
-        let addr = spawn_server(state).await;
+        let (addr, _handle) = spawn_server(state).await;
 
         let (mut ws1, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
         let (mut ws2, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
@@ -272,7 +310,7 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn child_killed_on_disconnect(state: Arc<AppContext>) {
-        let addr = spawn_server(state).await;
+        let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
         // Get a shell prompt so we know the process is running

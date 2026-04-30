@@ -10,6 +10,7 @@ export class TerminalClient {
   ws!: WebSocket;
   reconnectAttempts: number = 0;
   maxReconnectAttempts = 10;
+  reconnectTimer: number | null = null;
 
   constructor(el: HTMLElement) {
     this.term = new Terminal({
@@ -45,6 +46,8 @@ export class TerminalClient {
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
 
+    this.overlayAddon = new OverlayAddon();
+    this.term.loadAddon(this.overlayAddon);
     this.term.loadAddon(new WebglAddon());
     this.term.loadAddon(new ClipboardAddon());
     this.term.loadAddon(new SearchAddon());
@@ -70,13 +73,18 @@ export class TerminalClient {
     this.connect();
   }
   scheduleReconnect() {
+    if (this.reconnectTimer) return; // prevent duplicates
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error("Max reconnect attempts reached");
       return;
     }
+
     const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 10000);
     console.log(`Reconnecting in ${delay} ms`);
-    setTimeout(() => {
+
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
       this.reconnectAttempts++;
       this.connect();
     }, delay);

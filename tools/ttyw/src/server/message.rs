@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use mischief::IntoMischief;
 use serde::Deserialize;
 pub enum ReceiveMsg {
     Resize(ResizeMsg),
@@ -8,11 +7,14 @@ pub enum ReceiveMsg {
 }
 impl ReceiveMsg {
     pub fn parse(msg: &str) -> mischief::Result<Self> {
-        let msg = serde_json::Value::from_str(msg).into_mischief()?;
-        match msg["kind"].as_str() {
-            Some("resize") => Ok(Self::Resize(serde_json::from_value::<ResizeMsg>(msg)?)),
-            Some("input") => Ok(Self::Input(serde_json::from_value::<InputMsg>(msg)?)),
-            _ => Err(mischief::mischief!("Unknown message: {}", msg)),
+        match serde_json::Value::from_str(msg) {
+            Ok(msg) => match msg["kind"].as_str() {
+                Some("resize") => Ok(Self::Resize(serde_json::from_value::<ResizeMsg>(msg)?)),
+                _ => Err(mischief::mischief!("Unknown message: {}", msg)),
+            },
+            Err(_) => Ok(Self::Input(InputMsg {
+                data: msg.to_string(),
+            })),
         }
     }
 }

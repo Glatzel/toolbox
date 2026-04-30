@@ -32,7 +32,10 @@ fn app(shared_state: Arc<AppContext>) -> Router {
 }
 pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()> {
     let app = app(shared_state.clone());
-    let addr = format!("0.0.0.0:{}", shared_state.args.port);
+    let port = shared_state.args.port;
+    let addr = format!("0.0.0.0:{}", port);
+    let url = format!("http://localhost:{}", port);
+
     clerk::info!(address = %addr, "Binding listener");
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
@@ -44,8 +47,7 @@ pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()>
     clerk::info!("Frontend: disabled in debug mode (serving from disk via vite)");
     #[cfg(not(debug_assertions))]
     clerk::info!("Frontend: embedded assets enabled");
-
-    clerk::info!(address = %addr, "Server started, waiting for connections");
+    clerk::info!("Server started → {url}");
     axum::serve(listener, app).await.inspect_err(|e| {
         clerk::error!(error = %e, "Server exited with error");
     })?;

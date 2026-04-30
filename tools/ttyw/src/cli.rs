@@ -12,6 +12,8 @@ pub struct Args {
     pub port: u16,
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]
     pub working_directory: PathBuf,
+    #[cfg_attr(not(windows), arg(long, short,default_value_t=String::from("pwsh")))]
+    #[cfg_attr(windows, arg(long, short,default_value_t=String::from("pwsh")))]
     pub cmd: String,
 }
 pub async fn main() -> mischief::Result<()> {

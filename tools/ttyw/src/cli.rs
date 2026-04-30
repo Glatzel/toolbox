@@ -7,7 +7,7 @@ use dirs::home_dir;
 #[command(author = "Glatzel", version, long_about = None)]
 pub struct Args {
     #[command(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
+    pub verbose: clap_verbosity_flag::Verbosity,
     #[arg(long, short, default_value_t = 7681)]
     pub port: u16,
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]

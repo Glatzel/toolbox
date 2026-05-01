@@ -1,4 +1,4 @@
-import { Terminal } from "xterm";
+import { Terminal } from "@xterm/xterm";
 
 export class ReconnectOverlayAddon {
   private _overlay: HTMLElement | null = null;

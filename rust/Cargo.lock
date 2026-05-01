@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "insta",
  "rstest",
@@ -234,7 +234,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "clap",
  "insta",
@@ -260,7 +260,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "chrono",
  "defmt",
@@ -469,7 +469,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "envoy"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "mischief",
  "thiserror",
@@ -837,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "kioyu"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "arbor",
  "async-trait",
@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "arbor",
  "insta",
@@ -967,7 +967,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "quote",
  "syn",
@@ -1163,7 +1163,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rax"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "async-trait",
  "clerk",
@@ -1177,7 +1177,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "chrono",
  "clerk",
@@ -1390,7 +1390,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "clerk",
  "mischief",

@@ -78,7 +78,7 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "arbor"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "textwrap",
 ]
@@ -199,7 +199,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "clap",
 ]
@@ -247,7 +247,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -1123,7 +1123,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "arbor",
  "mischief-macros",
@@ -1136,7 +1136,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "quote",
  "syn",
@@ -2334,7 +2334,7 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "vinaya"
-version = "2026.4.30"
+version = "2026.5.1"
 dependencies = [
  "base64",
  "clap",

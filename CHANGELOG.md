@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.5.1] - 2026-05-01
+
+### Added
+
+- Add npm package by @Glatzel in [#487](https://github.com/Glatzel/toolbox/pull/487)
+
+### Changed
+
+- **(ttyw)** Set default log level by @Glatzel in [#484](https://github.com/Glatzel/toolbox/pull/484)
+
+### Fixed
+
+- Update index.html by @Glatzel in [#489](https://github.com/Glatzel/toolbox/pull/489)
+- **(ttyw)** Embed font by @Glatzel in [#490](https://github.com/Glatzel/toolbox/pull/490)
+
+### Testing
+
+- Add test for lazy tree and clap style by @Glatzel in [#482](https://github.com/Glatzel/toolbox/pull/482)
+
 ## [2026.4.30] - 2026-04-30
 
 ### Added
@@ -428,6 +447,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.5.1]: https://github.com/Glatzel/toolbox/compare/v2026.4.30..v2026.5.1
 [2026.4.30]: https://github.com/Glatzel/toolbox/compare/v2026.4.16..v2026.4.30
 [2026.4.16]: https://github.com/Glatzel/toolbox/compare/v2026.4.7..v2026.4.16
 [2026.4.7]: https://github.com/Glatzel/toolbox/compare/v2026.4.3..v2026.4.7

@@ -5,7 +5,7 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { ImageAddon } from "@xterm/addon-image";
 import { SearchAddon } from "@xterm/addon-search";
 import { ReconnectOverlayAddon } from "./addon/overlay";
-await document.fonts.load('14px "Caskaydia-Mono-Nerd"');
+
 export class TerminalClient {
   term: Terminal;
   fitAddon: FitAddon;
@@ -22,7 +22,7 @@ export class TerminalClient {
       cursorStyle: "block",
       cursorInactiveStyle: "none",
       fontSize: 14,
-      fontFamily: "Caskaydia-Mono-Nerd,ui-monospace",
+      fontFamily: "CaskaydiaMono Nerd Font,ui-monospace",
       fontWeight: "normal",
       ignoreBracketedPasteMode: true,
       theme: {

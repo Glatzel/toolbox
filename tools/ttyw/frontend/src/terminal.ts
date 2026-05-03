@@ -1,4 +1,4 @@
-import { Terminal } from "@xterm/xterm";
+import { IDisposable, Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { WebglAddon } from "@xterm/addon-webgl";
@@ -15,6 +15,9 @@ export class TerminalClient {
   reconnectTimer: number | null = null;
 
   private _reconnectOverlay: ReconnectOverlayAddon;
+  private _dataListenerDispose: IDisposable | null = null;
+  private _wsGeneration = 0;
+  private _resizeHandler = () => this.resize();
 
   constructor(el: HTMLElement) {
     this.term = new Terminal({
@@ -49,37 +52,84 @@ export class TerminalClient {
 
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
-
     this.term.loadAddon(new WebglAddon());
     this.term.loadAddon(new ClipboardAddon());
     this.term.loadAddon(new SearchAddon());
-    const customSettings = {
-      enableSizeReports: true, // whether to enable CSI t reports (see below)
-      pixelLimit: 16777216, // max. pixel size of a single image
-      sixelSupport: true, // enable sixel support
-      sixelScrolling: true, // whether to scroll on image output
-      sixelPaletteLimit: 1024, // initial sixel palette size
-      sixelSizeLimit: 25000000, // size limit of a single sixel sequence
-      storageLimit: 128, // FIFO storage limit in MB
-      showPlaceholder: true, // whether to show a placeholder for evicted images
-      iipSupport: true, // enable iTerm IIP support
-      iipSizeLimit: 20000000, // size limit of a single IIP sequence
-      kittySupport: true, // enable Kitty graphics support
-      kittySizeLimit: 20000000, // size limit of a single Kitty sequence
-    };
-    const imageAddon = new ImageAddon(customSettings);
-    this.term.loadAddon(imageAddon);
+    this.term.loadAddon(
+      new ImageAddon({
+        enableSizeReports: true,
+        pixelLimit: 16777216,
+        sixelSupport: true,
+        sixelScrolling: true,
+        sixelPaletteLimit: 1024,
+        sixelSizeLimit: 25000000,
+        storageLimit: 128,
+        showPlaceholder: true,
+        iipSupport: true,
+        iipSizeLimit: 20000000,
+      }),
+    );
 
     this._reconnectOverlay = new ReconnectOverlayAddon();
     this.term.loadAddon(this._reconnectOverlay);
 
     this.term.open(el);
     this.fitAddon.fit();
-    window.addEventListener("resize", () => this.resize());
+    window.addEventListener("resize", this._resizeHandler);
     this.connect();
   }
+
+  connect() {
+    const generation = ++this._wsGeneration;
+    const protocol = location.protocol === "https:" ? "wss" : "ws";
+    const url = `${protocol}://${location.host}/ws`;
+    console.log(url);
+
+    this.ws = new WebSocket(url);
+    this.ws.binaryType = "arraybuffer";
+
+    this.ws.onopen = () => {
+      if (generation !== this._wsGeneration) return;
+      console.log("WS connected");
+      this._reconnectOverlay.hide();
+      this.reconnectAttempts = 0;
+
+      this._dataListenerDispose?.dispose();
+      this._dataListenerDispose = this.term.onData((data) => {
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(data);
+        } else {
+          console.warn("WS not open, dropping message");
+        }
+      });
+
+      this.resize();
+    };
+
+    this.ws.onmessage = (event) => {
+      if (generation !== this._wsGeneration) return;
+      if (typeof event.data === "string") {
+        this.handleMessage(event.data);
+      } else {
+        this.term.write(new Uint8Array(event.data));
+      }
+    };
+
+    this.ws.onclose = () => {
+      if (generation !== this._wsGeneration) return;
+      console.warn("WS closed");
+      this.scheduleReconnect();
+    };
+
+    this.ws.onerror = (err) => {
+      if (generation !== this._wsGeneration) return;
+      console.error("WS error", err);
+      this.ws.close();
+    };
+  }
+
   scheduleReconnect() {
-    if (this.reconnectTimer) return; // prevent duplicates
+    if (this.reconnectTimer) return;
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error("Max reconnect attempts reached");
@@ -101,49 +151,6 @@ export class TerminalClient {
       this.connect();
     }, delay);
   }
-  connect() {
-    const protocol = location.protocol === "https:" ? "wss" : "ws";
-    const url = `${protocol}://${location.host}/ws`;
-    console.log(url);
-
-    this.ws = new WebSocket(url);
-    this.ws.binaryType = "arraybuffer";
-
-    this.ws.onopen = () => {
-      console.log("WS connected");
-      this._reconnectOverlay.hide();
-      this.reconnectAttempts = 0;
-      this.resize();
-    };
-
-    // backend → terminal
-    this.ws.onmessage = (event) => {
-      if (typeof event.data === "string") {
-        this.handleMessage(event.data);
-      } else {
-        this.term.write(new Uint8Array(event.data));
-      }
-    };
-
-    // terminal → backend
-    this.term.onData((data) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(data);
-      } else {
-        console.warn("WS not open, dropping message");
-      }
-    });
-
-    this.ws.onclose = () => {
-      console.warn("WS closed");
-      this.scheduleReconnect();
-    };
-
-    this.ws.onerror = (err) => {
-      console.error("WS error", err);
-      this.ws.close(); // ensures onclose fires
-    };
-  }
 
   handleMessage(raw: string) {
     let msg;
@@ -153,16 +160,15 @@ export class TerminalClient {
         case "config":
           this.term.options = { ...this.term.options, ...msg.config };
           break;
-
         default:
           console.warn(`Unknown message kind: ${msg.kind}`);
           break;
       }
     } catch {
-      // fallback: treat as plain terminal output
       this.term.write(raw);
     }
   }
+
   resize() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.log("WebSocket not open, cannot resize");
@@ -177,5 +183,18 @@ export class TerminalClient {
         rows: this.term.rows,
       }),
     );
+  }
+
+  destroy() {
+    this._wsGeneration++;
+    if (this.reconnectTimer) {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    this._dataListenerDispose?.dispose();
+    this._dataListenerDispose = null;
+    window.removeEventListener("resize", this._resizeHandler);
+    this.ws?.close();
+    this.term.dispose();
   }
 }

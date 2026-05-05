@@ -16,7 +16,7 @@ pub struct CharSetFilter<const N: usize> {
 
 impl<const N: usize> core::fmt::Debug for CharSetFilter<N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "CharSetFilter<N={}>{{table: {:?}}}", N, &self.table)
+        write!(f, "CharSetFilter<N={}>{{table: {:?}}}", N, self.table)
     }
 }
 

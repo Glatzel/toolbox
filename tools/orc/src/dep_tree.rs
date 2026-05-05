@@ -184,23 +184,23 @@ impl DepTree {
             (_, Some(p), None) => {
                 format!(
                     "{} [{}]",
-                    &self.name,
+                    self.name,
                     p.join(&self.name).to_slash_lossy().green()
                 )
             }
             #[cfg(target_os = "windows")]
             (_, None, None) if self.name.starts_with("api-ms-win") => {
-                format!("{} [{}]", &self.name, "VirtualImport".blue())
+                format!("{} [{}]", self.name, "VirtualImport".blue())
             }
             (_, None, None) => self.name.red().to_string(),
             (0, _, Some(target)) => {
-                format!("{} -> {}", &self.name, target.to_slash_lossy().green())
+                format!("{} -> {}", self.name, target.to_slash_lossy().green())
             }
             (_, Some(_), Some(target)) => {
-                format!("{} -> {}", &self.name, target.to_slash_lossy().green())
+                format!("{} -> {}", self.name, target.to_slash_lossy().green())
             }
             (_, None, Some(target)) => {
-                format!("{} -> {}", &self.name, target.to_slash_lossy().red())
+                format!("{} -> {}", self.name, target.to_slash_lossy().red())
             }
         }
     }
@@ -210,10 +210,10 @@ impl DepTree {
             (0, _, None) => self.name.clone(),
             (_, Some(_), None) => self.name.clone(),
             (_, None, None) => self.name.red().to_string(),
-            (0, _, Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
-            (_, Some(_), Some(target)) => format!("{} -> {}", &self.name, target.to_slash_lossy()),
+            (0, _, Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
+            (_, Some(_), Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
             (_, None, Some(target)) => {
-                format!("{} -> {}", &self.name, target.to_slash_lossy().red())
+                format!("{} -> {}", self.name, target.to_slash_lossy().red())
             }
         }
     }

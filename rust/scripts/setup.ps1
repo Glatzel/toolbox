@@ -1,4 +1,4 @@
 if ($IsLinux ) {
-    sudo apt update
-    sudo apt install libudev-dev libc6-dev
+    pixi install
+    $env:PKG_CONFIG_PATH= Resolve-Path "./.pixi/envs/default/lib/pkgconfig"
 }

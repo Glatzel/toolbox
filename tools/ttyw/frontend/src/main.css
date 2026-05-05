@@ -1,8 +1,15 @@
 html,
 body {
   height: 100%;
+  width: 100%;
   margin: 0;
   overflow: hidden;
+}
+.terminal-wrapper {
+  padding: 5px;
+  height: 100%;
+  box-sizing: border-box;
+  background: #1d2026;
 }
 #term {
   height: 100%;

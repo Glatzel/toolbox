@@ -1,9 +1,5 @@
 import { IDisposable, Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { ClipboardAddon } from "@xterm/addon-clipboard";
-import { WebglAddon } from "@xterm/addon-webgl";
-import { ImageAddon } from "@xterm/addon-image";
-import { SearchAddon } from "@xterm/addon-search";
 import { ReconnectOverlayAddon } from "./addon/overlay";
 
 export class TerminalClient {
@@ -52,7 +48,32 @@ export class TerminalClient {
 
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
-    this.term.loadAddon(new WebglAddon());
+    this._reconnectOverlay = new ReconnectOverlayAddon();
+    this.term.loadAddon(this._reconnectOverlay);
+    this.term.open(el);
+    this.fitAddon.fit();
+    window.addEventListener("resize", this._resizeHandler);
+    this._loadHeavyAddons();
+    this.connect();
+  }
+  private async _loadHeavyAddons() {
+    const [
+      { WebglAddon },
+      { ImageAddon },
+      { SearchAddon },
+      { ClipboardAddon },
+    ] = await Promise.all([
+      import("@xterm/addon-webgl"),
+      import("@xterm/addon-image"),
+      import("@xterm/addon-search"),
+      import("@xterm/addon-clipboard"),
+    ]);
+
+    const webgl = new WebglAddon();
+    // WebGL can throw if context creation fails — fall back to canvas
+    webgl.onContextLoss(() => webgl.dispose());
+    this.term.loadAddon(webgl);
+
     this.term.loadAddon(new ClipboardAddon());
     this.term.loadAddon(new SearchAddon());
     this.term.loadAddon(
@@ -69,16 +90,7 @@ export class TerminalClient {
         iipSizeLimit: 20000000,
       }),
     );
-
-    this._reconnectOverlay = new ReconnectOverlayAddon();
-    this.term.loadAddon(this._reconnectOverlay);
-
-    this.term.open(el);
-    this.fitAddon.fit();
-    window.addEventListener("resize", this._resizeHandler);
-    this.connect();
   }
-
   connect() {
     const generation = ++this._wsGeneration;
     const protocol = location.protocol === "https:" ? "wss" : "ws";

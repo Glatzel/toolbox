@@ -9,4 +9,16 @@ export default {
       },
     },
   },
+  build: {
+      rolldownOptions: {
+        output: {
+          manualChunks: (id) => {
+            if (id.includes("addon-webgl"))   return "xterm-webgl";
+            if (id.includes("addon-image"))   return "xterm-image";
+            if (id.includes("@xterm/xterm"))  return "xterm-core";
+            if (id.includes("@xterm/addon"))  return "xterm-addons";
+          },
+        },
+      },
+    },
 };

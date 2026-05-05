@@ -8,6 +8,7 @@ build = { cmd = "npm run build", cwd = "./frontend" }
 check = { cmd = "npx eslint . ;npx prettier --check .", cwd = "./frontend" }
 fix = { cmd = "npx eslint . --fix ; npx prettier --write .", cwd = "./frontend" }
 
+
 [dependencies]
 nodejs = "==25.8.2"
 fonts-cascadia-mono-woff2 = "==3.4.0"

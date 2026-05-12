@@ -1,4 +1,6 @@
 #![no_std]
+#![deny(clippy::unwrap_used)]
+
 extern crate alloc;
 
 mod error;

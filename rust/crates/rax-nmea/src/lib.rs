@@ -1,4 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![deny(clippy::unwrap_used)]
+
 pub mod data;
 mod dispatcher;
 pub mod rules;

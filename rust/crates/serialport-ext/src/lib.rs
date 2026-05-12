@@ -2,7 +2,7 @@
 //!
 //! This module provides types and functions to list and filter serial devices
 //! such as USB, PCI, and Bluetooth devices using the `serialport` crate.
-
+#![deny(clippy::unwrap_used)]
 use serialport::{SerialPortInfo, SerialPortType};
 
 /// Enumeration of supported device types.

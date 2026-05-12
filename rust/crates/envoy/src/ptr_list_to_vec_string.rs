@@ -76,7 +76,7 @@ impl PtrListToVecString for *mut *mut c_char {
         let mut offset = 0;
 
         loop {
-            let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
+            let current_ptr = unsafe { self.offset(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
 
             if current_ptr.is_null() {
                 break;
@@ -114,13 +114,17 @@ impl PtrListToVecString for *mut *mut c_char {
         let mut offset = 0;
 
         loop {
-            let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
+            let current_ptr = unsafe {
+                self.offset(offset)
+                    .as_ref()
+                    .ok_or_else(|| EnvoyError::NullPtr)?
+            };
 
             if current_ptr.is_null() {
                 break;
             }
 
-            vec_str.push(current_ptr.cast_const().to_string_lossy().unwrap());
+            vec_str.push(current_ptr.cast_const().to_string_lossy()?);
             offset += 1;
         }
 
@@ -196,13 +200,13 @@ impl PtrListToVecString for *const *const c_char {
         let mut offset = 0;
 
         loop {
-            let current_ptr = unsafe { self.offset(offset).as_ref().unwrap() };
+            let current_ptr = unsafe { self.offset(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
 
             if current_ptr.is_null() {
                 break;
             }
 
-            vec_str.push(current_ptr.to_string_lossy().unwrap());
+            vec_str.push(current_ptr.to_string_lossy()?);
             offset += 1;
         }
 

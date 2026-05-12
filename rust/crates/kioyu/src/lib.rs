@@ -1,3 +1,5 @@
+#![deny(clippy::unwrap_used)]
+
 mod dispatcher;
 mod job;
 mod log;

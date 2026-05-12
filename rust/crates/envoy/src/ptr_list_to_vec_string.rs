@@ -117,7 +117,7 @@ impl PtrListToVecString for *mut *mut c_char {
             let current_ptr = unsafe {
                 self.offset(offset)
                     .as_ref()
-                    .ok_or_else(|| EnvoyError::NullPtr)?
+                    .ok_or(EnvoyError::NullPtr)?
             };
 
             if current_ptr.is_null() {

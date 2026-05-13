@@ -6,7 +6,7 @@ use kioyu::{KIOYU_JOB_SPAN, kioyu_layers};
 
 use super::Args;
 use crate::cli::CommonArgs;
-pub fn init_log(args: &Args) {
+pub fn init_log(args: &Args) -> mischief::Result<()> {
     let level = args.verbose.tracing_level_filter();
     match &args.commands {
         super::Commands::Serve(CommonArgs { config })
@@ -17,7 +17,7 @@ pub fn init_log(args: &Args) {
                 .join("log")
                 .to_path_buf();
             clerk::tracing_subscriber::registry()
-                .with(kioyu_layers(log_dir).with_filter(level))
+                .with(kioyu_layers(log_dir)?.with_filter(level))
                 .with(
                     clerk::terminal_layer(true)
                         .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN))
@@ -29,4 +29,5 @@ pub fn init_log(args: &Args) {
             .with(clerk::terminal_layer(true).with_filter(level))
             .init(),
     };
+    Ok(())
 }

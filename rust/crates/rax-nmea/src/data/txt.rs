@@ -83,6 +83,7 @@ impl INmeaData for Txt {
 }
 
 impl fmt::Debug for Txt {
+    #[allow(clippy::unwrap_used)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("TXT");
         ds.field("talker", &self.talker);

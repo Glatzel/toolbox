@@ -25,7 +25,7 @@ enum Commands {
 
 pub async fn main() -> mischief::Result<()> {
     let args = Args::parse();
-    init_log(&args);
+    init_log(&args)?;
 
     match args.commands {
         Commands::Init => init::execute()?,

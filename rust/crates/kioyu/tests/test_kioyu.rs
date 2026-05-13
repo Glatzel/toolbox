@@ -14,6 +14,7 @@ use kioyu::{
     CancellationToken, IPayload, Job, KIOYU_JOB_SPAN, ResourceKey, ResourcePool, ResourceRequest,
     kioyu_layers, start_dispatcher, start_dispatcher_unlimited,
 };
+use mischief::IntoMischief;
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};
 
@@ -122,12 +123,13 @@ enum DispatcherMode {
     Unlimited,
 }
 
-async fn run_dispatcher_test(mode: DispatcherMode, snapshot_name: &str) {
+async fn run_dispatcher_test(mode: DispatcherMode, snapshot_name: &str) -> mischief::Result<()> {
     let log_root = tempdir().unwrap();
 
     clerk::tracing_subscriber::registry()
         .with(
             kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+                .into_mischief()?
                 .with_filter(LevelFilter::TRACE),
         )
         .with(
@@ -186,16 +188,17 @@ async fn run_dispatcher_test(mode: DispatcherMode, snapshot_name: &str) {
     ]}, {
         insta::assert_snapshot!(snapshot_name, render);
     });
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_dispatcher() {
-    run_dispatcher_test(DispatcherMode::Limited, "kioyu_log_dir_tree").await;
+async fn test_dispatcher() -> mischief::Result<()> {
+    run_dispatcher_test(DispatcherMode::Limited, "kioyu_log_dir_tree").await
 }
 
 #[tokio::test]
-async fn test_dispatcher_unlimited() {
-    run_dispatcher_test(DispatcherMode::Unlimited, "kioyu_unlimited_log_dir_tree").await;
+async fn test_dispatcher_unlimited() -> mischief::Result<()> {
+    run_dispatcher_test(DispatcherMode::Unlimited, "kioyu_unlimited_log_dir_tree").await
 }
 
 // ── retry tests

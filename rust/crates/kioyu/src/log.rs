@@ -9,6 +9,8 @@ use clerk::tracing_subscriber::registry::LookupSpan;
 use clerk::tracing_subscriber::{self, Layer};
 use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
 use tracing_core::{Event, Subscriber};
+
+use crate::error::KioyuError;
 pub const KIOYU_JOB_SPAN: &str = "kioyu-job";
 
 struct JobId(String, String);
@@ -82,7 +84,7 @@ where
             span.extensions_mut().insert(JobId(job_id, job_name));
         }
     }
-
+    #[allow(clippy::unwrap_used)]
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
             std::iter::successors(Some(span), |s| s.parent()).find(|s| s.name() == KIOYU_JOB_SPAN)
@@ -146,6 +148,7 @@ where
 /// clerk::tracing_subscriber::registry()
 ///     .with(
 ///         kioyu::kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+///             .unwrap()
 ///             .with_filter(LevelFilter::TRACE),
 ///     )
 ///     .with(
@@ -157,7 +160,7 @@ where
 /// ```
 pub fn kioyu_layers<S>(
     log_root: impl AsRef<std::path::Path>,
-) -> Vec<Box<dyn Layer<S> + Send + Sync>>
+) -> Result<Vec<Box<dyn Layer<S> + Send + Sync>>, KioyuError>
 where
     S: Subscriber + for<'a> LookupSpan<'a> + Send + Sync,
 {
@@ -167,13 +170,13 @@ where
         .join(Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ").to_string());
 
     let jobs_dir = run_dir.join("jobs");
-    std::fs::create_dir_all(&jobs_dir).unwrap();
+    std::fs::create_dir_all(&jobs_dir)?;
 
-    let kioyu_log = file_layer(run_dir.join("kioyu.log"), true).with_filter(
+    let kioyu_log = file_layer(run_dir.join("kioyu.log"), true)?.with_filter(
         tracing_subscriber::filter::filter_fn(|meta| meta.target().starts_with("kioyu")),
     );
 
     let job_log = JobFileLayer::new(jobs_dir);
 
-    vec![kioyu_log.boxed(), job_log.boxed()]
+    Ok(vec![kioyu_log.boxed(), job_log.boxed()])
 }

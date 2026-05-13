@@ -1,0 +1,7 @@
+[package]
+name = "polars-fmt"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+strum.workspace = true

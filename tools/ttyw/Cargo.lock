@@ -78,7 +78,7 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "arbor"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "textwrap",
 ]
@@ -234,7 +234,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "clap",
 ]
@@ -282,10 +282,11 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "chrono",
  "owo-colors",
+ "thiserror 2.0.18",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -779,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "arbor",
  "mischief-macros",
@@ -792,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "quote",
  "syn",
@@ -1545,7 +1546,7 @@ dependencies = [
 
 [[package]]
 name = "ttyw"
-version = "2026.5.1"
+version = "2026.5.13"
 dependencies = [
  "axum",
  "clap",

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.5.13] - 2026-05-13
+
+### Added
+
+- **(ttyw)** Add padding by @Glatzel in [#502](https://github.com/Glatzel/toolbox/pull/502)
+- **(vinaya-cli)** Add error message for generate_proto by @Glatzel in [#511](https://github.com/Glatzel/toolbox/pull/511)
+
+### Changed
+
+- Eliminate Unwrap by @Glatzel in [#510](https://github.com/Glatzel/toolbox/pull/510)
+
+### Fixed
+
+- **(ttyw)** Overlay.ts import by @Glatzel in [#492](https://github.com/Glatzel/toolbox/pull/492)
+- **(ttyw)** Multi connection after reconncting by @Glatzel in [#495](https://github.com/Glatzel/toolbox/pull/495)
+- **(orc)** Clippy by @Glatzel in [#501](https://github.com/Glatzel/toolbox/pull/501)
+
 ## [2026.5.1] - 2026-05-01
 
 ### Added
@@ -447,6 +464,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.5.13]: https://github.com/Glatzel/toolbox/compare/v2026.5.1..v2026.5.13
 [2026.5.1]: https://github.com/Glatzel/toolbox/compare/v2026.4.30..v2026.5.1
 [2026.4.30]: https://github.com/Glatzel/toolbox/compare/v2026.4.16..v2026.4.30
 [2026.4.16]: https://github.com/Glatzel/toolbox/compare/v2026.4.7..v2026.4.16

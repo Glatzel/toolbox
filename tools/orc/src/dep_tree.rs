@@ -10,7 +10,7 @@ use goblin::pe::PE;
 use owo_colors::OwoColorize;
 use path_slash::PathBufExt;
 
-use crate::cli::{ShowOption, LIMIT, SHOW_OPTION};
+use crate::cli::{LIMIT, SHOW_OPTION, ShowOption};
 
 #[derive(Debug, Clone)]
 pub struct DepTree {

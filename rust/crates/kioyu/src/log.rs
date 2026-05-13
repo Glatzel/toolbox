@@ -8,7 +8,6 @@ use clerk::tracing_subscriber::layer::Context;
 use clerk::tracing_subscriber::registry::LookupSpan;
 use clerk::tracing_subscriber::{self, Layer};
 use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
-
 use tracing_core::{Event, Subscriber};
 
 use crate::error::KioyuError;

@@ -5,6 +5,8 @@ use std::path::Path;
 use tracing_subscriber::Layer;
 use tracing_subscriber::registry::LookupSpan;
 
+use crate::log_tracing::error::ClerkError;
+
 /// Generate a terminal log layer for tracing.
 ///
 /// # Arguments
@@ -75,27 +77,38 @@ where
 /// warn!("Warning message");
 /// error!("Error message");
 /// ```
-pub fn file_layer<F, S>(filepath: F, overwrite: bool) -> impl Layer<S> + Send + Sync
+pub fn file_layer<F, S>(
+    filepath: F,
+    overwrite: bool,
+) -> Result<impl Layer<S> + Send + Sync, ClerkError>
 where
     F: AsRef<Path>,
     S: tracing_core::Subscriber,
     for<'a> S: LookupSpan<'a>,
 {
     let filepath = filepath.as_ref();
-    if !filepath.parent().unwrap().exists() {
-        std::fs::create_dir_all(filepath.parent().unwrap()).unwrap();
+    if !filepath
+        .parent()
+        .ok_or_else(|| ClerkError::ParentDirectoryNotFound(filepath.to_owned()))?
+        .exists()
+    {
+        std::fs::create_dir_all(
+            filepath
+                .parent()
+                .ok_or_else(|| ClerkError::ParentDirectoryNotFound(filepath.to_owned()))?,
+        )?;
     }
-    let a = std::fs::File::options()
+    let file = std::fs::File::options()
         .write(true)
         .truncate(overwrite)
         .append(!overwrite)
         .create(true)
-        .open(filepath)
-        .unwrap();
+        .open(filepath)?;
 
-    tracing_subscriber::fmt::layer()
+    let layer = tracing_subscriber::fmt::layer()
         .event_format(crate::ClerkFormatter { color: false })
-        .with_writer(a)
+        .with_writer(file);
+    Ok(layer)
 }
 #[cfg(test)]
 mod tests {
@@ -106,18 +119,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_log_file() {
+    fn test_log_file() -> mischief::Result<()> {
         let f1 = std::path::PathBuf::from("./temp/a.log");
         let f2 = std::path::PathBuf::from("./temp/b.log");
         tracing_subscriber::registry()
-            .with(file_layer(f1, true).with_filter(crate::LevelFilter::TRACE))
-            .with(file_layer(f2, false).with_filter(crate::LevelFilter::TRACE))
+            .with(file_layer(f1, true)?.with_filter(crate::LevelFilter::TRACE))
+            .with(file_layer(f2, false)?.with_filter(crate::LevelFilter::TRACE))
             .init();
         trace!("Trace message");
         debug!("Debug message");
         info!("Informational message");
         warn!("Warning message");
         error!("Error message");
+        Ok(())
     }
     #[test]
     fn test_log_term() {

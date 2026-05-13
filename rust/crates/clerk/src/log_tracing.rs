@@ -1,7 +1,10 @@
+mod error;
 mod fast_setup;
 mod filter;
 mod formatter;
 mod layer;
+
+pub use error::ClerkError;
 pub use fast_setup::init_log_with_level;
 pub use filter::NotInSpanFilter;
 pub use formatter::{ClerkFormatter, FormatEventToWriter};

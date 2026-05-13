@@ -51,17 +51,21 @@ impl Default for PolarsFmt {
 impl PolarsFmt {
     pub fn new() -> Self { Self }
 
-    /// define styling of tables using any of the following options (default = UTF8_FULL_CONDENSED). These options are defined by comfy-table which provides examples for each at <https://github.com/Nukesor/comfy-table/blob/main/src/style/presets.rs>
+    /// define styling of tables using any of the following options (default =
+    /// UTF8_FULL_CONDENSED).  These options are defined by comfy-table
+    /// which provides examples for each at _<https://github.com/Nukesor/comfy-table/blob/main/src/style/presets.rs>
     pub fn table_formatting(self, value: TableFormatting) -> Self {
         unsafe { env::set_var("POLARS_FMT_TABLE_FORMATTING", value.as_ref()) };
         self
     }
 
+    ///Set table cell alignment.
     pub fn cell_alignment(self, value: CellAlignment) -> Self {
         unsafe { env::set_var("POLARS_FMT_TABLE_CELL_ALIGNMENT", value.as_ref()) };
         self
     }
 
+    ////Print the DataFrame shape information below the data when displaying tables.
     pub fn dataframe_shape_below(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -72,6 +76,7 @@ impl PolarsFmt {
         self
     }
 
+    /// Hide table column names.
     pub fn hide_column_names(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -82,6 +87,7 @@ impl PolarsFmt {
         self
     }
 
+    /// Hide the DataFrame shape information when displaying tables.
     pub fn hide_column_data_types(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -92,6 +98,8 @@ impl PolarsFmt {
         self
     }
 
+    /// Hide the '---' separator displayed between the column names and column
+    /// types.
     pub fn hide_column_separator(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -102,6 +110,7 @@ impl PolarsFmt {
         self
     }
 
+    /// Hide the DataFrame shape information when displaying tables.
     pub fn hide_dataframe_shape_information(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -112,6 +121,8 @@ impl PolarsFmt {
         self
     }
 
+    /// Display the data type next to the column name (to the right, in
+    /// parentheses).
     pub fn inline_column_data_type(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(
@@ -132,16 +143,25 @@ impl PolarsFmt {
         self
     }
 
+    ///Set the number of columns that are visible when displaying tables.
+    ///
+    /// If value < 0 (eg: -1), display all columns.
     pub fn max_cols(self, value: i32) -> Self {
         unsafe { env::set_var("POLARS_FMT_MAX_COLS", value.to_string()) };
         self
     }
 
+    ///Set the max number of rows used to draw the table (both Dataframe and
+    /// Series).
+    ///
+    /// If value < 0 (eg: -1), display all rows (DataFrame) and all elements
+    /// (Series).
     pub fn max_rows(self, value: i32) -> Self {
         unsafe { env::set_var("POLARS_FMT_MAX_ROWS", value.to_string()) };
         self
     }
 
+    ///Set the number of characters used to display string values.
     pub fn str_length(self, value: usize) -> Self {
         unsafe { env::set_var("POLARS_FMT_STR_LEN", value.to_string()) };
         self
@@ -156,6 +176,9 @@ impl PolarsFmt {
         self
     }
 
+    /// Set the maximum width of a table in characters
+    ///
+    /// if value < 0 (eg: -1), display full width..
     pub fn table_width(self, value: i32) -> Self {
         unsafe { env::set_var("POLARS_TABLE_WIDTH", value.to_string()) };
         self

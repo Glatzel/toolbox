@@ -238,6 +238,7 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     /// The output may include severity labels, error codes, hyperlinks,
     /// descriptions, and optional help messages depending on the
     /// metadata provided by the diagnostic.
+    #[allow(clippy::unwrap_used)]
     pub fn render_diagnostic<D: IDiagnostic>(&self, diagnostic: &D, theme: &impl ITheme) -> String {
         use core::fmt::Write;
 

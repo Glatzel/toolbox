@@ -6,4 +6,6 @@ pub enum KioyuError {
     Clerk(#[from] ClerkError),
     #[error(transparent)]
     IO(#[from] std::io::Error),
+    #[error("Dispatcher closed.")]
+    DispatcherClosed,
 }

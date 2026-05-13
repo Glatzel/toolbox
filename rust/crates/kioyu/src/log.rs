@@ -148,6 +148,7 @@ where
 /// clerk::tracing_subscriber::registry()
 ///     .with(
 ///         kioyu::kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+///             .unwrap()
 ///             .with_filter(LevelFilter::TRACE),
 ///     )
 ///     .with(

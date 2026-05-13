@@ -6,14 +6,9 @@ use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 
 use crate::KIOYU_JOB_SPAN;
+use crate::error::KioyuError;
 use crate::job::{IPayload, Job};
 use crate::resource::ResourcePool;
-
-#[derive(Debug, thiserror::Error)]
-pub enum DispatchError {
-    #[error("closed")]
-    Closed,
-}
 
 pub enum DispatcherEvent<P> {
     Submit(Job<P>),
@@ -30,11 +25,11 @@ pub struct DispatcherHandle<P> {
 }
 
 impl<P> DispatcherHandle<P> {
-    pub async fn submit(&self, job: Job<P>) -> Result<(), DispatchError> {
+    pub async fn submit(&self, job: Job<P>) -> Result<(), KioyuError> {
         self.tx
             .send(DispatcherEvent::Submit(job))
             .await
-            .map_err(|_| DispatchError::Closed)
+            .map_err(|_| KioyuError::DispatcherClosed)
     }
 
     pub async fn shutdown(self) {

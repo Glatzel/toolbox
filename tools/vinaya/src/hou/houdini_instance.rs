@@ -1,3 +1,4 @@
+use std::io::Stdout;
 use std::path::{Path, PathBuf};
 use std::process;
 
@@ -205,7 +206,9 @@ impl HoudiniInstance {
             // Print the command's stdout
             println!("{}", String::from_utf8_lossy(&cmd_result.stdout));
         } else {
-            mischief::bail!("{}", String::from_utf8_lossy(&cmd_result.stderr))
+            let stdout = String::from_utf8_lossy(&cmd_result.stdout);
+            let stderr = String::from_utf8_lossy(&cmd_result.stderr);
+            mischief::bail!("Stdout:\n{}\nStderr:\n{}", stdout, stderr)
         }
         Ok(())
     }

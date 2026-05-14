@@ -1,4 +1,5 @@
 use kioyu::{Job, ResourceRequest, start_dispatcher_unlimited};
+use mischief::IntoMischief;
 
 use crate::cli::CommonArgs;
 use crate::config::Config;
@@ -32,6 +33,7 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
             dispatcher
                 .submit(job)
                 .await
+                .into_mischief()
                 .wrap_err_with(|| mischief::mischief!("Failed to submit job: {}", job))?;
         }
     }

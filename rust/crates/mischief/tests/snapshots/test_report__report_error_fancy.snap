@@ -2,7 +2,7 @@
 source: crates/mischief/tests/test_report.rs
 expression: "format!(\"{}\", bundle)"
 ---
-x Third error
-├─▶ Second error
-╰─▶ Warning[E404]<https://github.com/Glatzel/toolbox>: first error
+[31mx [39mThird error
+[31m├─▶ [39mSecond error
+[31m╰─▶ [39mWarning[E404]<https://github.com/Glatzel/toolbox>: first error
     help: Try again.

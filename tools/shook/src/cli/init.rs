@@ -2,6 +2,8 @@ use std::env;
 use std::fs::OpenOptions;
 use std::io::{ErrorKind, Write};
 
+use mischief::{IntoMischief, WrapErr};
+
 use crate::config::schema;
 const TEMPLATE: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/shook.toml"));
 
@@ -15,7 +17,9 @@ pub(super) fn execute() -> mischief::Result<()> {
             .open(&config_file)
         {
             Ok(mut file) => {
-                file.write_all(TEMPLATE)?;
+                file.write_all(TEMPLATE)
+                    .into_mischief()
+                    .wrap_err("Failed to write to shook.toml")?;
             }
             Err(e) if e.kind() == ErrorKind::AlreadyExists => {
                 clerk::debug!("shook.toml already exists");
@@ -25,8 +29,12 @@ pub(super) fn execute() -> mischief::Result<()> {
     }
     {
         let schema_file = env::current_dir()?.join("shook.schema.json");
-        let schema = serde_json::to_string_pretty(&schema())?;
-        std::fs::write(&schema_file, schema)?;
+        let schema = serde_json::to_string_pretty(&schema())
+            .into_mischief()
+            .wrap_err("Failed to serialize schema")?;
+        std::fs::write(&schema_file, schema)
+            .into_mischief()
+            .wrap_err("Failed to write to shook.schema.json")?;
     }
     Ok(())
 }

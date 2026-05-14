@@ -7,6 +7,7 @@ use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
 use dirs::home_dir;
+use mischief::WrapErr;
 #[derive(Debug, Parser)]
 #[command(author = "Glatzel", version, long_about = None, styles=clap_style::styles())]
 pub struct Args {
@@ -27,15 +28,15 @@ pub async fn main() -> mischief::Result<()> {
             clerk::terminal_layer(true).with_filter(
                 EnvFilter::builder()
                     .with_default_directive(
-                        format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter())
-                            .parse()
-                            .unwrap(),
+                        format!("{}={}", env!("CARGO_PKG_NAME"), args.verbose.filter()).parse()?,
                     )
                     .from_env_lossy(),
             ),
         )
         .init();
     let state = Arc::new(crate::server::AppContext { args });
-    crate::server::start_server(state).await?;
+    crate::server::start_server(state)
+        .await
+        .wrap_err("Failed to start server")?;
     Ok(())
 }

@@ -1,4 +1,5 @@
 use kioyu::{Job, ResourceRequest, start_dispatcher_unlimited};
+use mischief::{IntoMischief, WrapErr};
 
 use crate::cli::CommonArgs;
 use crate::config::Config;
@@ -29,7 +30,11 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
                 ResourceRequest::none(), // no resource constraints in unlimited mode
                 config.kioyu.max_retries,
             );
-            dispatcher.submit(job).await?;
+            dispatcher
+                .submit(job)
+                .await
+                .into_mischief()
+                .wrap_err("Failed to submit job")?;
         }
     }
     tokio::signal::ctrl_c().await?;

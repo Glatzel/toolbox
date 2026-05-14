@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use kioyu::start_dispatcher;
+use mischief::WrapErr;
 
 use crate::cli::CommonArgs;
 use crate::config::Config;
@@ -8,7 +9,8 @@ use crate::server::{AppContext, start_server};
 use crate::vm::RunnerPayload;
 
 pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
-    let config = Config::load_config(&args.config)?;
+    let config = Config::load_config(&args.config)
+        .wrap_err_with(|| mischief::mischief!("Fail to load shook.toml"))?;
 
     // init kioyu
     let mut pool = kioyu::ResourcePool::new();

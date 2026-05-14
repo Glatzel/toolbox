@@ -1,3 +1,8 @@
+//! # References
+//!
+//! * _<https://docs.rs/polars/latest/polars/#config-with-env-vars>
+//! * _<https://docs.pola.rs/api/python/stable/reference/config.html>
+
 use std::env;
 
 use strum::AsRefStr;
@@ -30,7 +35,7 @@ pub enum TableFormatting {
     #[strum(serialize = "UTF8_HORIZONTAL_ONLY")]
     Utf8HorizontalOnly,
     #[strum(serialize = "NOTHING")]
-    NOTHING,
+    Nothing,
 }
 #[derive(Debug, Clone, Copy, AsRefStr)]
 pub enum CellAlignment {

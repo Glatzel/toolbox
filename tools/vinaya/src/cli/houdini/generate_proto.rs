@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
+use mischief::WrapErr;
 
 use crate::cli::{ArgMajor, ArgMinor, ArgPatch, HOUDINI_OPTIONS};
 use crate::hou::HoudiniInstance;
@@ -29,14 +30,16 @@ pub fn execute(args: Args) -> mischief::Result<()> {
         patch: args.patch.value(),
     };
 
-    instance.generate_proto(
-        args.python_version_major,
-        args.python_version_minor,
-        &args
-            .infiles
-            .iter()
-            .map(|f| f.as_path())
-            .collect::<Vec<&Path>>(),
-        &args.outfile,
-    )
+    instance
+        .generate_proto(
+            args.python_version_major,
+            args.python_version_minor,
+            &args
+                .infiles
+                .iter()
+                .map(|f| f.as_path())
+                .collect::<Vec<&Path>>(),
+            &args.outfile,
+        )
+        .wrap_err_with(|| mischief::mischief!("Failed to generate proto: {:?}", args.infiles))
 }

@@ -34,7 +34,7 @@ pub struct MischiefIndent {
     pub bottom_first: String,
 
     /// Prefix used for continuation lines of the final child diagnostic.
-    pub bottom_other: String,
+    pub bottom_other: &'static str,
 
     /// Prefix used for continuation lines of intermediate diagnostics.
     pub other: String,
@@ -47,7 +47,7 @@ impl IIndent for MischiefIndent {
             (Layer::Root, Line::Other) => &self.root_other,
             (Layer::Top | Layer::Middle, Line::First) => &self.top_middle_first,
             (Layer::Bottom, Line::First) => &self.bottom_first,
-            (Layer::Bottom, Line::Other) => &self.bottom_other,
+            (Layer::Bottom, Line::Other) => self.bottom_other,
             (_, Line::Other) => &self.other,
         }
     }
@@ -67,7 +67,7 @@ impl Default for MischiefIndent {
                     root_other: "│ ".red().to_string(),
                     top_middle_first: "├─▶ ".red().to_string(),
                     bottom_first: "╰─▶ ".red().to_string(),
-                    bottom_other: "    ".red().to_string(),
+                    bottom_other: "    ",
                     other: "│   ".red().to_string(),
                 }
             } else {
@@ -76,7 +76,7 @@ impl Default for MischiefIndent {
                     root_other: "| ".red().to_string(),
                     top_middle_first: "|-- ".red().to_string(),
                     bottom_first: "`-- ".red().to_string(),
-                    bottom_other: "    ".red().to_string(),
+                    bottom_other: "    ",
                     other: "|   ".red().to_string(),
                 }
             }

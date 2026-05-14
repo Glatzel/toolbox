@@ -2,15 +2,15 @@
 source: crates/mischief/tests/test_report.rs
 expression: "format!(\"{}\", bundle)"
 ---
-x Attempted to access a resource that is not available in the current execution
-│ environment, which may indicate missing dependencies, restricted permissions,
-│ or an incorrect build target.
-├─▶ Error[E502]: Connection to the database server timed out after multiple
-│   retries, possibly caused by network instability, firewall restrictions, or
-│   an unreachable endpoint.
-│   help: Network resource unavailable. Please check your connection or file
-│   permissions, and try again. Contact support with code 404-B.
-╰─▶ Warning[E404]<https://github.com/Glatzel/toolbox>: Failed to parse
+[31mx [39mAttempted to access a resource that is not available in the current execution
+[31m│ [39menvironment, which may indicate missing dependencies, restricted permissions,
+[31m│ [39mor an incorrect build target.
+[31m├─▶ [39mError[E502]: Connection to the database server timed out after multiple
+[31m│   [39mretries, possibly caused by network instability, firewall restrictions, or
+[31m│   [39man unreachable endpoint.
+[31m│   [39mhelp: Network resource unavailable. Please check your connection or file
+[31m│   [39mpermissions, and try again. Contact support with code 404-B.
+[31m╰─▶ [39mWarning[E404]<https://github.com/Glatzel/toolbox>: Failed to parse
     configuration file due to invalid syntax near line 42; unexpected token
     found that prevents correct interpretation of the settings provided.
     help: To resolve this issue, please ensure all required dependencies are

@@ -17,7 +17,13 @@ pub fn init_log(args: &Args) -> mischief::Result<()> {
                 .join("log")
                 .to_path_buf();
             clerk::tracing_subscriber::registry()
-                .with(kioyu_layers(log_dir)?.with_filter(level))
+                .with(
+                    kioyu_layers(log_dir)
+                        .wrap_err_with(|| {
+                            mischief::mischief!("Failed to create log directory for kioyu")
+                        })?
+                        .with_filter(level),
+                )
                 .with(
                     clerk::terminal_layer(true)
                         .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN))

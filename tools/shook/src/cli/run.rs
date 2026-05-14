@@ -29,7 +29,10 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
                 ResourceRequest::none(), // no resource constraints in unlimited mode
                 config.kioyu.max_retries,
             );
-            dispatcher.submit(job).await?;
+            dispatcher
+                .submit(job)
+                .await
+                .wrap_err_with(|| mischief::mischief!("Failed to submit job: {}", job))?;
         }
     }
     tokio::signal::ctrl_c().await?;

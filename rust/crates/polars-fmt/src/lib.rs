@@ -30,7 +30,7 @@ pub enum TableFormatting {
     #[strum(serialize = "UTF8_HORIZONTAL_ONLY")]
     Utf8HorizontalOnly,
     #[strum(serialize = "NOTHING")]
-    NOTHING,
+    Nothing,
 }
 #[derive(Debug, Clone, Copy, AsRefStr)]
 pub enum CellAlignment {

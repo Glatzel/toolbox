@@ -3,7 +3,7 @@ use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use kioyu::{KIOYU_JOB_SPAN, kioyu_layers};
-use mischief::IntoMischief;
+use mischief::{IntoMischief, WrapErr};
 
 use super::Args;
 use crate::cli::CommonArgs;
@@ -21,9 +21,7 @@ pub fn init_log(args: &Args) -> mischief::Result<()> {
                 .with(
                     kioyu_layers(log_dir)
                         .into_mischief()
-                        .wrap_err_with(|| {
-                            mischief::mischief!("Failed to create log directory for kioyu")
-                        })?
+                        .wrap_err("Failed to create log directory for kioyu")?
                         .with_filter(level),
                 )
                 .with(

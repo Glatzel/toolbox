@@ -22,33 +22,33 @@ use crate::{IDiagnostic, Report, Severity};
 #[derive(Debug, Clone)]
 pub struct MischiefIndent {
     /// Prefix used for the first line of the root diagnostic.
-    pub root_first: &'static str,
+    pub root_first: String,
 
     /// Prefix used for continuation lines of the root diagnostic.
-    pub root_other: &'static str,
+    pub root_other: String,
 
     /// Prefix used for the first line of top or middle child diagnostics.
-    pub top_middle_first: &'static str,
+    pub top_middle_first: String,
 
     /// Prefix used for the first line of the final child diagnostic.
-    pub bottom_first: &'static str,
+    pub bottom_first: String,
 
     /// Prefix used for continuation lines of the final child diagnostic.
-    pub bottom_other: &'static str,
+    pub bottom_other: String,
 
     /// Prefix used for continuation lines of intermediate diagnostics.
-    pub other: &'static str,
+    pub other: String,
 }
 
 impl IIndent for MischiefIndent {
-    fn get_indent(&self, layer: Layer, line: Line) -> &'static str {
+    fn get_indent(&self, layer: Layer, line: Line) -> &str {
         match (layer, line) {
-            (Layer::Root, Line::First) => self.root_first,
-            (Layer::Root, Line::Other) => self.root_other,
-            (Layer::Top | Layer::Middle, Line::First) => self.top_middle_first,
-            (Layer::Bottom, Line::First) => self.bottom_first,
-            (Layer::Bottom, Line::Other) => self.bottom_other,
-            (_, Line::Other) => self.other,
+            (Layer::Root, Line::First) => &self.root_first,
+            (Layer::Root, Line::Other) => &self.root_other,
+            (Layer::Top | Layer::Middle, Line::First) => &self.top_middle_first,
+            (Layer::Bottom, Line::First) => &self.bottom_first,
+            (Layer::Bottom, Line::Other) => &self.bottom_other,
+            (_, Line::Other) => &self.other,
         }
     }
 }
@@ -63,21 +63,21 @@ impl Default for MischiefIndent {
         {
             if supports_unicode::on(supports_unicode::Stream::Stdout) {
                 Self {
-                    root_first: "x ",
-                    root_other: "│ ",
-                    top_middle_first: "├─▶ ",
-                    bottom_first: "╰─▶ ",
-                    bottom_other: "    ",
-                    other: "│   ",
+                    root_first: "x ".red().to_string(),
+                    root_other: "│ ".red().to_string(),
+                    top_middle_first: "├─▶ ".red().to_string(),
+                    bottom_first: "╰─▶ ".red().to_string(),
+                    bottom_other: "    ".red().to_string(),
+                    other: "│   ".red().to_string(),
                 }
             } else {
                 Self {
-                    root_first: "x",
-                    root_other: "| ",
-                    top_middle_first: "|-- ",
-                    bottom_first: "`-- ",
-                    bottom_other: "    ",
-                    other: "|   ",
+                    root_first: "x".red().to_string(),
+                    root_other: "| ".red().to_string(),
+                    top_middle_first: "|-- ".red().to_string(),
+                    bottom_first: "`-- ".red().to_string(),
+                    bottom_other: "    ".red().to_string(),
+                    other: "|   ".red().to_string(),
                 }
             }
         }

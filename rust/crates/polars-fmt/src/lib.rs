@@ -1,3 +1,8 @@
+//! # References
+//!
+//! * _<https://docs.rs/polars/latest/polars/#config-with-env-vars>
+//! * _<https://docs.pola.rs/api/python/stable/reference/config.html>
+
 use std::env;
 
 use strum::AsRefStr;

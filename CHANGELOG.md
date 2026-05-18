@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.5.18] - 2026-05-18
+
+### Changed
+
+- Change mischief indent color by @Glatzel in [#517](https://github.com/Glatzel/toolbox/pull/517)
+- **(python)** Revert to python 3.11 by @Glatzel in [#519](https://github.com/Glatzel/toolbox/pull/519)
+
 ## [2026.5.14] - 2026-05-14
 
 ### Added
@@ -470,6 +477,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.5.18]: https://github.com/Glatzel/toolbox/compare/v2026.5.14..v2026.5.18
 [2026.5.14]: https://github.com/Glatzel/toolbox/compare/v2026.5.13..v2026.5.14
 [2026.5.13]: https://github.com/Glatzel/toolbox/compare/v2026.5.1..v2026.5.13
 [2026.5.1]: https://github.com/Glatzel/toolbox/compare/v2026.4.30..v2026.5.1

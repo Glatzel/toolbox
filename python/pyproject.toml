@@ -1,7 +1,7 @@
 [project]
 name = "toolbox"
 version = "2026.5.14"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
 dependencies = ["lazy-loader", "rich"]
 
@@ -10,7 +10,7 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-arm64", "linux-aarch64"]
 
 [tool.pixi.dependencies]
-python = "3.13.*"
+python = "3.11.*"
 # test
 pyfakefs = "==6.2.0"
 pytest = "==9.0.3"

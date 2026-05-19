@@ -12,7 +12,7 @@ libraw.so -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libraw.so.25.0.0
 │   ├── [RED]libdl.so.2
 │   ╰── [RED]libpthread.so.0
 ├── libjpeg.so.8 -> [RED][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/libjpeg.so.8.3.2
-├── liblcms2.so.2 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/liblcms2.so.2.0.18
+├── liblcms2.so.2 -> [GREEN][CARGO_MANIFEST_DIR]/.pixi/envs/default/lib/liblcms2.so.2.0.19
 │   ├── [RED]libc.so.6
 │   ├── [RED]libm.so.6
 │   ╰── [RED]libpthread.so.0

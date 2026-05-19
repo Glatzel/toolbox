@@ -1,18 +1,18 @@
-version: 6
+version: 7
+platforms:
+- name: linux-64
 environments:
   default:
     channels:
     - url: https://prefix.dev/glatzel/
     - url: https://conda.anaconda.org/conda-forge/
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_19.conda
       - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
       - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_18.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_18.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -27,6 +27,28 @@ packages:
   license_family: BSD
   size: 28948
   timestamp: 1770939786096
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
+  sha256: 8e0a3b5e41272e5678499b5dfc4cddb673f9e935de01eb0767ce857001229f46
+  md5: 57736f29cc2b0ec0b6c2952d3f101b6a
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - _openmp_mutex >=4.5
+  constrains:
+  - libgcc-ng ==15.2.0=*_19
+  - libgomp 15.2.0 he0feb66_19
+  license: GPL-3.0-only WITH GCC-exception-3.1
+  license_family: GPL
+  size: 1041084
+  timestamp: 1778269013026
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_19.conda
+  sha256: 5abe4ab9d93f6c9757d654f1969ae2267d4505315c1f2f8fe705fd60af084f1b
+  md5: faac990cb7aedc7f3a2224f2c9b0c26c
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  license: GPL-3.0-only WITH GCC-exception-3.1
+  license_family: GPL
+  size: 603817
+  timestamp: 1778268942614
 - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
   sha256: 17f974a1a73a1682774bae57bc93d8aa9b3be685c785db689758518c9f941f55
   md5: bb93acdb9b3e459f4a7be3a5f65e5bba
@@ -34,6 +56,9 @@ packages:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
   - libcap-ng-rt >=0.9.3,<0.10.0a0
+  run_exports:
+    weak:
+    - libcap-ng-rt >=0.9.3,<0.10.0a0
   size: 18164
   timestamp: 1775754874420
 - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
@@ -42,27 +67,8 @@ packages:
   depends:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
+  run_exports:
+    weak:
+    - libcap-ng-rt >=0.9.3,<0.10.0a0
   size: 24451
   timestamp: 1775754874420
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_18.conda
-  sha256: faf7d2017b4d718951e3a59d081eb09759152f93038479b768e3d612688f83f5
-  md5: 0aa00f03f9e39fb9876085dee11a85d4
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - _openmp_mutex >=4.5
-  constrains:
-  - libgcc-ng ==15.2.0=*_18
-  - libgomp 15.2.0 he0feb66_18
-  license: GPL-3.0-only WITH GCC-exception-3.1
-  license_family: GPL
-  size: 1041788
-  timestamp: 1771378212382
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_18.conda
-  sha256: 21337ab58e5e0649d869ab168d4e609b033509de22521de1bfed0c031bfc5110
-  md5: 239c5e9546c38a1e884d69effcf4c882
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  license: GPL-3.0-only WITH GCC-exception-3.1
-  license_family: GPL
-  size: 603262
-  timestamp: 1771378117851

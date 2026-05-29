@@ -11,8 +11,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.77-hd0affe5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_19.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.1-h6569c3e_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.1-h6569c3e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6569c3e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6569c3e_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -59,21 +59,21 @@ packages:
   license_family: GPL
   size: 603817
   timestamp: 1778268942614
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.1-h6569c3e_0.conda
-  sha256: 4f43dcf7eb5d671e800385509327cc5a1a851e09877776bd27dd0b78120ce8f5
-  md5: 2c9df32e21f0cdda08e0f9ff47d4ca9a
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6569c3e_0.conda
+  sha256: aefa31c5f3c885e713168ef4b0f96d84ff8fafc8ff71aec8d924d18d11fbc804
+  md5: b2e496ef1c2a5a6faf79a34b832fc9e0
   depends:
-  - libudev1 260.1 h6569c3e_0
+  - libudev1 260.2 h6569c3e_0
   license: LGPL-2.1-or-later
-  size: 19773
-  timestamp: 1774288554788
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.1-h6569c3e_0.conda
-  sha256: 53c317039eaed772c695fcf13e13c330fa162f7ac0a3fa6d22e79a8115650775
-  md5: 0bcc534980c246af677ed6f118d8c2ef
+  size: 19933
+  timestamp: 1779892897531
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6569c3e_0.conda
+  sha256: 7f5aced7d3c8ff425e9b64fd31886ee8eaa466a36e6cbf0c624761cee30f28ef
+  md5: 968dce3b8d5fd26ffce8e36869545d0b
   depends:
   - __glibc >=2.34,<3.0.a0
   - libcap >=2.77,<2.78.0a0
   - libgcc >=14
   license: LGPL-2.1-or-later
-  size: 171657
-  timestamp: 1774288553658
+  size: 172159
+  timestamp: 1779892896254

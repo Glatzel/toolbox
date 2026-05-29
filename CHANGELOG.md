@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.5.29] - 2026-05-29
+
+### Changed
+
+- **(envoy)** VecCString own ptr by @Glatzel in [#543](https://github.com/Glatzel/toolbox/pull/543)
+
 ## [2026.5.18] - 2026-05-18
 
 ### Changed
@@ -477,6 +483,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.5.29]: https://github.com/Glatzel/toolbox/compare/v2026.5.18..v2026.5.29
 [2026.5.18]: https://github.com/Glatzel/toolbox/compare/v2026.5.14..v2026.5.18
 [2026.5.14]: https://github.com/Glatzel/toolbox/compare/v2026.5.13..v2026.5.14
 [2026.5.13]: https://github.com/Glatzel/toolbox/compare/v2026.5.1..v2026.5.13

@@ -1,7 +1,7 @@
 use alloc::ffi::CString;
-use alloc::vec;
 use alloc::vec::Vec;
 use core::ffi::c_char;
+use core::ops::Deref;
 use core::ptr;
 
 use crate::{EnvoyError, ToCString};
@@ -23,14 +23,20 @@ pub trait AsVecPtr {
     /// buffer. The array is always null-terminated; its length equals the
     /// number of strings plus one.
     ///
+    /// The pointer buffer is built lazily on the first call and cached until
+    /// the [`VecCString`] is mutated.
+    ///
     /// # Safety
     ///
     /// The pointer is valid only as long as the [`VecCString`] is alive and
     /// unmodified.
-    fn as_ptr(&self) -> *const *const c_char;
+    fn as_ptr(&mut self) -> *const *const c_char;
 
     /// Returns a `*mut *mut c_char` pointing into the internal pointer buffer.
     /// The array is always null-terminated.
+    ///
+    /// The pointer buffer is built lazily on the first call and cached until
+    /// the [`VecCString`] is mutated.
     ///
     /// # Safety
     ///
@@ -40,35 +46,40 @@ pub trait AsVecPtr {
     fn as_mut_ptr(&mut self) -> *mut *mut c_char;
 }
 
-/// A wrapper around a vector of [`CString`] that keeps a synchronised
+/// A wrapper around a vector of [`CString`] that lazily builds a synchronised
 /// null-terminated pointer buffer for cheap FFI hand-off.
 ///
-/// `content` is private so that every mutation goes through methods that
-/// rebuild `ptr_buf`, keeping the two fields in sync at all times.
+/// `buffer` is private so that every mutation goes through methods that
+/// invalidate `ptr_buffer`, keeping the two fields in sync at all times.
+///
+/// `ptr_buffer` is `None` until the first call to [`VecCString::as_ptr`] or
+/// [`VecCString::as_mut_ptr`], after which it is cached. Any mutation sets it
+/// back to `None`.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct VecCString {
     buffer: Vec<CString>,
-    /// Null-terminated array of pointers into `content`.
-    /// Length is always `content.len() + 1`; the last element is `ptr::null()`.
-    ptr_buffer: Vec<*const c_char>,
+    /// Lazily-built null-terminated array of pointers into `buffer`.
+    /// `None` means the cache is invalid and must be rebuilt on next access.
+    /// When `Some`, length is always `buffer.len() + 1`; the last element is
+    /// `ptr::null()`.
+    ptr_buffer: Option<Vec<*const c_char>>,
 }
 
-// SAFETY: VecCString owns its CStrings; the raw pointers in ptr_buf are
+// SAFETY: VecCString owns its CStrings; the raw pointers in ptr_buffer are
 // derived from those owned values and are never exposed beyond the lifetime
-// of &self / &mut self.
+// of &mut self.
 unsafe impl Send for VecCString {}
 unsafe impl Sync for VecCString {}
 
 impl Clone for VecCString {
     fn clone(&self) -> Self {
-        // Clone content into a fresh allocation, then rebuild ptr_buf from
-        // the new addresses. Simply copying ptr_buf would leave dangling
-        // pointers into the original's CString heap buffers.
-        let content = self.buffer.clone();
-        let ptr_buf = Self::build_ptr_buf(&content);
+        // Clone buffer into a fresh allocation. Do NOT copy ptr_buffer —
+        // those pointers point into the original's CString heap buffers and
+        // would be immediately dangling. Start with None; the clone will
+        // build its own ptr_buffer lazily on first use.
         Self {
-            buffer: content,
-            ptr_buffer: ptr_buf,
+            buffer: self.buffer.clone(),
+            ptr_buffer: None,
         }
     }
 }
@@ -91,64 +102,90 @@ impl VecCString {
     pub fn new() -> Self {
         Self {
             buffer: Vec::new(),
-            ptr_buffer: vec![ptr::null()],
+            ptr_buffer: None,
         }
     }
+    pub fn clear(&mut self) {
+        self.ptr_buffer = None;
+        self.buffer.clear();
+    }
 
-    /// Returns the number of strings (excluding the null terminator).
-    pub fn len(&self) -> usize { self.buffer.len() }
-
-    /// Returns `true` if there are no strings.
-    pub fn is_empty(&self) -> bool { self.buffer.is_empty() }
-
-    /// Appends a [`CString`] and rebuilds the pointer buffer.
+    /// Appends a [`CString`], invalidating the pointer cache.
     pub fn push(&mut self, s: CString) {
+        self.ptr_buffer = None;
         self.buffer.push(s);
-        self.rebuild_ptr_buf();
     }
-
-    /// Extends from an iterator of [`CString`]s and rebuilds the pointer
-    /// buffer once at the end.
-    pub fn extend_from_cstrings(&mut self, iter: impl IntoIterator<Item = CString>) {
-        self.buffer.extend(iter);
-        self.rebuild_ptr_buf();
-    }
-
-    /// Returns a shared reference to the underlying [`CString`] slice.
-    pub fn as_slice(&self) -> &[CString] { &self.buffer }
-
-    /// Builds a null-terminated pointer buffer from a [`CString`] slice.
-    fn build_ptr_buf(content: &[CString]) -> Vec<*const c_char> {
-        content
-            .iter()
-            .map(|s| s.as_ptr())
-            .chain(core::iter::once(ptr::null()))
-            .collect()
-    }
-
-    /// Rebuilds `ptr_buf` in place from the current `content`.
-    ///
-    /// Must be called after every operation that moves or reallocates
-    /// `content`, because a reallocation changes the addresses of the
-    /// `CString` heap buffers.
-    fn rebuild_ptr_buf(&mut self) { self.ptr_buffer = Self::build_ptr_buf(&self.buffer); }
+}
+impl Deref for VecCString {
+    type Target = [CString];
+    fn deref(&self) -> &[CString] { &self.buffer }
 }
 
+// No DerefMut — would allow silent ptr_buffer invalidation via index writes.
+
+impl Extend<CString> for VecCString {
+    fn extend<I: IntoIterator<Item = CString>>(&mut self, iter: I) {
+        self.ptr_buffer = None;
+        self.buffer.extend(iter);
+    }
+}
+
+impl FromIterator<CString> for VecCString {
+    fn from_iter<I: IntoIterator<Item = CString>>(iter: I) -> Self {
+        Self {
+            buffer: iter.into_iter().collect(),
+            ptr_buffer: None,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a VecCString {
+    type Item = &'a CString;
+    type IntoIter = core::slice::Iter<'a, CString>;
+    fn into_iter(self) -> Self::IntoIter { self.buffer.iter() }
+}
+
+impl IntoIterator for VecCString {
+    type Item = CString;
+    type IntoIter = alloc::vec::IntoIter<CString>;
+    fn into_iter(self) -> Self::IntoIter { self.buffer.into_iter() }
+}
 impl AsVecPtr for VecCString {
     /// # Examples
     ///
     /// ```
     /// use envoy::{AsVecPtr, ToVecCString};
     ///
-    /// let v = ["a", "b"].to_vec_cstring().unwrap();
+    /// let mut v = ["a", "b"].to_vec_cstring().unwrap();
     /// let p = v.as_ptr();
     /// assert!(!p.is_null());
     /// // The element at index 2 (0-based) is the null terminator.
     /// assert!(unsafe { (*p.add(2)).is_null() });
     /// ```
-    fn as_ptr(&self) -> *const *const c_char { self.ptr_buffer.as_ptr() }
+    fn as_ptr(&mut self) -> *const *const c_char {
+        self.ptr_buffer
+            .get_or_insert_with(|| {
+                self.buffer
+                    .iter()
+                    .map(|s| s.as_ptr())
+                    .chain(core::iter::once(ptr::null()))
+                    .collect()
+            })
+            .as_ptr()
+    }
 
-    fn as_mut_ptr(&mut self) -> *mut *mut c_char { self.ptr_buffer.as_mut_ptr().cast() }
+    fn as_mut_ptr(&mut self) -> *mut *mut c_char {
+        self.ptr_buffer
+            .get_or_insert_with(|| {
+                self.buffer
+                    .iter()
+                    .map(|s| s.as_ptr())
+                    .chain(core::iter::once(ptr::null()))
+                    .collect()
+            })
+            .as_mut_ptr()
+            .cast()
+    }
 }
 
 /// Converts a collection of Rust string-like values into a [`VecCString`].
@@ -176,15 +213,14 @@ impl<T: ToCString> ToVecCString for [T] {
     /// assert_eq!(v.len(), 2);
     /// ```
     fn to_vec_cstring(&self) -> Result<VecCString, EnvoyError> {
-        let content = self
+        let buffer = self
             .iter()
             .map(|s| s.to_cstring())
             .collect::<Result<Vec<CString>, EnvoyError>>()?;
 
-        let ptr_buf = VecCString::build_ptr_buf(&content);
         Ok(VecCString {
-            buffer: content,
-            ptr_buffer: ptr_buf,
+            buffer,
+            ptr_buffer: None,
         })
     }
 }
@@ -200,8 +236,8 @@ mod tests {
     fn test_vec_cstring_from_slice() -> mischief::Result<()> {
         let v = ["foo", "bar"].to_vec_cstring()?;
         assert_eq!(v.len(), 2);
-        assert_eq!(v.as_slice()[0].to_str().unwrap(), "foo");
-        assert_eq!(v.as_slice()[1].to_str().unwrap(), "bar");
+        assert_eq!(v[0].to_str().unwrap(), "foo");
+        assert_eq!(v[1].to_str().unwrap(), "bar");
         Ok(())
     }
 
@@ -209,24 +245,26 @@ mod tests {
     fn test_vec_cstring_from_vec() -> mischief::Result<()> {
         let v = vec![String::from("foo"), String::from("bar")].to_vec_cstring()?;
         assert_eq!(v.len(), 2);
-        assert_eq!(v.as_slice()[0].to_str().unwrap(), "foo");
-        assert_eq!(v.as_slice()[1].to_str().unwrap(), "bar");
+        assert_eq!(v[0].to_str().unwrap(), "foo");
+        assert_eq!(v[1].to_str().unwrap(), "bar");
         Ok(())
     }
 
     #[test]
     fn test_ptr_buf_null_terminated() -> mischief::Result<()> {
-        let v = ["foo", "bar"].to_vec_cstring()?;
-        assert_eq!(v.ptr_buffer.len(), 3);
-        assert!(!v.ptr_buffer[0].is_null());
-        assert!(!v.ptr_buffer[1].is_null());
-        assert!(v.ptr_buffer[2].is_null());
+        let mut v = ["foo", "bar"].to_vec_cstring()?;
+        v.as_ptr(); // trigger lazy build
+        let buf = v.ptr_buffer.as_ref().unwrap();
+        assert_eq!(buf.len(), 3);
+        assert!(!buf[0].is_null());
+        assert!(!buf[1].is_null());
+        assert!(buf[2].is_null());
         Ok(())
     }
 
     #[test]
     fn test_as_ptr_null_terminated() -> mischief::Result<()> {
-        let v = ["a", "b"].to_vec_cstring()?;
+        let mut v = ["a", "b"].to_vec_cstring()?;
         let p = v.as_ptr();
         assert!(!p.is_null());
         assert!(unsafe { (*p.add(2)).is_null() });
@@ -234,25 +272,40 @@ mod tests {
     }
 
     #[test]
-    fn test_push_rebuilds_ptr_buf() -> mischief::Result<()> {
+    fn test_push_invalidates_and_rebuilds() -> mischief::Result<()> {
         let mut v = ["foo"].to_vec_cstring()?;
-        v.push(CString::new("bar").unwrap());
-        assert_eq!(v.len(), 2);
-        assert_eq!(v.ptr_buffer.len(), 3);
-        assert!(v.ptr_buffer[2].is_null());
+        v.as_ptr(); // populate cache
+        v.push(CString::new("bar").unwrap()); // must invalidate
+        assert!(v.ptr_buffer.is_none()); // cache cleared
+        v.as_ptr(); // rebuild
+        let buf = v.ptr_buffer.as_ref().unwrap();
+        assert_eq!(buf.len(), 3);
+        assert!(buf[2].is_null());
         Ok(())
     }
 
     #[test]
-    fn test_clone_has_valid_ptrs() -> mischief::Result<()> {
-        let original = ["foo", "bar"].to_vec_cstring()?;
+    fn test_clone_ptr_buffer_is_none() -> mischief::Result<()> {
+        let mut original = ["foo", "bar"].to_vec_cstring()?;
+        original.as_ptr(); // populate cache in original
         let cloned = original.clone();
-        // Cloned ptr_buf must point into the clone's own content, not the
-        // original's. Verify by checking the pointers are distinct.
-        assert_ne!(cloned.ptr_buffer[0], original.ptr_buffer[0]);
-        assert_ne!(cloned.ptr_buffer[1], original.ptr_buffer[1]);
-        // And still null-terminated.
-        assert!(cloned.ptr_buffer[2].is_null());
+        // Clone must not carry over the original's pointers.
+        assert!(cloned.ptr_buffer.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn test_clone_builds_own_ptrs() -> mischief::Result<()> {
+        let mut original = ["foo", "bar"].to_vec_cstring()?;
+        original.as_ptr();
+        let mut cloned = original.clone();
+        cloned.as_ptr(); // trigger build in clone
+        let orig_buf = original.ptr_buffer.as_ref().unwrap();
+        let clone_buf = cloned.ptr_buffer.as_ref().unwrap();
+        // Pointers must be into different heap allocations.
+        assert_ne!(clone_buf[0], orig_buf[0]);
+        assert_ne!(clone_buf[1], orig_buf[1]);
+        assert!(clone_buf[2].is_null());
         Ok(())
     }
 }

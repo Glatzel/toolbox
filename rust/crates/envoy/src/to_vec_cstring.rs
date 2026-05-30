@@ -105,6 +105,10 @@ impl VecCString {
             ptr_buffer: None,
         }
     }
+    pub fn clear(&mut self) {
+        self.ptr_buffer = None;
+        self.buffer.clear();
+    }
 
     /// Appends a [`CString`], invalidating the pointer cache.
     pub fn push(&mut self, s: CString) {

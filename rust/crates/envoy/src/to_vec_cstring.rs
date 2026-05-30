@@ -1,6 +1,7 @@
 use alloc::ffi::CString;
 use alloc::vec::Vec;
 use core::ffi::c_char;
+use core::ops::Deref;
 use core::ptr;
 
 use crate::{EnvoyError, ToCString};
@@ -105,29 +106,46 @@ impl VecCString {
         }
     }
 
-    /// Returns the number of strings (excluding the null terminator).
-    pub fn len(&self) -> usize { self.buffer.len() }
-
-    /// Returns `true` if there are no strings.
-    pub fn is_empty(&self) -> bool { self.buffer.is_empty() }
-
     /// Appends a [`CString`], invalidating the pointer cache.
     pub fn push(&mut self, s: CString) {
         self.ptr_buffer = None;
         self.buffer.push(s);
     }
+}
+impl Deref for VecCString {
+    type Target = [CString];
+    fn deref(&self) -> &[CString] { &self.buffer }
+}
 
-    /// Extends from an iterator of [`CString`]s, invalidating the pointer
-    /// cache once at the start.
-    pub fn extend_from_cstrings(&mut self, iter: impl IntoIterator<Item = CString>) {
+// No DerefMut — would allow silent ptr_buffer invalidation via index writes.
+
+impl Extend<CString> for VecCString {
+    fn extend<I: IntoIterator<Item = CString>>(&mut self, iter: I) {
         self.ptr_buffer = None;
         self.buffer.extend(iter);
     }
-
-    /// Returns a shared reference to the underlying [`CString`] slice.
-    pub fn as_slice(&self) -> &[CString] { &self.buffer }
 }
 
+impl FromIterator<CString> for VecCString {
+    fn from_iter<I: IntoIterator<Item = CString>>(iter: I) -> Self {
+        Self {
+            buffer: iter.into_iter().collect(),
+            ptr_buffer: None,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a VecCString {
+    type Item = &'a CString;
+    type IntoIter = core::slice::Iter<'a, CString>;
+    fn into_iter(self) -> Self::IntoIter { self.buffer.iter() }
+}
+
+impl IntoIterator for VecCString {
+    type Item = CString;
+    type IntoIter = alloc::vec::IntoIter<CString>;
+    fn into_iter(self) -> Self::IntoIter { self.buffer.into_iter() }
+}
 impl AsVecPtr for VecCString {
     /// # Examples
     ///
@@ -214,8 +232,8 @@ mod tests {
     fn test_vec_cstring_from_slice() -> mischief::Result<()> {
         let v = ["foo", "bar"].to_vec_cstring()?;
         assert_eq!(v.len(), 2);
-        assert_eq!(v.as_slice()[0].to_str().unwrap(), "foo");
-        assert_eq!(v.as_slice()[1].to_str().unwrap(), "bar");
+        assert_eq!(v[0].to_str().unwrap(), "foo");
+        assert_eq!(v[1].to_str().unwrap(), "bar");
         Ok(())
     }
 
@@ -223,8 +241,8 @@ mod tests {
     fn test_vec_cstring_from_vec() -> mischief::Result<()> {
         let v = vec![String::from("foo"), String::from("bar")].to_vec_cstring()?;
         assert_eq!(v.len(), 2);
-        assert_eq!(v.as_slice()[0].to_str().unwrap(), "foo");
-        assert_eq!(v.as_slice()[1].to_str().unwrap(), "bar");
+        assert_eq!(v[0].to_str().unwrap(), "foo");
+        assert_eq!(v[1].to_str().unwrap(), "bar");
         Ok(())
     }
 

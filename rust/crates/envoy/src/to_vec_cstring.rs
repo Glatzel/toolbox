@@ -52,9 +52,9 @@ pub trait AsVecPtr {
 /// `buffer` is private so that every mutation goes through methods that
 /// invalidate `ptr_buffer`, keeping the two fields in sync at all times.
 ///
-/// `ptr_buffer` is `None` until the first call to [`as_ptr`] or
-/// [`as_mut_ptr`], after which it is cached. Any mutation sets it back to
-/// `None`.
+/// `ptr_buffer` is `None` until the first call to [`VecCString::as_ptr`] or
+/// [`VecCString::as_mut_ptr`], after which it is cached. Any mutation sets it
+/// back to `None`.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct VecCString {
     buffer: Vec<CString>,

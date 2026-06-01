@@ -105,6 +105,12 @@ impl VecCString {
             ptr_buffer: None,
         }
     }
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            buffer: Vec::with_capacity(capacity),
+            ptr_buffer: None,
+        }
+    }
     pub fn clear(&mut self) {
         self.ptr_buffer = None;
         self.buffer.clear();

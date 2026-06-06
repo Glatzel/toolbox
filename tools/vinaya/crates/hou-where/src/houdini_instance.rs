@@ -8,18 +8,18 @@ use path_slash::PathExt;
 use regex::Regex;
 use validator::Validate;
 
-use crate::hou::{
+use crate::{
     HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
-    HOUDINI_VERSION_MINOR_MIN, HOUDINI_VERSION_PATCH_MAX, HOUDINI_VERSION_PATCH_MIN,
+    HOUDINI_VERSION_PATCH_MAX,
 };
 
 #[derive(Debug, Clone, Copy, Validate)]
 pub struct HoudiniInstance {
     #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
     pub major: u16,
-    #[validate(range(min=HOUDINI_VERSION_MINOR_MIN,max=HOUDINI_VERSION_MINOR_MAX))]
+    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
     pub minor: u16,
-    #[validate(range(min=HOUDINI_VERSION_PATCH_MIN,max=HOUDINI_VERSION_PATCH_MAX))]
+    #[validate(range(max=HOUDINI_VERSION_PATCH_MAX))]
     pub patch: u16,
 }
 

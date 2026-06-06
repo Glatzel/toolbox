@@ -8,9 +8,9 @@ use path_slash::PathExt;
 use serde_json::{Value, json};
 use validator::Validate;
 
-use crate::hou::{
+use crate::{
     HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
-    HOUDINI_VERSION_MINOR_MIN, HoudiniPreference,
+    HoudiniPreference,
 };
 
 #[derive(Debug, Clone)]
@@ -56,7 +56,7 @@ impl HoudiniPackage {
 pub struct HoudiniPackageManager {
     #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
     pub major: u16,
-    #[validate(range(min=HOUDINI_VERSION_MINOR_MIN,max=HOUDINI_VERSION_MINOR_MAX))]
+    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
     pub minor: u16,
     pub package_dir: PathBuf,
     pub packages: Vec<HoudiniPackage>,

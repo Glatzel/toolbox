@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
+use hou_where::HoudiniInstance;
 use mischief::WrapErr;
 
 use crate::cli::{ArgMajor, ArgMinor, ArgPatch, HOUDINI_OPTIONS};
-use crate::hou::HoudiniInstance;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]

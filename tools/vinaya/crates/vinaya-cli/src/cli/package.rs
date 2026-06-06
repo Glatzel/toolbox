@@ -2,11 +2,11 @@ use std::fmt::Debug;
 
 use clap::{Parser, Subcommand};
 use comfy_table::*;
+use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
 
 use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
-use crate::hou::HoudiniPackageManager;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]

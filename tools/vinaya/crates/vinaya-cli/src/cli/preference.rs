@@ -1,8 +1,8 @@
 use clap::Parser;
+use hou_where::HoudiniPreference;
 use path_slash::PathExt;
 
 use super::{ArgMajor, ArgMinor, ArgNoCheck};
-use hou_where::HoudiniPreference;
 
 #[derive(Parser, Debug)]
 pub struct Args {

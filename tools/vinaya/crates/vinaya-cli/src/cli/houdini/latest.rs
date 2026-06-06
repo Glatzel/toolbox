@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
-use path_slash::PathBufExt;
-
 use hou_where::HoudiniInstance;
+use path_slash::PathBufExt;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]

@@ -1944,7 +1944,6 @@ name = "sidefx-web"
 version = "2026.5.29"
 dependencies = [
  "base64",
- "hou-where",
  "mischief",
  "reqwest",
  "reqwest-middleware",

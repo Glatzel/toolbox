@@ -5,7 +5,6 @@ edition.workspace = true
 
 [dependencies]
 base64.workspace = true
-hou-where.workspace = true
 mischief.workspace = true
 reqwest.workspace = true
 reqwest-middleware.workspace = true

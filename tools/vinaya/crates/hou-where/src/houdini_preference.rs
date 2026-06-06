@@ -4,16 +4,13 @@ use std::path::{Path, PathBuf};
 use path_slash::PathExt;
 use validator::Validate;
 
-use crate::{
-    HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
-    HOUDINI_VERSION_MINOR_MIN,
-};
+use crate::{HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX};
 
 #[derive(Debug, Clone, Validate)]
 pub struct HoudiniPreference {
     #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
     pub major: u16,
-    #[validate(range(min=HOUDINI_VERSION_MINOR_MIN,max=HOUDINI_VERSION_MINOR_MAX))]
+    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
     pub minor: u16,
     pub directory: PathBuf,
 }

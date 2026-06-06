@@ -5,6 +5,7 @@ edition.workspace = true
 
 [[bin]]
 name = "vinaya"
+path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true

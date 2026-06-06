@@ -2,7 +2,7 @@ use clap::Parser;
 use path_slash::PathExt;
 
 use super::{ArgMajor, ArgMinor, ArgNoCheck};
-use crate::hou::HoudiniPreference;
+use hou_where::HoudiniPreference;
 
 #[derive(Parser, Debug)]
 pub struct Args {

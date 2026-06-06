@@ -1,10 +1,10 @@
 use clap::{Parser, Subcommand};
+use hou_where::HoudiniInstance;
 use mischief::IntoMischief;
 use path_slash::PathBufExt;
 use validator::Validate;
 
 use crate::cli::{ArgMajor, ArgMinor, ArgNoCheck, ArgPatch};
-use crate::hou::HoudiniInstance;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]

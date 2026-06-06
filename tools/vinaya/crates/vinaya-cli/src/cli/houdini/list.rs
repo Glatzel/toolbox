@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::hou::HoudiniInstance;
+use hou_where::HoudiniInstance;
 
 #[derive(Parser, Debug)]
 pub struct Args {}

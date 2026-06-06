@@ -1,0 +1,22 @@
+[package]
+name = "vinaya-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "vinaya"
+
+[dependencies]
+clap.workspace = true
+clap-style.workspace = true
+clap-verbosity-flag.workspace = true
+clerk.workspace = true
+comfy-table.workspace = true
+dialoguer.workspace = true
+hou-where.workspace = true
+mischief.workspace = true
+owo-colors.workspace = true
+path-slash.workspace = true
+sidefx-web.workspace = true
+tokio.workspace = true
+validator.workspace = true

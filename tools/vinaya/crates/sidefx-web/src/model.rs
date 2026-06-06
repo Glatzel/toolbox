@@ -1,9 +1,3 @@
-pub const HOUDINI_VERSION_MAJOR_MIN: u16 = 15;
-pub const HOUDINI_VERSION_MAJOR_MAX: u16 = 99;
-pub const HOUDINI_VERSION_MINOR_MIN: u16 = 0;
-pub const HOUDINI_VERSION_MINOR_MAX: u16 = 99;
-pub const HOUDINI_VERSION_PATCH_MIN: u16 = 0;
-pub const HOUDINI_VERSION_PATCH_MAX: u16 = 9999;
 #[derive(Debug, Clone, Copy, strum::EnumString, strum::IntoStaticStr, strum::AsRefStr)]
 pub enum HoudiniPlatform {
     #[strum(serialize = "win64")]

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use path_slash::PathExt;
 use validator::Validate;
 
-use crate::hou::{
+use crate::{
     HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
     HOUDINI_VERSION_MINOR_MIN,
 };

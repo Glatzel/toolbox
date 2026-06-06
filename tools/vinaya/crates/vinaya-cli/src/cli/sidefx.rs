@@ -1,9 +1,9 @@
 use std::env;
 
 use clap::{Parser, Subcommand};
+use sidefx_web::{HoudiniBuildVersion, HoudiniPlatform, HoudiniProduct, SideFXWeb};
 
 use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
-use crate::hou::{HoudiniBuildVersion, HoudiniPlatform, HoudiniProduct, SideFXWeb};
 #[derive(Parser, Debug)]
 pub struct Args {
     #[arg(long)]

@@ -1,0 +1,15 @@
+[package]
+name = "hou-where"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clerk.workspace = true
+dunce.workspace = true
+glob.workspace = true
+mischief.workspace = true
+path-slash.workspace = true
+regex.workspace = true
+serde_json.workspace = true
+validator.workspace = true
+

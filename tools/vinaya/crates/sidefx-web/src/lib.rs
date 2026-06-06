@@ -1,3 +1,5 @@
+mod model;
+
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::time::Duration;
@@ -5,9 +7,8 @@ use std::time::Duration;
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use mischief::{IntoMischief, mischief};
+pub use model::*;
 use serde_json::json;
-
-use crate::hou::{HoudiniBuildVersion, HoudiniPlatform, HoudiniProduct};
 
 pub struct SideFXWeb {
     pub client: reqwest_middleware::ClientWithMiddleware,

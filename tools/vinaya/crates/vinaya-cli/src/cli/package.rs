@@ -6,7 +6,7 @@ use owo_colors::OwoColorize;
 use path_slash::PathExt;
 
 use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
-use crate::hou::HoudiniPackageManager;
+use hou_where::HoudiniPackageManager;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]

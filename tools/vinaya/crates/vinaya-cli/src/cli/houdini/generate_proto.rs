@@ -4,7 +4,7 @@ use clap::Parser;
 use mischief::WrapErr;
 
 use crate::cli::{ArgMajor, ArgMinor, ArgPatch, HOUDINI_OPTIONS};
-use crate::hou::HoudiniInstance;
+use hou_where::HoudiniInstance;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]

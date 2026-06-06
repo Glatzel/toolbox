@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
-use mischief::{IntoMischief, mischief};
+use mischief::{IntoMischief, WrapErr, mischief};
 pub use model::*;
 use serde_json::json;
 
@@ -119,7 +119,7 @@ impl SideFXWeb {
             .into_mischief()?
             .error_for_status()
             .into_mischief()
-            .map_err(|_| mischief!("Fail to get daily_builds_list."))?;
+            .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
     pub async fn download_get_daily_build_download(
@@ -157,7 +157,7 @@ impl SideFXWeb {
             .into_mischief()?
             .error_for_status()
             .into_mischief()
-            .map_err(|_| mischief!("Fail to get daily_builds_list."))?;
+            .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
 }

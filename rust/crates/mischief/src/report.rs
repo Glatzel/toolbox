@@ -5,7 +5,10 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 
 use crate::error::MischiefError;
-use crate::render::*;
+#[cfg(feature = "fancy")]
+use crate::fancy_render::*;
+#[cfg(not(feature = "fancy"))]
+use crate::no_fancy_render::*;
 
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
 /// handling.
@@ -15,62 +18,66 @@ use crate::render::*;
 /// utilities for integrating with Rust’s standard error ecosystem.
 ///
 /// The type is designed to behave similarly to application-oriented error
-/// containers such as `anyhow::Error`, while preserving structured diagnosis
-/// information compatible with [`crate::IDiagnosis`].
+/// containers such as `anyhow::Error`, while preserving structured diagnostic
+/// information compatible with [`crate::IDiagnostic`].
 ///
-/// Formatting a `Report` will render the full diagnosis chain. If the
+/// Formatting a `Report` will render the full diagnostic chain. If the
 /// `fancy` feature is enabled, a structured tree-based renderer is used.
 /// Otherwise a minimal textual fallback renderer is used.
+#[derive(Clone)]
 pub struct Report {
-    /// Inner structured diagnosis.
+    /// Inner structured diagnostic.
     pub inner: MischiefError,
-    #[cfg(all(feature = "std", debug_assertions))]
-    pub backtrace: backtrace::Backtrace,
 }
 
 impl Report {
     /// Creates a new `Report` from a [`MischiefError`].
     ///
-    /// This function wraps the provided diagnosis as the root error
+    /// This function wraps the provided diagnostic as the root error
     /// contained by the report.
-    pub fn new(error: MischiefError) -> Self {
-        #[cfg(all(feature = "std", debug_assertions))]
-        let backtrace = backtrace::Backtrace::new();
-        Report {
-            inner: error,
-            #[cfg(all(feature = "std", debug_assertions))]
-            backtrace,
-        }
-    }
+    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
 
-    /// Returns a reference to the underlying diagnosis.
+    /// Returns a reference to the underlying diagnostic.
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
-    pub fn diagnosis(&self) -> &MischiefError { &self.inner }
+    pub fn diagnostic(&self) -> &MischiefError { &self.inner }
 
     /// Renders the report using the configured rendering backend.
     ///
     /// If the `fancy` feature is enabled, a themed tree renderer based
     /// on `arbor` is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render_diagnosis(&self.inner, f)?;
+        #[cfg(feature = "fancy")]
+        {
+            let bundle = RenderBundle {
+                report: self,
+                theme: MischiefTheme::default(),
+                indent: MischiefIndent::default(),
+                width: match terminal_size::terminal_size() {
+                    Some((w, _)) => w.0 as usize,
+                    None => 0,
+                },
+            };
+            write!(f, "{}", bundle)
+        }
 
-        #[cfg(all(feature = "std", debug_assertions))]
-        render_backtrace(&self.backtrace, f)?;
-        Ok(())
+        #[cfg(not(feature = "fancy"))]
+        {
+            render_diagnostic(&self.inner, f)
+        }
     }
 }
 
-/// Formats the report using the configured diagnosis renderer.
+/// Formats the report using the configured diagnostic renderer.
 ///
 /// The `Debug` representation intentionally matches the `Display`
-/// representation to produce readable diagnosis output.
+/// representation to produce readable diagnostic output.
 impl Debug for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
 
-/// Formats the report using the configured diagnosis renderer.
+/// Formats the report using the configured diagnostic renderer.
 impl Display for Report {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { self.render_report(f) }
 }
@@ -99,8 +106,6 @@ where
                 }
                 convert(&value)
             },
-            #[cfg(all(feature = "std", debug_assertions))]
-            backtrace: backtrace::Backtrace::new(),
         }
     }
 }
@@ -108,7 +113,7 @@ where
 /// Convenient `Result` alias using [`Report`] as the default error type.
 ///
 /// This alias simplifies function signatures when working with
-/// diagnosis-aware errors.
+/// diagnostic-aware errors.
 pub type Result<T, E = Report> = core::result::Result<T, E>;
 
 /// Trait providing conversion into [`Report`].
@@ -129,14 +134,14 @@ impl<T, E: Error> IntoMischief<T> for Result<T, E> {
     }
 }
 
-/// Trait for attaching additional diagnosis context to existing errors.
+/// Trait for attaching additional diagnostic context to existing errors.
 ///
 /// These methods allow callers to extend an error chain with
 /// higher-level context while preserving the original cause.
 pub trait WrapErr<D, T> {
     /// Attaches a context message to the error if the result is `Err`.
     ///
-    /// The message becomes a new diagnosis layer above the original error.
+    /// The message becomes a new diagnostic layer above the original error.
     fn wrap_err(self, msg: D) -> Result<T, Report>;
 
     /// Lazily attaches a context message to the error if the result is `Err`.
@@ -147,15 +152,15 @@ pub trait WrapErr<D, T> {
         F: FnOnce() -> D;
 }
 
-/// Internal helper used to attach contextual diagnosiss.
+/// Internal helper used to attach contextual diagnostics.
 fn wrap_inner<D>(e: Report, msg: D) -> Report
 where
     D: Display + 'static,
 {
     let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-        let mut inner = r.inner.clone();
-        inner.source = Some(Box::new(e.inner));
-        inner
+        let mut r = r.clone();
+        r.inner.source = Some(Box::new(e.inner));
+        r.inner
     } else {
         MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
     };

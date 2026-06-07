@@ -15,7 +15,7 @@ jobs:
       matrix:
         args:
           - --workspace --all-features --exclude clerk --exclude mischief
-          - -p mischief --no-default-features --features macros fancy
+          - -p mischief --no-default-features --features macros,fancy
           - -p mischief --no-default-features --features macros
           - -p clerk --features tracing
           - -p rax -p rax-nmea --no-default-features

@@ -54,7 +54,7 @@ impl Report {
     /// If the `fancy` feature is enabled, a themed tree renderer based
     /// on `arbor` is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render_diagnostic(&self.inner, f)?;
+        render_diagnosis(&self.inner, f)?;
 
         #[cfg(all(feature = "std", debug_assertions))]
         render_backtrace(&self.backtrace, f)?;

@@ -58,5 +58,5 @@ pub fn render_backtrace(
     backtrace: &backtrace::Backtrace,
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {
-    writeln!(f, "{}", backtrace)
+    writeln!(f, "Backtrace:\n{:?}", backtrace)
 }

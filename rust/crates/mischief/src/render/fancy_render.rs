@@ -6,7 +6,6 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
-use owo_colors::CssColors::CadetBlue;
 use owo_colors::{OwoColorize, Style};
 use terminal_size::terminal_size;
 
@@ -377,6 +376,7 @@ pub fn render_backtrace(
     backtrace: &backtrace::Backtrace,
     f: &mut fmt::Formatter<'_>,
 ) -> fmt::Result {
+    use owo_colors::CssColors::CadetBlue;
     // write title
 
     let title = " Backtrace ";

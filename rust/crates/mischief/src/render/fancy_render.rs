@@ -210,7 +210,7 @@ impl ITheme for MischiefTheme {
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat) { &self.hyperlink_style }
 }
 
-/// Rendering context used to format a [`Report`] as a diagnostic tree.
+/// Rendering context used to format a [`crate::Report`] as a diagnostic tree.
 ///
 /// `RenderBundle` bundles together the configuration required to render
 /// a diagnostic report, including the theme, indentation strategy,

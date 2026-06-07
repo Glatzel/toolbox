@@ -136,7 +136,7 @@ mod error;
 pub(crate) mod report;
 pub use error::MischiefError;
 mod protocol;
-pub use protocol::{IDiagnostic, Severity};
+pub use protocol::{IDiagnosis, Severity};
 #[cfg(feature = "macros")]
 mod macros;
 #[cfg(feature = "macros")]

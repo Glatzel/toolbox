@@ -9,7 +9,7 @@ use arbor::trees::OwnedTree;
 use owo_colors::{OwoColorize, Style};
 use terminal_size::terminal_size;
 
-use crate::{IDiagnostic, Severity};
+use crate::{IDiagnosis, Severity};
 
 /// Indentation configuration used when rendering diagnostic trees.
 ///
@@ -234,13 +234,13 @@ pub struct RenderBundle<'a, D, I, T> {
     pub width: usize,
 }
 
-impl<D: IDiagnostic, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
+impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     /// Formats a single diagnosis entry as a styled string.
     ///
     /// The output may include severity labels, error codes, hyperlinks,
     /// descriptions, and optional help messages depending on the
     /// metadata provided by the diagnosis.
-    pub fn render(&self, diagnosis: &dyn IDiagnostic, theme: &impl ITheme) -> String {
+    pub fn render(&self, diagnosis: &dyn IDiagnosis, theme: &impl ITheme) -> String {
         use core::fmt::Write;
 
         let mut buffer = String::new();
@@ -330,13 +330,13 @@ impl<D: IDiagnostic, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     }
 }
 
-impl<D: IDiagnostic, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, D, I, T> {
+impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, D, I, T> {
     /// Renders the entire diagnosis as a formatted tree.
     ///
     /// Each diagnosis in the causal chain is converted into a tree
     /// node and rendered using the configured indentation and theme.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = OwnedTree::new(self.render(self.diagnosis as &dyn IDiagnostic, &self.theme));
+        let mut tree = OwnedTree::new(self.render(self.diagnosis as &dyn IDiagnosis, &self.theme));
 
         let mut source = self.diagnosis.source();
         while let Some(e) = source {
@@ -353,7 +353,7 @@ impl<D: IDiagnostic, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundl
         write!(f, "{}", render)
     }
 }
-pub fn render_diagnosis<D: IDiagnostic>(
+pub fn render_diagnosis<D: IDiagnosis>(
     diagnosis: &D,
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {

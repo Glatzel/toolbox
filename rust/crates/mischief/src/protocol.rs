@@ -2,10 +2,10 @@ extern crate alloc;
 
 use core::fmt::{Debug, Display};
 
-/// Trait representing structured diagnosis information.
+/// Trait representing structured diagnostic information.
 ///
-/// Types implementing this trait describe errors or diagnosis conditions
-/// in a structured form. A diagnosis may contain a human-readable
+/// Types implementing this trait describe errors or diagnostic conditions
+/// in a structured form. A diagnostic may contain a human-readable
 /// description, optional metadata such as severity and error codes,
 /// and links to related documentation.
 ///
@@ -14,40 +14,40 @@ use core::fmt::{Debug, Display};
 /// structured information for formatting or analysis.
 ///
 /// The trait is intentionally minimal and does not prescribe how
-/// diagnosiss are rendered. Higher-level utilities may use this
-/// information to construct formatted reports, diagnosis trees,
+/// diagnostics are rendered. Higher-level utilities may use this
+/// information to construct formatted reports, diagnostic trees,
 /// or machine-readable outputs.
-pub trait IDiagnosis {
-    /// Returns a human-readable description of the diagnosis.
+pub trait IDiagnostic {
+    /// Returns a human-readable description of the diagnostic.
     ///
     /// This should provide a concise explanation of the problem.
     /// It is typically used as the primary message when displaying
-    /// the diagnosis.
+    /// the diagnostic.
     fn description(&self) -> &str;
 
-    /// Returns the underlying cause of this diagnosis, if any.
+    /// Returns the underlying cause of this diagnostic, if any.
     ///
-    /// This allows diagnosiss to form a causal chain where each
-    /// diagnosis describes a higher-level context around a more
+    /// This allows diagnostics to form a causal chain where each
+    /// diagnostic describes a higher-level context around a more
     /// fundamental failure.
     ///
-    /// Returning `None` indicates that this diagnosis has no
+    /// Returning `None` indicates that this diagnostic has no
     /// underlying source.
-    fn source(&self) -> Option<&dyn IDiagnosis>;
+    fn source(&self) -> Option<&dyn IDiagnostic>;
 
-    /// Returns a stable error code identifying this diagnosis.
+    /// Returns a stable error code identifying this diagnostic.
     ///
     /// Error codes are useful for categorization, documentation,
     /// and machine-readable analysis. They may correspond to
     /// documented error identifiers within a project or library.
     ///
-    /// Returning `None` indicates that the diagnosis does not
+    /// Returning `None` indicates that the diagnostic does not
     /// define a specific code.
     fn code(&self) -> Option<&str>;
 
-    /// Returns the severity level associated with this diagnosis.
+    /// Returns the severity level associated with this diagnostic.
     ///
-    /// Severity conveys how serious the diagnosis is and may
+    /// Severity conveys how serious the diagnostic is and may
     /// influence how it is presented to users.
     ///
     /// If `None` is returned, renderers may assume a default
@@ -59,14 +59,14 @@ pub trait IDiagnosis {
     ///
     /// Help text typically provides actionable guidance such as
     /// configuration changes, corrective actions, or suggestions
-    /// for resolving the diagnosis.
+    /// for resolving the diagnostic.
     fn help(&self) -> Option<&str>;
 
     /// Returns an optional URL pointing to external documentation.
     ///
     /// This may link to a webpage containing detailed explanations,
     /// troubleshooting guides, or reference documentation related
-    /// to the diagnosis.
+    /// to the diagnostic.
     fn url(&self) -> Option<&str>;
 
     // Optional future extensions for source code snippets or labels:
@@ -74,18 +74,18 @@ pub trait IDiagnosis {
     // fn labels<'a>(&'a self) -> Option<&'a str>;
 }
 
-/// Represents the severity level associated with a diagnosis.
+/// Represents the severity level associated with a diagnostic.
 ///
-/// Severity indicates how serious a diagnosis message is and
+/// Severity indicates how serious a diagnostic message is and
 /// may affect how it is displayed or handled by tooling.
 ///
-/// When a diagnosis does not explicitly specify a severity,
+/// When a diagnostic does not explicitly specify a severity,
 /// [`Severity::Error`] is typically assumed.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Severity {
     /// Informational guidance or suggestions that may help the user.
     ///
-    /// Advice diagnosiss do not indicate a problem but may
+    /// Advice diagnostics do not indicate a problem but may
     /// provide useful recommendations.
     Advice,
 

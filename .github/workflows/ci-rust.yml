@@ -14,11 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         args:
-          - --workspace --all-features --exclude clerk --exclude mischief
-          - -p mischief --no-default-features --features macros,fancy
+          - --workspace --all-features --exclude clerk
           - -p mischief --no-default-features --features macros
-          - -p clerk --features tracing
-          - -p rax -p rax-nmea --no-default-features
+          - --features tracing -p clerk
+          - --no-default-features -p rax -p rax-nmea
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -53,7 +52,6 @@ jobs:
         with:
           working-directory: ${{env.WORKDIR}}
           args: -p envoy
-
   cargo-doc:
     runs-on: ubuntu-latest
     strategy:

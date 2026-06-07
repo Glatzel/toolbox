@@ -53,6 +53,7 @@ jobs:
         with:
           working-directory: ${{env.WORKDIR}}
           args: -p envoy
+
   cargo-doc:
     runs-on: ubuntu-latest
     strategy:

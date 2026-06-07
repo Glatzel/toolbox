@@ -358,7 +358,7 @@ pub fn render_diagnosis<D: IDiagnosis>(
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {
     let bundle = RenderBundle {
-        diagnosis: diagnosis,
+        diagnosis,
         theme: MischiefTheme::default(),
         indent: MischiefIndent::default(),
         width: match terminal_size() {

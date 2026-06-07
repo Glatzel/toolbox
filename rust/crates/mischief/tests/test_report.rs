@@ -37,14 +37,14 @@ fn report_error() {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,
@@ -81,14 +81,14 @@ fn report_error_long() {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,
@@ -124,14 +124,14 @@ fn report_from_error() -> mischief::Result<()> {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    diagnosis: &report.inner,
+                    diagnosis: &report.0.error,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,

@@ -7,6 +7,12 @@ use alloc::string::ToString;
 use crate::error::MischiefError;
 use crate::render::*;
 
+pub struct ReportInner {
+    pub error: MischiefError,
+
+    #[cfg(all(feature = "std", debug_assertions))]
+    backtrace: backtrace::Backtrace,
+}
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
 /// handling.
 ///
@@ -21,12 +27,7 @@ use crate::render::*;
 /// Formatting a `Report` will render the full diagnosis chain. If the
 /// `fancy` feature is enabled, a structured tree-based renderer is used.
 /// Otherwise a minimal textual fallback renderer is used.
-pub struct Report {
-    /// Inner structured diagnosis.
-    pub inner: MischiefError,
-    #[cfg(all(feature = "std", debug_assertions))]
-    pub backtrace: backtrace::Backtrace,
-}
+pub struct Report(pub Box<ReportInner>);
 
 impl Report {
     /// Creates a new `Report` from a [`MischiefError`].
@@ -36,28 +37,30 @@ impl Report {
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "std", debug_assertions))]
         let backtrace = backtrace::Backtrace::new();
-        Report {
-            inner: error,
+
+        Self(Box::new(ReportInner {
+            error,
+
             #[cfg(all(feature = "std", debug_assertions))]
             backtrace,
-        }
+        }))
     }
 
     /// Returns a reference to the underlying diagnosis.
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
-    pub fn diagnosis(&self) -> &MischiefError { &self.inner }
+    pub fn diagnosis(&self) -> &MischiefError { &self.0.error }
 
     /// Renders the report using the configured rendering backend.
     ///
     /// If the `fancy` feature is enabled, a themed tree renderer based
     /// on `arbor` is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render_diagnosis(&self.inner, f)?;
+        render_diagnosis(&self.0.error, f)?;
 
         #[cfg(all(feature = "std", debug_assertions))]
-        render_backtrace(&self.backtrace, f)?;
+        render_backtrace(&self.0.backtrace, f)?;
         Ok(())
     }
 }
@@ -85,23 +88,23 @@ where
     E: Error,
 {
     fn from(value: E) -> Self {
-        Self {
-            inner: {
-                fn convert(err: &dyn Error) -> MischiefError {
-                    MischiefError::new(
-                        &err.to_string(),
-                        err.source().map(|src| Box::new(convert(src))),
-                        None,
-                        None,
-                        None,
-                        None,
-                    )
-                }
-                convert(&value)
-            },
+        fn convert(err: &dyn Error) -> MischiefError {
+            MischiefError::new(
+                &err.to_string(),
+                err.source().map(|src| Box::new(convert(src))),
+                None,
+                None,
+                None,
+                None,
+            )
+        }
+
+        Self(Box::new(ReportInner {
+            error: convert(&value),
+
             #[cfg(all(feature = "std", debug_assertions))]
             backtrace: backtrace::Backtrace::new(),
-        }
+        }))
     }
 }
 
@@ -153,11 +156,11 @@ where
     D: Display + 'static,
 {
     let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-        let mut inner = r.inner.clone();
-        inner.source = Some(Box::new(e.inner));
+        let mut inner = r.0.error.clone();
+        inner.source = Some(Box::new(e.0.error));
         inner
     } else {
-        MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
+        MischiefError::new(&msg, Some(Box::new(e.0.error)), None, None, None, None)
     };
 
     Report::new(new_inner)

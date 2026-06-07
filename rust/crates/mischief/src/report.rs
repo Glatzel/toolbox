@@ -16,7 +16,7 @@ use crate::render::*;
 ///
 /// The type is designed to behave similarly to application-oriented error
 /// containers such as `anyhow::Error`, while preserving structured diagnosis
-/// information compatible with [`crate::IDiagnostic`].
+/// information compatible with [`crate::IDiagnosis`].
 ///
 /// Formatting a `Report` will render the full diagnosis chain. If the
 /// `fancy` feature is enabled, a structured tree-based renderer is used.

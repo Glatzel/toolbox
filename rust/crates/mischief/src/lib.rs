@@ -8,7 +8,7 @@
 //!
 //! # Diagnostic Model
 //!
-//! At the core of the crate is the [`IDiagnostic`] trait, which represents
+//! At the core of the crate is the [`IDiagnosis`] trait, which represents
 //! structured diagnostic information associated with an error. A diagnostic
 //! may include:
 //!
@@ -26,7 +26,7 @@
 //!
 //! The primary concrete diagnostic type provided by the crate is
 //! [`MischiefError`]. It stores the diagnostic metadata defined by
-//! [`IDiagnostic`] and supports recursive source chaining to represent
+//! [`IDiagnosis`] and supports recursive source chaining to represent
 //! causal error relationships.
 //!
 //! `MischiefError` forms the internal representation used by the higher-level

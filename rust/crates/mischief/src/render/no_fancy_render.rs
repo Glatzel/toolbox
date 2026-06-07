@@ -1,12 +1,12 @@
 extern crate alloc;
-use crate::IDiagnostic;
+use crate::IDiagnosis;
 
 /// Produces an iterator over the diagnosis chain.
 ///
 /// This function walks through a diagnosis and all of its sources,
 /// yielding each diagnosis in sequence. The iteration begins with
 /// the provided diagnosis and continues through the chain returned
-/// by successive calls to [`IDiagnostic::source`].
+/// by successive calls to [`IDiagnosis::source`].
 ///
 /// The resulting iterator represents the full causal chain of the
 /// diagnosis, ordered from the outermost diagnosisto the deepest
@@ -22,12 +22,12 @@ fn chain(diagnosis: &impl crate::IDiagnosis) -> impl Iterator<Item = &dyn crate:
 /// are treated as causes and displayed under a `"Caused by:"` section.
 ///
 /// Each diagnosis in the causal chain is displayed on its own line
-/// using the description returned by [`IDiagnostic::description`].
+/// using the description returned by [`IDiagnosis::description`].
 ///
 /// This renderer provides a minimal, dependency-free textual
 /// representation of diagnosis chains and can serve as a fallback
 /// when more advanced rendering systems are not required.
-pub fn render_diagnosis<D: IDiagnostic>(
+pub fn render_diagnosis<D: IDiagnosis>(
     diagnosis: &D,
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {

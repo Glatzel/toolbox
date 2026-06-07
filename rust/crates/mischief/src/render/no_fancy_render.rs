@@ -11,8 +11,8 @@ use crate::IDiagnostic;
 /// The resulting iterator represents the full causal chain of the
 /// diagnosis, ordered from the outermost diagnosisto the deepest
 /// underlying source.
-fn chain(diagnosis: &impl crate::IDiagnostic) -> impl Iterator<Item = &dyn crate::IDiagnostic> {
-    core::iter::successors(Some(diagnosis as &dyn crate::IDiagnostic), |r| r.source())
+fn chain(diagnosis: &impl crate::IDiagnosis) -> impl Iterator<Item = &dyn crate::IDiagnosis> {
+    core::iter::successors(Some(diagnosis as &dyn crate::IDiagnosis), |r| r.source())
 }
 
 /// Renders a diagnosis chain in a simple textual format.

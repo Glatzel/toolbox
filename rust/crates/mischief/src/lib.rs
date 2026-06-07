@@ -128,7 +128,7 @@
 //!     Ok(())
 //! }
 //! ```
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(clippy::unwrap_used)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
@@ -142,7 +142,5 @@ pub use protocol::{IDiagnostic, Severity};
 mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
-#[cfg(feature = "fancy")]
-pub mod fancy_render;
-#[cfg(not(feature = "fancy"))]
-pub mod no_fancy_render;
+pub mod render;
+pub use render::*;

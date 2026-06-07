@@ -8,7 +8,7 @@ use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
 use owo_colors::{OwoColorize, Style};
 
-use crate::{IDiagnostic, Report, Severity};
+use crate::{IDiagnostic, Severity};
 
 /// Indentation configuration used when rendering diagnostic trees.
 ///
@@ -218,9 +218,9 @@ impl ITheme for MischiefTheme {
 ///
 /// The renderer converts a diagnostic chain into a hierarchical tree
 /// representation using the `arbor` crate.
-pub struct RenderBundle<'a, I, T> {
+pub struct RenderBundle<'a, D, I, T> {
     /// The report being rendered.
-    pub report: &'a Report,
+    pub diagnostic: &'a D,
 
     /// Theme used for styling output.
     pub theme: T,
@@ -232,14 +232,13 @@ pub struct RenderBundle<'a, I, T> {
     pub width: usize,
 }
 
-impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
+impl<D: IDiagnostic, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     /// Formats a single diagnostic entry as a styled string.
     ///
     /// The output may include severity labels, error codes, hyperlinks,
     /// descriptions, and optional help messages depending on the
     /// metadata provided by the diagnostic.
-    #[allow(clippy::unwrap_used)]
-    pub fn render_diagnostic<D: IDiagnostic>(&self, diagnostic: &D, theme: &impl ITheme) -> String {
+    pub fn render(&self, diagnostic: &dyn IDiagnostic, theme: &impl ITheme) -> String {
         use core::fmt::Write;
 
         let mut buffer = String::new();
@@ -286,7 +285,7 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     }
 
     /// Applies a text style to a string and writes it into the buffer.
-    pub fn apply_style(
+    fn apply_style(
         &self,
         buffer: &mut String,
         text: &str,
@@ -331,18 +330,19 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     }
 }
 
-impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
+impl<D: IDiagnostic, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, D, I, T> {
     /// Renders the entire diagnostic report as a formatted tree.
     ///
     /// Each diagnostic in the causal chain is converted into a tree
     /// node and rendered using the configured indentation and theme.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = OwnedTree::new(self.render_diagnostic(&self.report.inner, &self.theme));
+        let mut tree =
+            OwnedTree::new(self.render(self.diagnostic as &dyn IDiagnostic, &self.theme));
 
-        let mut source = &self.report.inner.source;
+        let mut source = self.diagnostic.source();
         while let Some(e) = source {
-            tree.push(self.render_diagnostic(e.as_ref(), &self.theme));
-            source = &e.source
+            tree.push(self.render(e, &self.theme));
+            source = e.source()
         }
 
         let render = OwnedRender {
@@ -353,4 +353,19 @@ impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
 
         write!(f, "{}", render)
     }
+}
+pub fn render_diagnostic<D: IDiagnostic>(
+    diagnostic: &D,
+    f: &mut core::fmt::Formatter<'_>,
+) -> core::fmt::Result {
+    let bundle = RenderBundle {
+        diagnostic,
+        theme: MischiefTheme::default(),
+        indent: MischiefIndent::default(),
+        width: match terminal_size::terminal_size() {
+            Some((w, _)) => w.0 as usize,
+            None => 0,
+        },
+    };
+    writeln!(f, "{}", bundle)
 }

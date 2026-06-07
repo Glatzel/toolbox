@@ -16,7 +16,7 @@ terminal_size = { workspace = true, optional = true }
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["arbor/default", "fancy", "macros"]
+default = ["arbor/default", "fancy", "macros", "std"]
 fancy = [
   "arbor/textwrap",
   "owo-colors",
@@ -26,6 +26,7 @@ fancy = [
   "terminal_size",
 ]
 macros = ["mischief-macros"]
+std = []
 textwrap-hyphenation = ["arbor/textwrap-hyphenation", "fancy"]
 textwrap-smawk = ["arbor/textwrap-smawk", "fancy"]
 textwrap-unicode-linebreak = ["arbor/textwrap-unicode-linebreak", "fancy"]

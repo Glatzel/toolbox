@@ -3,12 +3,13 @@ use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
+#[cfg(all(feature = "std", debug_assertions))]
+extern crate std;
+#[cfg(all(feature = "std", debug_assertions))]
+use std::backtrace::Backtrace;
 
 use crate::error::MischiefError;
-#[cfg(feature = "fancy")]
-use crate::fancy_render::*;
-#[cfg(not(feature = "fancy"))]
-use crate::no_fancy_render::*;
+use crate::render::*;
 
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
 /// handling.
@@ -24,10 +25,11 @@ use crate::no_fancy_render::*;
 /// Formatting a `Report` will render the full diagnostic chain. If the
 /// `fancy` feature is enabled, a structured tree-based renderer is used.
 /// Otherwise a minimal textual fallback renderer is used.
-#[derive(Clone)]
 pub struct Report {
     /// Inner structured diagnostic.
     pub inner: MischiefError,
+    #[cfg(all(feature = "std", debug_assertions))]
+    pub backtrace: Backtrace,
 }
 
 impl Report {
@@ -35,7 +37,15 @@ impl Report {
     ///
     /// This function wraps the provided diagnostic as the root error
     /// contained by the report.
-    pub fn new(error: MischiefError) -> Self { Report { inner: error } }
+    pub fn new(error: MischiefError) -> Self {
+        #[cfg(all(feature = "std", debug_assertions))]
+        let backtrace = Backtrace::force_capture();
+        Report {
+            inner: error,
+            #[cfg(all(feature = "std", debug_assertions))]
+            backtrace,
+        }
+    }
 
     /// Returns a reference to the underlying diagnostic.
     ///
@@ -48,24 +58,11 @@ impl Report {
     /// If the `fancy` feature is enabled, a themed tree renderer based
     /// on `arbor` is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        #[cfg(feature = "fancy")]
-        {
-            let bundle = RenderBundle {
-                report: self,
-                theme: MischiefTheme::default(),
-                indent: MischiefIndent::default(),
-                width: match terminal_size::terminal_size() {
-                    Some((w, _)) => w.0 as usize,
-                    None => 0,
-                },
-            };
-            write!(f, "{}", bundle)
-        }
+        render_diagnostic(&self.inner, f)?;
 
-        #[cfg(not(feature = "fancy"))]
-        {
-            render_diagnostic(&self.inner, f)
-        }
+        #[cfg(all(feature = "std", debug_assertions))]
+        writeln!(f, "{}", self.backtrace)?;
+        Ok(())
     }
 }
 
@@ -106,6 +103,8 @@ where
                 }
                 convert(&value)
             },
+            #[cfg(all(feature = "std", debug_assertions))]
+            backtrace: Backtrace::force_capture(),
         }
     }
 }
@@ -158,9 +157,9 @@ where
     D: Display + 'static,
 {
     let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-        let mut r = r.clone();
-        r.inner.source = Some(Box::new(e.inner));
-        r.inner
+        let mut inner = r.inner.clone();
+        inner.source = Some(Box::new(e.inner));
+        inner
     } else {
         MischiefError::new(&msg, Some(Box::new(e.inner)), None, None, None, None)
     };

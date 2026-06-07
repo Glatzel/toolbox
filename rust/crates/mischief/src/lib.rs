@@ -8,7 +8,7 @@
 //!
 //! # Diagnostic Model
 //!
-//! At the core of the crate is the [`IDiagnostic`] trait, which represents
+//! At the core of the crate is the [`IDiagnosis`] trait, which represents
 //! structured diagnostic information associated with an error. A diagnostic
 //! may include:
 //!
@@ -26,7 +26,7 @@
 //!
 //! The primary concrete diagnostic type provided by the crate is
 //! [`MischiefError`]. It stores the diagnostic metadata defined by
-//! [`IDiagnostic`] and supports recursive source chaining to represent
+//! [`IDiagnosis`] and supports recursive source chaining to represent
 //! causal error relationships.
 //!
 //! `MischiefError` forms the internal representation used by the higher-level
@@ -128,8 +128,7 @@
 //!     Ok(())
 //! }
 //! ```
-#![no_std]
-#![deny(clippy::unwrap_used)]
+#![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
@@ -137,12 +136,10 @@ mod error;
 pub(crate) mod report;
 pub use error::MischiefError;
 mod protocol;
-pub use protocol::{IDiagnostic, Severity};
+pub use protocol::{IDiagnosis, Severity};
 #[cfg(feature = "macros")]
 mod macros;
 #[cfg(feature = "macros")]
 pub use macros::mischief;
-#[cfg(feature = "fancy")]
-pub mod fancy_render;
-#[cfg(not(feature = "fancy"))]
-pub mod no_fancy_render;
+pub mod render;
+pub use render::*;

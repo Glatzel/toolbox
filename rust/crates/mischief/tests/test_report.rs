@@ -1,5 +1,4 @@
-#[cfg(feature = "fancy")]
-use mischief::fancy_render::*;
+use mischief::render::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 #[cfg(feature = "fancy")]
 struct NoTheme;
@@ -13,12 +12,7 @@ impl ITheme for NoTheme {
     fn help_style(&self) -> &(Option<owo_colors::Style>, Option<owo_colors::Style>) {
         &(None, None)
     }
-    fn hyperlink_style(
-        &self,
-    ) -> &(
-        Option<owo_colors::Style>,
-        mischief::fancy_render::HyperlinkFormat,
-    ) {
+    fn hyperlink_style(&self) -> &(Option<owo_colors::Style>, HyperlinkFormat) {
         &(None, HyperlinkFormat::Plain)
     }
 }
@@ -43,14 +37,14 @@ fn report_error() {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,
@@ -87,14 +81,14 @@ fn report_error_long() {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,
@@ -130,14 +124,14 @@ fn report_from_error() -> mischief::Result<()> {
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: MischiefTheme::default(),
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
                 println!("{}", bundle);
                 let bundle = RenderBundle {
-                    report: &report,
+                    diagnosis: &report.inner,
                     theme: NoTheme,
                     indent: MischiefIndent::default(),
                     width: 80,

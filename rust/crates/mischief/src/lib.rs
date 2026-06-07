@@ -129,7 +129,6 @@
 //! }
 //! ```
 #![cfg_attr(not(feature = "std"), no_std)]
-#![deny(clippy::unwrap_used)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};

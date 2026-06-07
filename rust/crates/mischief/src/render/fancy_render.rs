@@ -6,7 +6,9 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
+use owo_colors::CssColors::CadetBlue;
 use owo_colors::{OwoColorize, Style};
+use terminal_size::terminal_size;
 
 use crate::{IDiagnostic, Severity};
 
@@ -362,10 +364,58 @@ pub fn render_diagnostic<D: IDiagnostic>(
         diagnostic,
         theme: MischiefTheme::default(),
         indent: MischiefIndent::default(),
-        width: match terminal_size::terminal_size() {
+        width: match terminal_size() {
             Some((w, _)) => w.0 as usize,
             None => 0,
         },
     };
     writeln!(f, "{}", bundle)
+}
+
+#[cfg(all(feature = "std", debug_assertions))]
+pub fn render_backtrace(
+    backtrace: &backtrace::Backtrace,
+    f: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
+    // write title
+
+    let title = " Backtrace ";
+
+    let width = terminal_size()
+        .map(|(terminal_size::Width(w), _)| w as usize)
+        .unwrap_or(80);
+    let left = (width - title.len()) / 2;
+    let right = width - title.len() - left;
+
+    writeln!(
+        f,
+        "{}{}{}",
+        "═".repeat(left).fg::<owo_colors::colors::BrightBlack>(),
+        title.bold(),
+        "═".repeat(right).fg::<owo_colors::colors::BrightBlack>(),
+    )?;
+
+    // write frames
+    for (idx, frame) in backtrace.frames().iter().enumerate() {
+        for symbol in frame.symbols() {
+            let name = symbol
+                .name()
+                .map(|n| n.to_string())
+                .unwrap_or_else(|| "<unknown>".into());
+
+            writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
+
+            if let Some(file) = symbol.filename() {
+                write!(f, "   {} {}", "╰─".color(CadetBlue), file.display())?;
+
+                if let Some(line) = symbol.lineno() {
+                    write!(f, ":{}", line)?;
+                }
+
+                writeln!(f)?;
+            }
+        }
+    }
+
+    Ok(())
 }

@@ -3,10 +3,6 @@ use core::fmt::{Debug, Display};
 extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
-#[cfg(all(feature = "std", debug_assertions))]
-extern crate std;
-#[cfg(all(feature = "std", debug_assertions))]
-use std::backtrace::Backtrace;
 
 use crate::error::MischiefError;
 use crate::render::*;
@@ -29,7 +25,7 @@ pub struct Report {
     /// Inner structured diagnostic.
     pub inner: MischiefError,
     #[cfg(all(feature = "std", debug_assertions))]
-    pub backtrace: Backtrace,
+    pub backtrace: backtrace::Backtrace,
 }
 
 impl Report {
@@ -39,7 +35,7 @@ impl Report {
     /// contained by the report.
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "std", debug_assertions))]
-        let backtrace = Backtrace::force_capture();
+        let backtrace = backtrace::Backtrace::new();
         Report {
             inner: error,
             #[cfg(all(feature = "std", debug_assertions))]
@@ -61,7 +57,7 @@ impl Report {
         render_diagnostic(&self.inner, f)?;
 
         #[cfg(all(feature = "std", debug_assertions))]
-        writeln!(f, "{}", self.backtrace)?;
+        render_backtrace(&self.backtrace, f)?;
         Ok(())
     }
 }
@@ -104,7 +100,7 @@ where
                 convert(&value)
             },
             #[cfg(all(feature = "std", debug_assertions))]
-            backtrace: Backtrace::force_capture(),
+            backtrace: backtrace::Backtrace::new(),
         }
     }
 }

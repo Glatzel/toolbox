@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 arbor.workspace = true
+backtrace = { workspace = true, optional = true }
 mischief-macros = { workspace = true, optional = true }
 owo-colors = { workspace = true, optional = true }
 supports-color = { workspace = true, optional = true }
@@ -26,7 +27,7 @@ fancy = [
   "terminal_size",
 ]
 macros = ["mischief-macros"]
-std = []
+std = ["backtrace"]
 textwrap-hyphenation = ["arbor/textwrap-hyphenation", "fancy"]
 textwrap-smawk = ["arbor/textwrap-smawk", "fancy"]
 textwrap-unicode-linebreak = ["arbor/textwrap-unicode-linebreak", "fancy"]

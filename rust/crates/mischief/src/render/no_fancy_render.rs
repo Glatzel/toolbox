@@ -1,5 +1,4 @@
 extern crate alloc;
-
 use crate::IDiagnostic;
 
 /// Produces an iterator over the diagnostic chain.
@@ -53,4 +52,11 @@ pub fn render_diagnostic<D: IDiagnostic>(
     }
 
     Ok(())
+}
+#[cfg(all(feature = "std", debug_assertions))]
+pub fn render_backtrace(
+    backtrace: &backtrace::Backtrace,
+    f: &mut core::fmt::Formatter<'_>,
+) -> core::fmt::Result {
+    writeln!(f, "{}", backtrace)
 }

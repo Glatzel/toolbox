@@ -5,9 +5,9 @@ use rax::string::{IGlobalRule, IRule};
 
 use crate::RaxNmeaError;
 
-pub struct NmeaTxtCount;
-impl IRule for NmeaTxtCount {}
-impl<'a> IGlobalRule<'a> for NmeaTxtCount {
+pub struct NmeaTxtLineCount;
+impl IRule for NmeaTxtLineCount {}
+impl<'a> IGlobalRule<'a> for NmeaTxtLineCount {
     type Output = Result<u8, RaxNmeaError>;
     fn apply(&self, input: &'a str) -> Self::Output {
         let s = input

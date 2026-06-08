@@ -4,7 +4,9 @@ use std::io::{BufRead, BufReader};
 use clerk::LevelFilter;
 use rax::string::Decoder;
 use rax_nmea::data::*;
-use rax_nmea::rules::{NmeaGsvCount, NmeaIdentifier, NmeaTalker, NmeaTxtCount};
+use rax_nmea::rules::{
+    NmeaGsvLineCount, NmeaIdentifier, NmeaTalker, NmeaTxtLineCount, NmeaValidate,
+};
 use rstest::rstest;
 #[derive(Debug)]
 pub enum Dispatcher {
@@ -40,6 +42,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             return Ok(collector);
         }
         decoder.init(buf.clone());
+        decoder.global(&NmeaValidate)?;
         let identifier = decoder.global(&NmeaIdentifier)?;
         let talker = decoder.global(&NmeaTalker)?;
         match identifier {
@@ -57,22 +60,44 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             Identifier::GSA => collector.push(Dispatcher::GSA(talker, decoder.decode()?)),
             Identifier::GST => collector.push(Dispatcher::GST(talker, decoder.decode()?)),
             Identifier::GSV => {
-                let count = decoder.global(&NmeaGsvCount)?;
-                for _ in 0..count {
+                let count = decoder.global(&NmeaGsvLineCount)?;
+                for _ in 0..count - 1 {
                     reader.read_line(&mut buf)?;
                 }
                 decoder.init(buf.clone());
-                collector.push(Dispatcher::GSV(talker, decoder.decode()?));
+                let result: Gsv = decoder.decode()?;
+                if result.satellites().len() < count as usize * 4 - 3
+                    || result.satellites().len() > count as usize * 4
+                {
+                    mischief::bail!(
+                        "message length mismatch: {:?}, expected {} to {}, got {}:\n{}",
+                        result,
+                        count * 4 - 3,
+                        count * 4,
+                        result.satellites().len(),
+                        buf
+                    )
+                }
+                collector.push(Dispatcher::GSV(talker, result));
             }
             Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
             Identifier::THS => collector.push(Dispatcher::THS(talker, decoder.decode()?)),
             Identifier::TXT => {
-                let count = decoder.global(&NmeaTxtCount)?;
-                for _ in 0..count {
+                let count = decoder.global(&NmeaTxtLineCount)?;
+                for _ in 0..count - 1 {
                     reader.read_line(&mut buf)?;
                 }
                 decoder.init(buf.clone());
-                collector.push(Dispatcher::TXT(talker, decoder.decode()?));
+                let result: Txt = decoder.decode()?;
+                if result.message().len() != count as usize {
+                    mischief::bail!(
+                        "message length mismatch: expected {}, got {}: {}",
+                        count,
+                        result.message().len(),
+                        buf
+                    )
+                }
+                collector.push(Dispatcher::TXT(talker, result));
             }
             Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),
             Identifier::VTG => collector.push(Dispatcher::VTG(talker, decoder.decode()?)),

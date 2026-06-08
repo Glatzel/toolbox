@@ -1,12 +1,12 @@
 mod coord;
 mod date;
 mod degree;
+mod gsv_line_count;
 mod identifier;
 mod talker;
 mod time;
+mod txt_line_count;
 mod validate;
-mod txt_count;
-mod gsv_count;
 
 use rax::string::filters::CharSetFilter;
 use rax::string::rules::{UntilChar, UntilMode, UntilOneInCharSet};
@@ -14,11 +14,11 @@ use rax::string::rules::{UntilChar, UntilMode, UntilOneInCharSet};
 pub use crate::rules::coord::NmeaCoord;
 pub use crate::rules::date::NmeaDate;
 pub use crate::rules::degree::NmeaDegree;
-pub use crate::rules::gsv_count::NmeaGsvCount;
+pub use crate::rules::gsv_line_count::NmeaGsvLineCount;
 pub use crate::rules::identifier::NmeaIdentifier;
 pub use crate::rules::talker::NmeaTalker;
 pub use crate::rules::time::NmeaTime;
-pub use crate::rules::txt_count::NmeaTxtCount;
+pub use crate::rules::txt_line_count::NmeaTxtLineCount;
 pub use crate::rules::validate::NmeaValidate;
 
 pub const UNTIL_COMMA_DISCARD: UntilChar<','> = UntilChar {

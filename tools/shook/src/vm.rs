@@ -149,6 +149,7 @@ pub async fn build_sandbox(
         .cpus(cpus)
         .memory(memory)
         .replace()
+        .detached(true)
         .entrypoint(["bash"]);
 
     for (host, guest) in volumes {
@@ -175,7 +176,7 @@ pub async fn build_sandbox(
         "creating sandbox"
     );
 
-    let sandbox = builder.create_detached().await?;
+    let sandbox = builder.create().await?;
 
     clerk::debug!(sandbox = %sandbox_name, "sandbox created");
 

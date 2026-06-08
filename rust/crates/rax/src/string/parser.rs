@@ -1,15 +1,7 @@
-pub mod filters;
-pub mod rules;
-
 extern crate alloc;
-use alloc::string::String;
-mod parse_opt;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 
-pub use parse_opt::*;
-pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
-
-use crate::RaxError;
+use crate::{RaxError, string::{IStrFlowRule, IStrGlobalRule}};
 /// Maintains parsing state for string-based parsers.
 ///
 /// [`StrParserContext`] stores the full input string and a pointer

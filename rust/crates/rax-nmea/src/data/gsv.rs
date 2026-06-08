@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::str_parser::{IStrGlobalRule, ParseOptExt, Parser};
+use rax::string::{IStrGlobalRule, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

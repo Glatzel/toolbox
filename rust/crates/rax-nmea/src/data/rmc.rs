@@ -2,7 +2,7 @@ use core::fmt;
 
 use chrono::NaiveDate;
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, Parser};
+use rax::string::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};

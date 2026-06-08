@@ -1,8 +1,8 @@
 use core::fmt::{self, Debug, Display};
 
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::filters::{CharSetFilter, IFilter};
+use crate::string::IRule;
+use crate::string::filters::{CharSetFilter, IFilter};
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -90,7 +90,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::str_parser::filters::{ASCII_LETTERS_DIGITS, DIGITS};
+    use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
 
     #[test]
     fn test_n_in_charset_match() {

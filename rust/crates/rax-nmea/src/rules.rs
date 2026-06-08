@@ -3,8 +3,8 @@ mod nmea_date;
 mod nmea_degree;
 mod nmea_time;
 mod nmea_validate;
-use rax::str_parser::filters::CharSetFilter;
-use rax::str_parser::rules::{UntilChar, UntilMode, UntilOneInCharSet};
+use rax::string::filters::CharSetFilter;
+use rax::string::rules::{UntilChar, UntilMode, UntilOneInCharSet};
 
 pub use crate::rules::nmea_coord::NmeaCoord;
 pub use crate::rules::nmea_date::NmeaDate;

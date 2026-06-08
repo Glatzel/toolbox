@@ -4,7 +4,7 @@ use alloc::string::String;
 use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, Parser};
+use rax::string::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};

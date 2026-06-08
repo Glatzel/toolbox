@@ -1,6 +1,6 @@
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::rules::UntilMode;
+use crate::string::IRule;
+use crate::string::rules::UntilMode;
 
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.

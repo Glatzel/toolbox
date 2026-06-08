@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::str_parser::Parser;
+use rax::string::Parser;
 use rax_nmea::RaxNmeaError;
 use rax_nmea::data::{INmeaData, Talker};
 

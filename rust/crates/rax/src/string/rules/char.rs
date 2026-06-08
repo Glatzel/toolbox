@@ -1,7 +1,7 @@
 use core::fmt::{self, Debug, Display};
 
 use super::IStrFlowRule;
-use crate::str_parser::rules::IRule;
+use crate::string::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
 ///

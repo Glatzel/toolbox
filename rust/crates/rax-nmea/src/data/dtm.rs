@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, Parser};
+use rax::string::{ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

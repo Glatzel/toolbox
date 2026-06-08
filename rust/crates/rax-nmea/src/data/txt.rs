@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::str_parser::{IStrGlobalRule, ParseOptExt, Parser};
+use rax::string::{IStrGlobalRule, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

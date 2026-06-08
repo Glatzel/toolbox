@@ -2,7 +2,7 @@ use std::io::BufReader;
 use std::time::Duration;
 
 use clerk::LevelFilter;
-use rax::str_parser::Parser;
+use rax::string::Parser;
 use rax_nmea::data::*;
 fn main() -> mischief::Result<()> {
     clerk::init_log_with_level(LevelFilter::WARN);

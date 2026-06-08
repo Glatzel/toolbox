@@ -1,7 +1,7 @@
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::filters::{CharSetFilter, IFilter};
-use crate::str_parser::rules::UntilMode;
+use crate::string::IRule;
+use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::rules::UntilMode;
 
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of any character in the provided character set.
@@ -81,7 +81,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
-    use crate::str_parser::filters::{ASCII_LETTERS, DIGITS};
+    use crate::string::filters::{ASCII_LETTERS, DIGITS};
 
     #[test]
     fn test_until_one_in_char_set_discard() {

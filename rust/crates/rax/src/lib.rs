@@ -3,4 +3,4 @@
 
 mod error;
 pub use error::RaxError;
-pub mod str_parser;
+pub mod string;

@@ -1,6 +1,6 @@
 use core::fmt::{self, Display};
 
-use rax::str_parser::{IRule, IStrFlowRule};
+use rax::string::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 

@@ -1,7 +1,7 @@
 use core::fmt::{self, Display};
 
 use chrono::NaiveTime;
-use rax::str_parser::IRule;
+use rax::string::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -17,7 +17,7 @@ impl Display for NmeaTime {
 
 impl IRule for NmeaTime {}
 
-impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
+impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     type Output = NaiveTime;
     /// Applies the NmeaUtc rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
@@ -100,7 +100,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaTime {
 mod tests {
     use chrono::Timelike;
     use clerk::{LevelFilter, init_log_with_level};
-    use rax::str_parser::IStrFlowRule;
+    use rax::string::IStrFlowRule;
 
     use super::*;
 

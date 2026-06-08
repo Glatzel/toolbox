@@ -37,7 +37,7 @@ pub use grs::*;
 pub use gsa::*;
 pub use gst::*;
 pub use gsv::*;
-use rax::str_parser::Parser;
+use rax::string::Parser;
 pub use rmc::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

@@ -10,7 +10,7 @@ use crate::RaxNmeaError;
 use crate::rules::*;
 
 /// Represents a single satellite's data in a GSV sentence.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Getters)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Satellite {
     /// Satellite ID, typically a number from 1 to 32.

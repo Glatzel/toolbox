@@ -15,7 +15,7 @@ impl<'a> IGlobalRule<'a> for NmeaTalker {
     fn apply(&self, input: &'a str) -> Self::Output {
         let s = input
             .get(1..3)
-            .ok_or_else(|| RaxNmeaError::InvalidSentenceLength(input.len()))?;
+            .ok_or(RaxNmeaError::InvalidSentenceLength(input.len()))?;
         match Talker::from_str(s) {
             Ok(talker) => Ok(talker),
             Err(_) => Err(RaxNmeaError::UnknownIdentifier(s.to_string())),

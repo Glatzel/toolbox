@@ -15,7 +15,7 @@ impl<'a> IGlobalRule<'a> for NmeaIdentifier {
     fn apply(&self, input: &'a str) -> Self::Output {
         let s = input
             .get(3..6)
-            .ok_or_else(|| RaxNmeaError::InvalidSentenceLength(input.len()))?;
+            .ok_or(RaxNmeaError::InvalidSentenceLength(input.len()))?;
         match Identifier::from_str(s) {
             Ok(ident) => Ok(ident),
             Err(_) => Err(RaxNmeaError::UnknownIdentifier(s.to_string())),

@@ -9,5 +9,5 @@ check = { cmd = "npx eslint . ;npx prettier --check .", cwd = "./frontend" }
 fix = { cmd = "npx eslint . --fix ; npx prettier --write .", cwd = "./frontend" }
 
 [dependencies]
-nodejs = "==26.2.0"
+nodejs = "==26.3.0"
 fonts-cascadia-mono-woff2 = "==3.4.0"

@@ -1,7 +1,7 @@
 use core::fmt::{self, Display};
 use core::str::FromStr;
 extern crate alloc;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use core::fmt::Write;
 
 use derive_getters::Getters;
@@ -67,7 +67,7 @@ impl Display for GgaQualityIndicator {
 ///
 /// * <https://gpsd.gitlab.io/gpsd/NMEA.html#_gga_global_positioning_system_fix_data>
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug,Clone, Getters)]
 pub struct Gga {
     time: Option<chrono::NaiveTime>,
 
@@ -168,49 +168,6 @@ impl IDecode<RaxNmeaError> for Gga {
     }
 }
 
-impl fmt::Debug for Gga {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GGA");
-
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(lat) = self.lat {
-            ds.field("lat", &lat);
-        }
-        if let Some(lon) = self.lon {
-            ds.field("lon", &lon);
-        }
-        if let Some(ref quality) = self.quality {
-            ds.field("quality", quality);
-        }
-        if let Some(num_sv) = self.num_sv {
-            ds.field("num_sv", &num_sv);
-        }
-        if let Some(hdop) = self.hdop {
-            ds.field("hdop", &hdop);
-        }
-        if let Some(alt) = self.alt {
-            let mut s = String::new();
-            write!(s, "{alt} M")?;
-            ds.field("alt", &s);
-        }
-        if let Some(sep) = self.sep {
-            let mut s = String::new();
-            write!(s, "{sep} M")?;
-            ds.field("sep", &s);
-        }
-        if let Some(diff_age) = self.diff_age {
-            ds.field("diff_age", &diff_age);
-        }
-        if let Some(diff_station) = self.diff_station {
-            ds.field("diff_station", &diff_station);
-        }
-
-        ds.finish()
-    }
-}
-
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -228,7 +185,7 @@ mod test {
         let mut ctx = Parser::new();
         let gga = Gga::decode(ctx.init(s.to_string()))?;
         println!("{gga:?}");
-        insta::assert_debug_snapshot!(gga);
+        insta::assert_json_snapshot!(gga);
         Ok(())
     }
 }

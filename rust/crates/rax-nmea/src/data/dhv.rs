@@ -1,5 +1,3 @@
-use core::fmt;
-
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
 
@@ -7,23 +5,23 @@ use crate::RaxNmeaError;
 use crate::rules::*;
 /// Dhv - Velocity in 3 dimensions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Dhv {
     /// UTC time of the DHV fix associated with this sentence.
     time: Option<chrono::NaiveTime>,
-    
+
     /// 3D speed (meters/second)
     speed3d: Option<f64>,
-    
+
     /// Speed in X direction (meters/second)
     speed_x: Option<f64>,
-    
+
     /// Speed in Y direction (meters/second)
     speed_y: Option<f64>,
-    
+
     /// Speed in Z direction (meters/second)
     speed_z: Option<f64>,
-    
+
     /// Ground speed (meters/second)
     gdspd: Option<f64>,
 }
@@ -48,33 +46,6 @@ impl IDecode<RaxNmeaError> for Dhv {
     }
 }
 
-impl fmt::Debug for Dhv {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("DHV");
-
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(speed3d) = self.speed3d {
-            ds.field("speed3d", &speed3d);
-        }
-        if let Some(speed_x) = self.speed_x {
-            ds.field("speed_x", &speed_x);
-        }
-        if let Some(speed_y) = self.speed_y {
-            ds.field("speed_y", &speed_y);
-        }
-        if let Some(speed_z) = self.speed_z {
-            ds.field("speed_z", &speed_z);
-        }
-        if let Some(gdspd) = self.gdspd {
-            ds.field("gdspd", &gdspd);
-        }
-
-        ds.finish()
-    }
-}
-
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -91,7 +62,7 @@ mod test {
         let mut parser = Parser::new();
         let dhv = Dhv::decode(parser.init(s.to_string()))?;
         println!("{dhv:?}");
-        insta::assert_debug_snapshot!(dhv);
+        insta::assert_json_snapshot!(dhv);
         Ok(())
     }
 }

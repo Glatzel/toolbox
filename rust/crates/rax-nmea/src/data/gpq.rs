@@ -55,7 +55,7 @@ mod test {
         let mut parser = Parser::new();
         let gpq = Gpq::decode(parser.init(s.to_string()))?;
         println!("{gpq:?}");
-        insta::assert_debug_snapshot!(gpq);
+        insta::assert_json_snapshot!(gpq);
         Ok(())
     }
 }

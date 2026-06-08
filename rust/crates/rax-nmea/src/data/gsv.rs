@@ -3,16 +3,15 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IStrGlobalRule, ParseOptExt, Parser};
+use rax::string::{IDecode, IStrGlobalRule, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 
 /// Represents a single satellite's data in a GSV sentence.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Satellite {
     /// Satellite ID, typically a number from 1 to 32.
@@ -25,49 +24,29 @@ pub struct Satellite {
     cno: Option<u8>,
 }
 
-impl fmt::Debug for Satellite {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("Satellite");
-        if let Some(ref id) = self.svid {
-            ds.field("id", id);
-        }
-        if let Some(elevation_degrees) = self.elv {
-            ds.field("elevation_degrees", &elevation_degrees);
-        }
-        if let Some(azimuth_degree) = self.az {
-            ds.field("azimuth_degree", &azimuth_degree);
-        }
-        if let Some(snr) = self.cno {
-            ds.field("snr", &snr);
-        }
-        ds.finish()
-    }
-}
-
 ///GNSS satellites in view
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gsv {
-    talker: Talker,
     /// Satellite data
     satellites: Vec<Satellite>,
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl INmeaData for Gsv {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gsv::new: sentence='{}'", ctx.full_str());
+impl IDecode<RaxNmeaError> for Gsv {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
         // Validate each line with NmeaValidate
-        for l in ctx.full_str().lines() {
+        for l in parser.full_str().lines() {
             NmeaValidate.apply(l)?;
         }
 
         // Count the number of lines and satellites
-        let line_count = ctx.full_str().lines().count();
+        let line_count = parser.full_str().lines().count();
         clerk::trace!("Gsv::new: line_count={}", line_count);
 
         // The first line contains the talker, number of lines, and number of satellites
-        let satellite_count = ctx
+        let satellite_count = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -95,11 +74,12 @@ impl INmeaData for Gsv {
         // Parse all but the last line (each has 4 satellites)
         for _ in 0..line_count - 1 {
             for _ in 0..3 {
-                satellites.push(Self::parse_satellite(ctx, false)?);
+                satellites.push(Self::parse_satellite(parser, false)?);
             }
-            satellites.push(Self::parse_satellite(ctx, true)?);
+            satellites.push(Self::parse_satellite(parser, true)?);
             // Skip any extra fields after the 4th satellite in the line
-            ctx.skip(&UNTIL_COMMA_DISCARD)
+            parser
+                .skip(&UNTIL_COMMA_DISCARD)
                 .skip(&UNTIL_COMMA_DISCARD)
                 .skip(&UNTIL_COMMA_DISCARD)
                 .skip(&UNTIL_COMMA_DISCARD);
@@ -108,14 +88,13 @@ impl INmeaData for Gsv {
         // Parse the last line (may have fewer than 4 satellites)
         if last_line_satellite_count != 0 {
             for _ in 0..(last_line_satellite_count - 1) {
-                satellites.push(Self::parse_satellite(ctx, false)?);
+                satellites.push(Self::parse_satellite(parser, false)?);
             }
-            satellites.push(Self::parse_satellite(ctx, true)?);
+            satellites.push(Self::parse_satellite(parser, true)?);
         }
-        let signal_id = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt();
+        let signal_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt();
 
         Ok(Self {
-            talker,
             satellites,
             signal_id,
         })
@@ -144,7 +123,7 @@ impl Gsv {
 impl fmt::Debug for Gsv {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GSV");
-        ds.field("talker", &self.talker);
+
         ds.field("count", &self.satellites.len());
         ds.field("satellites", &self.satellites);
         ds.finish()
@@ -165,9 +144,9 @@ mod test {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,3,1,10,25,68,053,47,21,59,306,49,29,56,161,49,31,36,265,49*79\r\n$GPGSV,3,2,10,12,29,048,49,05,22,123,49,18,13,000,49,01,00,000,49*72\r\n$GPGSV,3,3,10,14,00,000,03,16,00,000,27*7C";
         let mut ctx = Parser::new();
-        let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
+        let gsv = Gsv::new(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
-        insta::assert_debug_snapshot!(gsv);
+        insta::assert_json_snapshot!(gsv);
         Ok(())
     }
 
@@ -176,9 +155,9 @@ mod test {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,4,02,35,291,,03,09,129,,05,14,305,,06,38,226,*4E";
         let mut ctx = Parser::new();
-        let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
+        let gsv = Gsv::new(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
-        insta::assert_debug_snapshot!(gsv);
+        insta::assert_json_snapshot!(gsv);
         Ok(())
     }
 
@@ -187,22 +166,9 @@ mod test {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,3,02,35,291,,03,09,129,,05,14,305,*72";
         let mut ctx = Parser::new();
-        let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
+        let gsv = Gsv::new(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
-        assert_eq!(gsv.talker, Talker::GP);
-        assert_eq!(gsv.satellites.len(), 3);
-        assert_eq!(gsv.satellites[0].svid, Some(2));
-        assert_eq!(gsv.satellites[0].elv, Some(35));
-        assert_eq!(gsv.satellites[0].az, Some(291));
-        assert!(gsv.satellites[0].cno.is_none());
-        assert_eq!(gsv.satellites[1].svid, Some(3));
-        assert_eq!(gsv.satellites[1].elv, Some(9));
-        assert_eq!(gsv.satellites[1].az, Some(129));
-        assert!(gsv.satellites[1].cno.is_none());
-        assert_eq!(gsv.satellites[2].svid, Some(5));
-        assert_eq!(gsv.satellites[2].elv, Some(14));
-        assert_eq!(gsv.satellites[2].az, Some(305));
-        assert!(gsv.satellites[2].cno.is_none());
+        insta::assert_json_snapshot!(gsv);
         Ok(())
     }
     #[test]
@@ -210,9 +176,9 @@ mod test {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,0,*65";
         let mut ctx = Parser::new();
-        let gsv = Gsv::new(ctx.init(s.to_string()), Talker::GP)?;
+        let gsv = Gsv::new(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
-        insta::assert_debug_snapshot!(gsv);
+        insta::assert_json_snapshot!(gsv);
         Ok(())
     }
 }

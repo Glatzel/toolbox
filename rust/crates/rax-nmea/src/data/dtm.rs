@@ -1,4 +1,3 @@
-use core::fmt;
 use core::str::FromStr;
 extern crate alloc;
 use alloc::string::{String, ToString};
@@ -31,20 +30,20 @@ impl FromStr for DtmDatum {
 }
 /// Datum reference
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Dtm {
     /// Local datum
     datum: Option<DtmDatum>,
-    
+
     /// sub datum
     sub_datum: Option<String>,
-    
+
     /// Offset in Latitude
     lat: Option<f64>,
-    
+
     /// Offset in Longitude
     lon: Option<f64>,
-    
+
     /// Offset in altitude
     alt: Option<f64>,
 }
@@ -70,30 +69,6 @@ impl IDecode<RaxNmeaError> for Dtm {
     }
 }
 
-impl fmt::Debug for Dtm {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("DHV");
-
-        if let Some(ref datum) = self.datum {
-            ds.field("datum", datum);
-        }
-        if let Some(sub_datum) = &self.sub_datum {
-            ds.field("sub_datum", &sub_datum);
-        }
-        if let Some(lat) = self.lat {
-            ds.field("lat", &lat);
-        }
-        if let Some(lon) = self.lon {
-            ds.field("lon", &lon);
-        }
-        if let Some(alt) = self.alt {
-            ds.field("alt", &alt);
-        }
-
-        ds.finish()
-    }
-}
-
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -110,7 +85,7 @@ mod test {
         let mut parser = Parser::new();
         let dtm = Dtm::decode(parser.init(s.to_string()))?;
         println!("{dtm:?}");
-        insta::assert_debug_snapshot!(dtm);
+        insta::assert_json_snapshot!(dtm);
         Ok(())
     }
 }

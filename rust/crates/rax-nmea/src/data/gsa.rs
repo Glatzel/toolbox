@@ -159,7 +159,7 @@ mod test {
         let mut parser = Parser::new();
         let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
-        insta::assert_debug_snapshot!(gsa);
+        insta::assert_json_snapshot!(gsa);
 
         Ok(())
     }
@@ -170,7 +170,7 @@ mod test {
         let mut parser = Parser::new();
         let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
-        insta::assert_debug_snapshot!(gsa);
+        insta::assert_json_snapshot!(gsa);
         Ok(())
     }
 }

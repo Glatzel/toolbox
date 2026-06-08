@@ -1,20 +1,15 @@
-use core::fmt;
 extern crate alloc;
-use alloc::string::String;
-use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 
 ///Poll a standard message (Talker ID GL)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Vlw {
-    talker: Talker,
     /// Total cumulative water distance
     twd: Option<f64>,
     /// Water distance since reset
@@ -25,56 +20,20 @@ pub struct Vlw {
     gd: Option<f64>,
 }
 
-impl INmeaData for Vlw {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
-        let twd = ctx
+impl IDecode<RaxNmeaError> for Vlw {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
+        let twd = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let wd = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let tgd = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let gd = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        Ok(Vlw {
-            talker,
-            twd,
-            wd,
-            tgd,
-            gd,
-        })
-    }
-}
-
-impl fmt::Debug for Vlw {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("DHV");
-        ds.field("talker", &self.talker);
-
-        if let Some(ref twd) = self.twd {
-            let mut s = String::new();
-            write!(s, "{twd} N")?;
-            ds.field("twd", &s);
-        }
-        if let Some(ref wd) = self.wd {
-            let mut s = String::new();
-            write!(s, "{wd} N")?;
-            ds.field("wd", &s);
-        }
-        if let Some(ref tgd) = self.tgd {
-            let mut s = String::new();
-            write!(s, "{tgd} N")?;
-            ds.field("tgd", &s);
-        }
-        if let Some(ref gd) = self.gd {
-            let mut s = String::new();
-            write!(s, "{gd} N")?;
-            ds.field("gd", &s);
-        }
-
-        ds.finish()
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let wd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let tgd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let gd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        Ok(Vlw { twd, wd, tgd, gd })
     }
 }
 
@@ -90,10 +49,10 @@ mod test {
     fn test_new_vlw() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
-        let mut ctx = Parser::new();
-        let vlw = Vlw::new(ctx.init(s.to_string()), Talker::GP)?;
+        let mut parser = Parser::new();
+        let vlw = Vlw::decode(parser.init(s.to_string()))?;
         println!("{vlw:?}");
-        insta::assert_debug_snapshot!(vlw);
+        insta::assert_json_snapshot!(vlw);
         Ok(())
     }
 }

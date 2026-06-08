@@ -35,7 +35,7 @@ impl FromStr for NavigationStatus {
 }
 ///GNSS fix data
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gns {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
@@ -136,44 +136,6 @@ impl IDecode<RaxNmeaError> for Gns {
         })
     }
 }
-impl Debug for Gns {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut ds = f.debug_struct("GNS");
-
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(lat) = self.lat {
-            ds.field("lat", &lat);
-        }
-        if let Some(lon) = self.lon {
-            ds.field("lon", &lon);
-        }
-        ds.field("pos_mode", &self.pos_mode);
-        if let Some(num_sv) = self.num_sv {
-            ds.field("num_sv", &num_sv);
-        }
-        if let Some(hdop) = self.hdop {
-            ds.field("hdop", &hdop);
-        }
-        if let Some(alt) = self.alt {
-            ds.field("alt", &alt);
-        }
-        if let Some(sep) = self.sep {
-            ds.field("sep", &sep);
-        }
-        if let Some(diff_age) = self.diff_age {
-            ds.field("diff_age", &diff_age);
-        }
-        if let Some(diff_station) = self.diff_station {
-            ds.field("diff_station", &diff_station);
-        }
-        if let Some(nav_status) = &self.nav_status {
-            ds.field("nav_status", nav_status);
-        }
-        ds.finish()
-    }
-}
 
 #[cfg(test)]
 mod test {
@@ -191,7 +153,7 @@ mod test {
         let mut ctx = Parser::new();
         let gns = Gns::decode(ctx.init(s.to_string()))?;
         println!("{gns:?}");
-        insta::assert_debug_snapshot!(gns);
+        insta::assert_json_snapshot!(gns);
 
         Ok(())
     }
@@ -202,7 +164,7 @@ mod test {
         let mut parser = Parser::new();
         let gns = Gns::decode(parser.init(s.to_string()))?;
         println!("{gns:?}");
-        insta::assert_debug_snapshot!(gns);
+        insta::assert_json_snapshot!(gns);
         Ok(())
     }
 }

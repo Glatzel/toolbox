@@ -1,4 +1,3 @@
-use core::fmt;
 extern crate alloc;
 use alloc::string::String;
 
@@ -10,7 +9,7 @@ use crate::rules::*;
 
 /// Poll a standard message(Talker ID GB)"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gbq {
     /// Message ID of the message to be polled
     msg_id: Option<String>,
@@ -24,19 +23,6 @@ impl IDecode<RaxNmeaError> for Gbq {
             .parse_opt();
 
         Ok(Gbq { msg_id })
-    }
-}
-
-impl fmt::Debug for Gbq {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("DHV");
-        ds.field("talker", &self.talker);
-
-        if let Some(ref msg_id) = self.msg_id {
-            ds.field("msg_id", msg_id);
-        }
-
-        ds.finish()
     }
 }
 
@@ -56,7 +42,7 @@ mod test {
         let mut parser = Parser::new();
         let gbq = Gbq::decode(parser.init(s.to_string()))?;
         println!("{gbq:?}");
-        insta::assert_debug_snapshot!(gbq);
+        insta::assert_json_snapshot!(gbq);
         Ok(())
     }
 }

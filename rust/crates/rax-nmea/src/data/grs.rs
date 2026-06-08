@@ -120,7 +120,7 @@ mod test {
         let mut parser = Parser::new();
         let grs = Grs::decode(parser.init(input.to_string()))?;
         println!("{grs:?}");
-        insta::assert_debug_snapshot!(grs);
+        insta::assert_json_snapshot!(grs);
         Ok(())
     }
 }

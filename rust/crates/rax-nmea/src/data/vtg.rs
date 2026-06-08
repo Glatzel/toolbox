@@ -1,19 +1,14 @@
-use core::fmt;
-
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 extern crate alloc;
-use alloc::string::String;
-use core::fmt::Write;
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, PosMode, Talker};
+use crate::data::PosMode;
 use crate::rules::*;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Vtg {
-    talker: Talker,
     /// Course over ground (true)
     cogt: Option<f64>,
     /// Course over ground (magnetic)
@@ -26,68 +21,35 @@ pub struct Vtg {
     pos_mode: Option<PosMode>,
 }
 
-impl INmeaData for Vtg {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
+impl IDecode<RaxNmeaError> for Vtg {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
 
-        let cogt = ctx
+        let cogt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let cogm = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let cogm = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogn = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let sogn = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogk = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let sogk = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
 
         Ok(Vtg {
-            talker,
+  
             cogt,
             cogm,
             sogn,
             sogk,
             pos_mode,
         })
-    }
-}
-
-impl fmt::Debug for Vtg {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("VTG");
-        ds.field("talker", &self.talker);
-
-        if let Some(cogt) = self.cogt {
-            let mut s = String::new();
-            write!(s, "{cogt} Degrees")?;
-            ds.field("cogt", &s);
-        }
-        if let Some(cogm) = self.cogm {
-            let mut s = String::new();
-            write!(s, "{cogm} Degrees")?;
-            ds.field("cogm", &s);
-        }
-        if let Some(sogn) = self.sogn {
-            let mut s = String::new();
-            write!(s, "{sogn} Knots")?;
-            ds.field("sogn", &s);
-        }
-        if let Some(sogk) = self.sogk {
-            let mut s = String::new();
-            write!(s, "{sogk} Kph")?;
-            ds.field("sogk", &s);
-        }
-        if let Some(ref pos_mode) = self.pos_mode {
-            ds.field("pos_mode", pos_mode);
-        }
-
-        ds.finish()
     }
 }
 
@@ -103,10 +65,10 @@ mod test {
     fn test_new_vtg() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut ctx = Parser::new();
-        let vtg = Vtg::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Parser::new();
+        let vtg = Vtg::decode(parser.init(s.to_string()))?;
         println!("{vtg:?}");
-        insta::assert_debug_snapshot!(vtg);
+        insta::assert_json_snapshot!(vtg);
         Ok(())
     }
 }

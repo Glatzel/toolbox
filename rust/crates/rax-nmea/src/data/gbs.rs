@@ -1,5 +1,3 @@
-use core::fmt::Debug;
-
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
 
@@ -13,7 +11,7 @@ use crate::rules::*;
 ///
 /// * <https://gpsd.gitlab.io/gpsd/NMEA.html#_gbs_gps_satellite_fault_detection>
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gbs {
     /// UTC time to which this RAIM sentence belongs. See section UTC
     /// representation in the integration manual for details.
@@ -74,44 +72,7 @@ impl IDecode<RaxNmeaError> for Gbs {
         })
     }
 }
-impl Debug for Gbs {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let mut ds = f.debug_struct("GBS");
 
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(err_lat) = self.err_lat {
-            ds.field("err_lat", &err_lat);
-        }
-        if let Some(err_lon) = self.err_lon {
-            ds.field("err_lon", &err_lon);
-        }
-        if let Some(err_alt) = self.err_alt {
-            ds.field("err_alt", &err_alt);
-        }
-        if let Some(svid) = self.svid {
-            ds.field("svid", &svid);
-        }
-        if let Some(prob) = self.prob {
-            ds.field("prob", &prob);
-        }
-        if let Some(bias) = self.bias {
-            ds.field("bias", &bias);
-        }
-        if let Some(std_dev) = self.std_dev {
-            ds.field("std_dev", &std_dev);
-        }
-        if let Some(system_id) = self.system_id {
-            ds.field("system_id", &system_id);
-        }
-        if let Some(signal_id) = self.signal_id {
-            ds.field("signal_id", &signal_id);
-        }
-
-        ds.finish()
-    }
-}
 #[cfg(test)]
 mod tests {
     use clerk::{LevelFilter, init_log_with_level};
@@ -127,7 +88,7 @@ mod tests {
         let mut parser = Parser::new();
         let gbs = Gbs::decode(parser.init(s.to_string())).unwrap();
         println!("{gbs:?}");
-        insta::assert_debug_snapshot!(gbs);
+        insta::assert_json_snapshot!(gbs);
     }
     #[test]
     fn test_gbs_4_1() {
@@ -136,6 +97,6 @@ mod tests {
         let mut parser = Parser::new();
         let gbs = Gbs::decode(parser.init(s.to_string())).unwrap();
         println!("{gbs:?}");
-        insta::assert_debug_snapshot!(gbs);
+        insta::assert_json_snapshot!(gbs);
     }
 }

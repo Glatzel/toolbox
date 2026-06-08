@@ -1,16 +1,14 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 ///GNSS pseudorange error statistics
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gst {
-    talker: Talker,
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
     /// Root mean square
@@ -28,21 +26,20 @@ pub struct Gst {
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
-impl INmeaData for Gst {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
+impl IDecode<RaxNmeaError> for Gst {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
 
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let rms = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_major = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_minor = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let orient = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_lat = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_lon = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_alt = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let rms = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let std_major = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let std_minor = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let orient = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let std_lat = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let std_lon = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let std_alt = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
 
         Ok(Gst {
-            talker,
             time,
             rms,
             std_major,
@@ -58,7 +55,6 @@ impl INmeaData for Gst {
 impl fmt::Debug for Gst {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GST");
-        ds.field("talker", &self.talker);
 
         if let Some(ref time) = self.time {
             ds.field("time", time);
@@ -102,11 +98,10 @@ mod test {
     fn test_new_gst() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
-        let mut ctx = Parser::new();
-        let vtg = Gst::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Parser::new();
+        let vtg = Gst::decode(parser.init(s.to_string()))?;
         println!("{vtg:?}");
-        assert_eq!(vtg.talker, Talker::GN);
-        insta::assert_debug_snapshot!(vtg);
+        insta::assert_json_snapshot!(vtg);
         Ok(())
     }
 }

@@ -1,5 +1,3 @@
-use core::fmt;
-
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
 
@@ -8,7 +6,7 @@ use crate::data::{PosMode, Status};
 use crate::rules::*;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gll {
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
@@ -55,30 +53,6 @@ impl IDecode<RaxNmeaError> for Gll {
     }
 }
 
-impl fmt::Debug for Gll {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GLL");
-
-        if let Some(lat) = self.lat {
-            ds.field("lat", &lat);
-        }
-        if let Some(lon) = self.lon {
-            ds.field("lon", &lon);
-        }
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(ref status) = self.status {
-            ds.field("status", status);
-        }
-        if let Some(ref pos_mode) = self.pos_mode {
-            ds.field("pos_mode", pos_mode);
-        }
-
-        ds.finish()
-    }
-}
-
 #[cfg(test)]
 mod test {
     use std::println;
@@ -95,7 +69,7 @@ mod test {
         let mut parser = Parser::new();
         let gll = Gll::decode(parser.init(s.to_string()))?;
         println!("{gll:?}");
-        insta::assert_debug_snapshot!(gll);
+        insta::assert_json_snapshot!(gll);
         Ok(())
     }
 }

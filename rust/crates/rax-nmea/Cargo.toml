@@ -24,7 +24,7 @@ thiserror.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
 criterion.workspace = true
 float-cmp.workspace = true
-insta = { workspace = true, features = ["filters"] }
+insta = { workspace = true, features = ["filters", "json"] }
 mischief.workspace = true
 rax = { workspace = true }
 serialport.workspace = true

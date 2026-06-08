@@ -7,17 +7,13 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use strum;
 
 use crate::RaxNmeaError;
 use crate::data::SystemId;
 use crate::rules::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Serialize, Deserialize, strum::EnumString, strum::AsRefStr)
-)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaOperationMode {
     #[strum(serialize = "Manual", serialize = "M")]
     Manual,
@@ -25,11 +21,8 @@ pub enum GsaOperationMode {
     Automatic,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Serialize, Deserialize, strum::EnumString, strum::AsRefStr)
-)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaNavigationMode {
     #[strum(serialize = "No Fix", serialize = "1")]
     NoFix,

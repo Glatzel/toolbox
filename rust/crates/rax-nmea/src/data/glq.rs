@@ -16,7 +16,6 @@ pub struct Glq {
 }
 impl IDecode<RaxNmeaError> for Glq {
     fn decode(ctx: &mut Parser) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)

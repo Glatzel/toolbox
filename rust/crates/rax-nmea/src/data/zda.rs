@@ -28,8 +28,6 @@ pub struct Zda {
 
 impl IDecode<RaxNmeaError> for Zda {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
-
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let day = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let month = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();

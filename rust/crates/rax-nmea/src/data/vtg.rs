@@ -7,28 +7,26 @@ use crate::data::PosMode;
 use crate::rules::*;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug,Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Vtg {
     /// Course over ground (true)
     cogt: Option<f64>,
-    
+
     /// Course over ground (magnetic)
     cogm: Option<f64>,
-    
+
     /// Speed over ground (knots)
     sogn: Option<f64>,
-    
+
     /// Speed over ground (kph)
     sogk: Option<f64>,
-    
+
     /// Mode
     pos_mode: Option<PosMode>,
 }
 
 impl IDecode<RaxNmeaError> for Vtg {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
-
         let cogt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
@@ -47,7 +45,6 @@ impl IDecode<RaxNmeaError> for Vtg {
         let pos_mode = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
 
         Ok(Vtg {
-  
             cogt,
             cogm,
             sogn,

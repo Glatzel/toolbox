@@ -43,8 +43,6 @@ pub struct Grs {
 }
 impl IDecode<RaxNmeaError> for Grs {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
-
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();

@@ -3,7 +3,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, IStrGlobalRule, ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -45,11 +45,6 @@ pub struct Txt {
 impl IDecode<RaxNmeaError> for Txt {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
-
-        for l in parser.full_str().lines() {
-            NmeaValidate.apply(l)?;
-        }
-
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
             let txt_type = parser

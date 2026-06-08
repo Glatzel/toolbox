@@ -78,8 +78,6 @@ impl IDecode<RaxNmeaError> for Gga {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
-        parser.global(&NmeaValidate)?;
-
         clerk::debug!("Parsing utc_time...");
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);

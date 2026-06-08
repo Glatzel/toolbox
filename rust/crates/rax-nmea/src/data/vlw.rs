@@ -12,20 +12,19 @@ use crate::rules::*;
 pub struct Vlw {
     /// Total cumulative water distance
     twd: Option<f64>,
-    
+
     /// Water distance since reset
     wd: Option<f64>,
-    
+
     /// Total cumulative ground distance
     tgd: Option<f64>,
-    
+
     /// Ground distance since reset
     gd: Option<f64>,
 }
 
 impl IDecode<RaxNmeaError> for Vlw {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
         let twd = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)

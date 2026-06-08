@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, IStrGlobalRule, ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -39,10 +39,6 @@ pub struct Gsv {
 impl IDecode<RaxNmeaError> for Gsv {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
-        // Validate each line with NmeaValidate
-        for l in parser.full_str().lines() {
-            NmeaValidate.apply(l)?;
-        }
 
         // Count the number of lines and satellites
         let line_count = parser.full_str().lines().count();

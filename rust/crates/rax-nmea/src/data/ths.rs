@@ -11,13 +11,12 @@ use crate::rules::*;
 pub struct Ths {
     /// Heading of vehicle (true)
     headt: Option<f64>,
-    
+
     /// Mode indicator
     mi: Option<PosMode>,
 }
 impl IDecode<RaxNmeaError> for Ths {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
         let headt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)

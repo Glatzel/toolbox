@@ -12,36 +12,34 @@ use crate::rules::*;
 pub struct Rmc {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
-    
+
     /// Status
     status: Option<Status>,
-    
+
     /// Latitude
     lat: Option<f64>,
-    
+
     /// Longitude
     lon: Option<f64>,
-    
+
     /// Speed over ground
     spd: Option<f64>,
-    
+
     /// Track made good
     cog: Option<f64>,
-    
+
     /// Date
     date: Option<NaiveDate>,
-    
+
     /// Magnetic variation
     mv: Option<f64>,
-    
+
     /// FAA mode
     pos_mode: Option<PosMode>,
 }
 
 impl IDecode<RaxNmeaError> for Rmc {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
-
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let status = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let lat = parser.take(&NmeaCoord);

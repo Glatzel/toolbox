@@ -11,32 +11,30 @@ use crate::rules::*;
 pub struct Gst {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
-    
+
     /// Root mean square
     rms: Option<f64>,
-    
+
     /// Standard deviation semi-major
     std_major: Option<f64>,
-    
+
     /// Standard deviation semi-minor
     std_minor: Option<f64>,
-    
+
     /// Orientation
     orient: Option<f64>,
-    
+
     /// Standard deviation semi-latitude
     std_lat: Option<f64>,
-    
+
     /// Standard deviation semi-longitude
     std_lon: Option<f64>,
-    
+
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Gst {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
-
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let rms = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let std_major = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();

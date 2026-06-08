@@ -27,7 +27,6 @@ pub struct Dhv {
 }
 impl IDecode<RaxNmeaError> for Dhv {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let speed3d = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let speed_x = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();

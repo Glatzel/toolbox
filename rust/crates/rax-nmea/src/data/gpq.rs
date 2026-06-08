@@ -18,7 +18,6 @@ pub struct Gpq {
 }
 impl IDecode<RaxNmeaError> for Gpq {
     fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
-        parser.global(&NmeaValidate)?;
         let msg_id = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)

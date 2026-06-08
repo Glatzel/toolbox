@@ -70,7 +70,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
                     || result.satellites().len() > count as usize * 4
                 {
                     mischief::bail!(
-                        "message length mismatch: {:?}, expected {} to {}, got {}:\n{}",
+                        "message length mismatch: {:?}, expected {} to {}, got {}:\n{:?}",
                         result,
                         count * 4 - 3,
                         count * 4,
@@ -91,7 +91,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
                 let result: Txt = decoder.decode()?;
                 if result.message().len() != count as usize {
                     mischief::bail!(
-                        "message length mismatch: expected {}, got {}: {}",
+                        "message length mismatch: expected {}, got {}: {:?}",
                         count,
                         result.message().len(),
                         buf
@@ -118,8 +118,7 @@ fn main() -> mischief::Result<()> {
 #[case("data/nmea2.log")]
 #[case("data/nmea_with_sat_info.log")]
 fn test(#[case] file: &str) -> mischief::Result<()> {
-    use insta::assert_debug_snapshot;
     clerk::init_log_with_level(LevelFilter::WARN);
-    let result = wrapper(file)?;
+    let _ = wrapper(file)?;
     Ok(())
 }

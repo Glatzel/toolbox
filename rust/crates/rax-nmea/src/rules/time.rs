@@ -4,7 +4,27 @@ use chrono::NaiveTime;
 use rax::string::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
+fn parse_field(
+    res: &str,
+    range: core::ops::Range<usize>,
+    label: &str,
+    parser: &impl core::fmt::Display,
+    input: &str,
+) -> Result<u32, ()> {
+    let s = res.get(range).ok_or_else(|| {
+        clerk::warn!("{}: missing {}, input='{}'", parser, label, input);
+    })?;
 
+    s.parse::<u32>().map_err(|_| {
+        clerk::warn!(
+            "{}: failed to parse {}, value='{}', input='{}'",
+            parser,
+            label,
+            s,
+            input
+        );
+    })
+}
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
 /// Converts the time to a `DateTime<Utc>` using today's date.
 /// Returns a tuple of (`DateTime<Utc>`, rest_of_input) if successful, otherwise
@@ -49,20 +69,17 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             None => 0,
         };
 
-        let parse_field = |range: core::ops::Range<usize>, _label: &str| {
-            clerk::warn!("{}: failed to parse {}, input='{}'", self, _label, input);
-            res.get(range).and_then(|s| s.parse::<u32>().ok()).ok_or(())
+        let hour = match parse_field(res, 0..2, "hour", self, input) {
+            Ok(v) => v,
+            Err(_) => return (None, rest),
         };
 
-        let hour = match parse_field(0..2, "hour") {
+        let min = match parse_field(res, 2..4, "minute", self, input) {
             Ok(v) => v,
             Err(_) => return (None, rest),
         };
-        let min = match parse_field(2..4, "minute") {
-            Ok(v) => v,
-            Err(_) => return (None, rest),
-        };
-        let sec = match parse_field(4..6, "second") {
+
+        let sec = match parse_field(res, 4..6, "second", self, input) {
             Ok(v) => v,
             Err(_) => return (None, rest),
         };

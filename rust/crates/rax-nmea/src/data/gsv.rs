@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, DecodeOptExt, Decoder};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -56,14 +56,7 @@ impl IDecode<RaxNmeaError> for Gsv {
 
         // The last line may have fewer than 4 satellites, so we calculate how many
         // satellites are in the last line based on the total count.
-        let last_line_satellite_count = {
-            let rem = satellite_count % 4;
-            if rem == 0 && line_count == 1 && satellite_count != 0 {
-                4
-            } else {
-                rem
-            }
-        };
+        let last_line_satellite_count = satellite_count - 4 * (line_count - 1);
         clerk::trace!(
             "Gsv::new: last_line_satellite_count={}",
             last_line_satellite_count

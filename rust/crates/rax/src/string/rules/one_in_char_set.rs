@@ -1,4 +1,4 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::string::IRule;
@@ -19,16 +19,8 @@ use crate::string::filters::{CharSetFilter, IFilter};
 ///
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
-
-impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "OneOfCharSet<N={}>", N) }
-}
-
-impl<'a, const N: usize> Display for OneOfCharSet<'a, N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 

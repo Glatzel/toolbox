@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::data::SystemId;
@@ -46,17 +46,17 @@ pub struct Gbs {
 }
 
 impl IDecode<RaxNmeaError> for Gbs {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let err_lat = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let err_lon = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let err_alt = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let svid = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let prob = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let bias = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_dev = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt();
-        let system_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt();
-        let signal_id = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let err_lat = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let err_lon = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let err_alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let svid = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let prob = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let bias = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_dev = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let system_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Gbs {
             time,
@@ -85,7 +85,7 @@ mod tests {
     fn test_gbs() {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gbs = Gbs::decode(parser.init(s.to_string())).unwrap();
         println!("{gbs:?}");
         insta::assert_json_snapshot!(gbs);
@@ -94,7 +94,7 @@ mod tests {
     fn test_gbs_4_1() {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gbs = Gbs::decode(parser.init(s.to_string())).unwrap();
         println!("{gbs:?}");
         insta::assert_json_snapshot!(gbs);

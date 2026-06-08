@@ -5,6 +5,8 @@ use alloc::string::String;
 pub enum RaxNmeaError {
     #[error("Invalid sentence: {0}")]
     InvalidSentence(String),
+    #[error("Invalid sentence length: {0}")]
+    InvalidSentenceLength(usize),
     #[error("Sentence doesn't start with `$`: {0}")]
     InvalidSentencePrefix(String),
     #[error("require checksum_str length 2, get {0}")]

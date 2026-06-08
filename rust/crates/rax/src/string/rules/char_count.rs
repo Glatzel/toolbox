@@ -1,4 +1,4 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::string::rules::IRule;
@@ -17,16 +17,8 @@ use crate::string::rules::IRule;
 /// This rule operates on **character boundaries**, so it correctly handles
 /// multi-byte UTF-8 characters. It is useful for parsing fixed-length
 /// fields based on character count rather than byte count.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CharCount<const N: usize>;
-
-impl<const N: usize> Debug for CharCount<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "CharCount<{}>", N) }
-}
-
-impl<const N: usize> Display for CharCount<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<const N: usize> IRule for CharCount<N> {}
 
@@ -47,11 +39,11 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// is too short.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Trace input and requested character count
-        clerk::trace!("{}: input='{}', count={}", self, input, N);
+        clerk::trace!("{:?}: input='{}', count={}", self, input, N);
 
         if N == 0 {
             clerk::debug!(
-                "{}: count is zero, returning empty prefix and full input.",
+                "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
             return (Some(""), input);
@@ -61,7 +53,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
 
         if N == length {
             clerk::debug!(
-                "{}: count matches input length, returning whole input.",
+                "{:?}: count matches input length, returning whole input.",
                 self
             );
             return (Some(input), "");
@@ -70,7 +62,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
         for (count, (idx, _)) in input.char_indices().enumerate() {
             if count == N {
                 clerk::debug!(
-                    "{}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    "{:?}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
                     self,
                     count,
                     idx,
@@ -82,7 +74,8 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
         }
 
         clerk::warn!(
-            "CharCount: not enough chars in input (needed {}, found {})",
+            "{:?}: not enough chars in input (needed {}, found {})",
+            self,
             N,
             length
         );

@@ -20,34 +20,19 @@ use crate::string::rules::UntilMode;
 ///   to `mode`.
 /// - Returns `(None, input)` if the delimiter is not found.
 /// - Logs debug information for each split or when no match is found.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilStr {
     pub pattern: &'static str,
     pub mode: UntilMode,
 }
 
-impl core::fmt::Debug for UntilStr {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "UntilStr {{ pattern: {:?}, mode: {:?} }}",
-            self.pattern, self.mode
-        )
-    }
-}
-
-impl core::fmt::Display for UntilStr {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
-}
-
 impl IRule for UntilStr {}
-
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
 
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         clerk::trace!(
-            "{}: input='{}', delimiter='{}', mode={}",
+            "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
             input,
             self.pattern,
@@ -62,12 +47,12 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     UntilMode::KeepLeft => (&input[..end], &input[end..]),
                     UntilMode::KeepRight => (&input[..idx], &input[idx..]),
                 };
-                clerk::debug!("{} matched: prefix='{}', rest='{}'", self, prefix, rest);
+                clerk::debug!("{:?} matched: prefix='{}', rest='{}'", self, prefix, rest);
                 (Some(prefix), rest)
             }
             None => {
                 clerk::debug!(
-                    "{}: delimiter '{}' not found, returning None",
+                    "{:?}: delimiter '{}' not found, returning None",
                     self,
                     self.pattern
                 );

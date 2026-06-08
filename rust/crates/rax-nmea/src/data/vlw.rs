@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -24,17 +24,17 @@ pub struct Vlw {
 }
 
 impl IDecode<RaxNmeaError> for Vlw {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let twd = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt();
+            .decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let wd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let wd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let tgd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let tgd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let gd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let gd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         Ok(Vlw { twd, wd, tgd, gd })
     }
 }
@@ -51,7 +51,7 @@ mod test {
     fn test_new_vlw() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let vlw = Vlw::decode(parser.init(s.to_string()))?;
         println!("{vlw:?}");
         insta::assert_json_snapshot!(vlw);

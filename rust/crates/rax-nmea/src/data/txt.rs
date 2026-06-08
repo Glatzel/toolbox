@@ -3,7 +3,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ pub struct Txt {
 }
 
 impl IDecode<RaxNmeaError> for Txt {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
@@ -52,7 +52,7 @@ impl IDecode<RaxNmeaError> for Txt {
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .take(&UNTIL_COMMA_DISCARD)
-                .parse_opt::<u8>()
+                .decode_opt::<u8>()
                 .map(TxtType::try_from)
                 .and_then(Result::ok);
             let info = parser.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());
@@ -76,7 +76,7 @@ mod test {
     fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let txt = Txt::decode(parser.init(s.to_string()))?;
         println!("{txt:?}");
         insta::assert_json_snapshot!(txt);

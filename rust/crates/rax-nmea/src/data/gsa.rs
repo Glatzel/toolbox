@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -65,34 +65,34 @@ pub struct Gsa {
 }
 
 impl IDecode<RaxNmeaError> for Gsa {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt();
+            .decode_opt();
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
-        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser.take(&UNTIL_COMMA_DISCARD).parse_opt::<u8>() {
+            match parser.take(&UNTIL_COMMA_DISCARD).decode_opt::<u8>() {
                 Some(sat_id) => svid.push(sat_id),
                 None => continue,
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
-        let pdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let pdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::trace!("Gsa::new: pdop={:?}", pdop);
 
-        let hdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
-        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt::<f64>();
+        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt::<f64>();
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
 
-        let system_id = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let system_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
         Ok(Gsa {
@@ -151,7 +151,7 @@ mod test {
     fn test_new_gsa_with_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
         insta::assert_json_snapshot!(gsa);
@@ -162,7 +162,7 @@ mod test {
     fn test_new_gsa_without_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
         insta::assert_json_snapshot!(gsa);

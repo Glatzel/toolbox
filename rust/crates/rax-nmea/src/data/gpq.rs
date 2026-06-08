@@ -4,7 +4,7 @@ use alloc::string::String;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -17,11 +17,11 @@ pub struct Gpq {
     msg_id: Option<String>,
 }
 impl IDecode<RaxNmeaError> for Gpq {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)
-            .parse_opt();
+            .decode_opt();
 
         Ok(Gpq { msg_id })
     }
@@ -52,7 +52,7 @@ mod test {
     fn test_new_gpq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGPQ,RMC*3A";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gpq = Gpq::decode(parser.init(s.to_string()))?;
         println!("{gpq:?}");
         insta::assert_json_snapshot!(gpq);

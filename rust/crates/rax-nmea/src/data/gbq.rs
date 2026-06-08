@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -15,11 +15,11 @@ pub struct Gbq {
     msg_id: Option<String>,
 }
 impl IDecode<RaxNmeaError> for Gbq {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)
-            .parse_opt();
+            .decode_opt();
 
         Ok(Gbq { msg_id })
     }
@@ -38,7 +38,7 @@ mod test {
     fn test_new_gbq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGBQ,RMC*28";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gbq = Gbq::decode(parser.init(s.to_string()))?;
         println!("{gbq:?}");
         insta::assert_json_snapshot!(gbq);

@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -40,15 +40,15 @@ pub struct Dtm {
     alt: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Dtm {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let datum = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt();
-        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+            .decode_opt();
+        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         let lat = parser.take(&NmeaDegree);
         let lon = parser.take(&NmeaDegree);
-        let alt = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
 
         Ok(Dtm {
             datum,
@@ -73,7 +73,7 @@ mod test {
     fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let dtm = Dtm::decode(parser.init(s.to_string()))?;
         println!("{dtm:?}");
         insta::assert_json_snapshot!(dtm);

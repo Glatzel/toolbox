@@ -2,25 +2,28 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 
 use crate::RaxError;
-use crate::string::{IStrFlowRule, IStrGlobalRule};
+use crate::string::{IGlobalRule, IStrFlowRule};
+pub trait IDecode<E>: Sized {
+    fn decode(parser: &mut Decoder) -> Result<Self, E>;
+}
 /// Maintains parsing state for string-based parsers.
 ///
 /// [`Parser`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Parser {
+pub struct Decoder {
     /// The full input string.
     full: String,
     /// Pointer to the remaining unconsumed portion of the input.
     rest: *const str,
 }
 
-impl Default for Parser {
+impl Default for Decoder {
     fn default() -> Self { Self::new() }
 }
 
-impl Parser {
+impl Decoder {
     /// Creates a new empty parser context.
     pub fn new() -> Self {
         Self {
@@ -55,7 +58,7 @@ impl Parser {
     }
 }
 
-impl<'a> Parser {
+impl<'a> Decoder {
     /// Attempts to take a value using a flow rule.
     ///
     /// Advances the parser's `rest` pointer if the rule matches.
@@ -86,7 +89,7 @@ impl<'a> Parser {
             Some(s) => Ok(s),
             None => Err(RaxError::VerbError {
                 verb: "TakeStrict".to_string(),
-                rule: rule.to_string(),
+                rule: core::any::type_name::<R>(),
             }),
         }
     }
@@ -113,7 +116,7 @@ impl<'a> Parser {
             Ok(_) => Ok(self),
             Err(_) => Err(RaxError::VerbError {
                 verb: "SkipStrict".to_string(),
-                rule: rule.to_string(),
+                rule: core::any::type_name::<R>(),
             }),
         }
     }
@@ -124,8 +127,16 @@ impl<'a> Parser {
     /// and do not modify the parser's `rest` pointer.
     pub fn global<R>(&'a mut self, rule: &R) -> R::Output
     where
-        R: IStrGlobalRule<'a>,
+        R: IGlobalRule<'a>,
     {
         rule.apply(&self.full)
+    }
+}
+impl Decoder {
+    pub fn decode<D, E>(&mut self) -> Result<D, E>
+    where
+        D: IDecode<E>,
+    {
+        D::decode(self)
     }
 }

@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -26,13 +26,13 @@ pub struct Dhv {
     gdspd: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Dhv {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let speed3d = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_x = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_y = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_z = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let gdspd = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let speed3d = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_x = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_y = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_z = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let gdspd = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Dhv {
             time,
@@ -58,7 +58,7 @@ mod test {
     fn test_new_dhv() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let dhv = Dhv::decode(parser.init(s.to_string()))?;
         println!("{dhv:?}");
         insta::assert_json_snapshot!(dhv);

@@ -32,24 +32,10 @@ use crate::string::rules::UntilMode;
 ///   seen, split according to `mode`.
 /// - Returns `(None, input)` if fewer than N characters in the set are found.
 /// - Respects UTF-8 character boundaries and logs trace/debug information.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
     pub filter: &'a CharSetFilter<M>,
     pub mode: UntilMode,
-}
-
-impl<'a, const N: usize, const M: usize> core::fmt::Debug for UntilNInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "UntilNInCharSet<N={}, M={}> {{ mode: {:?} }}",
-            N, M, self.mode
-        )
-    }
-}
-
-impl<'a, const N: usize, const M: usize> core::fmt::Display for UntilNInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
@@ -85,7 +71,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
         }
 
         clerk::debug!(
-            "{}: fewer than {} matches found, returning None, input='{}'",
+            "{:?}: fewer than {} matches found, returning None, input='{}'",
             self,
             N,
             input

@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -34,15 +34,15 @@ pub struct Gst {
     std_alt: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Gst {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let rms = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_major = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_minor = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let orient = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_lat = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_lon = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let std_alt = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let rms = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_major = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_minor = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let orient = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_lat = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_lon = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let std_alt = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Gst {
             time,
@@ -103,7 +103,7 @@ mod test {
     fn test_new_gst() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let vtg = Gst::decode(parser.init(s.to_string()))?;
         println!("{vtg:?}");
         insta::assert_json_snapshot!(vtg);

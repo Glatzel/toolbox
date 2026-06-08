@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -75,7 +75,7 @@ pub struct Gga {
     diff_station: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Gga {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
@@ -91,37 +91,37 @@ impl IDecode<RaxNmeaError> for Gga {
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing quality...");
-        let quality = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let quality = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("quality: {:?}", quality);
 
         clerk::debug!("Parsing satellite_count...");
-        let num_sv = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("satellite_count: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Skipping char_comma and char_m for altitude units...");
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing geoid_separation...");
-        let sep = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let sep = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("geoid_separation: {:?}", sep);
 
         clerk::debug!("Skipping char_m for geoid units...");
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing age_of_differential_gps_data...");
-        let diff_age = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let diff_age = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!("age_of_differential_gps_data: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
-        let diff_station = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let diff_station = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         Ok(Gga {
@@ -153,7 +153,7 @@ mod test {
     fn test_new_gga1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let gga = Gga::decode(ctx.init(s.to_string()))?;
         println!("{gga:?}");
         insta::assert_json_snapshot!(gga);

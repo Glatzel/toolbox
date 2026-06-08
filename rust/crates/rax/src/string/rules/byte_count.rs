@@ -1,4 +1,4 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::string::rules::IRule;
@@ -16,16 +16,8 @@ use crate::string::rules::IRule;
 ///
 /// This rule is useful for parsing fixed-width fields or binary-like data
 /// represented as UTF-8 strings.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ByteCount<const N: usize>;
-
-impl<const N: usize> Debug for ByteCount<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "ByteCount<{}>", N) }
-}
-
-impl<const N: usize> Display for ByteCount<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<const N: usize> IRule for ByteCount<N> {}
 
@@ -46,17 +38,17 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// and debug messages showing the matched prefix and remaining input.
     fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
         // Trace input and requested byte count
-        clerk::trace!("{}: input='{}', byte_count={}", self, input, N);
+        clerk::trace!("{:?}: input='{}', byte_count={}", self, input, N);
 
         match input.get(..N) {
             Some(out) => {
                 let rest = &input[N..];
-                clerk::debug!("{}: matched prefix='{}', rest='{}'", self, out, rest);
+                clerk::debug!("{:?}: matched prefix='{}', rest='{}'", self, out, rest);
                 (Some(out), rest)
             }
             None => {
                 clerk::debug!(
-                    "{}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
+                    "{:?}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
                     self,
                     N,
                     input

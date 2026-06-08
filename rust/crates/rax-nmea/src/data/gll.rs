@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::data::{PosMode, Status};
@@ -26,7 +26,7 @@ pub struct Gll {
     pos_mode: Option<PosMode>,
 }
 impl IDecode<RaxNmeaError> for Gll {
-    fn decode(ctx: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");
@@ -41,9 +41,9 @@ impl IDecode<RaxNmeaError> for Gll {
         let time = ctx.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);
 
-        let status = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let status = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
 
-        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Gll {
             lat,
@@ -68,7 +68,7 @@ mod test {
     fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let gll = Gll::decode(parser.init(s.to_string()))?;
         println!("{gll:?}");
         insta::assert_json_snapshot!(gll);

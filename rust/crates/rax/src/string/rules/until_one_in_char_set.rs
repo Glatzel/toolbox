@@ -23,20 +23,10 @@ use crate::string::rules::UntilMode;
 /// - Returns `(None, input)` if no character from the set is found.
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information for each split or if no match is found.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilOneInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
     pub mode: UntilMode,
-}
-
-impl<'a, const N: usize> core::fmt::Debug for UntilOneInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "UntilOneInCharSet<N={}> {{ mode: {:?} }}", N, self.mode)
-    }
-}
-
-impl<'a, const N: usize> core::fmt::Display for UntilOneInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
@@ -56,7 +46,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                     UntilMode::KeepRight => (&input[..i], &input[i..]),
                 };
                 clerk::debug!(
-                    "{}: prefix='{}', rest='{}', i={}, c='{}'",
+                    "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
                     self,
                     prefix,
                     rest,
@@ -68,7 +58,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
         }
 
         clerk::debug!(
-            "{}: no match found, returning None, input='{}'",
+            "{:?}: no match found, returning None, input='{}'",
             self,
             input
         );

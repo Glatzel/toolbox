@@ -15,7 +15,7 @@ impl Display for NmeaValidate {
 
 impl IRule for NmeaValidate {}
 
-impl<'a> rax::string::IStrGlobalRule<'a> for NmeaValidate {
+impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
     type Output = Result<(), RaxNmeaError>;
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
@@ -86,7 +86,7 @@ impl<'a> rax::string::IStrGlobalRule<'a> for NmeaValidate {
 
 #[cfg(test)]
 mod tests {
-    use rax::string::IStrGlobalRule;
+    use rax::string::IGlobalRule;
     extern crate std;
     use std::{format, println, vec};
 

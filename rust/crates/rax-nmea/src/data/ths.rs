@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::data::PosMode;
@@ -16,12 +16,12 @@ pub struct Ths {
     mi: Option<PosMode>,
 }
 impl IDecode<RaxNmeaError> for Ths {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let headt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt();
-        let mi = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+            .decode_opt();
+        let mi = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Ths { headt, mi })
     }
@@ -40,7 +40,7 @@ mod test {
     fn test_parse() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTHS,77.52,E*34";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let ths = Ths::decode(parser.init(s.to_string()))?;
         println!("{ths:?}");
         insta::assert_json_snapshot!(ths);

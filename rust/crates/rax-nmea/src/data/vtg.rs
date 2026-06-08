@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 extern crate alloc;
 
 use crate::RaxNmeaError;
@@ -26,23 +26,23 @@ pub struct Vtg {
 }
 
 impl IDecode<RaxNmeaError> for Vtg {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let cogt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt();
+            .decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let cogm = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let cogm = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogn = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let sogn = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogk = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let sogk = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Vtg {
             cogt,
@@ -66,7 +66,7 @@ mod test {
     fn test_new_vtg() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let vtg = Vtg::decode(parser.init(s.to_string()))?;
         println!("{vtg:?}");
         insta::assert_json_snapshot!(vtg);

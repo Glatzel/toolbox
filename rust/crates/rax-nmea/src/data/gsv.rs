@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +37,7 @@ pub struct Gsv {
     signal_id: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Gsv {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
@@ -50,7 +50,7 @@ impl IDecode<RaxNmeaError> for Gsv {
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .parse_opt::<usize>()
+            .decode_opt::<usize>()
             .expect("Cannot get the count of satellites.");
         clerk::trace!("Gsv::new: satellite_count={}", satellite_count);
 
@@ -91,7 +91,7 @@ impl IDecode<RaxNmeaError> for Gsv {
             }
             satellites.push(Self::parse_satellite(parser, true)?);
         }
-        let signal_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt();
+        let signal_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
 
         Ok(Self {
             satellites,
@@ -102,14 +102,14 @@ impl IDecode<RaxNmeaError> for Gsv {
 impl Gsv {
     /// Helper to parse a single satellite entry.
     /// If `last` is true, the SNR field is terminated by a star.
-    fn parse_satellite(ctx: &mut Parser, last: bool) -> Result<Satellite, RaxNmeaError> {
-        let id = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+    fn parse_satellite(ctx: &mut Decoder, last: bool) -> Result<Satellite, RaxNmeaError> {
+        let id = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
         let snr = if last {
-            ctx.take(&UNTIL_STAR_DISCARD).parse_opt()
+            ctx.take(&UNTIL_STAR_DISCARD).decode_opt()
         } else {
-            ctx.take(&UNTIL_COMMA_DISCARD).parse_opt()
+            ctx.take(&UNTIL_COMMA_DISCARD).decode_opt()
         };
         Ok(Satellite {
             svid: id,
@@ -133,7 +133,7 @@ mod test {
     fn test_new_gsv() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,3,1,10,25,68,053,47,21,59,306,49,29,56,161,49,31,36,265,49*79\r\n$GPGSV,3,2,10,12,29,048,49,05,22,123,49,18,13,000,49,01,00,000,49*72\r\n$GPGSV,3,3,10,14,00,000,03,16,00,000,27*7C";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let gsv = Gsv::decode(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
         insta::assert_json_snapshot!(gsv);
@@ -144,7 +144,7 @@ mod test {
     fn test_new_gsv_4() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,4,02,35,291,,03,09,129,,05,14,305,,06,38,226,*4E";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let gsv = Gsv::decode(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
         insta::assert_json_snapshot!(gsv);
@@ -155,7 +155,7 @@ mod test {
     fn test_new_gsv_3() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,3,02,35,291,,03,09,129,,05,14,305,*72";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let gsv = Gsv::decode(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
         insta::assert_json_snapshot!(gsv);
@@ -165,7 +165,7 @@ mod test {
     fn test_new_gsv_0() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,1,1,0,*65";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let gsv = Gsv::decode(ctx.init(s.to_string()))?;
         println!("{gsv:?}");
         insta::assert_json_snapshot!(gsv);

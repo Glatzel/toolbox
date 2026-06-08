@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -27,13 +27,13 @@ pub struct Zda {
 }
 
 impl IDecode<RaxNmeaError> for Zda {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let day = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let month = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let year = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let ltzh = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let ltzn = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let day = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let month = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let year = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let ltzh = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let ltzn = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Zda {
             time,
@@ -58,7 +58,7 @@ mod test {
     fn test_new_zda() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPZDA,160012.71,11,03,2004,-1,00*7D";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let zda = Zda::decode(parser.init(s.to_string()))?;
         println!("{zda:?}");
         insta::assert_json_snapshot!(zda);

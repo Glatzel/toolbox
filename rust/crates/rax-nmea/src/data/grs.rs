@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -42,10 +42,10 @@ pub struct Grs {
     signal_id: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Grs {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
 
-        let mode = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let mode = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::debug!(
             "Grs::new: utc_time={:?}, grs_residual_mode={:?}",
             time,
@@ -54,15 +54,15 @@ impl IDecode<RaxNmeaError> for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser.take(&UNTIL_COMMA_DISCARD).parse_opt::<f64>() {
+            match parser.take(&UNTIL_COMMA_DISCARD).decode_opt::<f64>() {
                 Some(r) => residual.push(r),
                 None => continue,
             }
         }
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
-        let system_id = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let signal_id = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let system_id = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
         Ok(Grs {
             time,
             mode,
@@ -112,7 +112,7 @@ mod test {
     fn test_grs() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let input = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
-        let mut parser = Parser::new();
+        let mut parser = Decoder::new();
         let grs = Grs::decode(parser.init(input.to_string()))?;
         println!("{grs:?}");
         insta::assert_json_snapshot!(grs);

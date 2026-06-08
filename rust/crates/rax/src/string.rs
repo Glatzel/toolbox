@@ -1,10 +1,8 @@
-mod decoder;
 pub mod filters;
-mod parse_opt;
-mod parser;
+mod decode_opt;
+mod decode;
 pub mod rules;
 
-pub use decoder::*;
-pub use parse_opt::*;
-pub use parser::*;
+pub use decode_opt::*;
+pub use decode::*;
 pub use rules::*;

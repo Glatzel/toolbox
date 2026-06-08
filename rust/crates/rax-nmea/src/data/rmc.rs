@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use derive_getters::Getters;
-use rax::string::{IDecode, ParseOptExt, Parser};
+use rax::string::{IDecode, DecodeOptExt, Decoder};
 
 use crate::RaxNmeaError;
 use crate::data::{PosMode, Status};
@@ -39,16 +39,16 @@ pub struct Rmc {
 }
 
 impl IDecode<RaxNmeaError> for Rmc {
-    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let status = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let status = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         let lat = parser.take(&NmeaCoord);
         let lon = parser.take(&NmeaCoord);
-        let spd = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let cog = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let spd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let cog = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         let date = parser.take(&NmeaDate);
         let mv = parser.take(&NmeaDegree);
-        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
         Ok(Rmc {
             time,
             status,
@@ -76,7 +76,7 @@ mod test {
     fn test_new_rmc1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,110125,A,5505.337580,N,03858.653666,E,148.8,84.6,310317,8.9,E,D*2E";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let rmc = Rmc::decode(ctx.init(s.to_string()))?;
         println!("{rmc:?}");
         insta::assert_json_snapshot!(rmc);
@@ -86,7 +86,7 @@ mod test {
     fn test_new_rmc2() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,,V,,,,,,,,,,N*53";
-        let mut ctx = Parser::new();
+        let mut ctx = Decoder::new();
         let rmc = Rmc::decode(ctx.init(s.to_string()))?;
         println!("{rmc:?}");
         insta::assert_json_snapshot!(rmc);

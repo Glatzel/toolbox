@@ -1,13 +1,13 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::string::{IDecode, Parser};
+use rax::string::{IDecode, Decoder};
 use rax_nmea::RaxNmeaError;
 
 fn bench_nmea<'a, F, D, T>(c: &mut Criterion, name: &str, sentence: &'static str, ctor: F)
 where
-    F: Fn(&mut Parser) -> Result<D, RaxNmeaError> + 'static,
+    F: Fn(&mut Decoder) -> Result<D, RaxNmeaError> + 'static,
     D: IDecode<T>,
 {
-    let mut ctx = Parser::new();
+    let mut ctx = Decoder::new();
     ctx.init(sentence.to_string());
     c.bench_function(name, move |b| {
         b.iter(|| {

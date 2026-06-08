@@ -8,7 +8,7 @@ pub trait IDecode<E>: Sized {
 }
 /// Maintains parsing state for string-based parsers.
 ///
-/// [`Parser`] stores the full input string and a pointer
+/// [`Decoder`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

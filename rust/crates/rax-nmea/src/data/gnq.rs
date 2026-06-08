@@ -3,29 +3,27 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 
 ///Poll a standard message (Talker ID GL)"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gnq {
-    talker: Talker,
     /// Message ID of the message to be polled
     msg_id: Option<String>,
 }
-impl INmeaData for Gnq {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
-        let msg_id = ctx
+impl IDecode<RaxNmeaError> for Gnq {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
+        let msg_id = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)
             .parse_opt();
 
-        Ok(Gnq { talker, msg_id })
+        Ok(Gnq { msg_id })
     }
 }
 
@@ -55,8 +53,8 @@ mod test {
     fn test_new_gnq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGNQ,RMC*24";
-        let mut ctx = Parser::new();
-        let gnq = Gnq::new(ctx.init(s.to_string()), Talker::GP)?;
+        let mut parser = Parser::new();
+        let gnq = Gnq::decode(parser.init(s.to_string()))?;
         println!("{gnq:?}");
         insta::assert_debug_snapshot!(gnq);
         Ok(())

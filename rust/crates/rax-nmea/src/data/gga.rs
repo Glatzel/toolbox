@@ -5,12 +5,11 @@ use alloc::string::{String, ToString};
 use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -70,84 +69,91 @@ impl Display for GgaQualityIndicator {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gga {
-    talker: Talker,
     time: Option<chrono::NaiveTime>,
+
     /// Latitude, dd is degrees, mm.mm is minutes
     lat: Option<f64>,
+
     /// Longitude, dd is degrees, mm.mm is minutes
     lon: Option<f64>,
+
     /// Quality indicator for position fix
     quality: Option<GgaQualityIndicator>,
+
     /// Number of satellites used (range: 0-12)
     num_sv: Option<u8>,
+
     /// Horizontal Dilution of precision (meters)
     hdop: Option<f64>,
+
     /// Antenna Altitude above/below mean-sea-level (geoid) (in meters)
     alt: Option<f64>,
+
     /// Geoidal separation, the difference between the WGS-84 earth ellipsoid
     /// and mean-sea-level (geoid), `-` means mean-sea-level below ellipsoid (in
     /// meters)
     sep: Option<f64>,
+
     /// Age of differential GPS data, time in seconds since last SC104 type 1 or
     /// 9 update, null field when DGPS is not used
     diff_age: Option<f64>,
+
     /// Differential reference station ID, 0000-1023
     diff_station: Option<u16>,
 }
-impl INmeaData for Gga {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
+impl IDecode<RaxNmeaError> for Gga {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
-        ctx.global(&NmeaValidate)?;
+        parser.global(&NmeaValidate)?;
 
         clerk::debug!("Parsing utc_time...");
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);
 
         clerk::debug!("Parsing lat...");
-        let lat = ctx.take(&NmeaCoord);
+        let lat = parser.take(&NmeaCoord);
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = ctx.take(&NmeaCoord);
+        let lon = parser.take(&NmeaCoord);
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing quality...");
-        let quality = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let quality = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("quality: {:?}", quality);
 
         clerk::debug!("Parsing satellite_count...");
-        let num_sv = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("satellite_count: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Skipping char_comma and char_m for altitude units...");
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing geoid_separation...");
-        let sep = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let sep = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("geoid_separation: {:?}", sep);
 
         clerk::debug!("Skipping char_m for geoid units...");
-        ctx.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing age_of_differential_gps_data...");
-        let diff_age = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let diff_age = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!("age_of_differential_gps_data: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
-        let diff_station = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let diff_station = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         Ok(Gga {
-            talker,
             time,
             lat,
             lon,
@@ -165,7 +171,6 @@ impl INmeaData for Gga {
 impl fmt::Debug for Gga {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GGA");
-        ds.field("talker", &self.talker);
 
         if let Some(ref time) = self.time {
             ds.field("time", time);
@@ -221,7 +226,7 @@ mod test {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
         let mut ctx = Parser::new();
-        let gga = Gga::new(ctx.init(s.to_string()), Talker::GN)?;
+        let gga = Gga::decode(ctx.init(s.to_string()))?;
         println!("{gga:?}");
         insta::assert_debug_snapshot!(gga);
         Ok(())

@@ -5,12 +5,12 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, PosMode, Talker};
+use crate::data::PosMode;
 use crate::rules::*;
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -37,7 +37,6 @@ impl FromStr for NavigationStatus {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gns {
-    talker: Talker,
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
@@ -64,9 +63,9 @@ pub struct Gns {
     nav_status: Option<NavigationStatus>,
 }
 
-impl INmeaData for Gns {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
+impl IDecode<RaxNmeaError> for Gns {
+    fn decode(ctx: &mut Parser) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gga::decode: sentence='{}'", ctx.full_str());
 
         ctx.global(&NmeaValidate)?;
 
@@ -123,7 +122,6 @@ impl INmeaData for Gns {
         clerk::debug!("navigational_status: {:?}", nav_status);
 
         Ok(Gns {
-            talker,
             time,
             lat,
             lon,
@@ -141,7 +139,7 @@ impl INmeaData for Gns {
 impl Debug for Gns {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut ds = f.debug_struct("GNS");
-        ds.field("talker", &self.talker);
+
         if let Some(ref time) = self.time {
             ds.field("time", time);
         }
@@ -185,13 +183,13 @@ mod test {
     use std::string::ToString;
 
     use super::*;
-    use crate::data::Talker;
+
     #[test]
     fn test_gns_parsing1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
         let mut ctx = Parser::new();
-        let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
+        let gns = Gns::decode(ctx.init(s.to_string()))?;
         println!("{gns:?}");
         insta::assert_debug_snapshot!(gns);
 
@@ -201,8 +199,8 @@ mod test {
     fn test_gns_parsing2() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
-        let mut ctx = Parser::new();
-        let gns = Gns::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Parser::new();
+        let gns = Gns::decode(parser.init(s.to_string()))?;
         println!("{gns:?}");
         insta::assert_debug_snapshot!(gns);
         Ok(())

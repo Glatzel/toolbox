@@ -1,16 +1,15 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, PosMode, Status, Talker};
+use crate::data::{PosMode, Status};
 use crate::rules::*;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gll {
-    talker: Talker,
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,
@@ -24,9 +23,9 @@ pub struct Gll {
     /// FAA mode
     pos_mode: Option<PosMode>,
 }
-impl INmeaData for Gll {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
+impl IDecode<RaxNmeaError> for Gll {
+    fn decode(ctx: &mut Parser) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         ctx.global(&NmeaValidate)?;
 
@@ -47,7 +46,6 @@ impl INmeaData for Gll {
         let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
 
         Ok(Gll {
-            talker,
             lat,
             lon,
             time,
@@ -60,7 +58,6 @@ impl INmeaData for Gll {
 impl fmt::Debug for Gll {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GLL");
-        ds.field("talker", &self.talker);
 
         if let Some(lat) = self.lat {
             ds.field("lat", &lat);
@@ -95,8 +92,8 @@ mod test {
     fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut ctx = Parser::new();
-        let gll = Gll::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Parser::new();
+        let gll = Gll::decode(parser.init(s.to_string()))?;
         println!("{gll:?}");
         insta::assert_debug_snapshot!(gll);
         Ok(())

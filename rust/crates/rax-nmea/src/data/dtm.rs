@@ -4,12 +4,11 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -34,32 +33,34 @@ impl FromStr for DtmDatum {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Dtm {
-    talker: Talker,
     /// Local datum
     datum: Option<DtmDatum>,
+    
     /// sub datum
     sub_datum: Option<String>,
+    
     /// Offset in Latitude
     lat: Option<f64>,
+    
     /// Offset in Longitude
     lon: Option<f64>,
+    
     /// Offset in altitude
     alt: Option<f64>,
 }
-impl INmeaData for Dtm {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
-        let datum = ctx
+impl IDecode<RaxNmeaError> for Dtm {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
+        let datum = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt();
-        let sub_datum = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let lat = ctx.take(&NmeaDegree);
-        let lon = ctx.take(&NmeaDegree);
-        let alt = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let lat = parser.take(&NmeaDegree);
+        let lon = parser.take(&NmeaDegree);
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
 
         Ok(Dtm {
-            talker,
             datum,
             sub_datum,
             lat,
@@ -72,7 +73,6 @@ impl INmeaData for Dtm {
 impl fmt::Debug for Dtm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("DHV");
-        ds.field("talker", &self.talker);
 
         if let Some(ref datum) = self.datum {
             ds.field("datum", datum);
@@ -107,8 +107,8 @@ mod test {
     fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut ctx = Parser::new();
-        let dtm = Dtm::new(ctx.init(s.to_string()), Talker::GP)?;
+        let mut parser = Parser::new();
+        let dtm = Dtm::decode(parser.init(s.to_string()))?;
         println!("{dtm:?}");
         insta::assert_debug_snapshot!(dtm);
         Ok(())

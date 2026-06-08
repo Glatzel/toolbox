@@ -5,12 +5,12 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, SystemId, Talker};
+use crate::data::SystemId;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -51,7 +51,6 @@ impl FromStr for GsaNavigationMode {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gsa {
-    talker: Talker,
     /// Operation mode
     op_mode: Option<GsaOperationMode>,
     /// Navigation Mode
@@ -68,41 +67,40 @@ pub struct Gsa {
     system_id: Option<SystemId>,
 }
 
-impl INmeaData for Gsa {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
+impl IDecode<RaxNmeaError> for Gsa {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
 
-        let op_mode = ctx
+        let op_mode = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
             .parse_opt();
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
-        let nav_mode = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match ctx.take(&UNTIL_COMMA_DISCARD).parse_opt::<u8>() {
+            match parser.take(&UNTIL_COMMA_DISCARD).parse_opt::<u8>() {
                 Some(sat_id) => svid.push(sat_id),
                 None => continue,
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
-        let pdop = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let pdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::trace!("Gsa::new: pdop={:?}", pdop);
 
-        let hdop = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
-        let vdop = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt::<f64>();
+        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).parse_opt::<f64>();
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
 
-        let system_id = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let system_id = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
         Ok(Gsa {
-            talker,
             op_mode,
             nav_mode,
             svid,
@@ -117,7 +115,6 @@ impl INmeaData for Gsa {
 impl fmt::Debug for Gsa {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GSA");
-        ds.field("talker", &self.talker);
 
         if let Some(op_mode) = self.op_mode {
             ds.field("op_mode", &op_mode);
@@ -159,8 +156,8 @@ mod test {
     fn test_new_gsa_with_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut ctx = Parser::new();
-        let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Parser::new();
+        let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
         insta::assert_debug_snapshot!(gsa);
 
@@ -170,8 +167,8 @@ mod test {
     fn test_new_gsa_without_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut ctx = Parser::new();
-        let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GP)?;
+        let mut parser = Parser::new();
+        let gsa = Gsa::decode(parser.init(s.to_string()))?;
         println!("{gsa:?}");
         insta::assert_debug_snapshot!(gsa);
         Ok(())

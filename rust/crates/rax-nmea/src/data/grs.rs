@@ -5,12 +5,12 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{ParseOptExt, Parser};
+use rax::string::{IDecode, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, SystemId, Talker};
+use crate::data::SystemId;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -33,7 +33,6 @@ impl FromStr for GrsResidualMode {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Grs {
-    talker: Talker,
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
     /// GRS residual mode
@@ -45,13 +44,13 @@ pub struct Grs {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl INmeaData for Grs {
-    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
+impl IDecode<RaxNmeaError> for Grs {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        parser.global(&NmeaValidate)?;
 
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
 
-        let mode = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let mode = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
         clerk::debug!(
             "Grs::new: utc_time={:?}, grs_residual_mode={:?}",
             time,
@@ -60,17 +59,16 @@ impl INmeaData for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            match ctx.take(&UNTIL_COMMA_DISCARD).parse_opt::<f64>() {
+            match parser.take(&UNTIL_COMMA_DISCARD).parse_opt::<f64>() {
                 Some(r) => residual.push(r),
                 None => continue,
             }
         }
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
-        let system_id = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let signal_id = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let system_id = parser.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
         Ok(Grs {
-            talker,
             time,
             mode,
             residual,
@@ -83,7 +81,6 @@ impl INmeaData for Grs {
 impl fmt::Debug for Grs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut ds = f.debug_struct("GSA");
-        ds.field("talker", &self.talker);
 
         if let Some(time) = self.time {
             ds.field("time", &time);
@@ -120,8 +117,8 @@ mod test {
     fn test_grs() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let input = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
-        let mut ctx = Parser::new();
-        let grs = Grs::new(ctx.init(input.to_string()), Talker::GP)?;
+        let mut parser = Parser::new();
+        let grs = Grs::decode(parser.init(input.to_string()))?;
         println!("{grs:?}");
         insta::assert_debug_snapshot!(grs);
         Ok(())

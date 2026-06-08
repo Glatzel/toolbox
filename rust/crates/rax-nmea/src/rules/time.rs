@@ -7,9 +7,9 @@ use super::UNTIL_COMMA_DISCARD;
 fn parse_field(
     res: &str,
     range: core::ops::Range<usize>,
-    _label: &str,
-    _parser: &impl core::fmt::Display,
-    _input: &str,
+    label: &str,
+    parser: &impl core::fmt::Display,
+    input: &str,
 ) -> Result<u32, ()> {
     let s = res.get(range).ok_or({
         clerk::warn!("{}: missing {}, input='{}'", parser, label, input);

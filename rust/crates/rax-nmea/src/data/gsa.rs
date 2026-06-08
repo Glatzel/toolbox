@@ -7,6 +7,7 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use strum;
 
 use crate::RaxNmeaError;
 use crate::data::SystemId;

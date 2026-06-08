@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, DecodeOptExt, Decoder};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

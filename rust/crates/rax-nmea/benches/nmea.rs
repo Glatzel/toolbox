@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::string::{IDecode, Decoder};
+use rax::string::{Decoder, IDecode};
 use rax_nmea::RaxNmeaError;
 
 fn bench_nmea<'a, F, D, T>(c: &mut Criterion, name: &str, sentence: &'static str, ctor: F)

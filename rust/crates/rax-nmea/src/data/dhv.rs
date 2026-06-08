@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{IDecode, DecodeOptExt, Decoder};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;

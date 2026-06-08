@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{IDecode, DecodeOptExt, Decoder};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -89,7 +89,9 @@ impl IDecode<RaxNmeaError> for Gsa {
         let hdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
-        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt::<f64>();
+        let vdop = parser
+            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
+            .decode_opt::<f64>();
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
 
         let system_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();

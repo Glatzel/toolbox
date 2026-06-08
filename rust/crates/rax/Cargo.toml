@@ -9,8 +9,8 @@ name = "rules"
 
 [dependencies]
 clerk.workspace = true
-thiserror.workspace = true
 strum.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 clerk = { workspace = true, features = ["tracing"] }

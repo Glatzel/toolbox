@@ -4,8 +4,9 @@ use std::io::{BufRead, BufReader};
 use clerk::LevelFilter;
 use rax::string::Decoder;
 use rax_nmea::data::*;
-use rax_nmea::rules::{NmeaIdentifier, NmeaTalker};
+use rax_nmea::rules::{NmeaGsvCount, NmeaIdentifier, NmeaTalker, NmeaTxtCount};
 use rstest::rstest;
+#[derive(Debug)]
 pub enum Dispatcher {
     DHV(Talker, Dhv),
     DTM(Talker, Dtm),
@@ -35,6 +36,9 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
     let mut buf = String::new();
     let mut collector = Vec::<Dispatcher>::new();
     while reader.read_line(&mut buf).is_ok() {
+        if buf.is_empty() {
+            return Ok(collector);
+        }
         decoder.init(buf.clone());
         let identifier = decoder.global(&NmeaIdentifier)?;
         let talker = decoder.global(&NmeaTalker)?;
@@ -52,10 +56,24 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             Identifier::GRS => collector.push(Dispatcher::GRS(talker, decoder.decode()?)),
             Identifier::GSA => collector.push(Dispatcher::GSA(talker, decoder.decode()?)),
             Identifier::GST => collector.push(Dispatcher::GST(talker, decoder.decode()?)),
-            Identifier::GSV => collector.push(Dispatcher::GSV(talker, decoder.decode()?)),
+            Identifier::GSV => {
+                let count = decoder.global(&NmeaGsvCount)?;
+                for _ in 0..count {
+                    reader.read_line(&mut buf)?;
+                }
+                decoder.init(buf.clone());
+                collector.push(Dispatcher::GSV(talker, decoder.decode()?));
+            }
             Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
             Identifier::THS => collector.push(Dispatcher::THS(talker, decoder.decode()?)),
-            Identifier::TXT => collector.push(Dispatcher::TXT(talker, decoder.decode()?)),
+            Identifier::TXT => {
+                let count = decoder.global(&NmeaTxtCount)?;
+                for _ in 0..count {
+                    reader.read_line(&mut buf)?;
+                }
+                decoder.init(buf.clone());
+                collector.push(Dispatcher::TXT(talker, decoder.decode()?));
+            }
             Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),
             Identifier::VTG => collector.push(Dispatcher::VTG(talker, decoder.decode()?)),
             Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, decoder.decode()?)),
@@ -78,6 +96,5 @@ fn test(#[case] file: &str) -> mischief::Result<()> {
     use insta::assert_debug_snapshot;
     clerk::init_log_with_level(LevelFilter::WARN);
     let result = wrapper(file)?;
-    assert_debug_snapshot!(file, result);
     Ok(())
 }

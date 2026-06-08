@@ -2,8 +2,14 @@
 source: crates/rax-nmea/src/data/rmc.rs
 expression: rmc
 ---
-RMC {
-    talker: GN,
-    status: Invalid,
-    pos_mode: NotValid,
+{
+  "time": null,
+  "status": "Invalid",
+  "lat": null,
+  "lon": null,
+  "spd": null,
+  "cog": null,
+  "date": null,
+  "mv": null,
+  "pos_mode": "NotValid"
 }

@@ -11,13 +11,13 @@ fn parse_field(
     parser: &impl core::fmt::Display,
     input: &str,
 ) -> Result<u32, ()> {
-    let s = res.get(range).ok_or({
-        clerk::warn!("{}: missing {}, input='{}'", parser, label, input);
+    let s = res.get(range).ok_or_else(|| {
+        clerk::warn!("{}: missing {}, input='{:?}'", parser, label, input);
     })?;
 
     s.parse::<u32>().map_err(|_| {
         clerk::warn!(
-            "{}: failed to parse {}, value='{}', input='{}'",
+            "{}: failed to parse {}, value='{}', input={:?}",
             parser,
             label,
             s,

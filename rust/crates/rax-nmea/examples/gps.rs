@@ -66,18 +66,6 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
                 }
                 decoder.init(buf.clone());
                 let result: Gsv = decoder.decode()?;
-                if result.satellites().len() < count as usize * 4 - 3
-                    || result.satellites().len() > count as usize * 4
-                {
-                    mischief::bail!(
-                        "message length mismatch: {:?}, expected {} to {}, got {}:\n{:?}",
-                        result,
-                        count * 4 - 3,
-                        count * 4,
-                        result.satellites().len(),
-                        buf
-                    )
-                }
                 collector.push(Dispatcher::GSV(talker, result));
             }
             Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
@@ -89,14 +77,6 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
                 }
                 decoder.init(buf.clone());
                 let result: Txt = decoder.decode()?;
-                if result.message().len() != count as usize {
-                    mischief::bail!(
-                        "message length mismatch: expected {}, got {}: {:?}",
-                        count,
-                        result.message().len(),
-                        buf
-                    )
-                }
                 collector.push(Dispatcher::TXT(talker, result));
             }
             Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),

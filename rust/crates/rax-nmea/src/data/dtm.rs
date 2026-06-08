@@ -1,6 +1,6 @@
-use core::str::FromStr;
 extern crate alloc;
-use alloc::string::{String, ToString};
+
+use alloc::string::String;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -9,25 +9,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
+    #[strum(serialize = "W84")]
     WGS84,
+    #[strum(serialize = "P90")]
     PZ90,
+    #[strum(serialize = "999")]
     UserDefined,
 }
-impl FromStr for DtmDatum {
-    type Err = RaxNmeaError;
 
-    fn from_str(s: &str) -> Result<Self, RaxNmeaError> {
-        match s {
-            "W84" => Ok(Self::WGS84),
-            "P90" => Ok(Self::PZ90),
-            "999" => Ok(Self::UserDefined),
-            other => Err(RaxNmeaError::UnknownDtmDatum(other.to_string())),
-        }
-    }
-}
 /// Datum reference
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]

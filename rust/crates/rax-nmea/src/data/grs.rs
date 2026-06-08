@@ -1,8 +1,7 @@
-use core::fmt;
-use core::str::FromStr;
 extern crate alloc;
-use alloc::string::ToString;
+
 use alloc::vec::Vec;
+use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -13,38 +12,32 @@ use crate::RaxNmeaError;
 use crate::data::SystemId;
 use crate::rules::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GrsResidualMode {
+    #[strum(serialize = "Used in GGA", serialize = "0")]
     UsedInGga,
+
+    #[strum(serialize = "Calculated after GGA", serialize = "1")]
     CalculatedAfterGga,
 }
-impl FromStr for GrsResidualMode {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "0" => Ok(Self::UsedInGga),
-            "1" => Ok(Self::CalculatedAfterGga),
-            other => Err(RaxNmeaError::UnknownGrsResidualMode(other.to_string())),
-        }
-    }
-}
+
 /// GNSS range residuals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Grs {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
-    
+
     /// GRS residual mode
     mode: Option<GrsResidualMode>,
-    
+
     /// Satellite residuals
     residual: Vec<f64>,
-    
+
     /// System ID
     system_id: Option<SystemId>,
-    
+
     /// Signal ID
     signal_id: Option<u16>,
 }

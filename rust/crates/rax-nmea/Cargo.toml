@@ -18,6 +18,7 @@ derive-getters.workspace = true
 hashbrown.workspace = true
 rax.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
+strum.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
@@ -27,7 +28,6 @@ float-cmp.workspace = true
 insta = { workspace = true, features = ["filters", "json"] }
 mischief.workspace = true
 rax = { workspace = true }
-serialport.workspace = true
 
 [features]
 serde = ["chrono/serde", "dep:serde"]

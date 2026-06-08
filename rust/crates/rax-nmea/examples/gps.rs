@@ -1,9 +1,45 @@
+use std::fs::File;
 use std::io::BufReader;
 use std::time::Duration;
 
 use clerk::LevelFilter;
-use rax::string::Parser;
+use rax::string::{IDecode, Parser};
+use rax_nmea::RaxNmeaError;
 use rax_nmea::data::*;
+pub enum Dispatcher {
+    DHV(Dhv),
+    DTM(Dtm),
+    GBQ(Gbq),
+    GBS(Gbs),
+    GGA(Gga),
+    GLL(Gll),
+    GLQ(Glq),
+    GNQ(Gnq),
+    GNS(Gns),
+    GPQ(Gpq),
+    GRS(Grs),
+    GSA(Gsa),
+    GST(Gst),
+    GSV(Gsv),
+    RMC(Rmc),
+    THS(Ths),
+    TXT(Txt),
+    VLW(Vlw),
+    VTG(Vtg),
+    ZDA(Zda),
+}
+impl IDecode<RaxNmeaError> for Dispatcher {
+    fn decode(parser: &mut Parser) -> Result<Self, RaxNmeaError> {
+        let identifier=parser.
+        Ok(())
+    }
+}
+
+fn wrapper(f: &str) -> mischief::Result<()> {
+    BufReader::new(File::open(f)?);
+    Ok(())
+}
+
 fn main() -> mischief::Result<()> {
     clerk::init_log_with_level(LevelFilter::WARN);
     let path = "COM5";

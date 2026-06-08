@@ -1,6 +1,7 @@
-use core::fmt;
 extern crate alloc;
+
 use alloc::string::String;
+use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};

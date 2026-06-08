@@ -9,12 +9,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
+    #[strum(serialize = "Error", serialize = "0")]
     Error = 0,
+    #[strum(serialize = "Warn", serialize = "1")]
     Warn = 1,
+    #[strum(serialize = "Info", serialize = "2")]
     Info = 2,
+    #[strum(serialize = "User", serialize = "7")]
     User = 7,
 }
 impl TryFrom<u8> for TxtType {
@@ -29,17 +33,7 @@ impl TryFrom<u8> for TxtType {
         }
     }
 }
-impl core::fmt::Display for TxtType {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = match self {
-            TxtType::Error => "Error",
-            TxtType::Warn => "Warn",
-            TxtType::Info => "Info",
-            TxtType::User => "User",
-        };
-        write!(f, "{s}")
-    }
-}
+
 ///Text transmission
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]

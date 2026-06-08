@@ -1,8 +1,7 @@
-use core::fmt::Debug;
-use core::str::FromStr;
 extern crate alloc;
-use alloc::string::ToString;
+
 use alloc::vec::Vec;
+use core::fmt::Debug;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -12,27 +11,20 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::data::PosMode;
 use crate::rules::*;
-#[derive(Debug, PartialEq, Clone)]
+
+#[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum NavigationStatus {
+    #[strum(serialize = "Safe", serialize = "S")]
     Safe,
+    #[strum(serialize = "Caution", serialize = "C")]
     Caution,
+    #[strum(serialize = "Unsafe", serialize = "U")]
     Unsafe,
+    #[strum(serialize = "Invalid", serialize = "V")]
     Invalid,
 }
-impl FromStr for NavigationStatus {
-    type Err = RaxNmeaError;
 
-    fn from_str(s: &str) -> Result<Self, RaxNmeaError> {
-        match s {
-            "S" => Ok(Self::Safe),
-            "C" => Ok(Self::Caution),
-            "U" => Ok(Self::Unsafe),
-            "V" => Ok(Self::Invalid),
-            _ => Err(RaxNmeaError::UnknownNavigationStatus(s.to_string())),
-        }
-    }
-}
 ///GNSS fix data
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]

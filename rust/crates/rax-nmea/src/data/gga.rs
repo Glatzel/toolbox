@@ -1,7 +1,4 @@
-use core::fmt::{self, Display};
-use core::str::FromStr;
 extern crate alloc;
-use alloc::string::ToString;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -11,52 +8,29 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::rules::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GgaQualityIndicator {
+    #[strum(serialize = "Invalid", serialize = "0")]
     Invalid = 0,
+    #[strum(serialize = "Gps Fix", serialize = "1")]
     GpsFix = 1,
+    #[strum(serialize = "Differential Gps Fix", serialize = "2")]
     DifferentialGpsFix = 2,
+    #[strum(serialize = "Pps Fix", serialize = "3")]
     PpsFix = 3,
+    #[strum(serialize = "Real Time Kinematic", serialize = "4")]
     RealTimeKinematic = 4,
+    #[strum(serialize = "Float RTK", serialize = "5")]
     FloatRTK = 5,
+    #[strum(serialize = "Dead Reckoning", serialize = "6")]
     DeadReckoning = 6,
+    #[strum(serialize = "Manual Input Mode", serialize = "7")]
     ManualInputMode = 7,
+    #[strum(serialize = "Simulation Mode", serialize = "8")]
     SimulationMode = 8,
 }
-impl FromStr for GgaQualityIndicator {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "0" => Ok(Self::Invalid),
-            "1" => Ok(Self::GpsFix),
-            "2" => Ok(Self::DifferentialGpsFix),
-            "3" => Ok(Self::PpsFix),
-            "4" => Ok(Self::RealTimeKinematic),
-            "5" => Ok(Self::FloatRTK),
-            "6" => Ok(Self::DeadReckoning),
-            "7" => Ok(Self::ManualInputMode),
-            "8" => Ok(Self::SimulationMode),
-            other => Err(RaxNmeaError::UnknownGgaQualityIndicator(other.to_string())),
-        }
-    }
-}
-impl Display for GgaQualityIndicator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            GgaQualityIndicator::Invalid => "Invalid",
-            GgaQualityIndicator::GpsFix => "Gps Fix",
-            GgaQualityIndicator::DifferentialGpsFix => "Differential Gps Fix",
-            GgaQualityIndicator::PpsFix => "Pps Fix",
-            GgaQualityIndicator::RealTimeKinematic => "RealTimeKinematic",
-            GgaQualityIndicator::FloatRTK => "Float RTK",
-            GgaQualityIndicator::DeadReckoning => "Dead Reckoning",
-            GgaQualityIndicator::ManualInputMode => "Manual Input Mode",
-            GgaQualityIndicator::SimulationMode => "Simulation Mode",
-        };
-        write!(f, "{s}")
-    }
-}
+
 /// Global Positioning System Fix Data.
 ///
 /// This is one of the sentences commonly emitted by GPS units. Time, Position

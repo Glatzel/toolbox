@@ -1,8 +1,7 @@
-use core::fmt;
-use core::str::FromStr;
 extern crate alloc;
-use alloc::string::ToString;
+
 use alloc::vec::Vec;
+use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -14,61 +13,53 @@ use crate::data::SystemId;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize, strum::EnumString, strum::AsRefStr)
+)]
 pub enum GsaOperationMode {
+    #[strum(serialize = "Manual", serialize = "M")]
     Manual,
+    #[strum(serialize = "Automatic", serialize = "A")]
     Automatic,
 }
-impl FromStr for GsaOperationMode {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "A" => Ok(Self::Automatic),
-            "M" => Ok(Self::Manual),
-            other => Err(RaxNmeaError::UnknownGsaSelectionMode(other.to_string())),
-        }
-    }
-}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize, strum::EnumString, strum::AsRefStr)
+)]
 pub enum GsaNavigationMode {
+    #[strum(serialize = "No Fix", serialize = "1")]
     NoFix,
+    #[strum(serialize = "Fix 2D", serialize = "2")]
     Fix2D,
+    #[strum(serialize = "Fix 3D", serialize = "3")]
     Fix3D,
 }
-impl FromStr for GsaNavigationMode {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "1" => Ok(Self::NoFix),
-            "2" => Ok(Self::Fix2D),
-            "3" => Ok(Self::Fix3D),
-            other => Err(RaxNmeaError::UnknownGsaNavigationMode(other.to_string())),
-        }
-    }
-}
+
 ///GNSS DOP and active satellites
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gsa {
     /// Operation mode
     op_mode: Option<GsaOperationMode>,
-    
+
     /// Navigation Mode
     nav_mode: Option<GsaNavigationMode>,
-    
+
     /// Satellite IDs
     svid: Vec<u8>,
-    
+
     /// Position dilution of precision
     pdop: Option<f64>,
-    
+
     /// Horizontal dilution of precision
     hdop: Option<f64>,
-    
+
     /// Vertical dilution of precision
     vdop: Option<f64>,
-    
+
     /// System ID
     system_id: Option<SystemId>,
 }

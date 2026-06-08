@@ -1,7 +1,7 @@
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::filters::{CharSetFilter, IFilter};
-use crate::str_parser::rules::UntilMode;
+use crate::string::IRule;
+use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::rules::UntilMode;
 
 /// Rule that extracts a prefix from the input string consisting of consecutive
 /// characters that are in the provided character set, stopping at the first
@@ -25,20 +25,10 @@ use crate::str_parser::rules::UntilMode;
 /// - Returns `(None, input)` if all characters in the input are in the set.
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information at each split or if all characters are in the set.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNotInCharSet<'a, const N: usize> {
     pub filter: &'a CharSetFilter<N>,
     pub mode: UntilMode,
-}
-
-impl<'a, const N: usize> core::fmt::Debug for UntilNotInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "UntilNotInCharSet<N={}> {{ mode: {:?} }}", N, self.mode)
-    }
-}
-
-impl<'a, const N: usize> core::fmt::Display for UntilNotInCharSet<'a, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
@@ -55,7 +45,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
                     UntilMode::KeepRight => (&input[..i], &input[i..]),
                 };
                 clerk::debug!(
-                    "{}: prefix='{}', rest='{}', i={}, c='{}'",
+                    "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
                     self,
                     prefix,
                     rest,
@@ -67,7 +57,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
         }
 
         clerk::debug!(
-            "{}: all characters in set, returning None, input='{}'",
+            "{:?}: all characters in set, returning None, input='{}'",
             self,
             input
         );
@@ -82,7 +72,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::str_parser::filters::DIGITS;
+    use crate::string::filters::DIGITS;
 
     #[test]
     fn test_until_not_in_char_set_discard() {

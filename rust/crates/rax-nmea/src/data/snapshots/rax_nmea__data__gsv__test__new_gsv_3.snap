@@ -21,12 +21,6 @@ expression: gsv
       "elv": 14,
       "az": 305,
       "cno": null
-    },
-    {
-      "svid": 6,
-      "elv": 38,
-      "az": 226,
-      "cno": null
     }
   ],
   "signal_id": null

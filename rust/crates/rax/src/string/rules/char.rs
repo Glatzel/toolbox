@@ -1,7 +1,7 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
-use crate::str_parser::rules::IRule;
+use crate::string::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
 ///
@@ -12,16 +12,8 @@ use crate::str_parser::rules::IRule;
 ///
 /// This rule respects UTF-8 character boundaries and only examines the first
 /// character of the input.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Char<const C: char>;
-
-impl<const C: char> Debug for Char<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "Char<{:?}>", C) }
-}
-
-impl<const C: char> Display for Char<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<const C: char> IRule for Char<C> {}
 
@@ -42,7 +34,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
     fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
-        clerk::trace!("{}: input='{}', expected='{}'", self, input, C);
+        clerk::trace!("{:?}: input='{}', expected='{}'", self, input, C);
 
         let mut chars = input.char_indices();
 
@@ -51,7 +43,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                 // Find the next char boundary or end of string
                 let (end, _) = chars.next().unwrap_or((input.len(), '\0'));
                 clerk::debug!(
-                    "{} matched: '{}', rest='{}'",
+                    "{:?} matched: '{}', rest='{}'",
                     self,
                     first_char,
                     &input[end..]
@@ -59,7 +51,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                 (Some(first_char), &input[end..])
             } else {
                 clerk::debug!(
-                    "{} did not match: found '{}', expected '{}'",
+                    "{:?} did not match: found '{}', expected '{}'",
                     self,
                     first_char,
                     C

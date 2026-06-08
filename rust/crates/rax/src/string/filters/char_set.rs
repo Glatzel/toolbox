@@ -1,7 +1,7 @@
 use core::str::FromStr;
 
-use crate::str_parser::RaxError;
-use crate::str_parser::filters::IFilter;
+use crate::RaxError;
+use crate::string::filters::IFilter;
 extern crate alloc;
 use alloc::format;
 /// A fixed, sorted set of characters for efficient membership testing.
@@ -47,13 +47,13 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
 }
 
 impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = crate::str_parser::RaxError;
+    type Err = RaxError;
 
     /// Parses a string into a `CharSetFilter`.
     ///
     /// The string must have exactly `N` characters, otherwise a `RaxError` is
     /// returned.
-    fn from_str(s: &str) -> Result<Self, crate::str_parser::RaxError> {
+    fn from_str(s: &str) -> Result<Self, RaxError> {
         let mut chars = [0 as char; N];
         let mut i = 0;
         for c in s.chars() {

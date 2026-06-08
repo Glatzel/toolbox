@@ -1,7 +1,7 @@
 use core::fmt::{self, Debug, Display};
 
 use chrono::NaiveDate;
-use rax::str_parser::IRule;
+use rax::string::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -11,7 +11,7 @@ impl Display for NmeaDate {
 }
 impl IRule for NmeaDate {}
 
-impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {
+impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
     type Output = NaiveDate;
     /// Applies the NmeaUtc rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
@@ -73,7 +73,7 @@ impl<'a> rax::str_parser::IStrFlowRule<'a> for NmeaDate {
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
-    use rax::str_parser::IStrFlowRule;
+    use rax::string::IStrFlowRule;
 
     use super::*;
 

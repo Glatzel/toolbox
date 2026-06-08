@@ -1,23 +1,24 @@
-use core::fmt;
 extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
+    #[strum(serialize = "Error", serialize = "0")]
     Error = 0,
+    #[strum(serialize = "Warn", serialize = "1")]
     Warn = 1,
+    #[strum(serialize = "Info", serialize = "2")]
     Info = 2,
+    #[strum(serialize = "User", serialize = "7")]
     User = 7,
 }
 impl TryFrom<u8> for TxtType {
@@ -32,86 +33,34 @@ impl TryFrom<u8> for TxtType {
         }
     }
 }
-impl core::fmt::Display for TxtType {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = match self {
-            TxtType::Error => "Error",
-            TxtType::Warn => "Warn",
-            TxtType::Info => "Info",
-            TxtType::User => "User",
-        };
-        write!(f, "{s}")
-    }
-}
+
 ///Text transmission
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Txt {
-    talker: Talker,
     /// Text information
     message: Vec<(Option<TxtType>, Option<String>)>,
 }
 
-impl INmeaData for Txt {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
-
-        for l in ctx.full_str().lines() {
-            NmeaValidate.apply(l)?;
-        }
-
+impl IDecode<RaxNmeaError> for Txt {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
         let mut infos = Vec::new();
-        for _ in 0..ctx.full_str().lines().count() {
-            let txt_type = ctx
+        for _ in 0..parser.full_str().lines().count() {
+            let txt_type = parser
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .take(&UNTIL_COMMA_DISCARD)
-                .parse_opt::<u8>()
+                .decode_opt::<u8>()
                 .map(TxtType::try_from)
                 .and_then(Result::ok);
-            let info = ctx.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());
+            let info = parser.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());
             infos.push((txt_type, info));
-            ctx.skip(&UNTIL_NEW_LINE_DISCARD);
+            parser.skip(&UNTIL_NEW_LINE_DISCARD);
         }
 
-        Ok(Self {
-            talker,
-            message: infos,
-        })
-    }
-}
-
-impl fmt::Debug for Txt {
-    #[allow(clippy::unwrap_used)]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("TXT");
-        ds.field("talker", &self.talker);
-
-        ds.field(
-            "message",
-            &self
-                .message
-                .iter()
-                .filter(|x| x.0.is_some() || x.1.is_some())
-                .map(|x| match x {
-                    (None, None) => panic!("Null txt info"),
-                    (None, Some(i)) => i.to_string(),
-                    (Some(t), None) => {
-                        let mut s = String::new();
-                        write!(s, "{t}: ").unwrap();
-                        s
-                    }
-                    (Some(t), Some(i)) => {
-                        let mut s = String::new();
-                        write!(s, "{t}: {i}").unwrap();
-                        s
-                    }
-                })
-                .collect::<Vec<String>>(),
-        );
-
-        ds.finish()
+        Ok(Self { message: infos })
     }
 }
 
@@ -127,10 +76,10 @@ mod test {
     fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut ctx = StrParserContext::new();
-        let txt = Txt::new(ctx.init(s.to_string()), Talker::GP)?;
+        let mut parser = Decoder::new();
+        let txt = Txt::decode(parser.init(s.to_string()))?;
         println!("{txt:?}");
-        insta::assert_debug_snapshot!(txt);
+        insta::assert_json_snapshot!(txt);
         Ok(())
     }
 }

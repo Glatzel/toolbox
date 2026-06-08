@@ -1,3 +1,4 @@
+extern crate alloc;
 mod byte_count;
 pub use byte_count::*;
 mod char_count;
@@ -17,35 +18,25 @@ pub use until_n_in_char_set::*;
 mod n_in_charset;
 pub use n_in_charset::*;
 mod until_char;
-use core::fmt::{Debug, Display};
 
 pub use until_char::*;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
 pub enum UntilMode {
     /// Drop the delimiter completely → result like ("a", "b")
+    #[strum(serialize = "discard")]
     Discard,
     /// Keep the delimiter on the left side → result like ("a,", "b")
+    #[strum(serialize = "keep_left")]
     KeepLeft,
     /// Keep the delimiter on the right side → result like ("a", ",b")
+    #[strum(serialize = "keep_right")]
     KeepRight,
 }
 
-impl Display for UntilMode {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            UntilMode::Discard => write!(f, "Discard"),
-            UntilMode::KeepLeft => write!(f, "KeepLeft"),
-            UntilMode::KeepRight => write!(f, "KeepRight"),
-        }
-    }
-}
-
 /// Base trait for all parser rules.
-///
-/// Requires `Debug` and `Display` for introspection and logging.
-pub trait IRule: Debug + Display {}
+pub trait IRule {}
 
 /// Trait for rules that consume input sequentially (flow rules).
 ///
@@ -67,7 +58,7 @@ pub trait IStrFlowRule<'a>: IRule {
 ///
 /// Global rules return a value based on the full input string
 /// and do not consume or track the remaining input.
-pub trait IStrGlobalRule<'a>: IRule {
+pub trait IGlobalRule<'a>: IRule {
     /// Type of the value produced by this rule.
     type Output;
 

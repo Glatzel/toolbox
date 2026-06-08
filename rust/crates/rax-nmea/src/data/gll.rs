@@ -1,34 +1,33 @@
-use core::fmt;
-
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, PosMode, Status, Talker};
+use crate::data::{PosMode, Status};
 use crate::rules::*;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gll {
-    talker: Talker,
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,
+
     ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
     /// Positive values indicate East, negative values indicate West.
     lon: Option<f64>,
+
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
+
     /// Status of the data
     status: Option<Status>,
+
     /// FAA mode
     pos_mode: Option<PosMode>,
 }
-impl INmeaData for Gll {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
-
-        ctx.global(&NmeaValidate)?;
+impl IDecode<RaxNmeaError> for Gll {
+    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");
         let lat = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord);
@@ -42,43 +41,17 @@ impl INmeaData for Gll {
         let time = ctx.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);
 
-        let status = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
+        let status = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
 
-        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Gll {
-            talker,
             lat,
             lon,
             time,
             status,
             pos_mode,
         })
-    }
-}
-
-impl fmt::Debug for Gll {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GLL");
-        ds.field("talker", &self.talker);
-
-        if let Some(lat) = self.lat {
-            ds.field("lat", &lat);
-        }
-        if let Some(lon) = self.lon {
-            ds.field("lon", &lon);
-        }
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(ref status) = self.status {
-            ds.field("status", status);
-        }
-        if let Some(ref pos_mode) = self.pos_mode {
-            ds.field("pos_mode", pos_mode);
-        }
-
-        ds.finish()
     }
 }
 
@@ -95,10 +68,10 @@ mod test {
     fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut ctx = StrParserContext::new();
-        let gll = Gll::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Decoder::new();
+        let gll = Gll::decode(parser.init(s.to_string()))?;
         println!("{gll:?}");
-        insta::assert_debug_snapshot!(gll);
+        insta::assert_json_snapshot!(gll);
         Ok(())
     }
 }

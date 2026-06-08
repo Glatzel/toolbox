@@ -2,7 +2,6 @@
 source: crates/rax-nmea/src/data/glq.rs
 expression: glq
 ---
-DHV {
-    talker: GP,
-    msg_id: "RMC",
+{
+  "msg_id": "RMC"
 }

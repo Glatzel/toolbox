@@ -1,8 +1,8 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::filters::{CharSetFilter, IFilter};
+use crate::string::IRule;
+use crate::string::filters::{CharSetFilter, IFilter};
 
 /// Rule that matches the first character of the input string if it belongs to
 /// a specified character set.
@@ -19,16 +19,8 @@ use crate::str_parser::filters::{CharSetFilter, IFilter};
 ///
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
-
-impl<'a, const N: usize> Debug for OneOfCharSet<'a, N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "OneOfCharSet<N={}>", N) }
-}
-
-impl<'a, const N: usize> Display for OneOfCharSet<'a, N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
@@ -73,7 +65,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::str_parser::filters::{ASCII_LETTERS_DIGITS, DIGITS};
+    use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
 
     #[test]
     fn test_char_match() {

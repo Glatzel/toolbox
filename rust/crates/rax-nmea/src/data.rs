@@ -1,3 +1,8 @@
+extern crate alloc;
+
+use alloc::string::ToString;
+use core::fmt::Debug;
+
 mod dhv;
 mod gbs;
 mod gga;
@@ -11,8 +16,7 @@ mod rmc;
 mod txt;
 mod vtg;
 mod zda;
-use core::fmt::Display;
-use core::str::FromStr;
+
 mod dtm;
 mod gbq;
 mod glq;
@@ -20,8 +24,6 @@ mod gnq;
 mod gpq;
 mod ths;
 mod vlw;
-extern crate alloc;
-use alloc::string::ToString;
 
 pub use dhv::*;
 pub use dtm::*;
@@ -37,7 +39,6 @@ pub use grs::*;
 pub use gsa::*;
 pub use gst::*;
 pub use gsv::*;
-use rax::str_parser::StrParserContext;
 pub use rmc::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -48,212 +49,147 @@ pub use vtg::*;
 pub use zda::*;
 
 use crate::RaxNmeaError;
-pub trait INmeaData {
-    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> Result<Self, RaxNmeaError>
-    where
-        Self: Sized;
-}
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Identifier {
+    #[strum(serialize = "DHV")]
     DHV,
+
     ///Datum reference
+    #[strum(serialize = "DTM")]
     DTM,
+
     /// Poll a standard message
+    #[strum(serialize = "GBQ")]
     GBQ,
+
     ///GPS Satellite Fault Detection
+    #[strum(serialize = "GBS")]
     GBS,
+
     ///Global Positioning System Fix Data
+    #[strum(serialize = "GGA")]
     GGA,
+
     ///Geographic Position - Latitude/Longitude
+    #[strum(serialize = "GLL")]
     GLL,
+
     /// Poll a standard message
+    #[strum(serialize = "GLQ")]
     GLQ,
+
     /// Poll a standard message
+    #[strum(serialize = "GNQ")]
     GNQ,
+
     ///Fix data
+    #[strum(serialize = "GNS")]
     GNS,
+
     ///Poll a standard message
+    #[strum(serialize = "GPQ")]
     GPQ,
+
     ///GPS Range Residuals
+    #[strum(serialize = "GRS")]
     GRS,
+
     ///GPS Pseudorange Noise Statistics
+    #[strum(serialize = "GSA")]
     GSA,
+
     ///GPS DOP and active satellites
+    #[strum(serialize = "GST")]
     GST,
+
     ///Satellites in viewR
+    #[strum(serialize = "GSV")]
     GSV,
+
     ///Recommended Minimum Navigation Information
+    #[strum(serialize = "RMC")]
     RMC,
+
     ///True heading and status
+    #[strum(serialize = "THS")]
     THS,
+
     ///Text transmission
+    #[strum(serialize = "TXT")]
     TXT,
+
     ///Dual ground/water distance
+    #[strum(serialize = "VLW")]
     VLW,
+
     ///Track made good and Ground speed
+    #[strum(serialize = "VTG")]
     VTG,
+
     ///Time & Date - UTC, day, month, year and local time zone
+    #[strum(serialize = "ZDA")]
     ZDA,
 }
-impl FromStr for Identifier {
-    type Err = RaxNmeaError;
 
-    fn from_str(sentence: &str) -> Result<Identifier, RaxNmeaError> {
-        if sentence.len() < 6 {
-            return Err(RaxNmeaError::InvalidSentence(sentence.to_string()));
-        }
-        match &sentence.get(3..6) {
-            Some("DHV") => Ok(Self::DHV),
-            Some("DTM") => Ok(Self::DTM),
-            Some("GBQ") => Ok(Self::GBQ),
-            Some("GBS") => Ok(Self::GBS),
-            Some("GGA") => Ok(Self::GGA),
-            Some("GLL") => Ok(Self::GLL),
-            Some("GLQ") => Ok(Self::GLQ),
-            Some("GNQ") => Ok(Self::GNQ),
-            Some("GNS") => Ok(Self::GNS),
-            Some("GPQ") => Ok(Self::GPQ),
-            Some("GRS") => Ok(Self::GRS),
-            Some("GSA") => Ok(Self::GSA),
-            Some("GST") => Ok(Self::GST),
-            Some("GSV") => Ok(Self::GSV),
-            Some("RMC") => Ok(Self::RMC),
-            Some("THS") => Ok(Self::THS),
-            Some("TXT") => Ok(Self::TXT),
-            Some("VLW") => Ok(Self::VLW),
-            Some("VTG") => Ok(Self::VTG),
-            Some("ZDA") => Ok(Self::ZDA),
-
-            _ => Err(RaxNmeaError::UnknownIdentifier(sentence.to_string())),
-        }
-    }
-}
-impl Display for Identifier {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = match self {
-            Self::DHV => "DHV",
-            Self::DTM => "DTM",
-            Self::GBQ => "GBQ",
-            Self::GBS => "GBS",
-            Self::GGA => "GGA",
-            Self::GLL => "GLL",
-            Self::GLQ => "GLQ",
-            Self::GNQ => "GNQ",
-            Self::GNS => "GNS",
-            Self::GPQ => "GPQ",
-            Self::GRS => "GRS",
-            Self::GSA => "GSA",
-            Self::GST => "GST",
-            Self::GSV => "GSV",
-            Self::RMC => "RMC",
-            Self::THS => "THS",
-            Self::TXT => "TXT",
-            Self::VLW => "VLW",
-            Self::VTG => "VTG",
-            Self::ZDA => "ZDA",
-        };
-        write!(f, "{s}")
-    }
-}
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Talker {
     ///BeiDou (China)
+    #[strum(serialize = "BD")]
     BD,
-    //Galileo Positioning System
+    ///Galileo Positioning System
+    #[strum(serialize = "GA")]
     GA,
     ///GLONASS, according to IEIC 61162-1
+    #[strum(serialize = "GL")]
     GL,
     ///Combination of multiple satellite systems (NMEA 1083)
+    #[strum(serialize = "GN")]
     GN,
     ///Global Positioning System receiver
+    #[strum(serialize = "GP")]
     GP,
-    //QZSS (Quectel Quirk)
+    ///QZSS (Quectel Quirk)
+    #[strum(serialize = "PQ")]
     PQ,
 }
 
-impl FromStr for Talker {
-    type Err = RaxNmeaError;
-
-    fn from_str(sentence: &str) -> Result<Self, RaxNmeaError> {
-        match &sentence.get(1..3) {
-            Some("BD") => Ok(Self::BD),
-            Some("GA") => Ok(Self::GA),
-            Some("GL") => Ok(Self::GL),
-            Some("GN") => Ok(Self::GN),
-            Some("GP") => Ok(Self::GP),
-            Some("PQ") => Ok(Self::PQ),
-            _ => Err(RaxNmeaError::UnknownTalker(sentence.to_string())),
-        }
-    }
-}
-impl Display for Talker {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = match self {
-            Self::BD => "BD",
-            Self::GA => "GA",
-            Self::GL => "GL",
-            Self::GN => "GN",
-            Self::GP => "GP",
-            Self::PQ => "PQ",
-        };
-        write!(f, "{s}")
-    }
-}
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PosMode {
+    #[strum(serialize = "Autonomous", serialize = "A")]
     Autonomous,
-    Differential,
-    Estimated,
-    RtkFloat,
-    ManualInput,
-    NotValid,
-    Precise,
-    RtkInteger,
-    Simulator,
-}
-impl FromStr for PosMode {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "A" => Ok(Self::Autonomous),
-            "D" => Ok(Self::Differential),
-            "E" => Ok(Self::Estimated),
-            "F" => Ok(Self::RtkFloat),
-            "M" => Ok(Self::ManualInput),
-            "N" => Ok(Self::NotValid),
-            "P" => Ok(Self::Precise),
-            "R" => Ok(Self::RtkInteger),
-            "S" => Ok(Self::Simulator),
-            "V" => Ok(Self::NotValid),
 
-            other => Err(RaxNmeaError::UnknownFaaMode(other.to_string())),
-        }
-    }
-}
-impl Display for PosMode {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = match self {
-            PosMode::Autonomous => "Autonomous",
-            PosMode::Differential => "Differential",
-            PosMode::Estimated => "Estimated",
-            PosMode::RtkFloat => "Rtk Float",
-            PosMode::ManualInput => "Manual Input",
-            PosMode::NotValid => "Not Valid",
-            PosMode::Precise => "Precise",
-            PosMode::RtkInteger => "Rtk Integer",
-            PosMode::Simulator => "Simulator",
-        };
-        write!(f, "{s}")
-    }
+    #[strum(serialize = "Differential", serialize = "D")]
+    Differential,
+
+    #[strum(serialize = "Estimated", serialize = "E")]
+    Estimated,
+
+    #[strum(serialize = "RtkFloat", serialize = "F")]
+    RtkFloat,
+
+    #[strum(serialize = "ManualInput", serialize = "M")]
+    ManualInput,
+
+    #[strum(serialize = "NotValid", serialize = "N")]
+    NotValid,
+
+    #[strum(serialize = "Precise", serialize = "P")]
+    Precise,
+
+    #[strum(serialize = "RtkInteger", serialize = "R")]
+    RtkInteger,
+
+    #[strum(serialize = "Simulator", serialize = "S")]
+    Simulator,
 }
 impl TryFrom<&char> for PosMode {
     type Error = RaxNmeaError;
-
-    fn try_from(value: &char) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from(s: &char) -> Result<Self, Self::Error> {
+        match *s {
             'A' => Ok(Self::Autonomous),
             'D' => Ok(Self::Differential),
             'E' => Ok(Self::Estimated),
@@ -264,47 +200,38 @@ impl TryFrom<&char> for PosMode {
             'R' => Ok(Self::RtkInteger),
             'S' => Ok(Self::Simulator),
             'V' => Ok(Self::NotValid),
-
-            other => Err(RaxNmeaError::UnknownFaaMode(other.to_string())),
+            _ => Err(RaxNmeaError::UnknownFaaMode(s.to_string())),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SystemId {
+    #[strum(serialize = "GPS", serialize = "G")]
     GPS = 1,
+
+    #[strum(serialize = "GLONASS", serialize = "L")]
     GLONASS = 2,
+
+    #[strum(serialize = "BDS", serialize = "B")]
     BDS = 3,
+
+    #[strum(serialize = "QZSS", serialize = "Q")]
     QZSS = 4,
+
+    #[strum(serialize = "NavIC", serialize = "I")]
     NavIC = 5,
 }
-impl FromStr for SystemId {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "1" => Ok(Self::GPS),
-            "2" => Ok(Self::GLONASS),
-            "3" => Ok(Self::BDS),
-            "4" => Ok(Self::QZSS),
-            "5" => Ok(Self::NavIC),
-            other => Err(RaxNmeaError::UnknownSystemId(other.to_string())),
-        }
-    }
-}
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, PartialOrd, Ord)]
+
+#[derive(
+    Debug, Clone, Copy, Hash, Eq, PartialEq, PartialOrd, Ord, strum::EnumString, strum::AsRefStr,
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Status {
+    #[strum(serialize = "Valid", serialize = "A")]
     Valid,
+
+    #[strum(serialize = "Invalid", serialize = "V")]
     Invalid,
-}
-impl FromStr for Status {
-    type Err = RaxNmeaError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "A" => Ok(Self::Valid),
-            "V" => Ok(Self::Invalid),
-            other => Err(RaxNmeaError::UnknownStatus(other.to_string())),
-        }
-    }
 }

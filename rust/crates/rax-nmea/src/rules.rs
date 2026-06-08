@@ -1,16 +1,25 @@
-mod nmea_coord;
-mod nmea_date;
-mod nmea_degree;
-mod nmea_time;
-mod nmea_validate;
-use rax::str_parser::filters::CharSetFilter;
-use rax::str_parser::rules::{UntilChar, UntilMode, UntilOneInCharSet};
+mod coord;
+mod date;
+mod degree;
+mod gsv_line_count;
+mod identifier;
+mod talker;
+mod time;
+mod txt_line_count;
+mod validate;
 
-pub use crate::rules::nmea_coord::NmeaCoord;
-pub use crate::rules::nmea_date::NmeaDate;
-pub use crate::rules::nmea_degree::NmeaDegree;
-pub use crate::rules::nmea_time::NmeaTime;
-pub use crate::rules::nmea_validate::NmeaValidate;
+use rax::string::filters::CharSetFilter;
+use rax::string::rules::{UntilChar, UntilMode, UntilOneInCharSet};
+
+pub use crate::rules::coord::NmeaCoord;
+pub use crate::rules::date::NmeaDate;
+pub use crate::rules::degree::NmeaDegree;
+pub use crate::rules::gsv_line_count::NmeaGsvLineCount;
+pub use crate::rules::identifier::NmeaIdentifier;
+pub use crate::rules::talker::NmeaTalker;
+pub use crate::rules::time::NmeaTime;
+pub use crate::rules::txt_line_count::NmeaTxtLineCount;
+pub use crate::rules::validate::NmeaValidate;
 
 pub const UNTIL_COMMA_DISCARD: UntilChar<','> = UntilChar {
     mode: UntilMode::Discard,

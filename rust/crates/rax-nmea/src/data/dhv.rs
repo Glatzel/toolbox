@@ -1,41 +1,40 @@
-use core::fmt;
-
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::{INmeaData, Talker};
 use crate::rules::*;
 /// Dhv - Velocity in 3 dimensions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Dhv {
-    talker: Talker,
     /// UTC time of the DHV fix associated with this sentence.
     time: Option<chrono::NaiveTime>,
+
     /// 3D speed (meters/second)
     speed3d: Option<f64>,
+
     /// Speed in X direction (meters/second)
     speed_x: Option<f64>,
+
     /// Speed in Y direction (meters/second)
     speed_y: Option<f64>,
+
     /// Speed in Z direction (meters/second)
     speed_z: Option<f64>,
+
     /// Ground speed (meters/second)
     gdspd: Option<f64>,
 }
-impl INmeaData for Dhv {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
-        ctx.global(&NmeaValidate)?;
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let speed3d = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_x = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_y = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let speed_z = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
-        let gdspd = ctx.take(&UNTIL_STAR_DISCARD).parse_opt();
+impl IDecode<RaxNmeaError> for Dhv {
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let speed3d = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_x = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_y = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let speed_z = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let gdspd = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
 
         Ok(Dhv {
-            talker,
             time,
             speed3d,
             speed_x,
@@ -43,34 +42,6 @@ impl INmeaData for Dhv {
             speed_z,
             gdspd,
         })
-    }
-}
-
-impl fmt::Debug for Dhv {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("DHV");
-        ds.field("talker", &self.talker);
-
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(speed3d) = self.speed3d {
-            ds.field("speed3d", &speed3d);
-        }
-        if let Some(speed_x) = self.speed_x {
-            ds.field("speed_x", &speed_x);
-        }
-        if let Some(speed_y) = self.speed_y {
-            ds.field("speed_y", &speed_y);
-        }
-        if let Some(speed_z) = self.speed_z {
-            ds.field("speed_z", &speed_z);
-        }
-        if let Some(gdspd) = self.gdspd {
-            ds.field("gdspd", &gdspd);
-        }
-
-        ds.finish()
     }
 }
 
@@ -87,10 +58,10 @@ mod test {
     fn test_new_dhv() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut ctx = StrParserContext::new();
-        let dhv = Dhv::new(ctx.init(s.to_string()), Talker::GN)?;
+        let mut parser = Decoder::new();
+        let dhv = Dhv::decode(parser.init(s.to_string()))?;
         println!("{dhv:?}");
-        insta::assert_debug_snapshot!(dhv);
+        insta::assert_json_snapshot!(dhv);
         Ok(())
     }
 }

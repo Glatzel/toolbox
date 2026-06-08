@@ -1,8 +1,8 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use super::IStrFlowRule;
-use crate::str_parser::IRule;
-use crate::str_parser::filters::{CharSetFilter, IFilter};
+use crate::string::IRule;
+use crate::string::filters::{CharSetFilter, IFilter};
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -21,18 +21,8 @@ use crate::str_parser::filters::{CharSetFilter, IFilter};
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Number of characters to match at the start of the input.
 /// - `M`: Size of the character set (length of the `CharSetFilter`).
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
-
-impl<'a, const N: usize, const M: usize> Debug for NInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "NInCharSet<N={}, M={}>", N, M)
-    }
-}
-
-impl<'a, const N: usize, const M: usize> Display for NInCharSet<'a, N, M> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
 
@@ -61,12 +51,12 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 if count == N {
                     let matched = &input[..end_idx];
                     let rest = &input[end_idx..];
-                    clerk::debug!("{} matched: '{}', rest='{}'", self, matched, rest);
+                    clerk::debug!("{:?} matched: '{}', rest='{}'", self, matched, rest);
                     return (Some(matched), rest);
                 }
             } else {
                 clerk::debug!(
-                    "{} did not match: char '{}' not in set at pos {}",
+                    "{:?} did not match: char '{}' not in set at pos {}",
                     self,
                     c,
                     i
@@ -76,7 +66,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
         }
 
         clerk::debug!(
-            "{} did not match: input too short or not enough chars in set",
+            "{:?} did not match: input too short or not enough chars in set",
             self
         );
         (None, input)
@@ -90,7 +80,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::str_parser::filters::{ASCII_LETTERS_DIGITS, DIGITS};
+    use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
 
     #[test]
     fn test_n_in_charset_match() {

@@ -13,4 +13,4 @@ jobs:
       - uses: ./.github/actions/rust/cargo-bench
         with:
           working-directory: ./rust
-          args: -p rax -p rax-nmea
+          args: -p rax -p rax-nmea --all-features

@@ -1,10 +1,11 @@
 extern crate alloc;
 use alloc::string::{String, ToString};
 
-use crate::{RaxError, string::{IStrFlowRule, IStrGlobalRule}};
+use crate::RaxError;
+use crate::string::{IStrFlowRule, IStrGlobalRule};
 /// Maintains parsing state for string-based parsers.
 ///
-/// [`StrParserContext`] stores the full input string and a pointer
+/// [`Parser`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

@@ -5,7 +5,7 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -69,7 +69,7 @@ pub struct Gsa {
 }
 
 impl INmeaData for Gsa {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
 
         let op_mode = ctx
@@ -159,7 +159,7 @@ mod test {
     fn test_new_gsa_with_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gsa:?}");
         insta::assert_debug_snapshot!(gsa);
@@ -170,7 +170,7 @@ mod test {
     fn test_new_gsa_without_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gsa = Gsa::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{gsa:?}");
         insta::assert_debug_snapshot!(gsa);

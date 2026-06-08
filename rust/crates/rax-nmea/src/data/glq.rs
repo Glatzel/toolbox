@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
@@ -18,7 +18,7 @@ pub struct Glq {
     msg_id: Option<String>,
 }
 impl INmeaData for Glq {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
         let msg_id = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -54,7 +54,7 @@ mod test {
     fn test_new_glq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGLQ,RMC*26";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let glq = Glq::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{glq:?}");
         insta::assert_debug_snapshot!(glq);

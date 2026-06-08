@@ -5,7 +5,7 @@ use alloc::string::{String, ToString};
 use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -95,7 +95,7 @@ pub struct Gga {
     diff_station: Option<u16>,
 }
 impl INmeaData for Gga {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NmeaValidate)?;
@@ -220,7 +220,7 @@ mod test {
     fn test_new_gga1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gga = Gga::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gga:?}");
         insta::assert_debug_snapshot!(gga);

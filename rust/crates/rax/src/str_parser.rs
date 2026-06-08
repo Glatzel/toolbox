@@ -12,22 +12,22 @@ pub use rules::{IRule, IStrFlowRule, IStrGlobalRule};
 use crate::RaxError;
 /// Maintains parsing state for string-based parsers.
 ///
-/// `StrParserContext` stores the full input string and a pointer
+/// [`StrParserContext`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct StrParserContext {
+pub struct Parser {
     /// The full input string.
     full: String,
     /// Pointer to the remaining unconsumed portion of the input.
     rest: *const str,
 }
 
-impl Default for StrParserContext {
+impl Default for Parser {
     fn default() -> Self { Self::new() }
 }
 
-impl StrParserContext {
+impl Parser {
     /// Creates a new empty parser context.
     pub fn new() -> Self {
         Self {
@@ -62,7 +62,7 @@ impl StrParserContext {
     }
 }
 
-impl<'a> StrParserContext {
+impl<'a> Parser {
     /// Attempts to take a value using a flow rule.
     ///
     /// Advances the parser's `rest` pointer if the rule matches.

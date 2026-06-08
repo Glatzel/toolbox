@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
@@ -29,7 +29,7 @@ pub struct Gst {
     std_alt: Option<f64>,
 }
 impl INmeaData for Gst {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
@@ -102,7 +102,7 @@ mod test {
     fn test_new_gst() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let vtg = Gst::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{vtg:?}");
         assert_eq!(vtg.talker, Talker::GN);

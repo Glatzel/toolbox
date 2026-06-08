@@ -1,14 +1,14 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::str_parser::StrParserContext;
+use rax::str_parser::Parser;
 use rax_nmea::RaxNmeaError;
 use rax_nmea::data::{INmeaData, Talker};
 
 fn bench_nmea<'a, F, D>(c: &mut Criterion, name: &str, sentence: &'static str, ctor: F)
 where
-    F: Fn(&mut StrParserContext, Talker) -> Result<D, RaxNmeaError> + 'static,
+    F: Fn(&mut Parser, Talker) -> Result<D, RaxNmeaError> + 'static,
     D: INmeaData,
 {
-    let mut ctx = StrParserContext::new();
+    let mut ctx = Parser::new();
     ctx.init(sentence.to_string());
     c.bench_function(name, move |b| {
         b.iter(|| {

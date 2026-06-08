@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -47,7 +47,7 @@ pub struct Dtm {
     alt: Option<f64>,
 }
 impl INmeaData for Dtm {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
         let datum = ctx
             .skip_strict(&UNTIL_COMMA_DISCARD)?
@@ -107,7 +107,7 @@ mod test {
     fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let dtm = Dtm::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{dtm:?}");
         insta::assert_debug_snapshot!(dtm);

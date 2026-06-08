@@ -2,7 +2,7 @@ use core::fmt;
 
 use chrono::NaiveDate;
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
@@ -34,7 +34,7 @@ pub struct Rmc {
 }
 
 impl INmeaData for Rmc {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
 
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
@@ -111,7 +111,7 @@ mod test {
     fn test_new_rmc1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,110125,A,5505.337580,N,03858.653666,E,148.8,84.6,310317,8.9,E,D*2E";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{rmc:?}");
         insta::assert_debug_snapshot!(rmc);
@@ -121,7 +121,7 @@ mod test {
     fn test_new_rmc2() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,,V,,,,,,,,,,N*53";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let rmc = Rmc::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{rmc:?}");
         insta::assert_debug_snapshot!(rmc);

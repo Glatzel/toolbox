@@ -37,7 +37,7 @@ pub use grs::*;
 pub use gsa::*;
 pub use gst::*;
 pub use gsv::*;
-use rax::str_parser::StrParserContext;
+use rax::str_parser::Parser;
 pub use rmc::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -49,7 +49,7 @@ pub use zda::*;
 
 use crate::RaxNmeaError;
 pub trait INmeaData {
-    fn new(ctx: &mut StrParserContext, navigation_system: Talker) -> Result<Self, RaxNmeaError>
+    fn new(ctx: &mut Parser, navigation_system: Talker) -> Result<Self, RaxNmeaError>
     where
         Self: Sized;
 }

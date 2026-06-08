@@ -26,9 +26,8 @@ criterion.workspace = true
 float-cmp.workspace = true
 insta = { workspace = true, features = ["filters"] }
 mischief.workspace = true
-rax = { workspace = true, features = ["async"] }
+rax = { workspace = true }
 serialport.workspace = true
 
 [features]
-serde = ["chrono/serde", "dep:serde", "std"]
-std = ["rax/std"]
+serde = ["chrono/serde", "dep:serde"]

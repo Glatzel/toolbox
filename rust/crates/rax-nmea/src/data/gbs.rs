@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, SystemId, Talker};
@@ -38,7 +38,7 @@ pub struct Gbs {
 }
 
 impl INmeaData for Gbs {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let err_lat = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
         let err_lon = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
@@ -116,7 +116,7 @@ mod tests {
     fn test_gbs() {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();
         println!("{gbs:?}");
         insta::assert_debug_snapshot!(gbs);
@@ -125,7 +125,7 @@ mod tests {
     fn test_gbs_4_1() {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gbs = Gbs::new(ctx.init(s.to_string()), Talker::GP).unwrap();
         println!("{gbs:?}");
         insta::assert_debug_snapshot!(gbs);

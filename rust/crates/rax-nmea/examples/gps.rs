@@ -1,21 +1,17 @@
-extern crate std;
-fn main() -> mischief::Result<()> {
-    use std::io::BufReader;
-    use std::time::Duration;
+use std::io::BufReader;
+use std::time::Duration;
 
-    use clerk::LevelFilter;
-    use rax::io::IRaxReader;
-    use rax::str_parser::StrParserContext;
-    use rax_nmea::Dispatcher;
-    use rax_nmea::data::*;
+use clerk::LevelFilter;
+use rax::str_parser::Parser;
+use rax_nmea::data::*;
+fn main() -> mischief::Result<()> {
     clerk::init_log_with_level(LevelFilter::WARN);
     let path = "COM5";
     let port = serialport::new(path, 9600)
         .timeout(Duration::from_millis(3000))
         .open()?;
-    let mut reader = rax::io::RaxReader::new(BufReader::new(port));
-    let mut ctx = StrParserContext::new();
-    let mut dispatcher = Dispatcher::new();
+    let mut reader = BufReader::new(port);
+    let mut ctx = Parser::new();
     loop {
         if let Some((talker, identifier, sentence)) = reader
             .read_line()?

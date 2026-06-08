@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 extern crate alloc;
 use alloc::string::String;
 use core::fmt::Write;
@@ -27,7 +27,7 @@ pub struct Vtg {
 }
 
 impl INmeaData for Vtg {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
 
         let cogt = ctx
@@ -103,7 +103,7 @@ mod test {
     fn test_new_vtg() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let vtg = Vtg::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{vtg:?}");
         insta::assert_debug_snapshot!(vtg);

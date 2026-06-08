@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, PosMode, Status, Talker};
@@ -25,7 +25,7 @@ pub struct Gll {
     pos_mode: Option<PosMode>,
 }
 impl INmeaData for Gll {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", ctx.full_str());
 
         ctx.global(&NmeaValidate)?;
@@ -95,7 +95,7 @@ mod test {
     fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let gll = Gll::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{gll:?}");
         insta::assert_debug_snapshot!(gll);

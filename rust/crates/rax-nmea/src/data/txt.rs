@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::fmt::Write;
 
 use derive_getters::Getters;
-use rax::str_parser::{IStrGlobalRule, ParseOptExt, StrParserContext};
+use rax::str_parser::{IStrGlobalRule, ParseOptExt, Parser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -53,7 +53,7 @@ pub struct Txt {
 }
 
 impl INmeaData for Txt {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", ctx.full_str());
 
         for l in ctx.full_str().lines() {
@@ -127,7 +127,7 @@ mod test {
     fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let txt = Txt::new(ctx.init(s.to_string()), Talker::GP)?;
         println!("{txt:?}");
         insta::assert_debug_snapshot!(txt);

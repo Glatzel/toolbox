@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::str_parser::{ParseOptExt, StrParserContext};
+use rax::str_parser::{ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
 use crate::data::{INmeaData, Talker};
@@ -25,7 +25,7 @@ pub struct Dhv {
     gdspd: Option<f64>,
 }
 impl INmeaData for Dhv {
-    fn new(ctx: &mut StrParserContext, talker: Talker) -> Result<Self, RaxNmeaError> {
+    fn new(ctx: &mut Parser, talker: Talker) -> Result<Self, RaxNmeaError> {
         ctx.global(&NmeaValidate)?;
         let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
         let speed3d = ctx.take(&UNTIL_COMMA_DISCARD).parse_opt();
@@ -87,7 +87,7 @@ mod test {
     fn test_new_dhv() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut ctx = StrParserContext::new();
+        let mut ctx = Parser::new();
         let dhv = Dhv::new(ctx.init(s.to_string()), Talker::GN)?;
         println!("{dhv:?}");
         insta::assert_debug_snapshot!(dhv);

@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::str::FromStr;
 
 use clerk::LevelFilter;
 use rax::string::Decoder;
@@ -76,7 +75,9 @@ fn main() -> mischief::Result<()> {
 #[case("data/nmea2.log")]
 #[case("data/nmea_with_sat_info.log")]
 fn test(#[case] file: &str) -> mischief::Result<()> {
+    use insta::assert_debug_snapshot;
     clerk::init_log_with_level(LevelFilter::WARN);
-    wrapper(file)?;
+    let result = wrapper(file)?;
+    assert_debug_snapshot!(file, result);
     Ok(())
 }

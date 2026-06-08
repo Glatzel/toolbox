@@ -11,6 +11,7 @@ use crate::rules::*;
 pub struct Ths {
     /// Heading of vehicle (true)
     headt: Option<f64>,
+    
     /// Mode indicator
     mi: Option<PosMode>,
 }

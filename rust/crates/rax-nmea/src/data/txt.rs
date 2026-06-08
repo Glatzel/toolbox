@@ -1,7 +1,6 @@
 extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::fmt::Write;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, IStrGlobalRule, ParseOptExt, Parser};

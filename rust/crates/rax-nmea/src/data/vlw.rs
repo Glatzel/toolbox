@@ -8,14 +8,17 @@ use crate::rules::*;
 
 ///Poll a standard message (Talker ID GL)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Vlw {
     /// Total cumulative water distance
     twd: Option<f64>,
+    
     /// Water distance since reset
     wd: Option<f64>,
+    
     /// Total cumulative ground distance
     tgd: Option<f64>,
+    
     /// Ground distance since reset
     gd: Option<f64>,
 }

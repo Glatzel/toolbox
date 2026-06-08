@@ -11,13 +11,17 @@ pub struct Gll {
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,
+    
     ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
     /// Positive values indicate East, negative values indicate West.
     lon: Option<f64>,
+    
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
+    
     /// Status of the data
     status: Option<Status>,
+    
     /// FAA mode
     pos_mode: Option<PosMode>,
 }

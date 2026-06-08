@@ -2,7 +2,6 @@ use core::fmt::{self, Display};
 use core::str::FromStr;
 extern crate alloc;
 use alloc::string::ToString;
-use core::fmt::Write;
 
 use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
@@ -67,7 +66,7 @@ impl Display for GgaQualityIndicator {
 ///
 /// * <https://gpsd.gitlab.io/gpsd/NMEA.html#_gga_global_positioning_system_fix_data>
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug,Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gga {
     time: Option<chrono::NaiveTime>,
 

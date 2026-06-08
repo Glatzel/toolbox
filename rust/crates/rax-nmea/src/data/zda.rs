@@ -2,23 +2,26 @@ use derive_getters::Getters;
 use rax::string::{IDecode, ParseOptExt, Parser};
 
 use crate::RaxNmeaError;
-use crate::data::Talker;
 use crate::rules::*;
 ///Time and date
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Zda {
-    talker: Talker,
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
+
     /// Day of the month
     day: Option<u8>,
+
     /// Month of the year
     month: Option<u8>,
+
     /// Year
     year: Option<u16>,
+
     /// Local zone description
     ltzh: Option<i8>,
+
     /// Local zone minutes description
     ltzn: Option<u8>,
 }
@@ -35,7 +38,6 @@ impl IDecode<RaxNmeaError> for Zda {
         let ltzn = parser.take(&UNTIL_STAR_DISCARD).parse_opt();
 
         Ok(Zda {
-            talker,
             time,
             day,
             month,

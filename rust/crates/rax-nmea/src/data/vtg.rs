@@ -7,16 +7,20 @@ use crate::data::PosMode;
 use crate::rules::*;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug,Clone, Getters)]
 pub struct Vtg {
     /// Course over ground (true)
     cogt: Option<f64>,
+    
     /// Course over ground (magnetic)
     cogm: Option<f64>,
+    
     /// Speed over ground (knots)
     sogn: Option<f64>,
+    
     /// Speed over ground (kph)
     sogk: Option<f64>,
+    
     /// Mode
     pos_mode: Option<PosMode>,
 }

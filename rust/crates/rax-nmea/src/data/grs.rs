@@ -35,12 +35,16 @@ impl FromStr for GrsResidualMode {
 pub struct Grs {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
+    
     /// GRS residual mode
     mode: Option<GrsResidualMode>,
+    
     /// Satellite residuals
     residual: Vec<f64>,
+    
     /// System ID
     system_id: Option<SystemId>,
+    
     /// Signal ID
     signal_id: Option<u16>,
 }

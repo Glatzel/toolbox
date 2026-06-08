@@ -11,18 +11,25 @@ use crate::rules::*;
 pub struct Gst {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
+    
     /// Root mean square
     rms: Option<f64>,
+    
     /// Standard deviation semi-major
     std_major: Option<f64>,
+    
     /// Standard deviation semi-minor
     std_minor: Option<f64>,
+    
     /// Orientation
     orient: Option<f64>,
+    
     /// Standard deviation semi-latitude
     std_lat: Option<f64>,
+    
     /// Standard deviation semi-longitude
     std_lon: Option<f64>,
+    
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }

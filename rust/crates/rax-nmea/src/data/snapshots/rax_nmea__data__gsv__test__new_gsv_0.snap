@@ -1,8 +1,0 @@
----
-source: crates/rax-nmea/src/data/gsv.rs
-expression: gsv
----
-{
-  "satellites": [],
-  "signal_id": null
-}

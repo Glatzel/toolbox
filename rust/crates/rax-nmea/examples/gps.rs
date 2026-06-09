@@ -3,10 +3,9 @@ use std::io::{BufRead, BufReader};
 
 use clerk::LevelFilter;
 use rax::string::Decoder;
-use rax_nmea::data::*;
-use rax_nmea::rules::{
-    NmeaGsvLineCount, NmeaIdentifier, NmeaTalker, NmeaTxtLineCount, NmeaValidate,
-};
+use rax_nmea::common::*;
+use rax_nmea::rules::*;
+use rax_nmea::sentence::*;
 use rstest::rstest;
 #[derive(Debug)]
 pub enum Dispatcher {

@@ -1,8 +1,0 @@
----
-source: crates/rax-nmea/src/data/ths.rs
-expression: ths
----
-{
-  "headt": 77.52,
-  "mi": "Estimated"
-}

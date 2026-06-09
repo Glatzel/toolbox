@@ -1,0 +1,20 @@
+---
+source: crates/rax-nmea/src/sentence/txt.rs
+expression: txt
+---
+{
+  "message": [
+    [
+      "Info",
+      "MA=CASIC"
+    ],
+    [
+      "Info",
+      "IC=ATGB03+ATGR201"
+    ],
+    [
+      "Info",
+      "SW=URANUS2,V2.2.1.0"
+    ]
+  ]
+}

@@ -1,0 +1,8 @@
+---
+source: crates/rax-nmea/src/sentence/ths.rs
+expression: ths
+---
+{
+  "headt": 77.52,
+  "mi": "Estimated"
+}

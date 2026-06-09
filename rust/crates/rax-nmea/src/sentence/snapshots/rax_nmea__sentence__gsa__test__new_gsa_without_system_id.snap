@@ -1,0 +1,23 @@
+---
+source: crates/rax-nmea/src/sentence/gsa.rs
+expression: gsa
+---
+{
+  "op_mode": "Automatic",
+  "nav_mode": "Fix3D",
+  "svid": [
+    5,
+    7,
+    8,
+    10,
+    15,
+    17,
+    18,
+    19,
+    30
+  ],
+  "pdop": 1.2,
+  "hdop": 0.9,
+  "vdop": 0.8,
+  "system_id": null
+}

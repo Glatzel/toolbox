@@ -1,0 +1,15 @@
+---
+source: crates/rax-nmea/src/sentence/rmc.rs
+expression: rmc
+---
+{
+  "time": null,
+  "status": "Invalid",
+  "lat": null,
+  "lon": null,
+  "spd": null,
+  "cog": null,
+  "date": null,
+  "mv": null,
+  "pos_mode": "NotValid"
+}

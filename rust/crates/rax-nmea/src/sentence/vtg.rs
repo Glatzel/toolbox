@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{ Decoder, IDecode};
+use rax::string::{Decoder, IDecode};
 extern crate alloc;
 
 use crate::RaxNmeaError;
@@ -33,16 +33,24 @@ impl IDecode<RaxNmeaError> for Vtg {
             .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let cogm = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let cogm = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogn = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let sogn = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let sogk = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let sogk = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
-        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
+        let pos_mode = parser
+            .take(&UNTIL_STAR_DISCARD)
+            .and_then(|s| s.parse().ok());
 
         Ok(Vtg {
             cogt,

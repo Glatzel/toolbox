@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{ Decoder, IDecode};
+use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -30,11 +30,17 @@ impl IDecode<RaxNmeaError> for Vlw {
             .take(&UNTIL_COMMA_DISCARD)
             .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let wd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let wd = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let tgd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let tgd = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let gd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let gd = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         Ok(Vlw { twd, wd, tgd, gd })
     }
 }

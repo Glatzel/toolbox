@@ -4,7 +4,7 @@ use alloc::string::String;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{ Decoder, IDecode};
+use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;

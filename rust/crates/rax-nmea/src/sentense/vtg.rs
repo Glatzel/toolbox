@@ -3,7 +3,7 @@ use rax::string::{DecodeOptExt, Decoder, IDecode};
 extern crate alloc;
 
 use crate::RaxNmeaError;
-use crate::data::PosMode;
+use crate::common::FaaMode;
 use crate::rules::*;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -22,7 +22,7 @@ pub struct Vtg {
     sogk: Option<f64>,
 
     /// Mode
-    pos_mode: Option<PosMode>,
+    pos_mode: Option<FaaMode>,
 }
 
 impl IDecode<RaxNmeaError> for Vtg {

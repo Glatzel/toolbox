@@ -1,52 +1,9 @@
 extern crate alloc;
 
 use alloc::string::ToString;
-use core::fmt::Debug;
 
-mod dhv;
-mod gbs;
-mod gga;
-mod gll;
-mod gns;
-mod grs;
-mod gsa;
-mod gst;
-mod gsv;
-mod rmc;
-mod txt;
-mod vtg;
-mod zda;
-
-mod dtm;
-mod gbq;
-mod glq;
-mod gnq;
-mod gpq;
-mod ths;
-mod vlw;
-
-pub use dhv::*;
-pub use dtm::*;
-pub use gbq::*;
-pub use gbs::*;
-pub use gga::*;
-pub use gll::*;
-pub use glq::*;
-pub use gnq::*;
-pub use gns::*;
-pub use gpq::*;
-pub use grs::*;
-pub use gsa::*;
-pub use gst::*;
-pub use gsv::*;
-pub use rmc::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-pub use ths::*;
-pub use txt::*;
-pub use vlw::*;
-pub use vtg::*;
-pub use zda::*;
 
 use crate::RaxNmeaError;
 
@@ -136,29 +93,106 @@ pub enum Identifier {
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Talker {
-    ///BeiDou (China)
+    /// Alarm Indicator (AIS)
+    #[strum(serialize = "AI")]
+    AI,
+
+    /// Auto Pilot
+    #[strum(serialize = "AP")]
+    AP,
+
+    /// BeiDou (China)
     #[strum(serialize = "BD")]
     BD,
-    ///Galileo Positioning System
+
+    /// Digital Selective Calling (DSC)
+    #[strum(serialize = "CD")]
+    CD,
+
+    /// Electronic Chart Display & Information System (ECDIS)
+    #[strum(serialize = "EC")]
+    EC,
+
+    /// Galileo Positioning System
     #[strum(serialize = "GA")]
     GA,
-    ///GLONASS, according to IEIC 61162-1
+
+    /// BeiDou (China)
+    #[strum(serialize = "GB")]
+    GB,
+
+    /// NavIC / IRNSS (India)
+    #[strum(serialize = "GI")]
+    GI,
+
+    /// GLONASS
     #[strum(serialize = "GL")]
     GL,
-    ///Combination of multiple satellite systems (NMEA 1083)
+
+    /// Combination of multiple satellite systems
     #[strum(serialize = "GN")]
     GN,
-    ///Global Positioning System receiver
+
+    /// Global Positioning System receiver
     #[strum(serialize = "GP")]
     GP,
-    ///QZSS (Quectel Quirk)
+
+    /// QZSS regional GPS augmentation system (Japan)
+    #[strum(serialize = "GQ")]
+    GQ,
+
+    /// Heading / Compass
+    #[strum(serialize = "HC")]
+    HC,
+
+    /// Gyro, north seeking
+    #[strum(serialize = "HE")]
+    HE,
+
+    /// Integrated Instrumentation
+    #[strum(serialize = "II")]
+    II,
+
+    /// Integrated Navigation
+    #[strum(serialize = "IN")]
+    IN,
+
+    /// Loran-C receiver (obsolete)
+    #[strum(serialize = "LC")]
+    LC,
+
+    /// QZSS (Quectel quirk)
     #[strum(serialize = "PQ")]
     PQ,
+
+    /// QZSS regional GPS augmentation system (Japan)
+    #[strum(serialize = "QZ")]
+    QZ,
+
+    /// Depth Sounder
+    #[strum(serialize = "SD")]
+    SD,
+
+    /// Skytraq
+    #[strum(serialize = "ST")]
+    ST,
+
+    /// Turn Indicator
+    #[strum(serialize = "TI")]
+    TI,
+
+    /// Transducer
+    #[strum(serialize = "YX")]
+    YX,
+
+    /// Weather Instrument
+    #[strum(serialize = "WI")]
+    WI,
 }
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum PosMode {
+pub enum FaaMode {
     #[strum(serialize = "Autonomous", serialize = "A")]
     Autonomous,
 
@@ -168,25 +202,28 @@ pub enum PosMode {
     #[strum(serialize = "Estimated", serialize = "E")]
     Estimated,
 
-    #[strum(serialize = "RtkFloat", serialize = "F")]
+    #[strum(serialize = "Rtk Float", serialize = "F")]
     RtkFloat,
 
-    #[strum(serialize = "ManualInput", serialize = "M")]
+    #[strum(serialize = "Manual Input", serialize = "M")]
     ManualInput,
 
-    #[strum(serialize = "NotValid", serialize = "N")]
+    #[strum(serialize = "Not Valid", serialize = "N")]
     NotValid,
 
     #[strum(serialize = "Precise", serialize = "P")]
     Precise,
 
-    #[strum(serialize = "RtkInteger", serialize = "R")]
+    #[strum(serialize = "Rtk Integer", serialize = "R")]
     RtkInteger,
 
     #[strum(serialize = "Simulator", serialize = "S")]
     Simulator,
+
+    #[strum(serialize = "Quectel Querk", serialize = "U")]
+    QuectelQuerk,
 }
-impl TryFrom<&char> for PosMode {
+impl TryFrom<&char> for FaaMode {
     type Error = RaxNmeaError;
     fn try_from(s: &char) -> Result<Self, Self::Error> {
         match *s {
@@ -200,6 +237,8 @@ impl TryFrom<&char> for PosMode {
             'R' => Ok(Self::RtkInteger),
             'S' => Ok(Self::Simulator),
             'V' => Ok(Self::NotValid),
+            'U' => Ok(Self::QuectelQuerk),
+
             _ => Err(RaxNmeaError::UnknownFaaMode(s.to_string())),
         }
     }
@@ -214,14 +253,17 @@ pub enum SystemId {
     #[strum(serialize = "GLONASS", serialize = "L")]
     GLONASS = 2,
 
+    #[strum(serialize = "Galileo", serialize = "A")]
+    Galileo = 3,
+
     #[strum(serialize = "BDS", serialize = "B")]
-    BDS = 3,
+    BDS = 4,
 
     #[strum(serialize = "QZSS", serialize = "Q")]
-    QZSS = 4,
+    QZSS = 5,
 
     #[strum(serialize = "NavIC", serialize = "I")]
-    NavIC = 5,
+    NavIC = 6,
 }
 
 #[derive(

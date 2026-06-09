@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::{PosMode, Status};
+use crate::common::{FaaMode, Status};
 use crate::rules::*;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -23,7 +23,7 @@ pub struct Gll {
     status: Option<Status>,
 
     /// FAA mode
-    pos_mode: Option<PosMode>,
+    pos_mode: Option<FaaMode>,
 }
 impl IDecode<RaxNmeaError> for Gll {
     fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {

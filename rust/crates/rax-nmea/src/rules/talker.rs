@@ -5,7 +5,7 @@ use core::str::FromStr;
 use rax::string::{IGlobalRule, IRule};
 
 use crate::RaxNmeaError;
-use crate::data::Talker;
+use crate::common::Talker;
 
 pub struct NmeaTalker;
 

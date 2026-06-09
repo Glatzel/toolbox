@@ -3,7 +3,7 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::{PosMode, Status};
+use crate::common::{FaaMode, Status};
 use crate::rules::*;
 
 #[doc = "Recommended minimum data"]
@@ -35,7 +35,7 @@ pub struct Rmc {
     mv: Option<f64>,
 
     /// FAA mode
-    pos_mode: Option<PosMode>,
+    pos_mode: Option<FaaMode>,
 }
 
 impl IDecode<RaxNmeaError> for Rmc {

@@ -9,7 +9,7 @@ use rax::string::{DecodeOptExt, Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::PosMode;
+use crate::common::FaaMode;
 use crate::rules::*;
 
 #[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
@@ -38,7 +38,7 @@ pub struct Gns {
     /// Positive values indicate East, negative values indicate West.
     lon: Option<f64>,
     /// FAA mode
-    pos_mode: Vec<PosMode>,
+    pos_mode: Vec<FaaMode>,
     /// Number of satellites in use
     num_sv: Option<u8>,
     /// Horizontal dilution of precision
@@ -77,8 +77,8 @@ impl IDecode<RaxNmeaError> for Gns {
             .expect("Mode string should not be empty.");
         let pos_mode = mode_str
             .char_indices()
-            .filter_map(|(_, c)| PosMode::try_from(&c).ok())
-            .collect::<Vec<PosMode>>();
+            .filter_map(|(_, c)| FaaMode::try_from(&c).ok())
+            .collect::<Vec<FaaMode>>();
         clerk::debug!("mode: {:?}", pos_mode);
 
         clerk::debug!("Parsing satellites...");

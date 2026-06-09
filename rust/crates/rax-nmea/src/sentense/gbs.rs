@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::SystemId;
+use crate::common::SystemId;
 use crate::rules::*;
 
 /// GNSS satellite fault detection

@@ -9,7 +9,7 @@ use rax::string::{DecodeOptExt, Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::data::SystemId;
+use crate::common::SystemId;
 use crate::rules::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]

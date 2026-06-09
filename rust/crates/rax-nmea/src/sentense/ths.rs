@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{DecodeOptExt, Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::data::PosMode;
+use crate::common::FaaMode;
 use crate::rules::*;
 
 #[doc = "Poll a standard message (Talker ID GL)"]
@@ -13,7 +13,7 @@ pub struct Ths {
     headt: Option<f64>,
 
     /// Mode indicator
-    mi: Option<PosMode>,
+    mi: Option<FaaMode>,
 }
 impl IDecode<RaxNmeaError> for Ths {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {

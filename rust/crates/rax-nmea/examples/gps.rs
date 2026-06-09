@@ -5,7 +5,7 @@ use clerk::LevelFilter;
 use rax::string::Decoder;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
-use rax_nmea::sentense::*;
+use rax_nmea::sentence::*;
 use rstest::rstest;
 #[derive(Debug)]
 pub enum Dispatcher {

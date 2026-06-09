@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/sentence/dhv.rs
+expression: dhv
+---
+{
+  "time": "02:11:50",
+  "speed3d": 0.03,
+  "speed_x": 0.006,
+  "speed_y": -0.042,
+  "speed_z": -0.026,
+  "gdspd": 0.06
+}

@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
@@ -48,15 +48,15 @@ pub struct Gbs {
 impl IDecode<RaxNmeaError> for Gbs {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let err_lat = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let err_lon = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let err_alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let svid = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let prob = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let bias = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_dev = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
-        let system_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
-        let signal_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let err_lat = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let err_lon = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let err_alt = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let svid = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let prob = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let bias = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_dev = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
+        let system_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Gbs {
             time,

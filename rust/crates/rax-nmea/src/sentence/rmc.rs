@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -41,14 +41,14 @@ pub struct Rmc {
 impl IDecode<RaxNmeaError> for Rmc {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let status = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let status = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         let lat = parser.take(&NmeaCoord);
         let lon = parser.take(&NmeaCoord);
-        let spd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let cog = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let spd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let cog = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         let date = parser.take(&NmeaDate);
         let mv = parser.take(&NmeaDegree);
-        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
         Ok(Rmc {
             time,
             status,

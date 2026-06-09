@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -29,11 +29,11 @@ pub struct Zda {
 impl IDecode<RaxNmeaError> for Zda {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let day = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let month = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let year = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let ltzh = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let ltzn = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let day = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let month = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let year = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let ltzh = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let ltzn = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Zda {
             time,

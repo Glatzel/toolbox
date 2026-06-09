@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -19,7 +19,7 @@ impl IDecode<RaxNmeaError> for Gbq {
         let msg_id = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)
-            .decode_opt();
+            .and_then(|s| s.parse().ok());
 
         Ok(Gbq { msg_id })
     }

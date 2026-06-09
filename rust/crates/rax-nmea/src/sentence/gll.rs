@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -41,9 +41,9 @@ impl IDecode<RaxNmeaError> for Gll {
         let time = ctx.take(&NmeaTime);
         clerk::debug!("utc_time: {:?}", time);
 
-        let status = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let status = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
 
-        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Gll {
             lat,

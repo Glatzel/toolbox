@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -63,32 +63,43 @@ impl IDecode<RaxNmeaError> for Gsa {
         let op_mode = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .decode_opt();
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
-        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let nav_mode = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser.take(&UNTIL_COMMA_DISCARD).decode_opt::<u8>() {
+            match parser
+                .take(&UNTIL_COMMA_DISCARD)
+                .and_then(|s| s.parse().ok())
+            {
                 Some(sat_id) => svid.push(sat_id),
                 None => continue,
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
-        let pdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let pdop = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: pdop={:?}", pdop);
 
-        let hdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let hdop = parser
+            .take(&UNTIL_COMMA_DISCARD)
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
         let vdop = parser
             .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .decode_opt::<f64>();
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
 
-        let system_id = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let system_id = parser
+            .take(&UNTIL_STAR_DISCARD)
+            .and_then(|s| s.parse().ok());
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
         Ok(Gsa {

@@ -3,7 +3,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -52,7 +52,7 @@ impl IDecode<RaxNmeaError> for Txt {
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .skip_strict(&UNTIL_COMMA_DISCARD)?
                 .take(&UNTIL_COMMA_DISCARD)
-                .decode_opt::<u8>()
+                .and_then(|s| s.parse::<u8>().ok())
                 .map(TxtType::try_from)
                 .and_then(Result::ok);
             let info = parser.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());

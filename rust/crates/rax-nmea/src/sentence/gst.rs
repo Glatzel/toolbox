@@ -1,7 +1,7 @@
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -36,13 +36,13 @@ pub struct Gst {
 impl IDecode<RaxNmeaError> for Gst {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let rms = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_major = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_minor = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let orient = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_lat = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_lon = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
-        let std_alt = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let rms = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_major = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_minor = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let orient = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_lat = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_lon = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let std_alt = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Gst {
             time,

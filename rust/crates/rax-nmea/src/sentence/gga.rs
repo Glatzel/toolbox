@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -91,37 +91,37 @@ impl IDecode<RaxNmeaError> for Gga {
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing quality...");
-        let quality = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let quality = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("quality: {:?}", quality);
 
         clerk::debug!("Parsing satellite_count...");
-        let num_sv = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("satellite_count: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Skipping char_comma and char_m for altitude units...");
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing geoid_separation...");
-        let sep = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let sep = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("geoid_separation: {:?}", sep);
 
         clerk::debug!("Skipping char_m for geoid units...");
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing age_of_differential_gps_data...");
-        let diff_age = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let diff_age = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("age_of_differential_gps_data: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
-        let diff_station = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let diff_station = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         Ok(Gga {

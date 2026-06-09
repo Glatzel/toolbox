@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
@@ -28,13 +28,13 @@ impl IDecode<RaxNmeaError> for Vlw {
         let twd = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .decode_opt();
+            .and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let wd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let wd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let tgd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let tgd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let gd = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let gd = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         Ok(Vlw { twd, wd, tgd, gd })
     }
 }

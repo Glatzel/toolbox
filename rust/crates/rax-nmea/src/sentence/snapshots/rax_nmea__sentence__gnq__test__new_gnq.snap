@@ -1,0 +1,7 @@
+---
+source: crates/rax-nmea/src/sentence/gnq.rs
+expression: gnq
+---
+{
+  "msg_id": "RMC"
+}

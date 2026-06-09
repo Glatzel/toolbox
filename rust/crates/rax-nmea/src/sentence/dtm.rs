@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -44,11 +44,11 @@ impl IDecode<RaxNmeaError> for Dtm {
         let datum = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .decode_opt();
-        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+            .and_then(|s| s.parse().ok());
+        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         let lat = parser.take(&NmeaDegree);
         let lon = parser.take(&NmeaDegree);
-        let alt = parser.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let alt = parser.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Dtm {
             datum,

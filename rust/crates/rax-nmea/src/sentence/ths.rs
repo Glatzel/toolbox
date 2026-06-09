@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -20,8 +20,8 @@ impl IDecode<RaxNmeaError> for Ths {
         let headt = parser
             .skip_strict(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)
-            .decode_opt();
-        let mi = parser.take(&UNTIL_STAR_DISCARD).decode_opt();
+            .and_then(|s| s.parse().ok());
+        let mi = parser.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         Ok(Ths { headt, mi })
     }

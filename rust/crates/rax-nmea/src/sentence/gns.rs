@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt::Debug;
 
 use derive_getters::Getters;
-use rax::string::{DecodeOptExt, Decoder, IDecode};
+use rax::string::{ Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -82,33 +82,33 @@ impl IDecode<RaxNmeaError> for Gns {
         clerk::debug!("mode: {:?}", pos_mode);
 
         clerk::debug!("Parsing satellites...");
-        let num_sv = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let num_sv = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("satellites: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = ctx.take(&UNTIL_COMMA_DISCARD).decode_opt();
+        let hdop = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let alt = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Parsing goeidal_separation...");
-        let sep = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let sep = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("goeidal_separation: {:?}", sep);
 
         clerk::debug!("Parsing differential_data_age...");
-        let diff_age = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let diff_age = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("differential_data_age: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
 
-        let diff_station = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).decode_opt();
+        let diff_station = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD).and_then(|s| s.parse().ok());
 
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         clerk::debug!("Parsing navigational_status...");
-        let nav_status = ctx.take(&UNTIL_STAR_DISCARD).decode_opt();
+        let nav_status = ctx.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
         clerk::debug!("navigational_status: {:?}", nav_status);
 
         Ok(Gns {

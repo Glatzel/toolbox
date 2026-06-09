@@ -15,7 +15,6 @@ name = "rules"
 chrono.workspace = true
 clerk.workspace = true
 derive-getters.workspace = true
-hashbrown.workspace = true
 rax.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 strum.workspace = true

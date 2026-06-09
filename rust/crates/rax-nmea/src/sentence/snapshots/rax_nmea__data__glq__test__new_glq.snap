@@ -1,7 +1,0 @@
----
-source: crates/rax-nmea/src/data/glq.rs
-expression: glq
----
-{
-  "msg_id": "RMC"
-}

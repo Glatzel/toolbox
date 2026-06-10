@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_from_version() {
         let tmp = TempDir::new().unwrap();
-        let pref = setup_fake_pref(&tmp);
+        setup_fake_pref(&tmp);
         let manager = HoudiniPackageManager::from_version(20, 5).unwrap();
 
         assert_eq!(manager.major, 20);

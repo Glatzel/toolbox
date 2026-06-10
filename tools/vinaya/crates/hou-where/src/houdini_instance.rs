@@ -1,10 +1,7 @@
 use std::path::{Path, PathBuf};
-use std::process;
 
-use dunce::canonicalize;
 use glob::glob;
 use mischief::{IntoMischief, mischief};
-use path_slash::PathExt;
 use regex::Regex;
 use validator::Validate;
 
@@ -24,8 +21,47 @@ pub struct HoudiniInstance {
 }
 
 impl HoudiniInstance {
-    // todo(mac and linux default install dir)
-    pub const INSTALL_DIR: &'static str = "C:/Program Files/Side Effects Software";
+    pub const INSTALL_DIR: &str = cfg_select! {
+        target_os = "windows" => {
+            "C:/Program Files/Side Effects Software"
+        }
+        target_os = "macos" => {
+            "/Applications/Houdini"
+        }
+        target_os = "linux" => {
+            "/opt"
+        }
+    };
+
+    fn dir_name(major: u16, minor: u16, patch: u16) -> String {
+        cfg_select! {
+            target_os = "windows" => { format!("Houdini {major}.{minor}.{patch}") }
+            target_os = "macos"   => { format!("Houdini{major}.{minor}.{patch}") }
+            _ =>                     { format!("hfs{major}.{minor}.{patch}") }
+        }
+    }
+
+    const DIR_GLOB_PATTERN: &'static str = cfg_select! {
+        target_os = "windows" => { "Houdini *.*.*" }
+        target_os = "macos"   => { "Houdini*.*.*" }
+        target_os = "linux" =>                     { "hfs*.*.*" }
+    };
+
+    fn version_from_dir_name(name: &str) -> mischief::Result<(u16, u16, u16)> {
+        let version_str = cfg_select! {
+            target_os = "windows" => { name.split(' ').nth(1).ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
+            target_os = "macos"   => { name.strip_prefix("Houdini").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
+            _ =>                     { name.strip_prefix("hfs").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
+        };
+        let parts: Vec<u16> = version_str
+            .split('.')
+            .map(|s| s.parse::<u16>().into_mischief())
+            .collect::<mischief::Result<Vec<_>>>()?;
+        match parts.as_slice() {
+            &[major, minor, patch] => Ok((major, minor, patch)),
+            _ => mischief::bail!("Invalid Houdini directory name: {}", name),
+        }
+    }
 
     pub fn from_version_string(version_string: &str) -> mischief::Result<Self> {
         let pattern = r"^(\d+)\.(\d+)\.(\d+)$";
@@ -47,43 +83,32 @@ impl HoudiniInstance {
     }
 
     pub fn list_installed() -> mischief::Result<Vec<Self>> {
-        // glob houdini install dir
         let glob_result = glob(
             &Path::new(Self::INSTALL_DIR)
-                .join("Houdini *.*.*")
+                .join(Self::DIR_GLOB_PATTERN)
                 .to_string_lossy(),
         )
         .into_mischief()?;
 
-        // map path to instance
         let mut hinstances = glob_result
             .map(|f| {
-                let version_vector = f
-                    .unwrap()
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .split(" ")
-                    .collect::<Vec<&str>>()[1]
-                    .split(".")
-                    .map(|f| f.parse::<u16>().unwrap())
-                    .collect::<Vec<u16>>();
-                Self {
-                    major: version_vector[0],
-                    minor: version_vector[1],
-                    patch: version_vector[2],
-                }
+                let path = f.unwrap();
+                let name = path.file_name().unwrap().to_string_lossy();
+                let (major, minor, patch) = Self::version_from_dir_name(&name)?;
+                Ok(Self {
+                    major,
+                    minor,
+                    patch,
+                })
             })
-            .collect::<Vec<Self>>();
+            .collect::<mischief::Result<Vec<Self>>>()?;
 
-        //sort instance descend
         hinstances.sort_by(|a, b| {
             b.major
                 .cmp(&a.major)
                 .then_with(|| b.minor.cmp(&a.minor).then_with(|| b.patch.cmp(&a.patch)))
         });
 
-        // err if no houdini found
         if hinstances.is_empty() {
             mischief::bail!(
                 "No Houdini installed.",
@@ -97,11 +122,10 @@ impl HoudiniInstance {
     pub fn latest_installed_version() -> mischief::Result<HoudiniInstance> {
         Ok(Self::list_installed()?[0])
     }
+
     pub fn check_is_installed(&self) -> mischief::Result<()> {
-        let p = Path::new(Self::INSTALL_DIR).join(format!(
-            "Houdini {}.{}.{}",
-            self.major, self.minor, self.patch
-        ));
+        let p =
+            Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch));
         if !p.exists() {
             mischief::bail!(
                 "Houdini {}.{}.{} is not installed.",
@@ -112,6 +136,7 @@ impl HoudiniInstance {
         }
         Ok(())
     }
+
     pub fn version_string(&self, patch: bool) -> String {
         if patch {
             format!("{}.{}.{}", self.major, self.minor, self.patch)
@@ -121,94 +146,91 @@ impl HoudiniInstance {
     }
 
     pub fn hfs(&self) -> PathBuf {
-        Path::new(Self::INSTALL_DIR).join(format!(
-            "Houdini {}.{}.{}",
-            self.major, self.minor, self.patch
-        ))
+        Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch))
     }
 
     pub fn cmake_prefix_path(&self) -> PathBuf {
         Path::new(Self::INSTALL_DIR)
-            .join(format!(
-                "Houdini {}.{}.{}",
-                self.major, self.minor, self.patch
-            ))
+            .join(Self::dir_name(self.major, self.minor, self.patch))
             .join("toolkit")
             .join("cmake")
     }
+}
+#[cfg(test)]
+mod tests {
+    use path_slash::PathBufExt;
 
-    pub fn generate_proto(
-        &self,
-        python_version_major: u8,
-        python_version_minor: u8,
-        infiles: &Vec<&Path>,
-        outfile: &Path,
-    ) -> mischief::Result<()> {
-        //get hython path
-        let hython = self.hfs().join("bin/hython.exe");
-        clerk::debug!("hython: {}", hython.to_slash_lossy());
-        if !hython.exists() {
-            mischief::bail!("Hython is not found. Houdini{}", self.version_string(true))
+    use super::*;
+
+    fn instance() -> HoudiniInstance {
+        HoudiniInstance {
+            major: 20,
+            minor: 5,
+            patch: 123,
         }
+    }
 
-        // get script
-        let script = self.hfs().join(format!(
-            "houdini/python{}.{}libs/generate_proto.py",
-            python_version_major, python_version_minor
-        ));
-        clerk::debug!("generate_proto.py path: {}", script.to_slash_lossy());
-        if !script.exists() {
-            mischief::bail!("Script is not found: {}", script.to_slash_lossy())
-        }
+    #[test]
+    fn test_dir_name() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "Houdini 20.5.123" }
+            target_os = "macos"   => { "Houdini20.5.123" }
+            _ =>                     { "hfs20.5.123" }
+        };
+        assert_eq!(HoudiniInstance::dir_name(20, 5, 123), expected);
+    }
 
-        // prepare inputs
-        let infiles_absolute = &infiles
-            .iter()
-            .map(|f| canonicalize(f).into_mischief())
-            .collect::<mischief::Result<Vec<PathBuf>>>()?;
+    #[test]
+    fn test_version_from_dir_name_valid() {
+        let name = HoudiniInstance::dir_name(20, 5, 123);
+        let (major, minor, patch) = HoudiniInstance::version_from_dir_name(&name).unwrap();
+        assert_eq!((major, minor, patch), (20, 5, 123));
+    }
 
-        // prepare output dir
-        let outdir = outfile.parent().unwrap();
-        if !outdir.exists() {
-            clerk::info!("Proto output directory is not existed:{}", {
-                let mut abs_outdir = std::env::current_dir().into_mischief()?;
-                abs_outdir.push(outdir);
-                abs_outdir.to_slash_lossy().to_string()
-            });
-            clerk::info!("Trying to create Proto output directory.");
-            std::fs::create_dir_all(outdir).into_mischief()?;
-        }
-        clerk::debug!(
-            "Proto output directory: {}",
-            canonicalize(outdir).into_mischief()?.to_slash_lossy()
-        );
+    #[test]
+    fn test_version_from_dir_name_invalid() {
+        assert!(HoudiniInstance::version_from_dir_name("garbage").is_err());
+    }
 
-        // execute
-        let cmd_result = &process::Command::new(hython)
-            .arg(script)
-            .args(infiles_absolute)
-            .arg(outfile)
-            .output()
-            .into_mischief()?;
+    #[test]
+    fn test_version_string_with_patch() {
+        assert_eq!(instance().version_string(true), "20.5.123");
+    }
 
-        if cmd_result.status.success() {
-            println!("Proto header generated successfully!");
-            println!(
-                "[ {}] -> {}",
-                infiles_absolute
-                    .iter()
-                    .map(|f| f.to_slash_lossy().to_string())
-                    .collect::<Vec<String>>()
-                    .join(", "),
-                canonicalize(outfile).into_mischief()?.to_slash_lossy()
-            );
-            // Print the command's stdout
-            println!("{}", String::from_utf8_lossy(&cmd_result.stdout));
-        } else {
-            let stdout = String::from_utf8_lossy(&cmd_result.stdout);
-            let stderr = String::from_utf8_lossy(&cmd_result.stderr);
-            mischief::bail!("Stdout:\n{}\nStderr:\n{}", stdout, stderr)
-        }
-        Ok(())
+    #[test]
+    fn test_version_string_without_patch() {
+        assert_eq!(instance().version_string(false), "20.5");
+    }
+
+    #[test]
+    fn test_hfs() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123" }
+            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123" }
+            _ =>                     { "/opt/hfs20.5.123" }
+        };
+        assert_eq!(instance().hfs().to_slash_lossy(), expected);
+    }
+
+    #[test]
+    fn test_cmake_prefix_path() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123/toolkit/cmake" }
+            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123/toolkit/cmake" }
+            _ =>                     { "/opt/hfs20.5.123/toolkit/cmake" }
+        };
+        assert_eq!(instance().cmake_prefix_path().to_slash_lossy(), expected);
+    }
+
+    #[test]
+    fn test_from_version_string_valid() {
+        let inst = HoudiniInstance::from_version_string("20.5.123").unwrap();
+        assert_eq!((inst.major, inst.minor, inst.patch), (20, 5, 123));
+    }
+
+    #[test]
+    fn test_from_version_string_invalid() {
+        assert!(HoudiniInstance::from_version_string("20.5").is_err());
+        assert!(HoudiniInstance::from_version_string("abc").is_err());
     }
 }

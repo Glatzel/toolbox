@@ -15,13 +15,31 @@ pub struct HoudiniPreference {
     pub directory: PathBuf,
 }
 impl HoudiniPreference {
-    fn default_preference_root() -> mischief::Result<PathBuf> {
-        let default_perf_root: PathBuf = PathBuf::from(
-            env::var("USERPROFILE")
-                .map_err(|_| mischief::mischief!("windows userprofile dir is not found."))?,
-        )
-        .join("Documents");
-        Ok(default_perf_root)
+    fn preference_root() -> mischief::Result<PathBuf> {
+        if let Ok(pref_dir) = env::var("HOUDINI_USER_PREF_DIR") {
+            let path = PathBuf::from(pref_dir);
+            return Ok(path
+                .parent()
+                .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
+                .to_path_buf());
+        }
+
+        let home = dirs::home_dir()
+            .ok_or_else(|| mischief::mischief!("Could not determine home directory."))?;
+
+        cfg_select! {
+            target_os = "macos" => {
+                let legacy = home.join(format!("houdini{}", self.version_string(false)));
+                if legacy.exists() {
+                    Ok(legacy.parent().unwrap().to_path_buf())
+                } else {
+                    Ok(home.join("Library").join("Preferences").join("houdini"))
+                }
+            }
+            _ => {
+                Ok(home.clone())
+            }
+        }
     }
     pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
         match env::var("HOUDINI_USER_PREF_DIR") {
@@ -39,7 +57,7 @@ impl HoudiniPreference {
             }
             Err(_) => {
                 let pref_dir: PathBuf =
-                    Self::default_preference_root()?.join(format!("houdini{major}.{minor}"));
+                    Self::preference_root()?.join(format!("houdini{major}.{minor}"));
                 let perf: HoudiniPreference = Self {
                     major,
                     minor,
@@ -57,5 +75,20 @@ impl HoudiniPreference {
             )
         }
         Ok(self)
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_version_env_override() {
+        unsafe { env::set_var("HOUDINI_USER_PREF_DIR", "/some/custom/path/houdini__HVER__") };
+        let pref = HoudiniPreference::from_version(20, 5).unwrap();
+        assert_eq!(
+            pref.directory.to_slash_lossy(),
+            "/some/custom/path/houdini20.5"
+        );
+        unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
     }
 }

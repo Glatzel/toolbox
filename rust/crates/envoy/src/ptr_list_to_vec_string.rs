@@ -8,7 +8,8 @@ use crate::{EnvoyError, PtrAsStr, PtrToString};
 ///
 /// Two traversal strategies:
 ///
-/// - **NULL-terminated** (`_null_end` variants): walks until a NULL sentinel.
+/// - **NULL-terminated** (`_null_terminated` variants): walks until a NULL
+///   sentinel.
 /// - **Length-bounded** (plain variants): reads exactly `len` elements.
 ///
 /// ## Structure requirements
@@ -92,9 +93,9 @@ pub trait PtrListToVecString {
     /// let list = [a.as_ptr(), b.as_ptr(), ptr::null()];
     /// let ptr = list.as_ptr();
     ///
-    /// assert_eq!(ptr.to_vec_string_null_end().unwrap(), ["a", "b"]);
+    /// assert_eq!(ptr.to_vec_string_null_terminated().unwrap(), ["a", "b"]);
     /// ```
-    fn to_vec_string_null_end(&self) -> Result<Vec<String>, EnvoyError>;
+    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError>;
 
     /// # Examples
     ///
@@ -110,10 +111,10 @@ pub trait PtrListToVecString {
     /// let list = [bad_ptr, ptr::null()];
     /// let ptr = list.as_ptr();
     ///
-    /// let v = ptr.to_vec_string_lossy_null_end().unwrap();
+    /// let v = ptr.to_vec_string_lossy_null_terminated().unwrap();
     /// assert_eq!(v.len(), 1);
     /// ```
-    fn to_vec_string_lossy_null_end(&self) -> Result<Vec<String>, EnvoyError>;
+    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError>;
 }
 
 impl PtrListToVecString for *const *const c_char {
@@ -147,7 +148,7 @@ impl PtrListToVecString for *const *const c_char {
         Ok(vec_str)
     }
 
-    fn to_vec_string_null_end(&self) -> Result<Vec<String>, EnvoyError> {
+    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
         }
@@ -173,7 +174,7 @@ impl PtrListToVecString for *const *const c_char {
         Ok(vec_str)
     }
 
-    fn to_vec_string_lossy_null_end(&self) -> Result<Vec<String>, EnvoyError> {
+    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
         if self.is_null() {
             return Err(EnvoyError::NullPtr);
         }
@@ -204,12 +205,12 @@ impl PtrListToVecString for *mut *mut c_char {
         (*self as *const *const c_char).to_vec_string_lossy(len)
     }
 
-    fn to_vec_string_null_end(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_null_end()
+    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+        (*self as *const *const c_char).to_vec_string_null_terminated()
     }
 
-    fn to_vec_string_lossy_null_end(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_lossy_null_end()
+    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+        (*self as *const *const c_char).to_vec_string_lossy_null_terminated()
     }
 }
 
@@ -231,54 +232,54 @@ mod tests {
     // --- null-end ---
 
     #[test]
-    fn null_end_const_list_valid() {
+    fn null_terminated_const_list_valid() {
         let (_keep_alive, ptrs) = make_list(&["a", "b", "c"]);
         let list = ptrs.as_ptr();
-        let out = list.to_vec_string_null_end().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert_eq!(out, ["a", "b", "c"]);
     }
 
     #[test]
-    fn null_end_mut_list_valid() {
+    fn null_terminated_mut_list_valid() {
         let (_keep_alive, mut ptrs) = make_list(&["x", "y"]);
         let list = ptrs.as_mut_ptr() as *mut *mut c_char;
-        let out = list.to_vec_string_null_end().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert_eq!(out, ["x", "y"]);
     }
 
     #[test]
-    fn null_end_empty_list() {
+    fn null_terminated_empty_list() {
         let ptrs = [ptr::null::<c_char>()];
         let list = ptrs.as_ptr();
-        let out = list.to_vec_string_null_end().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert!(out.is_empty());
     }
 
     #[test]
-    fn null_end_null_list_pointer() {
+    fn null_terminated_null_list_pointer() {
         let list: *const *const c_char = ptr::null();
-        assert!(list.to_vec_string_null_end().is_err());
-        assert!(list.to_vec_string_lossy_null_end().is_err());
+        assert!(list.to_vec_string_null_terminated().is_err());
+        assert!(list.to_vec_string_lossy_null_terminated().is_err());
     }
 
     #[test]
-    fn null_end_lossy_invalid_utf8() {
+    fn null_terminated_lossy_invalid_utf8() {
         let bad = [0xFFu8, 0x00];
         let bad_ptr = bad.as_ptr() as *const c_char;
         let ptrs = [bad_ptr, ptr::null()];
         let list = ptrs.as_ptr();
-        let out = list.to_vec_string_lossy_null_end().unwrap();
+        let out = list.to_vec_string_lossy_null_terminated().unwrap();
         assert_eq!(out.len(), 1);
         assert!(out[0].contains('\u{FFFD}'));
     }
 
     #[test]
-    fn null_end_strict_invalid_utf8_should_fail() {
+    fn null_terminated_strict_invalid_utf8_should_fail() {
         let bad = [0xFFu8, 0x00];
         let bad_ptr = bad.as_ptr() as *const c_char;
         let ptrs = [bad_ptr, ptr::null()];
         let list = ptrs.as_ptr();
-        assert!(list.to_vec_string_null_end().is_err());
+        assert!(list.to_vec_string_null_terminated().is_err());
     }
 
     // --- length-bounded ---

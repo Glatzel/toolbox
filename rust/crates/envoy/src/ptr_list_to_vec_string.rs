@@ -195,24 +195,30 @@ impl PtrListToVecString for *const *const c_char {
         Ok(vec_str)
     }
 }
+macro_rules! impl_PtrListToVecString {
+    ($ptr:ty) => {
+        impl PtrListToVecString for $ptr {
+            fn to_vec_string(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string(len)
+            }
 
-impl PtrListToVecString for *mut *mut c_char {
-    fn to_vec_string(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string(len)
-    }
+            fn to_vec_string_lossy(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_lossy(len)
+            }
 
-    fn to_vec_string_lossy(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_lossy(len)
-    }
+            fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_null_terminated()
+            }
 
-    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_null_terminated()
-    }
-
-    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_lossy_null_terminated()
-    }
+            fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_lossy_null_terminated()
+            }
+        }
+    };
 }
+impl_PtrListToVecString!(*mut *mut c_char);
+impl_PtrListToVecString!(*mut *const c_char);
+impl_PtrListToVecString!(*const *mut c_char);
 
 #[cfg(test)]
 mod tests {

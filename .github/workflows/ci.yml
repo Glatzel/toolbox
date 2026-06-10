@@ -158,7 +158,11 @@ jobs:
   tools-vinaya:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-vinaya != 'false' }}
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest,macos-latest,ubuntu-latest]
+    runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: ./.github/actions/rust/setup-rust
@@ -166,6 +170,7 @@ jobs:
           toolchain: nightly
           components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
+        if: ${{matrix.machine=='ubuntu-latest'}}
         with:
           working-directory: ./tools/vinaya
       - uses: ./.github/actions/rust/cargo-test

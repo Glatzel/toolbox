@@ -734,7 +734,6 @@ version = "2026.5.29"
 dependencies = [
  "clerk",
  "dirs",
- "dunce",
  "glob",
  "mischief",
  "path-slash",

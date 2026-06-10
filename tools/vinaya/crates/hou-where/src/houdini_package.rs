@@ -140,6 +140,30 @@ mod tests {
             directory: pref_dir,
         }
     }
+    #[test]
+    fn test_from_version() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let manager = HoudiniPackageManager::from_version(20, 5).unwrap();
+
+        assert_eq!(manager.major, 20);
+        assert_eq!(manager.minor, 5);
+        assert_eq!(manager.packages.len(), 2);
+
+        let mypackage = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "mypackage")
+            .unwrap();
+        assert!(mypackage.enable);
+
+        let otherpackage = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "otherpackage")
+            .unwrap();
+        assert!(!otherpackage.enable);
+    }
 
     #[test]
     fn test_from_houdini_preference() {

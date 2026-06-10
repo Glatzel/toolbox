@@ -80,18 +80,15 @@ impl HoudiniPreference {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const TARGET_OS: &str = std::cfg_select! {
-        target_os = "windows" => { "windows" }
-        target_os = "linux" => { "linux" }
-        target_os = "macos" => { "macos" }
-    };
-
 
     #[test]
     fn test_from_version_env_override() {
         unsafe { env::set_var("HOUDINI_USER_PREF_DIR", "/some/custom/path/houdini__HVER__") };
         let pref = HoudiniPreference::from_version(20, 5).unwrap();
-        insta::assert_snapshot!(pref.directory.to_slash_lossy());
+        assert_eq!(
+            pref.directory.to_slash_lossy(),
+            "/some/custom/path/houdini20.5"
+        );
         unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
     }
 }

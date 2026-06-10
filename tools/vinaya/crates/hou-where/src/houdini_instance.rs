@@ -156,3 +156,81 @@ impl HoudiniInstance {
             .join("cmake")
     }
 }
+#[cfg(test)]
+mod tests {
+    use path_slash::PathBufExt;
+
+    use super::*;
+
+    fn instance() -> HoudiniInstance {
+        HoudiniInstance {
+            major: 20,
+            minor: 5,
+            patch: 123,
+        }
+    }
+
+    #[test]
+    fn test_dir_name() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "Houdini 20.5.123" }
+            target_os = "macos"   => { "Houdini20.5.123" }
+            _ =>                     { "hfs20.5.123" }
+        };
+        assert_eq!(HoudiniInstance::dir_name(20, 5, 123), expected);
+    }
+
+    #[test]
+    fn test_version_from_dir_name_valid() {
+        let name = HoudiniInstance::dir_name(20, 5, 123);
+        let (major, minor, patch) = HoudiniInstance::version_from_dir_name(&name).unwrap();
+        assert_eq!((major, minor, patch), (20, 5, 123));
+    }
+
+    #[test]
+    fn test_version_from_dir_name_invalid() {
+        assert!(HoudiniInstance::version_from_dir_name("garbage").is_err());
+    }
+
+    #[test]
+    fn test_version_string_with_patch() {
+        assert_eq!(instance().version_string(true), "20.5.123");
+    }
+
+    #[test]
+    fn test_version_string_without_patch() {
+        assert_eq!(instance().version_string(false), "20.5");
+    }
+
+    #[test]
+    fn test_hfs() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123" }
+            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123" }
+            _ =>                     { "/opt/hfs20.5.123" }
+        };
+        assert_eq!(instance().hfs().to_slash_lossy(), expected);
+    }
+
+    #[test]
+    fn test_cmake_prefix_path() {
+        let expected = cfg_select! {
+            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123/toolkit/cmake" }
+            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123/toolkit/cmake" }
+            _ =>                     { "/opt/hfs20.5.123/toolkit/cmake" }
+        };
+        assert_eq!(instance().cmake_prefix_path().to_slash_lossy(), expected);
+    }
+
+    #[test]
+    fn test_from_version_string_valid() {
+        let inst = HoudiniInstance::from_version_string("20.5.123").unwrap();
+        assert_eq!((inst.major, inst.minor, inst.patch), (20, 5, 123));
+    }
+
+    #[test]
+    fn test_from_version_string_invalid() {
+        assert!(HoudiniInstance::from_version_string("20.5").is_err());
+        assert!(HoudiniInstance::from_version_string("abc").is_err());
+    }
+}

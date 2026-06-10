@@ -4,25 +4,19 @@ use core::ffi::c_char;
 
 use crate::{EnvoyError, PtrAsStr, PtrToString};
 
-/// Convert a NULL-terminated list of C string pointers into `Vec<String>`.
+/// Convert C string pointer arrays into `Vec<String>`.
 ///
-/// This trait is intended for FFI patterns such as:
+/// Two traversal strategies:
 ///
-/// ```text
-/// char **argv;
-/// argv[0] -> "foo"
-/// argv[1] -> "bar"
-/// argv[2] -> NULL
-/// ```
+/// - **NULL-terminated** (`_null_terminated` variants): walks until a NULL
+///   sentinel.
+/// - **Length-bounded** (plain variants): reads exactly `len` elements.
 ///
 /// ## Structure requirements
 ///
-/// The pointer must reference a contiguous array of pointers
-/// terminated by a NULL pointer.
-///
-/// ```text
-/// [ ptr, ptr, ptr, NULL ]
-/// ```
+/// The pointer must reference a contiguous array of pointers, either
+/// terminated by a NULL pointer (null-end variants) or of at least `len`
+/// elements (length-bounded variants).
 ///
 /// ## Safety requirements
 ///
@@ -30,7 +24,8 @@ use crate::{EnvoyError, PtrAsStr, PtrToString};
 ///
 /// - `self` is either NULL or points to valid readable memory
 /// - pointer array is contiguous
-/// - pointer array ends with a NULL sentinel
+/// - for null-end variants: array ends with a NULL sentinel
+/// - for length-bounded variants: array contains at least `len` valid elements
 /// - each non-NULL element points to a valid NUL-terminated C string
 /// - memory remains valid during traversal
 ///
@@ -38,22 +33,18 @@ use crate::{EnvoyError, PtrAsStr, PtrToString};
 ///
 /// ## Conversion modes
 ///
-/// - `to_vec_string`
-///   - requires valid UTF-8 for every element
-///   - fails on first invalid string
+/// - strict (`to_vec_string*`): requires valid UTF-8, fails on first invalid
+///   string
+/// - lossy (`to_vec_string_lossy*`): replaces invalid UTF-8 with U+FFFD
 ///
-/// - `to_vec_string_lossy`
-///   - replaces invalid UTF-8 with U+FFFD
-///   - still fails if pointer list itself is NULL
+/// Both variants fail if the outer pointer itself is NULL.
 pub trait PtrListToVecString {
-    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError>;
-    fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError>;
-}
-impl PtrListToVecString for *const *const c_char {
+    /// Reads exactly `len` C string pointers starting at `self`.
+    ///
     /// # Examples
     ///
     /// ```
-    /// use std::ffi::{CString, c_char};
+    /// use std::ffi::CString;
     /// use std::ptr;
     ///
     /// use envoy::PtrListToVecString;
@@ -61,81 +52,33 @@ impl PtrListToVecString for *const *const c_char {
     /// let a = CString::new("x").unwrap();
     /// let b = CString::new("y").unwrap();
     ///
-    /// let mut list = [
-    ///     a.as_ptr() as *mut c_char,
-    ///     b.as_ptr() as *mut c_char,
-    ///     ptr::null_mut(),
-    /// ];
-    /// let ptr = list.as_mut_ptr();
+    /// let list = [a.as_ptr(), b.as_ptr()];
+    /// let ptr = list.as_ptr();
     ///
-    /// assert_eq!(ptr.to_vec_string().unwrap(), ["x", "y"]);
+    /// assert_eq!(ptr.to_vec_string(2).unwrap(), ["x", "y"]);
     /// ```
-    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
-        if self.is_null() {
-            return Err(EnvoyError::NullPtr);
-        }
+    fn to_vec_string(&self, len: usize) -> Result<Vec<String>, EnvoyError>;
 
-        let mut vec_str = Vec::new();
-        let mut offset = 0;
-
-        loop {
-            let current_ptr = unsafe {
-                match self.offset(offset).as_ref() {
-                    Some(ptr) => ptr,
-                    None => break,
-                }
-            };
-            if current_ptr.is_null() {
-                break;
-            }
-
-            vec_str.push(current_ptr.as_str()?.to_string());
-            offset += 1;
-        }
-
-        Ok(vec_str)
-    }
+    /// Reads exactly `len` C string pointers, replacing invalid UTF-8 with
+    /// U+FFFD.
+    ///
     /// # Examples
     ///
     /// ```
     /// use core::ffi::c_char;
-    /// use core::ptr;
     ///
     /// use envoy::PtrListToVecString;
     ///
     /// let bad = [0xFFu8 as c_char, 0];
-    /// let bad_ptr = bad.as_ptr() as *mut c_char;
+    /// let good = [b'x' as c_char, 0];
+    /// let list = [bad.as_ptr(), good.as_ptr()];
+    /// let ptr = list.as_ptr();
     ///
-    /// let mut list = [bad_ptr, ptr::null_mut()];
-    /// let ptr = list.as_mut_ptr();
-    ///
-    /// let v = ptr.to_vec_string_lossy().unwrap();
-    /// assert_eq!(v.len(), 1);
+    /// let v = ptr.to_vec_string_lossy(2).unwrap();
+    /// assert_eq!(v.len(), 2);
     /// ```
-    fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError> {
-        if self.is_null() {
-            return Err(EnvoyError::NullPtr);
-        }
+    fn to_vec_string_lossy(&self, len: usize) -> Result<Vec<String>, EnvoyError>;
 
-        let mut vec_str = Vec::new();
-        let mut offset = 0;
-
-        loop {
-            let current_ptr = unsafe { self.offset(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
-
-            if current_ptr.is_null() {
-                break;
-            }
-
-            vec_str.push(current_ptr.to_string_lossy()?);
-            offset += 1;
-        }
-
-        Ok(vec_str)
-    }
-}
-
-impl PtrListToVecString for *mut *mut c_char {
     /// # Examples
     ///
     /// ```
@@ -150,11 +93,10 @@ impl PtrListToVecString for *mut *mut c_char {
     /// let list = [a.as_ptr(), b.as_ptr(), ptr::null()];
     /// let ptr = list.as_ptr();
     ///
-    /// assert_eq!(ptr.to_vec_string().unwrap(), ["a", "b"]);
+    /// assert_eq!(ptr.to_vec_string_null_terminated().unwrap(), ["a", "b"]);
     /// ```
-    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string()
-    }
+    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError>;
+
     /// # Examples
     ///
     /// ```
@@ -169,13 +111,114 @@ impl PtrListToVecString for *mut *mut c_char {
     /// let list = [bad_ptr, ptr::null()];
     /// let ptr = list.as_ptr();
     ///
-    /// let v = ptr.to_vec_string_lossy().unwrap();
+    /// let v = ptr.to_vec_string_lossy_null_terminated().unwrap();
     /// assert_eq!(v.len(), 1);
     /// ```
-    fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError> {
-        (*self as *const *const c_char).to_vec_string_lossy()
+    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError>;
+}
+
+impl PtrListToVecString for *const *const c_char {
+    fn to_vec_string(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        let mut vec_str = Vec::with_capacity(len);
+
+        for offset in 0..len {
+            let current_ptr = unsafe { self.add(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
+            vec_str.push(current_ptr.as_str()?.to_string());
+        }
+
+        Ok(vec_str)
+    }
+
+    fn to_vec_string_lossy(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        let mut vec_str = Vec::with_capacity(len);
+
+        for offset in 0..len {
+            let current_ptr = unsafe { self.add(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
+            vec_str.push(current_ptr.to_string_lossy()?);
+        }
+
+        Ok(vec_str)
+    }
+
+    fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        let mut vec_str = Vec::new();
+        let mut offset = 0;
+
+        loop {
+            let current_ptr = unsafe {
+                match self.add(offset).as_ref() {
+                    Some(ptr) => ptr,
+                    None => break,
+                }
+            };
+            if current_ptr.is_null() {
+                break;
+            }
+
+            vec_str.push(current_ptr.as_str()?.to_string());
+            offset += 1;
+        }
+
+        Ok(vec_str)
+    }
+
+    fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+        if self.is_null() {
+            return Err(EnvoyError::NullPtr);
+        }
+
+        let mut vec_str = Vec::new();
+        let mut offset = 0;
+
+        loop {
+            let current_ptr = unsafe { self.add(offset).as_ref().ok_or(EnvoyError::NullPtr)? };
+            if current_ptr.is_null() {
+                break;
+            }
+
+            vec_str.push(current_ptr.to_string_lossy()?);
+            offset += 1;
+        }
+
+        Ok(vec_str)
     }
 }
+macro_rules! impl_PtrListToVecString {
+    ($ptr:ty) => {
+        impl PtrListToVecString for $ptr {
+            fn to_vec_string(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string(len)
+            }
+
+            fn to_vec_string_lossy(&self, len: usize) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_lossy(len)
+            }
+
+            fn to_vec_string_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_null_terminated()
+            }
+
+            fn to_vec_string_lossy_null_terminated(&self) -> Result<Vec<String>, EnvoyError> {
+                (*self as *const *const c_char).to_vec_string_lossy_null_terminated()
+            }
+        }
+    };
+}
+impl_PtrListToVecString!(*mut *mut c_char);
+impl_PtrListToVecString!(*mut *const c_char);
+impl_PtrListToVecString!(*const *mut c_char);
 
 #[cfg(test)]
 mod tests {
@@ -187,69 +230,115 @@ mod tests {
 
     fn make_list(strings: &[&str]) -> (Vec<CString>, Vec<*const c_char>) {
         let cstrings: Vec<CString> = strings.iter().map(|s| CString::new(*s).unwrap()).collect();
-
         let mut ptrs: Vec<*const c_char> = cstrings.iter().map(|s| s.as_ptr()).collect();
-
         ptrs.push(ptr::null());
-
         (cstrings, ptrs)
     }
 
+    // --- null-end ---
+
     #[test]
-    fn const_list_valid() {
+    fn null_terminated_const_list_valid() {
         let (_keep_alive, ptrs) = make_list(&["a", "b", "c"]);
         let list = ptrs.as_ptr();
-
-        let out = list.to_vec_string().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert_eq!(out, ["a", "b", "c"]);
     }
 
     #[test]
-    fn mut_list_valid() {
+    fn null_terminated_mut_list_valid() {
         let (_keep_alive, mut ptrs) = make_list(&["x", "y"]);
         let list = ptrs.as_mut_ptr() as *mut *mut c_char;
-
-        let out = list.to_vec_string().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert_eq!(out, ["x", "y"]);
     }
 
     #[test]
-    fn empty_list() {
+    fn null_terminated_empty_list() {
         let ptrs = [ptr::null::<c_char>()];
         let list = ptrs.as_ptr();
-
-        let out = list.to_vec_string().unwrap();
+        let out = list.to_vec_string_null_terminated().unwrap();
         assert!(out.is_empty());
     }
 
     #[test]
-    fn null_list_pointer() {
+    fn null_terminated_null_list_pointer() {
         let list: *const *const c_char = ptr::null();
-        assert!(list.to_vec_string().is_err());
-        assert!(list.to_vec_string_lossy().is_err());
+        assert!(list.to_vec_string_null_terminated().is_err());
+        assert!(list.to_vec_string_lossy_null_terminated().is_err());
     }
 
     #[test]
-    fn lossy_invalid_utf8() {
+    fn null_terminated_lossy_invalid_utf8() {
         let bad = [0xFFu8, 0x00];
         let bad_ptr = bad.as_ptr() as *const c_char;
-
         let ptrs = [bad_ptr, ptr::null()];
         let list = ptrs.as_ptr();
-
-        let out = list.to_vec_string_lossy().unwrap();
+        let out = list.to_vec_string_lossy_null_terminated().unwrap();
         assert_eq!(out.len(), 1);
         assert!(out[0].contains('\u{FFFD}'));
     }
 
     #[test]
-    fn strict_invalid_utf8_should_fail() {
+    fn null_terminated_strict_invalid_utf8_should_fail() {
         let bad = [0xFFu8, 0x00];
         let bad_ptr = bad.as_ptr() as *const c_char;
-
         let ptrs = [bad_ptr, ptr::null()];
         let list = ptrs.as_ptr();
+        assert!(list.to_vec_string_null_terminated().is_err());
+    }
 
-        assert!(list.to_vec_string().is_err());
+    // --- length-bounded ---
+
+    #[test]
+    fn len_const_list_valid() {
+        let (_keep_alive, ptrs) = make_list(&["a", "b", "c"]);
+        // ptrs has a trailing null but we only read 3
+        let list = ptrs.as_ptr();
+        let out = list.to_vec_string(3).unwrap();
+        assert_eq!(out, ["a", "b", "c"]);
+    }
+
+    #[test]
+    fn len_mut_list_valid() {
+        let (_keep_alive, mut ptrs) = make_list(&["x", "y"]);
+        let list = ptrs.as_mut_ptr() as *mut *mut c_char;
+        let out = list.to_vec_string(2).unwrap();
+        assert_eq!(out, ["x", "y"]);
+    }
+
+    #[test]
+    fn len_zero() {
+        let (_keep_alive, ptrs) = make_list(&["a"]);
+        let list = ptrs.as_ptr();
+        let out = list.to_vec_string(0).unwrap();
+        assert!(out.is_empty());
+    }
+
+    #[test]
+    fn len_null_list_pointer() {
+        let list: *const *const c_char = ptr::null();
+        assert!(list.to_vec_string(1).is_err());
+        assert!(list.to_vec_string_lossy(1).is_err());
+    }
+
+    #[test]
+    fn len_lossy_invalid_utf8() {
+        let bad = [0xFFu8, 0x00];
+        let bad_ptr = bad.as_ptr() as *const c_char;
+        let ptrs = [bad_ptr]; // no null sentinel needed
+        let list = ptrs.as_ptr();
+        let out = list.to_vec_string_lossy(1).unwrap();
+        assert_eq!(out.len(), 1);
+        assert!(out[0].contains('\u{FFFD}'));
+    }
+
+    #[test]
+    fn len_strict_invalid_utf8_should_fail() {
+        let bad = [0xFFu8, 0x00];
+        let bad_ptr = bad.as_ptr() as *const c_char;
+        let ptrs = [bad_ptr];
+        let list = ptrs.as_ptr();
+        assert!(list.to_vec_string(1).is_err());
     }
 }

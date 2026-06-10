@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 clerk.workspace = true
 dirs.workspace = true
-dunce.workspace = true
 glob.workspace = true
 mischief.workspace = true
 path-slash.workspace = true

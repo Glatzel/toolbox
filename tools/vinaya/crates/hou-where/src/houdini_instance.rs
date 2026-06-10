@@ -55,7 +55,7 @@ impl HoudiniInstance {
         };
         let parts: Vec<u16> = version_str
             .split('.')
-            .map(|s| s.parse().into_mischief())
+            .map(|s| s.parse::<u16>().into_mischief())
             .collect::<mischief::Result<Vec<_>>>()?;
         match parts.as_slice() {
             &[major, minor, patch] => Ok((major, minor, patch)),

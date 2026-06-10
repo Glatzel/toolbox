@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 clerk.workspace = true
+dirs.workspace = true
 dunce.workspace = true
 glob.workspace = true
 mischief.workspace = true
@@ -14,4 +15,4 @@ serde_json.workspace = true
 validator.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
+insta.workspace = true

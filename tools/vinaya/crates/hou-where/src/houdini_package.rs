@@ -110,3 +110,116 @@ impl HoudiniPackageManager {
         Ok(())
     }
 }
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::TempDir;
+
+    use super::*;
+
+    fn setup_fake_pref(dir: &TempDir) -> HoudiniPreference {
+        let pref_dir = dir.path().join("houdini20.5");
+        let pkg_dir = pref_dir.join("packages");
+        fs::create_dir_all(&pkg_dir).unwrap();
+
+        fs::write(
+            pkg_dir.join("mypackage.json"),
+            r#"{"enable": true, "path": "/some/path"}"#,
+        )
+        .unwrap();
+        fs::write(
+            pkg_dir.join("otherpackage.json"),
+            r#"{"enable": false, "path": "/other/path"}"#,
+        )
+        .unwrap();
+
+        HoudiniPreference {
+            major: 20,
+            minor: 5,
+            directory: pref_dir,
+        }
+    }
+
+    #[test]
+    fn test_from_houdini_preference() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+
+        assert_eq!(manager.major, 20);
+        assert_eq!(manager.minor, 5);
+        assert_eq!(manager.packages.len(), 2);
+
+        let mypackage = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "mypackage")
+            .unwrap();
+        assert!(mypackage.enable);
+
+        let otherpackage = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "otherpackage")
+            .unwrap();
+        assert!(!otherpackage.enable);
+    }
+
+    #[test]
+    fn test_check_is_existed() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        assert!(manager.check_is_existed().is_ok());
+    }
+
+    #[test]
+    fn test_check_is_existed_missing() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        fs::remove_dir_all(&manager.package_dir).unwrap();
+        assert!(manager.check_is_existed().is_err());
+    }
+
+    #[test]
+    fn test_switch_packages() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let mut manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+
+        manager
+            .switch_packages(&["mypackage".to_string()], false)
+            .unwrap();
+        let pkg = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "mypackage")
+            .unwrap();
+        assert!(!pkg.enable);
+
+        // verify written to disk
+        let content = fs::read_to_string(&pkg.json_file).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(json["enable"], json!(false));
+    }
+
+    #[test]
+    fn test_switch_packages_unmatched() {
+        let tmp = TempDir::new().unwrap();
+        let pref = setup_fake_pref(&tmp);
+        let mut manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+
+        manager
+            .switch_packages(&["nonexistent".to_string()], true)
+            .unwrap();
+        // nothing should have changed
+        let pkg = manager
+            .packages
+            .iter()
+            .find(|p| p.name == "mypackage")
+            .unwrap();
+        assert!(pkg.enable);
+    }
+}

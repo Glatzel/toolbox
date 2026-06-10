@@ -49,93 +49,6 @@ pub trait PtrListToVecString {
     fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError>;
     fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError>;
 }
-
-impl PtrListToVecString for *mut *mut c_char {
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ffi::CString;
-    /// use std::ptr;
-    ///
-    /// use envoy::PtrListToVecString;
-    ///
-    /// let a = CString::new("a").unwrap();
-    /// let b = CString::new("b").unwrap();
-    ///
-    /// let list = [a.as_ptr(), b.as_ptr(), ptr::null()];
-    /// let ptr = list.as_ptr();
-    ///
-    /// assert_eq!(ptr.to_vec_string().unwrap(), ["a", "b"]);
-    /// ```
-    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
-        if self.is_null() {
-            return Err(EnvoyError::NullPtr);
-        }
-
-        let mut vec_str = Vec::new();
-        let mut offset = 0;
-
-        loop {
-            let current_ptr = unsafe {
-                match self.offset(offset).as_ref() {
-                    Some(ptr) => ptr,
-                    None => break,
-                }
-            };
-            if current_ptr.is_null() {
-                break;
-            }
-
-            vec_str.push(current_ptr.as_str()?.to_string());
-            offset += 1;
-        }
-
-        Ok(vec_str)
-    }
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ffi::c_char;
-    /// use std::ptr;
-    ///
-    /// use envoy::PtrListToVecString;
-    ///
-    /// let bad = [0xFFu8 as c_char, 0];
-    /// let bad_ptr = bad.as_ptr();
-    ///
-    /// let list = [bad_ptr, ptr::null()];
-    /// let ptr = list.as_ptr();
-    ///
-    /// let v = ptr.to_vec_string_lossy().unwrap();
-    /// assert_eq!(v.len(), 1);
-    /// ```
-    fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError> {
-        if self.is_null() {
-            return Err(EnvoyError::NullPtr);
-        }
-
-        let mut vec_str = Vec::new();
-        let mut offset = 0;
-
-        loop {
-            let current_ptr = unsafe {
-                match self.offset(offset).as_ref() {
-                    Some(ptr) => ptr,
-                    None => break,
-                }
-            };
-            if current_ptr.is_null() {
-                break;
-            }
-
-            vec_str.push(current_ptr.cast_const().to_string_lossy()?);
-            offset += 1;
-        }
-
-        Ok(vec_str)
-    }
-}
-
 impl PtrListToVecString for *const *const c_char {
     /// # Examples
     ///
@@ -221,6 +134,49 @@ impl PtrListToVecString for *const *const c_char {
         Ok(vec_str)
     }
 }
+
+impl PtrListToVecString for *mut *mut c_char {
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::CString;
+    /// use std::ptr;
+    ///
+    /// use envoy::PtrListToVecString;
+    ///
+    /// let a = CString::new("a").unwrap();
+    /// let b = CString::new("b").unwrap();
+    ///
+    /// let list = [a.as_ptr(), b.as_ptr(), ptr::null()];
+    /// let ptr = list.as_ptr();
+    ///
+    /// assert_eq!(ptr.to_vec_string().unwrap(), ["a", "b"]);
+    /// ```
+    fn to_vec_string(&self) -> Result<Vec<String>, EnvoyError> {
+        (*self as *const *const c_char).to_vec_string()
+    }
+    /// # Examples
+    ///
+    /// ```
+    /// use std::ffi::c_char;
+    /// use std::ptr;
+    ///
+    /// use envoy::PtrListToVecString;
+    ///
+    /// let bad = [0xFFu8 as c_char, 0];
+    /// let bad_ptr = bad.as_ptr();
+    ///
+    /// let list = [bad_ptr, ptr::null()];
+    /// let ptr = list.as_ptr();
+    ///
+    /// let v = ptr.to_vec_string_lossy().unwrap();
+    /// assert_eq!(v.len(), 1);
+    /// ```
+    fn to_vec_string_lossy(&self) -> Result<Vec<String>, EnvoyError> {
+        (*self as *const *const c_char).to_vec_string_lossy()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate std;

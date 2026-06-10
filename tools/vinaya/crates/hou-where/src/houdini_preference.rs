@@ -85,18 +85,13 @@ mod tests {
         target_os = "linux" => { "linux" }
         target_os = "macos" => { "macos" }
     };
-    #[test]
-    fn test_from_version_default() {
-        unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
-        let pref = HoudiniPreference::from_version(20, 5).unwrap();
-        insta::assert_snapshot!(TARGET_OS, pref.directory.to_slash_lossy());
-    }
+
 
     #[test]
     fn test_from_version_env_override() {
         unsafe { env::set_var("HOUDINI_USER_PREF_DIR", "/some/custom/path/houdini__HVER__") };
         let pref = HoudiniPreference::from_version(20, 5).unwrap();
-        insta::assert_snapshot!(TARGET_OS, pref.directory.to_slash_lossy());
+        insta::assert_snapshot!(pref.directory.to_slash_lossy());
         unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
     }
 }

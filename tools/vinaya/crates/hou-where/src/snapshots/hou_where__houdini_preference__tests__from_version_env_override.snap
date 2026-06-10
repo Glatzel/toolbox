@@ -1,0 +1,5 @@
+---
+source: crates/hou-where/src/houdini_preference.rs
+expression: pref.directory.to_slash_lossy()
+---
+/some/custom/path/houdini20.5

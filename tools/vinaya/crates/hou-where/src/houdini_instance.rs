@@ -47,20 +47,19 @@ impl HoudiniInstance {
         target_os = "linux" =>                     { "hfs*.*.*" }
     };
 
-    fn version_from_dir_name(name: &str) -> Option<[u16; 3]> {
+    fn version_from_dir_name(name: &str) -> mischief::Result<(u16, u16, u16)> {
         let version_str = cfg_select! {
-            target_os = "windows" => { name.split(' ').nth(1)? }
-            target_os = "macos"   => { name.strip_prefix("Houdini")? }
-            _ =>                     { name.strip_prefix("hfs")? }
+            target_os = "windows" => { name.split(' ').nth(1).ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
+            target_os = "macos"   => { name.strip_prefix("Houdini").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
+            _ =>                     { name.strip_prefix("hfs").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
         };
         let parts: Vec<u16> = version_str
             .split('.')
-            .map(|s| s.parse().ok())
-            .collect::<Option<Vec<_>>>()?;
-        if parts.len() == 3 {
-            Some([parts[0], parts[1], parts[2]])
-        } else {
-            None
+            .map(|s| s.parse().into_mischief())
+            .collect::<mischief::Result<Vec<_>>>()?;
+        match parts.as_slice() {
+            &[major, minor, patch] => Ok((major, minor, patch)),
+            _ => mischief::bail!("Invalid Houdini directory name: {}", name),
         }
     }
 
@@ -95,14 +94,14 @@ impl HoudiniInstance {
             .map(|f| {
                 let path = f.unwrap();
                 let name = path.file_name().unwrap().to_string_lossy();
-                let [major, minor, patch] = Self::version_from_dir_name(&name).unwrap();
-                Self {
+                let (major, minor, patch) = Self::version_from_dir_name(&name)?;
+                Ok(Self {
                     major,
                     minor,
                     patch,
-                }
+                })
             })
-            .collect::<Vec<Self>>();
+            .collect::<mischief::Result<Vec<Self>>>()?;
 
         hinstances.sort_by(|a, b| {
             b.major

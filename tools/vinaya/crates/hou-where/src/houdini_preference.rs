@@ -29,7 +29,7 @@ impl HoudiniPreference {
 
         cfg_select! {
             target_os = "macos" => {
-               home.join("Library").join("Preferences").join("houdini")
+                Ok( home.join("Library").join("Preferences").join("houdini"))
             }
             _ => {
                 Ok(home.clone())

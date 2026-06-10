@@ -123,18 +123,13 @@ impl HoudiniInstance {
         Ok(Self::list_installed()?[0])
     }
 
-    pub fn check_is_installed(&self) -> mischief::Result<()> {
-        let p =
-            Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch));
-        if !p.exists() {
-            mischief::bail!(
-                "Houdini {}.{}.{} is not installed.",
-                self.major,
-                self.minor,
-                self.patch
-            )
-        }
-        Ok(())
+    pub fn installed(&self) -> bool {
+        let houdini_executable = cfg_select! {
+            target_os = "windows" => { self.hfs().join("bin").join("houdini.exe") }
+            _ => { self.hfs().join("bin").join("houdini.exe") }
+        };
+
+        houdini_executable.exists()
     }
 
     pub fn version_string(&self, patch: bool) -> String {

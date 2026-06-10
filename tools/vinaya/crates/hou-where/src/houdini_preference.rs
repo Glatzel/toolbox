@@ -15,7 +15,7 @@ pub struct HoudiniPreference {
     pub directory: PathBuf,
 }
 impl HoudiniPreference {
-    fn preference_root() -> mischief::Result<PathBuf> {
+    pub fn preference_root() -> mischief::Result<PathBuf> {
         if let Ok(pref_dir) = env::var("HOUDINI_USER_PREF_DIR") {
             let path = PathBuf::from(pref_dir);
             return Ok(path
@@ -29,12 +29,7 @@ impl HoudiniPreference {
 
         cfg_select! {
             target_os = "macos" => {
-                let legacy = home.join(format!("houdini{}", self.version_string(false)));
-                if legacy.exists() {
-                    Ok(legacy.parent().unwrap().to_path_buf())
-                } else {
-                    Ok(home.join("Library").join("Preferences").join("houdini"))
-                }
+               home.join("Library").join("Preferences").join("houdini")
             }
             _ => {
                 Ok(home.clone())
@@ -80,7 +75,17 @@ impl HoudiniPreference {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    #[test]
+    fn test_from_version_env_default() {
+        unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
+        let pref = HoudiniPreference::from_version(20, 5).unwrap();
+        let home = dirs::home_dir().unwrap();
+        let expected = cfg_select! {
+            target_os = "macos" => { home.join("Library").join("Preferences").join("houdini").join("houdini20.5") }
+            _ =>                   { home.join("houdini20.5") }
+        };
+        assert_eq!(pref.directory.to_slash_lossy(), expected.to_slash_lossy());
+    }
     #[test]
     fn test_from_version_env_override() {
         unsafe { env::set_var("HOUDINI_USER_PREF_DIR", "/some/custom/path/houdini__HVER__") };

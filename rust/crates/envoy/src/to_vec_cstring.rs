@@ -314,4 +314,102 @@ mod tests {
         assert!(clone_buf[2].is_null());
         Ok(())
     }
+    #[test]
+    fn test_default_is_empty() {
+        let v = VecCString::default();
+        assert!(v.is_empty());
+        assert!(v.ptr_buffer.is_none());
+    }
+
+    #[test]
+    fn test_with_capacity_is_empty() {
+        let v = VecCString::with_capacity(8);
+        assert!(v.is_empty());
+    }
+
+    #[test]
+    fn test_clear_invalidates_and_empties() -> mischief::Result<()> {
+        let mut v = ["foo", "bar"].to_vec_cstring()?;
+        v.as_ptr(); // populate cache
+        v.clear();
+        assert!(v.is_empty());
+        assert!(v.ptr_buffer.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn test_extend_invalidates_and_rebuilds() -> mischief::Result<()> {
+        let mut v = ["foo"].to_vec_cstring()?;
+        v.as_ptr(); // populate cache
+        v.extend([CString::new("bar").unwrap()]);
+        assert!(v.ptr_buffer.is_none()); // invalidated
+        let p = v.as_ptr();
+        assert!(unsafe { (*p.add(2)).is_null() });
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_iterator() -> mischief::Result<()> {
+        let v: VecCString = [CString::new("x").unwrap(), CString::new("y").unwrap()]
+            .into_iter()
+            .collect();
+        assert_eq!(v.len(), 2);
+        assert_eq!(v[0].to_str().unwrap(), "x");
+        assert!(v.ptr_buffer.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn test_into_iter_ref() -> mischief::Result<()> {
+        let v = ["a", "b", "c"].to_vec_cstring()?;
+        let collected: Vec<&CString> = (&v).into_iter().collect();
+        assert_eq!(collected.len(), 3);
+        assert_eq!(collected[2].to_str().unwrap(), "c");
+        Ok(())
+    }
+
+    #[test]
+    fn test_into_iter_owned() -> mischief::Result<()> {
+        let v = ["a", "b"].to_vec_cstring()?;
+        let strings: Vec<String> = v.into_iter().map(|s| s.into_string().unwrap()).collect();
+        assert_eq!(strings, ["a", "b"]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_as_mut_ptr_null_terminated() -> mischief::Result<()> {
+        let mut v = ["a", "b"].to_vec_cstring()?;
+        let p = v.as_mut_ptr();
+        assert!(!p.is_null());
+        assert!(unsafe { (*p.add(2)).is_null() });
+        Ok(())
+    }
+
+    #[test]
+    fn test_as_mut_ptr_shares_cache_with_as_ptr() -> mischief::Result<()> {
+        let mut v = ["a"].to_vec_cstring()?;
+        let _ = v.as_mut_ptr(); // build via as_mut_ptr
+        // Cache should now be populated; as_ptr must not rebuild.
+        assert!(v.ptr_buffer.is_some());
+        let p = v.as_ptr();
+        assert!(unsafe { (*p.add(1)).is_null() });
+        Ok(())
+    }
+
+    #[test]
+    fn test_to_vec_cstring_nul_error() {
+        let result = ["ok", "bad\0byte"].to_vec_cstring();
+        assert!(matches!(result, Err(EnvoyError::NulError(_))));
+    }
+
+    #[test]
+    fn test_empty_to_vec_cstring() -> mischief::Result<()> {
+        let empty: &[&str] = &[];
+        let mut v = empty.to_vec_cstring()?;
+        assert!(v.is_empty());
+        // Pointer buffer should be a single null terminator.
+        let p = v.as_ptr();
+        assert!(unsafe { (*p).is_null() });
+        Ok(())
+    }
 }

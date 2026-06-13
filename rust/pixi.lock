@@ -8,11 +8,11 @@ environments:
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.77-hd0affe5_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.78-hd0affe5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_19.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6569c3e_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6569c3e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6f4a2f1_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6f4a2f1_1.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -27,16 +27,16 @@ packages:
   license_family: BSD
   size: 28948
   timestamp: 1770939786096
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.77-hd0affe5_1.conda
-  sha256: 37c41b1024d0c75da76822e3c079aabaf121618a32fe05e53a897b35a88008fc
-  md5: 499cd8e2d4358986dbe3b30e8fe1bf6a
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.78-hd0affe5_0.conda
+  sha256: cc8c9fc6ddf0fbd3d1275b558ae9abad6cda23bced268732e2da21a87bb358cd
+  md5: f9f17eab7f3df1c6fd4b1a548a2f683a
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=14
   license: BSD-3-Clause
   license_family: BSD
-  size: 124432
-  timestamp: 1774333989027
+  size: 124335
+  timestamp: 1775488792584
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
   sha256: 8e0a3b5e41272e5678499b5dfc4cddb673f9e935de01eb0767ce857001229f46
   md5: 57736f29cc2b0ec0b6c2952d3f101b6a
@@ -59,21 +59,21 @@ packages:
   license_family: GPL
   size: 603817
   timestamp: 1778268942614
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6569c3e_0.conda
-  sha256: aefa31c5f3c885e713168ef4b0f96d84ff8fafc8ff71aec8d924d18d11fbc804
-  md5: b2e496ef1c2a5a6faf79a34b832fc9e0
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-260.2-h6f4a2f1_1.conda
+  sha256: ef960b4207a4883feeb26b7d53dcbd3f332bf99bb4e5bfc374a026ac462c0d93
+  md5: 0dc419c1d4e53c8bd59404d00f6a04d9
   depends:
-  - libudev1 260.2 h6569c3e_0
+  - libudev1 260.2 h6f4a2f1_1
   license: LGPL-2.1-or-later
-  size: 19933
-  timestamp: 1779892897531
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6569c3e_0.conda
-  sha256: 7f5aced7d3c8ff425e9b64fd31886ee8eaa466a36e6cbf0c624761cee30f28ef
-  md5: 968dce3b8d5fd26ffce8e36869545d0b
+  size: 19937
+  timestamp: 1780084748009
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-260.2-h6f4a2f1_1.conda
+  sha256: ac3ea9e1a2442d10b6a85e89f97e8490fb3fd2354602f2b5a3edbf0f04bc25f2
+  md5: c782297c0c842e25432fb1cf2c3c55ae
   depends:
   - __glibc >=2.34,<3.0.a0
-  - libcap >=2.77,<2.78.0a0
+  - libcap >=2.78,<2.79.0a0
   - libgcc >=14
   license: LGPL-2.1-or-later
-  size: 172159
-  timestamp: 1779892896254
+  size: 172893
+  timestamp: 1780084746800

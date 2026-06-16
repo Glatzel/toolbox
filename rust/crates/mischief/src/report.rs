@@ -8,7 +8,7 @@ use crate::error::MischiefError;
 use crate::render::*;
 
 pub struct ReportInner {
-    pub error: MischiefError,
+     error: MischiefError,
 
     #[cfg(all(feature = "std", debug_assertions))]
     backtrace: backtrace::Backtrace,
@@ -50,7 +50,7 @@ impl Report {
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
-    pub fn diagnosis(&self) -> &MischiefError { &self.0.error }
+    pub fn error(&self) -> &MischiefError { &self.0.error }
 
     /// Renders the report using the configured rendering backend.
     ///

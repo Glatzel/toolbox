@@ -51,7 +51,7 @@ fn report_error() {
                     indent: MischiefIndent::default(),
                     width: 80,
                 };
-                println!("{}", bundle);
+                println!("{:?}", bundle);
                 let bundle = RenderBundle {
                     diagnosis: &report.error(),
                     theme: NoTheme,

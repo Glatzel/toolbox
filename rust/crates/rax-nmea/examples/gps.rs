@@ -94,9 +94,9 @@ fn main() -> mischief::Result<()> {
     Ok(())
 }
 #[rstest]
-#[case("data/nmea1.log")]
-#[case("data/nmea2.log")]
-#[case("data/nmea_with_sat_info.log")]
+#[case("external/nmea/tests/data/nmea1.log")]
+#[case("external/nmea/tests/data/nmea2.log")]
+#[case("external/nmea/tests/data/nmea_with_sat_info.log")]
 fn test(#[case] file: &str) -> mischief::Result<()> {
     clerk::init_log_with_level(LevelFilter::WARN);
     let _ = wrapper(file)?;

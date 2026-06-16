@@ -19,8 +19,6 @@ impl ITheme for NoTheme {
     }
 }
 
-
-
 #[cfg(not(feature = "fancy"))]
 fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
     println!("{}", report);

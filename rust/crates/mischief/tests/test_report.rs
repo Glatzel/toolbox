@@ -19,23 +19,7 @@ impl ITheme for NoTheme {
     }
 }
 
-#[cfg(feature = "fancy")]
-fn assert_fancy_snapshot(name: &str, report: &mischief::Report) {
-    let bundle = RenderBundle {
-        diagnosis: report,
-        theme: MischiefTheme::default(),
-        indent: MischiefIndent::default(),
-        width: 80,
-    };
-    println!("{}", bundle);
-    let bundle = RenderBundle {
-        diagnosis: report,
-        theme: NoTheme,
-        indent: MischiefIndent::default(),
-        width: 80,
-    };
-    insta::assert_snapshot!(name, format!("{}", bundle));
-}
+
 
 #[cfg(not(feature = "fancy"))]
 fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
@@ -43,17 +27,9 @@ fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
     insta::assert_snapshot!(name, format!("{}", report));
 }
 
-fn check_report(name: &str, result: Result<i32, mischief::Report>) {
-    let report = result.unwrap_err();
-    #[cfg(feature = "fancy")]
-    assert_fancy_snapshot(&format!("{}_fancy", name), &report);
-    #[cfg(not(feature = "fancy"))]
-    assert_no_fancy_snapshot(&format!("{}_no_fancy", name), &report);
-}
-
 #[test]
 fn report_error() {
-    let result = Err("first error")
+    let result: mischief::Result<()> = Err("first error")
         .map_err(|e| {
             mischief!(
                 "{}",
@@ -66,7 +42,7 @@ fn report_error() {
         })
         .wrap_err("Second error")
         .wrap_err_with(|| "Third error");
-    match e {
+    match result {
         Ok(_) => unreachable!(),
         Err(report) => {
             #[cfg(feature = "fancy")]
@@ -97,7 +73,7 @@ fn report_error() {
 
 #[test]
 fn report_error_long() {
-    let result = Err("Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct interpretation of the settings provided.")
+    let result: mischief::Result<()> = Err("Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct interpretation of the settings provided.")
         .map_err(|e| {
             mischief!(
                 "{}",
@@ -115,7 +91,7 @@ fn report_error_long() {
             code = "E502",
         ))
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
-    match e {
+    match result {
         Ok(_) => unreachable!(),
         Err(report) => {
             #[cfg(feature = "fancy")]

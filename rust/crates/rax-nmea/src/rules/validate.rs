@@ -23,33 +23,33 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
     /// Logs each step for debugging.
     fn apply(&self, input: &'a str) -> Result<(), RaxNmeaError> {
         // Log the input at trace level.
-        clerk::trace!("NmeaValidate rule: input='{}'", input);
-        for line in input.split("\n") {
+        clerk::trace!("NmeaValidate rule: input='{:?}'", input);
+        for line in input.split_inclusive("\n") {
             let line = line.trim_end();
 
             // Check if the sentence starts with '$'.
             if !line.starts_with('$') {
                 let e = RaxNmeaError::InvalidSentencePrefix(line.to_string());
-                clerk::warn!("{}: {}", self, e);
+                clerk::warn!("{}: {:?}", self, e);
                 return Err(e);
             }
 
             // Find the position of the '*' checksum delimiter.
             let Some(star_pos) = line.find('*') else {
                 let e = RaxNmeaError::MissingChecksumDelimiter(line.to_string());
-                clerk::warn!("{}: {}", self, e);
+                clerk::warn!("{}: {:?}", self, e);
                 return Err(e);
             };
 
             // Split the input into data and checksum string.
             let (data, checksum_str) = line[1..].split_at(star_pos - 1); // skip $
             let checksum_str = &checksum_str[1..];
-            clerk::debug!("{}: data='{}', checksum_str='{}'", self, data, checksum_str);
+            clerk::debug!("{}: data='{:?}', checksum_str='{:?}'", self, data, checksum_str);
 
             // Check that the checksum string is exactly 2 characters.
             if checksum_str.len() != 2 {
                 let e = RaxNmeaError::InvalidChecksumLength(checksum_str.len());
-                clerk::warn!("{}: {}", self, e);
+                clerk::warn!("{}: {:?}", self, e);
                 return Err(e);
             }
 
@@ -58,7 +58,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 Ok(v) => v,
                 Err(e) => {
                     let e = RaxNmeaError::InvalidHexChecksum(e);
-                    clerk::warn!("{}: {}", self, e);
+                    clerk::warn!("{}: {:?}", self, e);
                     return Err(e);
                 }
             };
@@ -77,10 +77,10 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                     calculated,
                     expected,
                 };
-                clerk::warn!("{}: {}", self, e);
+                clerk::warn!("{}: {:?}", self, e);
                 return Err(e);
             }
-            clerk::info!("{}: sentence is valid: {}", self, line);
+            clerk::info!("{}: sentence is valid: {:?}", self, line);
         }
 
         Ok(())

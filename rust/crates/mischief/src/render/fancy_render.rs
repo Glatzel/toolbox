@@ -7,8 +7,9 @@ use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
 use owo_colors::{OwoColorize, Style};
+use terminal_size::terminal_size;
 
-use crate::{IDiagnostic, Report, Severity};
+use crate::{IDiagnosis, Severity};
 
 /// Indentation configuration used when rendering diagnostic trees.
 ///
@@ -97,7 +98,7 @@ pub enum HyperlinkFormat {
 /// Trait defining styling behavior for rendered diagnostics.
 ///
 /// Implementations of this trait provide styling information for the
-/// various components of a diagnostic report. Styling is typically
+/// various components of a diagnosis. Styling is typically
 /// applied through terminal color libraries such as `owo_colors`,
 /// but the abstraction allows custom rendering strategies.
 ///
@@ -122,9 +123,9 @@ pub trait ITheme {
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat);
 }
 
-/// Default styling implementation for diagnostic output.
+/// Default styling implementation for diagnosis output.
 ///
-/// `MischiefTheme` defines the visual appearance of rendered diagnostics,
+/// `MischiefTheme` defines the visual appearance of rendered diagnosis,
 /// including colors for severity labels, help messages, and hyperlinks.
 /// Styling is implemented using the `owo_colors` crate.
 ///
@@ -136,16 +137,16 @@ pub struct MischiefTheme {
     /// Style applied to general text.
     pub default_style: Option<Style>,
 
-    /// Style applied to diagnostic descriptions.
+    /// Style applied to diagnosis descriptions.
     pub description_style: Option<Style>,
 
-    /// Style used for diagnostics with [`Severity::Advice`].
+    /// Style used for diagnosis with [`Severity::Advice`].
     pub severity_advice_style: Option<Style>,
 
-    /// Style used for diagnostics with [`Severity::Warning`].
+    /// Style used for diagnosis with [`Severity::Warning`].
     pub severity_warning_style: Option<Style>,
 
-    /// Style used for diagnostics with [`Severity::Error`].
+    /// Style used for diagnosis with [`Severity::Error`].
     pub severity_error_style: Option<Style>,
 
     /// Styles applied to help messages `(prefix, message)`.
@@ -210,71 +211,69 @@ impl ITheme for MischiefTheme {
     fn hyperlink_style(&self) -> &(Option<Style>, HyperlinkFormat) { &self.hyperlink_style }
 }
 
-/// Rendering context used to format a [`Report`] as a diagnostic tree.
+/// Rendering context used to format a [`crate::IDiagnosis`] as a diagnosis
+/// tree.
 ///
 /// `RenderBundle` bundles together the configuration required to render
-/// a diagnostic report, including the theme, indentation strategy,
+/// a diagnosis, including the theme, indentation strategy,
 /// and wrapping width.
 ///
-/// The renderer converts a diagnostic chain into a hierarchical tree
+/// The renderer converts a diagnosis chain into a hierarchical tree
 /// representation using the `arbor` crate.
-pub struct RenderBundle<'a, I, T> {
-    /// The report being rendered.
-    pub report: &'a Report,
+pub struct RenderBundle<'a, D, I, T> {
+    /// The diagnosis being rendered.
+    pub diagnosis: &'a D,
 
     /// Theme used for styling output.
     pub theme: T,
 
-    /// Indentation strategy used for the diagnostic tree.
+    /// Indentation strategy used for the diagnosis tree.
     pub indent: I,
 
     /// Maximum line width used during rendering.
     pub width: usize,
 }
 
-impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
-    /// Formats a single diagnostic entry as a styled string.
+impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
+    /// Formats a single diagnosis entry as a styled string.
     ///
     /// The output may include severity labels, error codes, hyperlinks,
     /// descriptions, and optional help messages depending on the
-    /// metadata provided by the diagnostic.
-    #[allow(clippy::unwrap_used)]
-    pub fn render_diagnostic<D: IDiagnostic>(&self, diagnostic: &D, theme: &impl ITheme) -> String {
+    /// metadata provided by the diagnosis.
+    pub fn render(&self, diagnosis: &dyn IDiagnosis, theme: &impl ITheme) -> String {
         use core::fmt::Write;
 
         let mut buffer = String::new();
-        let severity_color = *theme.severity_style(diagnostic.severity());
+        let severity_color = *theme.severity_style(diagnosis.severity());
 
-        if let Some(s) = diagnostic.severity() {
+        if let Some(s) = diagnosis.severity() {
             self.apply_style(&mut buffer, &(s).to_string(), &severity_color)
                 .unwrap()
         }
 
-        if let Some(s) = diagnostic.code() {
+        if let Some(s) = diagnosis.code() {
             self.apply_style(&mut buffer, &format!("[{}]", s), &severity_color)
                 .unwrap()
         }
 
-        if let Some(s) = diagnostic.url() {
+        if let Some(s) = diagnosis.url() {
             self.apply_hyperlink_style(&mut buffer, s, "(link)", theme.hyperlink_style())
                 .unwrap();
         }
 
-        if diagnostic.severity().is_some()
-            || diagnostic.code().is_some()
-            || diagnostic.url().is_some()
+        if diagnosis.severity().is_some() || diagnosis.code().is_some() || diagnosis.url().is_some()
         {
             buffer.write_str(": ").unwrap();
         }
 
         self.apply_style(
             &mut buffer,
-            diagnostic.description(),
+            diagnosis.description(),
             theme.description_style(),
         )
         .unwrap();
 
-        if let Some(s) = diagnostic.help() {
+        if let Some(s) = diagnosis.help() {
             writeln!(buffer).unwrap();
             self.apply_style(&mut buffer, "help: ", &theme.help_style().0)
                 .unwrap();
@@ -286,7 +285,7 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     }
 
     /// Applies a text style to a string and writes it into the buffer.
-    pub fn apply_style(
+    fn apply_style(
         &self,
         buffer: &mut String,
         text: &str,
@@ -331,18 +330,18 @@ impl<I: IIndent, T: ITheme> RenderBundle<'_, I, T> {
     }
 }
 
-impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
-    /// Renders the entire diagnostic report as a formatted tree.
+impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, D, I, T> {
+    /// Renders the entire diagnosis as a formatted tree.
     ///
-    /// Each diagnostic in the causal chain is converted into a tree
+    /// Each diagnosis in the causal chain is converted into a tree
     /// node and rendered using the configured indentation and theme.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut tree = OwnedTree::new(self.render_diagnostic(&self.report.inner, &self.theme));
+        let mut tree = OwnedTree::new(self.render(self.diagnosis as &dyn IDiagnosis, &self.theme));
 
-        let mut source = &self.report.inner.source;
+        let mut source = self.diagnosis.source();
         while let Some(e) = source {
-            tree.push(self.render_diagnostic(e.as_ref(), &self.theme));
-            source = &e.source
+            tree.push(self.render(e, &self.theme));
+            source = e.source()
         }
 
         let render = OwnedRender {
@@ -353,4 +352,68 @@ impl<I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle<'_, I, T> {
 
         write!(f, "{}", render)
     }
+}
+pub fn render_diagnosis<D: IDiagnosis>(
+    diagnosis: &D,
+    f: &mut core::fmt::Formatter<'_>,
+) -> core::fmt::Result {
+    let bundle = RenderBundle {
+        diagnosis,
+        theme: MischiefTheme::default(),
+        indent: MischiefIndent::default(),
+        width: match terminal_size() {
+            Some((w, _)) => w.0 as usize,
+            None => 0,
+        },
+    };
+    writeln!(f, "{}", bundle)
+}
+
+#[cfg(all(feature = "std", debug_assertions))]
+pub fn render_backtrace(
+    backtrace: &backtrace::Backtrace,
+    f: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
+    use owo_colors::CssColors::CadetBlue;
+    // write title
+
+    let title = " Backtrace ";
+
+    let width = terminal_size()
+        .map(|(terminal_size::Width(w), _)| w as usize)
+        .unwrap_or(80);
+    let left = (width - title.len()) / 2;
+    let right = width - title.len() - left;
+
+    writeln!(
+        f,
+        "{}{}{}",
+        "═".repeat(left).fg::<owo_colors::colors::BrightBlack>(),
+        title.bold(),
+        "═".repeat(right).fg::<owo_colors::colors::BrightBlack>(),
+    )?;
+
+    // write frames
+    for (idx, frame) in backtrace.frames().iter().enumerate() {
+        for symbol in frame.symbols() {
+            let name = symbol
+                .name()
+                .map(|n| n.to_string())
+                .unwrap_or_else(|| "<unknown>".into());
+
+            writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
+
+            if let Some(file) = symbol.filename() {
+                write!(f, "   {} {}", "╰─".color(CadetBlue), file.display())?;
+
+                if let Some(line) = symbol.lineno() {
+                    write!(f, ":{}", line)?;
+                }
+
+                writeln!(f)?;
+            }
+        }
+    }
+
+    Ok(())
 }

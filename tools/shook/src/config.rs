@@ -15,6 +15,7 @@ use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
 use server::{ConfigServer, RawConfigServer, default_config_server};
 use validator::Validate;
+
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
@@ -120,8 +121,7 @@ pub fn schema() -> Schema { schema_for!(RawConfig) }
 
 #[cfg(test)]
 mod tests {
-
-    use mischief::IDiagnostic;
+    use mischief::IDiagnosis;
     use rstest::rstest;
 
     use super::*;
@@ -174,13 +174,12 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))
-        .unwrap_err()
-        .inner;
-        println!("{}", err.description());
+        .unwrap_err();
+        println!("{}", err.error().description());
         insta::with_settings!({filters => vec![
             (r"\n│\n", "\n")
         ]}, {
-            insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err.description());
+            insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err.error().description());
         });
         Ok(())
     }

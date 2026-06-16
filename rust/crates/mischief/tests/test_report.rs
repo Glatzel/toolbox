@@ -1,5 +1,4 @@
-#[cfg(feature = "fancy")]
-use mischief::fancy_render::*;
+use mischief::render::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 
 #[cfg(feature = "fancy")]
@@ -15,32 +14,9 @@ impl ITheme for NoTheme {
     fn help_style(&self) -> &(Option<owo_colors::Style>, Option<owo_colors::Style>) {
         &(None, None)
     }
-    fn hyperlink_style(
-        &self,
-    ) -> &(
-        Option<owo_colors::Style>,
-        mischief::fancy_render::HyperlinkFormat,
-    ) {
+    fn hyperlink_style(&self) -> &(Option<owo_colors::Style>, HyperlinkFormat) {
         &(None, HyperlinkFormat::Plain)
     }
-}
-
-#[cfg(feature = "fancy")]
-fn assert_fancy_snapshot(name: &str, report: &mischief::Report) {
-    let bundle = RenderBundle {
-        report,
-        theme: MischiefTheme::default(),
-        indent: MischiefIndent::default(),
-        width: 80,
-    };
-    println!("{}", bundle);
-    let bundle = RenderBundle {
-        report,
-        theme: NoTheme,
-        indent: MischiefIndent::default(),
-        width: 80,
-    };
-    insta::assert_snapshot!(name, format!("{}", bundle));
 }
 
 #[cfg(not(feature = "fancy"))]
@@ -49,17 +25,9 @@ fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
     insta::assert_snapshot!(name, format!("{}", report));
 }
 
-fn check_report(name: &str, result: Result<i32, mischief::Report>) {
-    let report = result.unwrap_err();
-    #[cfg(feature = "fancy")]
-    assert_fancy_snapshot(&format!("{}_fancy", name), &report);
-    #[cfg(not(feature = "fancy"))]
-    assert_no_fancy_snapshot(&format!("{}_no_fancy", name), &report);
-}
-
 #[test]
 fn report_error() {
-    let result = Err("first error")
+    let result: mischief::Result<()> = Err("first error")
         .map_err(|e| {
             mischief!(
                 "{}",
@@ -72,12 +40,31 @@ fn report_error() {
         })
         .wrap_err("Second error")
         .wrap_err_with(|| "Third error");
-    check_report("report_error", result);
+    match result {
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    diagnosis: report.error(),
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_no_fancy"), format!("{}", report))
+            }
+        }
+    }
 }
 
 #[test]
 fn report_error_long() {
-    let result = Err("Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct interpretation of the settings provided.")
+    let result: mischief::Result<()> = Err("Failed to parse configuration file due to invalid syntax near line 42; unexpected token found that prevents correct interpretation of the settings provided.")
         .map_err(|e| {
             mischief!(
                 "{}",
@@ -95,7 +82,26 @@ fn report_error_long() {
             code = "E502",
         ))
         .wrap_err_with(|| "Attempted to access a resource that is not available in the current execution environment, which may indicate missing dependencies, restricted permissions, or an incorrect build target.");
-    check_report("report_error_long", result);
+    match result {
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    diagnosis: report.error(),
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_error_long_no_fancy"), format!("{}", report))
+            }
+        }
+    }
 }
 
 #[test]
@@ -110,16 +116,28 @@ fn report_from_error() -> mischief::Result<()> {
     }
 
     impl std::error::Error for FakeError {}
-
-    let report = Err::<(), FakeError>(FakeError)
-        .into_mischief()
-        .wrap_err("error wrapper")
-        .unwrap_err();
-    #[cfg(feature = "fancy")]
-    assert_fancy_snapshot("report_from_error_fancy", &report);
-    #[cfg(not(feature = "fancy"))]
-    assert_no_fancy_snapshot("report_from_error_no_fancy", &report);
-
+    let f: Result<(), FakeError> = Err(FakeError);
+    let f = f.into_mischief().wrap_err("error wrapper");
+    match f {
+        Ok(_) => unreachable!(),
+        Err(report) => {
+            #[cfg(feature = "fancy")]
+            {
+                let bundle = RenderBundle {
+                    diagnosis: report.error(),
+                    theme: NoTheme,
+                    indent: MischiefIndent::default(),
+                    width: 80,
+                };
+                insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
+            }
+            #[cfg(not(feature = "fancy"))]
+            {
+                println!("{}", report);
+                insta::assert_snapshot!(("report_from_error_no_fancy"), format!("{}", report))
+            }
+        }
+    }
     Ok(())
 }
 

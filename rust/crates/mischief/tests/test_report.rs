@@ -22,14 +22,14 @@ impl ITheme for NoTheme {
 #[cfg(feature = "fancy")]
 fn assert_fancy_snapshot(name: &str, report: &mischief::Report) {
     let bundle = RenderBundle {
-        report,
+        diagnosis: report,
         theme: MischiefTheme::default(),
         indent: MischiefIndent::default(),
         width: 80,
     };
     println!("{}", bundle);
     let bundle = RenderBundle {
-        report,
+        diagnosis: report,
         theme: NoTheme,
         indent: MischiefIndent::default(),
         width: 80,

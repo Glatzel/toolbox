@@ -8,7 +8,7 @@ use crate::error::MischiefError;
 use crate::render::*;
 
 pub struct ReportInner {
-     error: MischiefError,
+    error: MischiefError,
 
     #[cfg(all(feature = "std", debug_assertions))]
     backtrace: backtrace::Backtrace,

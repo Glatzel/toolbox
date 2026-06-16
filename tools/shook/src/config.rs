@@ -15,6 +15,7 @@ use schemars::{JsonSchema, Schema, schema_for};
 use serde::{Deserialize, Serialize};
 use server::{ConfigServer, RawConfigServer, default_config_server};
 use validator::Validate;
+
 pub trait IResolve<T> {
     fn resolve(self) -> T;
 }
@@ -120,8 +121,7 @@ pub fn schema() -> Schema { schema_for!(RawConfig) }
 
 #[cfg(test)]
 mod tests {
-
-    use mischief::IDiagnostic;
+    use mischief::IDiagnosis;
     use rstest::rstest;
 
     use super::*;

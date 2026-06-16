@@ -20,11 +20,9 @@ pub struct Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
-    pub fn new(input: &'a str) -> Self {
-        Self {
-            full: input,
-            rest: input,
-        }
+    pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
+        let s = input.as_ref();
+        Self { full: s, rest: s }
     }
 
     /// Returns the full input string.

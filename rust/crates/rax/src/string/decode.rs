@@ -52,7 +52,7 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(&self.rest) {
+        match rule.apply(self.rest) {
             (Some(result), rest) => {
                 self.rest = rest;
                 Some(result)
@@ -115,7 +115,7 @@ impl<'a> Decoder<'a> {
     where
         R: IGlobalRule<'a>,
     {
-        rule.apply(&self.full)
+        rule.apply(self.full)
     }
 }
 impl<'a> Decoder<'a> {

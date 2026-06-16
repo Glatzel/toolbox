@@ -19,7 +19,7 @@ pub use crate::rules::identifier::NmeaIdentifier;
 pub use crate::rules::talker::NmeaTalker;
 pub use crate::rules::time::NmeaTime;
 pub use crate::rules::txt_line_count::NmeaTxtLineCount;
-pub use crate::rules::validate::NmeaValidate;
+pub use crate::rules::validate::{NmeaValidate, NmeaValidateMultiLine};
 
 pub const UNTIL_COMMA_DISCARD: UntilChar<','> = UntilChar {
     mode: UntilMode::Discard,

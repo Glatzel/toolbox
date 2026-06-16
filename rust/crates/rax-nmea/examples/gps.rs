@@ -42,7 +42,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
 
         let mut probe = Decoder::new(&buf);
         let identifier = probe.global(&NmeaIdentifier)?;
-
+        let talker = probe.global(&NmeaTalker)?;
         // For multi-line sentences, accumulate all lines into buf first
         match identifier {
             Identifier::GSV => {
@@ -60,8 +60,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             _ => {}
         }
         let mut decoder = Decoder::new(&buf);
-        decoder.global(&NmeaValidate)?;
-        let talker = decoder.global(&NmeaTalker)?;
+        decoder.global(&NmeaValidateMultiLine)?;
         match identifier {
             Identifier::DHV => collector.push(Dispatcher::DHV(talker, decoder.decode()?)),
             Identifier::DTM => collector.push(Dispatcher::DTM(talker, decoder.decode()?)),

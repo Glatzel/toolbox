@@ -1,5 +1,3 @@
-use core::fmt::{self, Display};
-
 use chrono::NaiveTime;
 use rax::string::IRule;
 
@@ -8,16 +6,16 @@ fn parse_field(
     res: &str,
     range: core::ops::Range<usize>,
     label: &str,
-    parser: &impl core::fmt::Display,
+    parser: &impl core::fmt::Debug,
     input: &str,
 ) -> Result<u32, ()> {
     let s = res.get(range).ok_or_else(|| {
-        clerk::warn!("{}: missing {}, input='{:?}'", parser, label, input);
+        clerk::warn!("{:?}: missing {}, input='{:?}'", parser, label, input);
     })?;
 
     s.parse::<u32>().map_err(|_| {
         clerk::warn!(
-            "{}: failed to parse {}, value='{}', input={:?}",
+            "{:?}: failed to parse {}, value='{}', input={:?}",
             parser,
             label,
             s,
@@ -31,9 +29,6 @@ fn parse_field(
 /// None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
-impl Display for NmeaTime {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl IRule for NmeaTime {}
 
@@ -44,12 +39,12 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply(&self, input: &'a str) -> (Option<NaiveTime>, &'a str) {
-        clerk::trace!("{}: input='{}'", self, input);
+        clerk::trace!("{:?}: input='{}'", self, input);
 
         let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);
         let res = match res {
             Some("") | None => {
-                clerk::info!("{}: got empty string.", self,);
+                clerk::info!("{:?}: got empty string.", self,);
                 return (None, rest);
             }
             Some(res) => res,
@@ -85,7 +80,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
         };
 
         clerk::debug!(
-            "{}: parsed hour={}, min={}, sec={}, nanos={}",
+            "{:?}: parsed hour={}, min={}, sec={}, nanos={}",
             self,
             hour,
             min,
@@ -95,12 +90,12 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
 
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
-                clerk::debug!("{}: parsed time: {}", self, t);
+                clerk::debug!("{:?}: parsed time: {}", self, t);
                 (Some(t), rest)
             }
             None => {
                 clerk::warn!(
-                    "{}: invalid time: hour={}, min={}, sec={}, nanos={}",
+                    "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
                     self,
                     hour,
                     min,

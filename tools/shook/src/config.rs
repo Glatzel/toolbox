@@ -174,13 +174,12 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             config_name
         )))
-        .unwrap_err()
-        .error();
-        println!("{}", err.description());
+        .unwrap_err();
+        println!("{}", err.error().description());
         insta::with_settings!({filters => vec![
             (r"\n│\n", "\n")
         ]}, {
-            insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err.description());
+            insta::assert_snapshot!(format!("test_invalid_config-{}", config_name), err.error().description());
         });
         Ok(())
     }

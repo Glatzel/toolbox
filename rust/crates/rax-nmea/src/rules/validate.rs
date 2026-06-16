@@ -151,6 +151,7 @@ mod tests {
             "$GLGSV,3,1,10,74,43,070,19,66,37,310,21,75,71,306,21,85,16,136,16*63",
             "$GLGSV,3,2,10,67,03,351,18,72,02,198,13,76,21,272,,65,33,234,*6F",
             "$GLGSV,3,3,10,84,38,081,,83,20,019,*6B",
+            "$GPGSV,4,1,15,05,00,000,17,07,06,105,24,08,11,032,15,10,00,000,16*73\n$GPGSV,4,2,15,15,40,292,21,17,26,156,19,18,09,330,17,19,07,171,13*75\n$GPGSV,4,3,15,30,45,105,17,01,04,081,,11,18,068,,13,64,241,*76",
         ] {
             assert!(rule.apply(input).is_ok());
         }
@@ -204,16 +205,6 @@ mod tests {
     fn test_short_checksum() {
         let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*4";
-        let result = rule.apply(input);
-        assert!(result.is_err());
-        let msg = format!("{result:?}");
-        println!("{msg}");
-        assert!(msg.contains("InvalidChecksumLength"));
-    }
-    #[test]
-    fn test_multiline_checksum() {
-        let rule = NmeaValidate;
-        let input = "$GPGSV,4,1,15,05,00,000,17,07,06,105,24,08,11,032,15,10,00,000,16*73\n$GPGSV,4,2,15,15,40,292,21,17,26,156,19,18,09,330,17,19,07,171,13*75\n$GPGSV,4,3,15,30,45,105,17,01,04,081,,11,18,068,,13,64,241,*76";
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");

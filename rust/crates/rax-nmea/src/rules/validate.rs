@@ -178,8 +178,8 @@ mod tests {
         assert!(rule.apply(input).is_ok());
     }
     #[test]
-    fn test_valid_multiline() {
-        let rule = NmeaValidate;
+    fn test_valid_multiline() -> mischief::Result<()> {
+        let rule = NmeaValidateMultiLine;
         let input = [
             "$GPGSV,4,1,15,05,00,000,17,07,06,105,20,08,11,032,15,10,00,000,16*77",
             "$GPGSV,4,2,15,15,40,292,19,17,26,156,17,18,09,330,19,19,07,171,13*7E",
@@ -187,7 +187,8 @@ mod tests {
             "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42",
         ]
         .join("\n");
-        assert!(rule.apply(&input).is_ok());
+        rule.apply(&input)?;
+        Ok(())
     }
     #[test]
     fn test_invalid_checksum() {

@@ -77,15 +77,14 @@ mod test {
 
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
     #[test]
     fn test_new_rmc1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,110125,A,5505.337580,N,03858.653666,E,148.8,84.6,310317,8.9,E,D*2E";
-        let mut ctx = Decoder::new();
-        let rmc = Rmc::decode(ctx.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let rmc = Rmc::decode(&mut decoder)?;
         println!("{rmc:?}");
         insta::assert_json_snapshot!(rmc);
         Ok(())
@@ -94,8 +93,8 @@ mod test {
     fn test_new_rmc2() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPRMC,,V,,,,,,,,,,N*53";
-        let mut ctx = Decoder::new();
-        let rmc = Rmc::decode(ctx.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let rmc = Rmc::decode(&mut decoder)?;
         println!("{rmc:?}");
         insta::assert_json_snapshot!(rmc);
         Ok(())

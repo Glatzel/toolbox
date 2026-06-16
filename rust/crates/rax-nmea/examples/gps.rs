@@ -33,16 +33,34 @@ pub enum Dispatcher {
 
 fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
     let mut reader = BufReader::new(File::open(f)?);
-    let mut decoder = Decoder::new();
     let mut buf = String::new();
     let mut collector = Vec::<Dispatcher>::new();
     while reader.read_line(&mut buf).is_ok() {
         if buf.is_empty() {
             return Ok(collector);
         }
-        decoder.init(buf.clone());
+
+        let mut probe = Decoder::new(&buf);
+        let identifier = probe.global(&NmeaIdentifier)?;
+
+        // For multi-line sentences, accumulate all lines into buf first
+        match identifier {
+            Identifier::GSV => {
+                let count = probe.global(&NmeaGsvLineCount)?;
+                for _ in 0..count - 1 {
+                    reader.read_line(&mut buf)?; // buf borrow is free here
+                }
+            }
+            Identifier::TXT => {
+                let count = probe.global(&NmeaTxtLineCount)?;
+                for _ in 0..count - 1 {
+                    reader.read_line(&mut buf)?;
+                }
+            }
+            _ => {}
+        }
+        let mut decoder = Decoder::new(&buf);
         decoder.global(&NmeaValidate)?;
-        let identifier = decoder.global(&NmeaIdentifier)?;
         let talker = decoder.global(&NmeaTalker)?;
         match identifier {
             Identifier::DHV => collector.push(Dispatcher::DHV(talker, decoder.decode()?)),
@@ -58,26 +76,10 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             Identifier::GRS => collector.push(Dispatcher::GRS(talker, decoder.decode()?)),
             Identifier::GSA => collector.push(Dispatcher::GSA(talker, decoder.decode()?)),
             Identifier::GST => collector.push(Dispatcher::GST(talker, decoder.decode()?)),
-            Identifier::GSV => {
-                let count = decoder.global(&NmeaGsvLineCount)?;
-                for _ in 0..count - 1 {
-                    reader.read_line(&mut buf)?;
-                }
-                decoder.init(buf.clone());
-                let result: Gsv = decoder.decode()?;
-                collector.push(Dispatcher::GSV(talker, result));
-            }
+            Identifier::GSV => collector.push(Dispatcher::GSV(talker, decoder.decode()?)),
             Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
             Identifier::THS => collector.push(Dispatcher::THS(talker, decoder.decode()?)),
-            Identifier::TXT => {
-                let count = decoder.global(&NmeaTxtLineCount)?;
-                for _ in 0..count - 1 {
-                    reader.read_line(&mut buf)?;
-                }
-                decoder.init(buf.clone());
-                let result: Txt = decoder.decode()?;
-                collector.push(Dispatcher::TXT(talker, result));
-            }
+            Identifier::TXT => collector.push(Dispatcher::TXT(talker, decoder.decode()?)),
             Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),
             Identifier::VTG => collector.push(Dispatcher::VTG(talker, decoder.decode()?)),
             Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, decoder.decode()?)),

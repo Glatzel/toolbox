@@ -108,7 +108,6 @@ impl fmt::Debug for Gst {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -117,8 +116,8 @@ mod test {
     fn test_new_gst() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
-        let mut parser = Decoder::new();
-        let vtg = Gst::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let vtg = Gst::decode(&mut decoder)?;
         println!("{vtg:?}");
         insta::assert_json_snapshot!(vtg);
         Ok(())

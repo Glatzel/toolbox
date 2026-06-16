@@ -45,15 +45,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
     #[test]
     fn test_new_gpq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGPQ,RMC*3A";
-        let mut parser = Decoder::new();
-        let gpq = Gpq::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gpq = Gpq::decode(&mut decoder)?;
         println!("{gpq:?}");
         insta::assert_json_snapshot!(gpq);
         Ok(())

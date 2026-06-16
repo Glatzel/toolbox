@@ -33,7 +33,6 @@ impl IDecode<RaxNmeaError> for Ths {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -42,8 +41,8 @@ mod test {
     fn test_parse() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTHS,77.52,E*34";
-        let mut parser = Decoder::new();
-        let ths = Ths::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let ths = Ths::decode(&mut decoder)?;
         println!("{ths:?}");
         insta::assert_json_snapshot!(ths);
         Ok(())

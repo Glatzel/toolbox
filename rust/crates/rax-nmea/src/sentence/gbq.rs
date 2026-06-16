@@ -29,7 +29,6 @@ impl IDecode<RaxNmeaError> for Gbq {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -38,8 +37,8 @@ mod test {
     fn test_new_gbq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGBQ,RMC*28";
-        let mut parser = Decoder::new();
-        let gbq = Gbq::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gbq = Gbq::decode(&mut decoder)?;
         println!("{gbq:?}");
         insta::assert_json_snapshot!(gbq);
         Ok(())

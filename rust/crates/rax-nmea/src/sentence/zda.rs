@@ -61,15 +61,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
     #[test]
     fn test_new_zda() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPZDA,160012.71,11,03,2004,-1,00*7D";
-        let mut parser = Decoder::new();
-        let zda = Zda::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let zda = Zda::decode(&mut decoder)?;
         println!("{zda:?}");
         insta::assert_json_snapshot!(zda);
         Ok(())

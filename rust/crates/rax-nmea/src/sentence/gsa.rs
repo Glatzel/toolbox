@@ -148,7 +148,6 @@ impl fmt::Debug for Gsa {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -158,8 +157,8 @@ mod test {
     fn test_new_gsa_with_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut parser = Decoder::new();
-        let gsa = Gsa::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gsa = Gsa::decode(&mut decoder)?;
         println!("{gsa:?}");
         insta::assert_json_snapshot!(gsa);
 
@@ -169,8 +168,8 @@ mod test {
     fn test_new_gsa_without_system_id() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut parser = Decoder::new();
-        let gsa = Gsa::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gsa = Gsa::decode(&mut decoder)?;
         println!("{gsa:?}");
         insta::assert_json_snapshot!(gsa);
         Ok(())

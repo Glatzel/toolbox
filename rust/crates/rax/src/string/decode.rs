@@ -1,5 +1,5 @@
 extern crate alloc;
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 
 use crate::RaxError;
 use crate::string::{IGlobalRule, IStrFlowRule};
@@ -12,53 +12,39 @@ pub trait IDecode<E>: Sized {
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Decoder {
+pub struct Decoder<'a> {
     /// The full input string.
-    full: String,
+    full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
-    rest: *const str,
+    rest: &'a str,
 }
 
-impl Default for Decoder {
-    fn default() -> Self { Self::new() }
-}
-
-impl Decoder {
-    /// Creates a new empty parser context.
-    pub fn new() -> Self {
+impl<'a> Decoder<'a> {
+    pub fn new(input: &'a str) -> Self {
         Self {
-            full: String::new(),
-            rest: "",
+            full: input,
+            rest: input,
         }
     }
 
-    /// Initializes the parser context with a given input string.
-    ///
-    /// Resets the `rest` pointer to the beginning of the input.
-    pub fn init(&mut self, input: String) -> &mut Self {
-        self.full = input;
-        self.rest = self.full.as_str();
-        self
-    }
-
     /// Returns the full input string.
-    pub fn full_str(&self) -> &str { self.full.as_str() }
+    pub fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
     ///
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    pub fn rest_str(&self) -> &str { unsafe { &*self.rest } }
+    pub fn rest_str(&self) -> &str { &self.rest }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {
-        self.rest = self.full.as_str();
+        self.rest = self.full;
         self
     }
 }
 
-impl<'a> Decoder {
+impl<'a> Decoder<'a> {
     /// Attempts to take a value using a flow rule.
     ///
     /// Advances the parser's `rest` pointer if the rule matches.
@@ -66,7 +52,7 @@ impl<'a> Decoder {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(unsafe { &*self.rest }) {
+        match rule.apply(&self.rest) {
             (Some(result), rest) => {
                 self.rest = rest;
                 Some(result)
@@ -125,14 +111,14 @@ impl<'a> Decoder {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&'a mut self, rule: &R) -> R::Output
+    pub fn global<R>(&mut self, rule: &R) -> R::Output
     where
         R: IGlobalRule<'a>,
     {
         rule.apply(&self.full)
     }
 }
-impl Decoder {
+impl<'a> Decoder<'a> {
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
         D: IDecode<E>,

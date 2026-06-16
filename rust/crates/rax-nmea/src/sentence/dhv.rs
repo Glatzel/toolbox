@@ -59,7 +59,6 @@ impl IDecode<RaxNmeaError> for Dhv {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -68,8 +67,8 @@ mod test {
     fn test_new_dhv() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut parser = Decoder::new();
-        let dhv = Dhv::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let dhv = Dhv::decode(&mut decoder)?;
         println!("{dhv:?}");
         insta::assert_json_snapshot!(dhv);
         Ok(())

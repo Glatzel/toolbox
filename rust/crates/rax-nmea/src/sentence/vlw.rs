@@ -48,7 +48,6 @@ impl IDecode<RaxNmeaError> for Vlw {
 #[cfg(test)]
 mod test {
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
@@ -57,8 +56,8 @@ mod test {
     fn test_new_vlw() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
-        let mut parser = Decoder::new();
-        let vlw = Vlw::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let vlw = Vlw::decode(&mut decoder)?;
         println!("{vlw:?}");
         insta::assert_json_snapshot!(vlw);
         Ok(())

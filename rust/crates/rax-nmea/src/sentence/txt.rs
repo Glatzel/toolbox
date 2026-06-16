@@ -69,15 +69,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
     #[test]
     fn test_new_txt() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut parser = Decoder::new();
-        let txt = Txt::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let txt = Txt::decode(&mut decoder)?;
         println!("{txt:?}");
         insta::assert_json_snapshot!(txt);
         Ok(())

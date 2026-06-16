@@ -24,62 +24,65 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
     fn apply(&self, input: &'a str) -> Result<(), RaxNmeaError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{}'", input);
-        let input = input.trim_end();
+        for line in input.split("\n") {
+            let line = line.trim_end();
 
-        // Check if the sentence starts with '$'.
-        if !input.starts_with('$') {
-            let e = RaxNmeaError::InvalidSentencePrefix(input.to_string());
-            clerk::warn!("{}: {}", self, e);
-            return Err(e);
-        }
-
-        // Find the position of the '*' checksum delimiter.
-        let Some(star_pos) = input.find('*') else {
-            let e = RaxNmeaError::MissingChecksumDelimiter(input.to_string());
-            clerk::warn!("{}: {}", self, e);
-            return Err(e);
-        };
-
-        // Split the input into data and checksum string.
-        let (data, checksum_str) = input[1..].split_at(star_pos - 1); // skip $
-        let checksum_str = &checksum_str[1..];
-        clerk::debug!("{}: data='{}', checksum_str='{}'", self, data, checksum_str);
-
-        // Check that the checksum string is exactly 2 characters.
-        if checksum_str.len() != 2 {
-            let e = RaxNmeaError::InvalidChecksumLength(checksum_str.len());
-            clerk::warn!("{}: {}", self, e);
-            return Err(e);
-        }
-
-        // Parse the expected checksum from hex.
-        let expected = match u8::from_str_radix(checksum_str, 16) {
-            Ok(v) => v,
-            Err(e) => {
-                let e = RaxNmeaError::InvalidHexChecksum(e);
+            // Check if the sentence starts with '$'.
+            if !line.starts_with('$') {
+                let e = RaxNmeaError::InvalidSentencePrefix(line.to_string());
                 clerk::warn!("{}: {}", self, e);
                 return Err(e);
             }
-        };
 
-        // Calculate the checksum by XOR'ing all data bytes.
-        let calculated = data.bytes().fold(0u8, |acc, b| acc ^ b);
-        clerk::debug!(
-            "NmeaValidate: calculated checksum={:02X}, expected={:02X}",
-            calculated,
-            expected
-        );
-
-        // Compare calculated and expected checksums.
-        if calculated != expected {
-            let e = RaxNmeaError::ChecksumMismatch {
-                calculated,
-                expected,
+            // Find the position of the '*' checksum delimiter.
+            let Some(star_pos) = line.find('*') else {
+                let e = RaxNmeaError::MissingChecksumDelimiter(line.to_string());
+                clerk::warn!("{}: {}", self, e);
+                return Err(e);
             };
-            clerk::warn!("{}: {}", self, e);
-            return Err(e);
+
+            // Split the input into data and checksum string.
+            let (data, checksum_str) = line[1..].split_at(star_pos - 1); // skip $
+            let checksum_str = &checksum_str[1..];
+            clerk::debug!("{}: data='{}', checksum_str='{}'", self, data, checksum_str);
+
+            // Check that the checksum string is exactly 2 characters.
+            if checksum_str.len() != 2 {
+                let e = RaxNmeaError::InvalidChecksumLength(checksum_str.len());
+                clerk::warn!("{}: {}", self, e);
+                return Err(e);
+            }
+
+            // Parse the expected checksum from hex.
+            let expected = match u8::from_str_radix(checksum_str, 16) {
+                Ok(v) => v,
+                Err(e) => {
+                    let e = RaxNmeaError::InvalidHexChecksum(e);
+                    clerk::warn!("{}: {}", self, e);
+                    return Err(e);
+                }
+            };
+
+            // Calculate the checksum by XOR'ing all data bytes.
+            let calculated = data.bytes().fold(0u8, |acc, b| acc ^ b);
+            clerk::debug!(
+                "NmeaValidate: calculated checksum={:02X}, expected={:02X}",
+                calculated,
+                expected
+            );
+
+            // Compare calculated and expected checksums.
+            if calculated != expected {
+                let e = RaxNmeaError::ChecksumMismatch {
+                    calculated,
+                    expected,
+                };
+                clerk::warn!("{}: {}", self, e);
+                return Err(e);
+            }
+            clerk::info!("{}: sentence is valid: {}", self, line);
         }
-        clerk::info!("{}: sentence is valid: {}", self, input);
+
         Ok(())
     }
 }
@@ -201,6 +204,16 @@ mod tests {
     fn test_short_checksum() {
         let rule = NmeaValidate;
         let input = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*4";
+        let result = rule.apply(input);
+        assert!(result.is_err());
+        let msg = format!("{result:?}");
+        println!("{msg}");
+        assert!(msg.contains("InvalidChecksumLength"));
+    }
+    #[test]
+    fn test_multiline_checksum() {
+        let rule = NmeaValidate;
+        let input = "$GPGSV,4,1,15,05,00,000,17,07,06,105,24,08,11,032,15,10,00,000,16*73\n$GPGSV,4,2,15,15,40,292,21,17,26,156,19,18,09,330,17,19,07,171,13*75\n$GPGSV,4,3,15,30,45,105,17,01,04,081,,11,18,068,,13,64,241,*76";
         let result = rule.apply(input);
         assert!(result.is_err());
         let msg = format!("{result:?}");

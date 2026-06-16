@@ -35,7 +35,7 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    pub fn rest_str(&self) -> &str { &self.rest }
+    pub fn rest_str(&self) -> &str { self.rest }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {

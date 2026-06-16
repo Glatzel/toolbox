@@ -1,0 +1,3 @@
+[submodule "rust/crates/rax-nmea/external/nmea"]
+	path = rust/crates/rax-nmea/external/nmea
+	url = https://github.com/AeroRust/nmea

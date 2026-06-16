@@ -1,9 +1,8 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 #![deny(clippy::unwrap_used)]
 
-pub mod data;
-mod dispatcher;
-pub mod rules;
-pub use dispatcher::*;
+pub mod common;
 mod error;
+pub mod rules;
 pub use error::RaxNmeaError;
+pub mod sentence;

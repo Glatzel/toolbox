@@ -1,128 +1,104 @@
-extern crate std;
-fn main() -> mischief::Result<()> {
-    use std::io::BufReader;
-    use std::time::Duration;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
-    use clerk::LevelFilter;
-    use rax::io::IRaxReader;
-    use rax::str_parser::StrParserContext;
-    use rax_nmea::Dispatcher;
-    use rax_nmea::data::*;
-    clerk::init_log_with_level(LevelFilter::WARN);
-    let path = "COM5";
-    let port = serialport::new(path, 9600)
-        .timeout(Duration::from_millis(3000))
-        .open()?;
-    let mut reader = rax::io::RaxReader::new(BufReader::new(port));
-    let mut ctx = StrParserContext::new();
-    let mut dispatcher = Dispatcher::new();
-    loop {
-        if let Some((talker, identifier, sentence)) = reader
-            .read_line()?
-            .and_then(|line| dispatcher.dispatch(line))
-        {
-            match identifier {
-                Identifier::DHV => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Dhv::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GBS => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gbs::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GGA => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gga::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GLL => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gll::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GNS => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gns::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GRS => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Grs::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GSA => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gsa::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GST => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gst::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GSV => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gsv::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::RMC => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Rmc::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::TXT => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Txt::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::VTG => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Vtg::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::ZDA => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Zda::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::DTM => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Dtm::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GBQ => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gbq::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GLQ => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Glq::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GNQ => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gnq::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::GPQ => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Gpq::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::THS => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Ths::new(ctx, talker)?;
-                    println!("{nmea:?}")
-                }
-                Identifier::VLW => {
-                    let ctx = ctx.init(sentence);
-                    let nmea = Vlw::new(ctx, talker)?;
-                    println!("{nmea:?}")
+use clerk::LevelFilter;
+use rax::string::Decoder;
+use rax_nmea::common::*;
+use rax_nmea::rules::*;
+use rax_nmea::sentence::*;
+use rstest::rstest;
+#[derive(Debug)]
+pub enum Dispatcher {
+    DHV(Talker, Dhv),
+    DTM(Talker, Dtm),
+    GBQ(Talker, Gbq),
+    GBS(Talker, Gbs),
+    GGA(Talker, Gga),
+    GLL(Talker, Gll),
+    GLQ(Talker, Glq),
+    GNQ(Talker, Gnq),
+    GNS(Talker, Gns),
+    GPQ(Talker, Gpq),
+    GRS(Talker, Grs),
+    GSA(Talker, Gsa),
+    GST(Talker, Gst),
+    GSV(Talker, Gsv),
+    RMC(Talker, Rmc),
+    THS(Talker, Ths),
+    TXT(Talker, Txt),
+    VLW(Talker, Vlw),
+    VTG(Talker, Vtg),
+    ZDA(Talker, Zda),
+}
+
+fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
+    let mut reader = BufReader::new(File::open(f)?);
+    let mut buf = String::new();
+    let mut collector = Vec::<Dispatcher>::new();
+    while reader.read_line(&mut buf).is_ok() {
+        if buf.is_empty() {
+            return Ok(collector);
+        }
+
+        let mut probe = Decoder::new(&buf);
+        let identifier = probe.global(&NmeaIdentifier)?;
+        let talker = probe.global(&NmeaTalker)?;
+        // For multi-line sentences, accumulate all lines into buf first
+        match identifier {
+            Identifier::GSV => {
+                let count = probe.global(&NmeaGsvLineCount)?;
+                for _ in 0..count - 1 {
+                    reader.read_line(&mut buf)?; // buf borrow is free here
                 }
             }
+            Identifier::TXT => {
+                let count = probe.global(&NmeaTxtLineCount)?;
+                for _ in 0..count - 1 {
+                    reader.read_line(&mut buf)?;
+                }
+            }
+            _ => {}
         }
+        let mut decoder = Decoder::new(&buf);
+        decoder.global(&NmeaValidateMultiLine)?;
+        match identifier {
+            Identifier::DHV => collector.push(Dispatcher::DHV(talker, decoder.decode()?)),
+            Identifier::DTM => collector.push(Dispatcher::DTM(talker, decoder.decode()?)),
+            Identifier::GBQ => collector.push(Dispatcher::GBQ(talker, decoder.decode()?)),
+            Identifier::GBS => collector.push(Dispatcher::GBS(talker, decoder.decode()?)),
+            Identifier::GGA => collector.push(Dispatcher::GGA(talker, decoder.decode()?)),
+            Identifier::GLL => collector.push(Dispatcher::GLL(talker, decoder.decode()?)),
+            Identifier::GLQ => collector.push(Dispatcher::GLQ(talker, decoder.decode()?)),
+            Identifier::GNQ => collector.push(Dispatcher::GNQ(talker, decoder.decode()?)),
+            Identifier::GNS => collector.push(Dispatcher::GNS(talker, decoder.decode()?)),
+            Identifier::GPQ => collector.push(Dispatcher::GPQ(talker, decoder.decode()?)),
+            Identifier::GRS => collector.push(Dispatcher::GRS(talker, decoder.decode()?)),
+            Identifier::GSA => collector.push(Dispatcher::GSA(talker, decoder.decode()?)),
+            Identifier::GST => collector.push(Dispatcher::GST(talker, decoder.decode()?)),
+            Identifier::GSV => collector.push(Dispatcher::GSV(talker, decoder.decode()?)),
+            Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
+            Identifier::THS => collector.push(Dispatcher::THS(talker, decoder.decode()?)),
+            Identifier::TXT => collector.push(Dispatcher::TXT(talker, decoder.decode()?)),
+            Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),
+            Identifier::VTG => collector.push(Dispatcher::VTG(talker, decoder.decode()?)),
+            Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, decoder.decode()?)),
+        }
+        buf.clear();
     }
+    Ok(collector)
+}
+
+fn main() -> mischief::Result<()> {
+    clerk::init_log_with_level(LevelFilter::WARN);
+    wrapper("data/nmea1.log")?;
+    Ok(())
+}
+#[rstest]
+#[case("external/nmea/tests/data/nmea1.log")]
+#[case("external/nmea/tests/data/nmea2.log")]
+#[case("external/nmea/tests/data/nmea_with_sat_info.log")]
+fn test(#[case] file: &str) -> mischief::Result<()> {
+    clerk::init_log_with_level(LevelFilter::WARN);
+    let _ = wrapper(file)?;
+    Ok(())
 }

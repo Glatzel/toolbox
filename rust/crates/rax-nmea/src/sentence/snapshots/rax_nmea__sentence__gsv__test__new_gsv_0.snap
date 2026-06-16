@@ -1,0 +1,8 @@
+---
+source: crates/rax-nmea/src/sentence/gsv.rs
+expression: gsv
+---
+{
+  "satellites": [],
+  "signal_id": null
+}

@@ -1,0 +1,20 @@
+---
+source: crates/rax-nmea/src/sentence/gns.rs
+expression: gns
+---
+{
+  "time": "18:16:04",
+  "lat": null,
+  "lon": null,
+  "pos_mode": [
+    "NotValid",
+    "NotValid"
+  ],
+  "num_sv": 0,
+  "hdop": 99.99,
+  "alt": null,
+  "sep": null,
+  "diff_age": null,
+  "diff_station": null,
+  "nav_status": null
+}

@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::str_parser::{IStrFlowRule, IStrGlobalRule};
+use rax::string::{IGlobalRule, IStrFlowRule};
 use rax_nmea::rules::*;
 fn bench_rule<R: IStrFlowRule<'static>>(
     c: &mut Criterion,

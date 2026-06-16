@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/sentence/zda.rs
+expression: zda
+---
+{
+  "time": "16:00:12.710",
+  "day": 11,
+  "month": 3,
+  "year": 2004,
+  "ltzh": -1,
+  "ltzn": 0
+}

@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::str_parser::IStrFlowRule;
-use rax::str_parser::filters::{ASCII_LETTERS_DIGITS, CharSetFilter, DIGITS};
-use rax::str_parser::rules::{
+use rax::string::IStrFlowRule;
+use rax::string::filters::{ASCII_LETTERS_DIGITS, CharSetFilter, DIGITS};
+use rax::string::rules::{
     ByteCount, Char, CharCount, NInCharSet, OneOfCharSet, UntilChar, UntilMode, UntilNInCharSet,
     UntilNotInCharSet, UntilOneInCharSet, UntilStr,
 };

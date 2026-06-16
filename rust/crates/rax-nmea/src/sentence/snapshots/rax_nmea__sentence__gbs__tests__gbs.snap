@@ -1,0 +1,16 @@
+---
+source: crates/rax-nmea/src/sentence/gbs.rs
+expression: gbs
+---
+{
+  "time": "12:50:27",
+  "err_lat": 23.43,
+  "err_lon": null,
+  "err_alt": 13.91,
+  "svid": null,
+  "prob": 34.01,
+  "bias": null,
+  "std_dev": null,
+  "system_id": null,
+  "signal_id": null
+}

@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/sentence/vlw.rs
+expression: vlw
+---
+{
+  "twd": null,
+  "wd": null,
+  "tgd": 15.8,
+  "gd": 1.2
+}

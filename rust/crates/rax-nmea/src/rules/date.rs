@@ -1,0 +1,125 @@
+use core::fmt::Debug;
+
+use chrono::NaiveDate;
+use rax::string::IRule;
+
+use super::UNTIL_COMMA_DISCARD;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NmeaDate;
+
+impl IRule for NmeaDate {}
+
+impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
+    type Output = NaiveDate;
+    /// Applies the NmeaUtc rule to the input string.
+    /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
+    /// returns the result and the rest of the string. Logs each step for
+    /// debugging.
+    fn apply(&self, input: &'a str) -> (core::option::Option<NaiveDate>, &'a str) {
+        clerk::trace!("NmeaUtc rule: input='{}'", input);
+
+        let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);
+        match res {
+            Some(res) => {
+                let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
+                    Some(d) => d,
+                    None => {
+                        clerk::info!("{:?}: failed to parse day from '{}'", self, res);
+                        return (None, rest);
+                    }
+                };
+                let month = match res.get(2..4).and_then(|s| s.parse::<u32>().ok()) {
+                    Some(m) => m,
+                    None => {
+                        clerk::info!("{:?}: failed to parse month from '{}'", self, res);
+                        return (None, rest);
+                    }
+                };
+                let year = match res.get(4..6).and_then(|s| s.parse::<i32>().ok()) {
+                    Some(y) => y,
+                    None => {
+                        clerk::info!("{:?}: failed to parse year from '{}'", self, res);
+                        return (None, rest);
+                    }
+                };
+                let dt = match NaiveDate::from_ymd_opt(year + 2000, month, day) {
+                    Some(date) => {
+                        clerk::debug!("{:?}: parsed date: {}", self, date);
+                        date
+                    }
+                    None => {
+                        clerk::warn!(
+                            "{:?}: invalid date: y={}, m={}, d={}",
+                            self,
+                            year + 2000,
+                            month,
+                            day
+                        );
+                        return (None, rest);
+                    }
+                };
+                (Some(dt), rest)
+            }
+            None => {
+                clerk::warn!("NmeaDate: no comma found in input '{}'", input);
+                (None, input)
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::NaiveDate;
+    use rax::string::IStrFlowRule;
+
+    use super::*;
+
+    #[test]
+    fn test_nmea_date_valid() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("110324,foo,bar");
+        assert_eq!(date, Some(NaiveDate::from_ymd_opt(2024, 3, 11).unwrap()));
+        assert_eq!(rest, "foo,bar");
+    }
+
+    #[test]
+    fn test_nmea_date_invalid_day() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("xx0324,foo,bar");
+        assert_eq!(date, None);
+        assert_eq!(rest, "foo,bar");
+    }
+
+    #[test]
+    fn test_nmea_date_invalid_month() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("11xx24,foo,bar");
+        assert_eq!(date, None);
+        assert_eq!(rest, "foo,bar");
+    }
+
+    #[test]
+    fn test_nmea_date_invalid_year() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("1103xx,foo,bar");
+        assert_eq!(date, None);
+        assert_eq!(rest, "foo,bar");
+    }
+
+    #[test]
+    fn test_nmea_date_no_comma() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("110324");
+        assert_eq!(date, None);
+        assert_eq!(rest, "110324");
+    }
+
+    #[test]
+    fn test_nmea_date_invalid_date() {
+        let rule = NmeaDate;
+        let (date, rest) = rule.apply("320224,foo,bar"); // 32nd day is invalid
+        assert_eq!(date, None);
+        assert_eq!(rest, "foo,bar");
+    }
+}

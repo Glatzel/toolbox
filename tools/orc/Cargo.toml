@@ -1,6 +1,6 @@
 [package]
 name = "orc"
-version = "2026.5.29"
+version = "2026.6.10"
 edition = "2024"
 
 [dependencies]
@@ -9,17 +9,17 @@ clap-style = { path = "../../rust/crates/clap-style" }
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 mischief = { path = "../../rust/crates/mischief" }
 
-clap = { version = "4.6.0", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
 clap-verbosity-flag = "3.0.4"
 dunce = "1.0.5"
-goblin = "0.10.5"
-owo-colors = "4.2.2"
+goblin = "0.10.7"
+owo-colors = "4.3.0"
 path-slash = "0.2.1"
 strum = { version = "0.28", features = ["derive"] }
 
 [dev-dependencies]
-assert_cmd = "2.0"
-insta = { version = "1.46.1", features = ["filters"] }
+assert_cmd = "2.2.2"
+insta = { version = "1.48.0", features = ["filters"] }
 rstest = "0.26.1"
 
 [features]

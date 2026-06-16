@@ -62,8 +62,13 @@ fn command_from_version(
         patch,
     };
     instance.validate().into_mischief()?;
-    if check_installed {
-        instance.check_is_installed()?
+    if check_installed && !instance.installed() {
+        mischief::bail!(
+            "Houdini {}.{}.{} is not installed.",
+            instance.major,
+            instance.minor,
+            instance.patch
+        )
     }
     println!("{}", instance.hfs().to_slash_lossy());
     Ok(())
@@ -74,8 +79,13 @@ fn command_from_version_string(
 ) -> mischief::Result<()> {
     let instance = HoudiniInstance::from_version_string(version_string)?;
     instance.validate().into_mischief()?;
-    if check_installed {
-        instance.check_is_installed()?
+    if check_installed && !instance.installed() {
+        mischief::bail!(
+            "Houdini {}.{}.{} is not installed.",
+            instance.major,
+            instance.minor,
+            instance.patch
+        )
     }
     println!("{}", instance.hfs().to_slash_lossy());
     Ok(())

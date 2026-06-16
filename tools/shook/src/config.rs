@@ -175,7 +175,7 @@ mod tests {
             config_name
         )))
         .unwrap_err()
-        .inner;
+        .error();
         println!("{}", err.description());
         insta::with_settings!({filters => vec![
             (r"\n│\n", "\n")

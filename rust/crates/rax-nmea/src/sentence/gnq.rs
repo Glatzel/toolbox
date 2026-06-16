@@ -29,7 +29,6 @@ impl IDecode<RaxNmeaError> for Gnq {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -38,8 +37,8 @@ mod test {
     fn test_new_gnq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGNQ,RMC*24";
-        let mut parser = Decoder::new();
-        let gnq = Gnq::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gnq = Gnq::decode(&mut decoder)?;
         println!("{gnq:?}");
         insta::assert_json_snapshot!(gnq);
         Ok(())

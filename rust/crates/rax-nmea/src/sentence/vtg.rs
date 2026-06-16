@@ -67,15 +67,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
     #[test]
     fn test_new_vtg() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut parser = Decoder::new();
-        let vtg = Vtg::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let vtg = Vtg::decode(&mut decoder)?;
         println!("{vtg:?}");
         insta::assert_json_snapshot!(vtg);
         Ok(())

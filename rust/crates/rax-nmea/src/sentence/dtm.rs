@@ -68,7 +68,6 @@ impl IDecode<RaxNmeaError> for Dtm {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -77,8 +76,8 @@ mod test {
     fn test_new_dtm() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut parser = Decoder::new();
-        let dtm = Dtm::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let dtm = Dtm::decode(&mut decoder)?;
         println!("{dtm:?}");
         insta::assert_json_snapshot!(dtm);
         Ok(())

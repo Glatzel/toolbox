@@ -58,7 +58,6 @@ impl IDecode<RaxNmeaError> for Gll {
 #[cfg(test)]
 mod test {
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -68,8 +67,8 @@ mod test {
     fn test_new_ggl() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut parser = Decoder::new();
-        let gll = Gll::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gll = Gll::decode(&mut decoder)?;
         println!("{gll:?}");
         insta::assert_json_snapshot!(gll);
         Ok(())

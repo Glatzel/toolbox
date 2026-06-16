@@ -112,7 +112,6 @@ impl fmt::Debug for Grs {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -120,9 +119,9 @@ mod test {
     #[test]
     fn test_grs() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let input = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
-        let mut parser = Decoder::new();
-        let grs = Grs::decode(parser.init(input.to_string()))?;
+        let s = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
+        let mut decoder = Decoder::new(s);
+        let grs = Grs::decode(&mut decoder)?;
         println!("{grs:?}");
         insta::assert_json_snapshot!(grs);
         Ok(())

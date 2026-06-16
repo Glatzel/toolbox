@@ -1,4 +1,4 @@
-use core::fmt::{self, Debug, Display};
+use core::fmt::Debug;
 
 use chrono::NaiveDate;
 use rax::string::IRule;
@@ -6,9 +6,7 @@ use rax::string::IRule;
 use super::UNTIL_COMMA_DISCARD;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDate;
-impl Display for NmeaDate {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
+
 impl IRule for NmeaDate {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
@@ -26,32 +24,32 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                 let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
                     Some(d) => d,
                     None => {
-                        clerk::info!("{}: failed to parse day from '{}'", self, res);
+                        clerk::info!("{:?}: failed to parse day from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let month = match res.get(2..4).and_then(|s| s.parse::<u32>().ok()) {
                     Some(m) => m,
                     None => {
-                        clerk::info!("{}: failed to parse month from '{}'", self, res);
+                        clerk::info!("{:?}: failed to parse month from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let year = match res.get(4..6).and_then(|s| s.parse::<i32>().ok()) {
                     Some(y) => y,
                     None => {
-                        clerk::info!("{}: failed to parse year from '{}'", self, res);
+                        clerk::info!("{:?}: failed to parse year from '{}'", self, res);
                         return (None, rest);
                     }
                 };
                 let dt = match NaiveDate::from_ymd_opt(year + 2000, month, day) {
                     Some(date) => {
-                        clerk::debug!("{}: parsed date: {}", self, date);
+                        clerk::debug!("{:?}: parsed date: {}", self, date);
                         date
                     }
                     None => {
                         clerk::warn!(
-                            "{}: invalid date: y={}, m={}, d={}",
+                            "{:?}: invalid date: y={}, m={}, d={}",
                             self,
                             year + 2000,
                             month,

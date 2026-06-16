@@ -140,7 +140,6 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use super::*;
 
@@ -148,8 +147,8 @@ mod test {
     fn test_gns_parsing1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
-        let mut ctx = Decoder::new();
-        let gns = Gns::decode(ctx.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gns = Gns::decode(&mut decoder)?;
         println!("{gns:?}");
         insta::assert_json_snapshot!(gns);
 
@@ -159,8 +158,8 @@ mod test {
     fn test_gns_parsing2() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
-        let mut parser = Decoder::new();
-        let gns = Gns::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gns = Gns::decode(&mut decoder)?;
         println!("{gns:?}");
         insta::assert_json_snapshot!(gns);
         Ok(())

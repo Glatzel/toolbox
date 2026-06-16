@@ -7,8 +7,7 @@ where
     F: Fn(&mut Decoder) -> Result<D, RaxNmeaError> + 'static,
     D: IDecode<T>,
 {
-    let mut ctx = Decoder::new();
-    ctx.init(sentence.to_string());
+    let mut ctx = Decoder::new(&sentence);
     c.bench_function(name, move |b| {
         b.iter(|| {
             ctx.reset();

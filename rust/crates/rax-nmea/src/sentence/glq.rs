@@ -28,7 +28,6 @@ impl IDecode<RaxNmeaError> for Glq {
 #[cfg(test)]
 mod test {
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
@@ -37,8 +36,8 @@ mod test {
     fn test_new_glq() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$EIGLQ,RMC*26";
-        let mut parser = Decoder::new();
-        let glq = Glq::decode(parser.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let glq = Glq::decode(&mut decoder)?;
         println!("{glq:?}");
         insta::assert_json_snapshot!(glq);
         Ok(())

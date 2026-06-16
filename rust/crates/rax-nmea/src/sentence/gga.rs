@@ -157,7 +157,6 @@ impl IDecode<RaxNmeaError> for Gga {
 mod test {
     extern crate std;
     use std::println;
-    use std::string::ToString;
 
     use clerk::{LevelFilter, init_log_with_level};
 
@@ -167,8 +166,8 @@ mod test {
     fn test_new_gga1() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
-        let mut ctx = Decoder::new();
-        let gga = Gga::decode(ctx.init(s.to_string()))?;
+        let mut decoder = Decoder::new(s);
+        let gga = Gga::decode(&mut decoder)?;
         println!("{gga:?}");
         insta::assert_json_snapshot!(gga);
         Ok(())

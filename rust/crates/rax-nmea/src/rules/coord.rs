@@ -1,5 +1,3 @@
-use core::fmt::{self, Display};
-
 use rax::string::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
@@ -10,9 +8,6 @@ use super::UNTIL_COMMA_DISCARD;
 /// None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaCoord;
-impl Display for NmeaCoord {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
-}
 
 impl IRule for NmeaCoord {}
 impl NmeaCoord {
@@ -37,7 +32,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             (Some(v), Some(_sign @ ("N" | "E"))) => {
                 let result = Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "{}: positive sign '{}', deg={}, min={}, result={}",
+                    "{:?}: positive sign '{}', deg={}, min={}, result={}",
                     self,
                     _sign,
                     (v / 100.0).floor(),
@@ -49,7 +44,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             (Some(v), Some(_sign @ ("S" | "W"))) => {
                 let result = -Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
-                    "{}: negative sign '{}', deg={}, min={}, result={}",
+                    "{:?}: negative sign '{}', deg={}, min={}, result={}",
                     self,
                     _sign,
                     (v / 100.0).floor(),
@@ -59,15 +54,15 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                 (Some(result), rest2)
             }
             (Some(_), Some(_sign)) => {
-                clerk::info!("{}: invalid sign '{}'", self, _sign);
+                clerk::info!("{:?}: invalid sign '{}'", self, _sign);
                 (None, rest2)
             }
             (_, Some("")) => {
-                clerk::info!("{}: Null coord: '{}'", self, input);
+                clerk::info!("{:?}: Null coord: '{}'", self, input);
                 (None, rest2)
             }
             _ => {
-                clerk::warn!("{}: Invalid input: '{}'", self, input);
+                clerk::warn!("{:?}: Invalid input: '{}'", self, input);
                 (None, rest2)
             }
         }

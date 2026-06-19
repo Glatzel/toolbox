@@ -53,7 +53,7 @@ pub fn render_diagnosis<D: IDiagnosis>(
 
     Ok(())
 }
-#[cfg(all(feature = "std", debug_assertions))]
+#[cfg(all(feature = "backtrace", debug_assertions))]
 pub fn render_backtrace(
     backtrace: &backtrace::Backtrace,
     f: &mut core::fmt::Formatter<'_>,

@@ -17,18 +17,24 @@ terminal_size = { workspace = true, optional = true }
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["arbor/default", "fancy", "macros", "std"]
+default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
+backtrace = ["dep:backtrace", "std"]
 fancy = [
   "arbor/textwrap",
   "owo-colors",
+  "std",
   "supports-color",
   "supports-hyperlinks",
   "supports-unicode",
-  "terminal_size",
+  "terminal_size"
 ]
 macros = ["mischief-macros"]
-std = ["backtrace"]
-textwrap-hyphenation = ["arbor/textwrap-hyphenation", "fancy"]
-textwrap-smawk = ["arbor/textwrap-smawk", "fancy"]
-textwrap-unicode-linebreak = ["arbor/textwrap-unicode-linebreak", "fancy"]
-textwrap-unicode-width = ["arbor/textwrap-unicode-width", "fancy"]
+std = []
+textwrap-hyphenation = ["arbor/textwrap-hyphenation", "fancy", "std"]
+textwrap-smawk = ["arbor/textwrap-smawk", "fancy", "std"]
+textwrap-unicode-linebreak = [
+  "arbor/textwrap-unicode-linebreak",
+  "fancy",
+  "std"
+]
+textwrap-unicode-width = ["arbor/textwrap-unicode-width", "fancy", "std"]

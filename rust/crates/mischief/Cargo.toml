@@ -17,7 +17,7 @@ terminal_size = { workspace = true, optional = true }
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["arbor/default", "fancy", "macros", "std"]
+default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
 backtrace = ["dep:backtrace", "std"]
 fancy = [
   "arbor/textwrap",

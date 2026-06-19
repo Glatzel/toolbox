@@ -10,7 +10,7 @@ use crate::render::*;
 pub struct ReportInner {
     error: MischiefError,
 
-    #[cfg(all(feature = "std", debug_assertions))]
+    #[cfg(all(feature = "backtrace", debug_assertions))]
     backtrace: backtrace::Backtrace,
 }
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
@@ -35,13 +35,13 @@ impl Report {
     /// This function wraps the provided diagnosis as the root error
     /// contained by the report.
     pub fn new(error: MischiefError) -> Self {
-        #[cfg(all(feature = "std", debug_assertions))]
+        #[cfg(all(feature = "backtrace", debug_assertions))]
         let backtrace = backtrace::Backtrace::new();
 
         Self(Box::new(ReportInner {
             error,
 
-            #[cfg(all(feature = "std", debug_assertions))]
+            #[cfg(all(feature = "backtrace", debug_assertions))]
             backtrace,
         }))
     }
@@ -59,7 +59,7 @@ impl Report {
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         render_diagnosis(&self.0.error, f)?;
 
-        #[cfg(all(feature = "std", debug_assertions))]
+        #[cfg(all(feature = "backtrace", debug_assertions))]
         render_backtrace(&self.0.backtrace, f)?;
         Ok(())
     }
@@ -102,7 +102,7 @@ where
         Self(Box::new(ReportInner {
             error: convert(&value),
 
-            #[cfg(all(feature = "std", debug_assertions))]
+            #[cfg(all(feature = "backtrace", debug_assertions))]
             backtrace: backtrace::Backtrace::new(),
         }))
     }

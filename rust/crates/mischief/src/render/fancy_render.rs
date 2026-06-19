@@ -369,7 +369,7 @@ pub fn render_diagnosis<D: IDiagnosis>(
     writeln!(f, "{}", bundle)
 }
 
-#[cfg(all(feature = "std", debug_assertions))]
+#[cfg(all(feature = "backtrace", debug_assertions))]
 pub fn render_backtrace(
     backtrace: &backtrace::Backtrace,
     f: &mut fmt::Formatter<'_>,

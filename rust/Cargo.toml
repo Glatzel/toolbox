@@ -37,7 +37,7 @@ terminal_size = "0.4.4"
 textwrap = {
   git = "https://github.com/Glatzel/textwrap.git",
   default-features = false
-}  # if official no_std released, change to official crate
+}                                                                                # if official no_std released, change to official crate
 thiserror = { version = "2.0.18", default-features = false }
 tokio = { version = "1.52.3", default-features = false }
 tokio-util = "0.7.18"

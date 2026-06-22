@@ -27,7 +27,7 @@ def fake_files(fs: FakeFilesystem):
         (r"\d\.txt", "re", 10),
     ],
 )
-def test_glob(fake_files, pattern, mode, count):
+def test_glob(fake_files, pattern, mode, count):  # noqa: ARG001
     txt = trail.glob("a", pattern, mode=mode)
     assert len(list(txt)) == count
 
@@ -39,7 +39,7 @@ def test_glob(fake_files, pattern, mode, count):
         (r"\d\.\w+", "re", 22),
     ],
 )
-def test_rglob(fake_files, pattern, mode, count):
+def test_rglob(fake_files, pattern, mode, count):  # noqa: ARG001
     txt = trail.rglob("a", pattern, mode=mode)
     assert len(list(txt)) == count
 

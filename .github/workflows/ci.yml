@@ -104,32 +104,6 @@ jobs:
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 
-  tools-shook:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.machine }}
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
-
-      - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          working-directory: ./tools/shook
-      - uses: ./.github/actions/rust/cargo-test
-        if: ${{matrix.machine == 'ubuntu-latest'}}
-        with:
-          working-directory: ./tools/shook
-          doc: false
-      - uses: ./.github/actions/common/codecov
-        if: ${{!cancelled() && matrix.machine == 'ubuntu-latest'}}
-
   tools-ttyw:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}

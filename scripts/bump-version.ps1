@@ -21,13 +21,6 @@ Set-Location tools/orc
 cargo update
 Set-Location $PSScriptRoot/..
 
-$cargoTomlPath = "./tools/shook/Cargo.toml"
-(Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
-Write-Host "Updated shook version to $version"
-Set-Location tools/shook
-cargo update
-Set-Location $PSScriptRoot/..
-
 $cargoTomlPath = "./tools/ttyw/Cargo.toml"
 (Get-Content -Path $cargoTomlPath) -replace '^version = .*', "version = `"$version`"" | Set-Content -Path $cargoTomlPath
 Write-Host "Updated ttyw version to $version"

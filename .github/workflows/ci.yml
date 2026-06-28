@@ -107,7 +107,11 @@ jobs:
   tools-shook:
     needs: changed
     if: ${{ needs.changed.outputs.changed-tools-shook != 'false' }}
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.machine }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: ./.github/actions/rust/setup-rust
@@ -119,11 +123,12 @@ jobs:
         with:
           working-directory: ./tools/shook
       - uses: ./.github/actions/rust/cargo-test
+        if: ${{matrix.machine == 'ubuntu-latest'}}
         with:
           working-directory: ./tools/shook
           doc: false
       - uses: ./.github/actions/common/codecov
-        if: ${{!cancelled()}}
+        if: ${{!cancelled() && matrix.machine == 'ubuntu-latest'}}
 
   tools-ttyw:
     needs: changed

@@ -30,7 +30,6 @@ jobs:
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
 
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
-      changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
       changed-tools-ttyw: ${{ steps.main.outputs.tools-ttyw_any_changed }}
       changed-tools-vinaya: ${{ steps.main.outputs.tools-vinaya_any_changed }}
     runs-on: ubuntu-slim
@@ -57,9 +56,6 @@ jobs:
             tools-orc:
               - ./.github/actions/rust/**
               - ./tools/orc/**
-            tools-shook:
-              - ./.github/actions/rust/**
-              - ./tools/shook/**
             tools-ttyw:
               - ./.github/actions/rust/**
               - ./tools/ttyw/**

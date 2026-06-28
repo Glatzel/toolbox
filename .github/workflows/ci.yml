@@ -165,7 +165,6 @@ jobs:
         python-ci,
         rust-ci,
         tools-orc,
-        tools-shook,
         tools-ttyw,
         tools-vinaya,
       ]

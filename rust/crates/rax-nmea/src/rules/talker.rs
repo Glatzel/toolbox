@@ -11,8 +11,10 @@ pub struct NmeaTalker;
 
 impl IRule for NmeaTalker {}
 impl<'a> IGlobalRule<'a> for NmeaTalker {
-    type Output = Result<Talker, RaxNmeaError>;
-    fn apply(&self, input: &'a str) -> Self::Output {
+    type Output = Talker;
+    type Error = RaxNmeaError;
+
+    fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error> {
         let s = input
             .get(1..3)
             .ok_or(RaxNmeaError::InvalidSentenceLength(input.len()))?;

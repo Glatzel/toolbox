@@ -13,7 +13,9 @@ pub struct NmeaValidate;
 impl IRule for NmeaValidate {}
 
 impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
-    type Output = Result<(), RaxNmeaError>;
+    type Output = ();
+    type Error = RaxNmeaError;
+
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
@@ -95,7 +97,9 @@ pub struct NmeaValidateMultiLine;
 impl IRule for NmeaValidateMultiLine {}
 
 impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
-    type Output = Result<(), RaxNmeaError>;
+    type Output = ();
+    type Error = RaxNmeaError;
+
     /// Applies the NmeaValidate rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.

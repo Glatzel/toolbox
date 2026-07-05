@@ -61,7 +61,8 @@ pub trait IStrFlowRule<'a>: IRule {
 pub trait IGlobalRule<'a>: IRule {
     /// Type of the value produced by this rule.
     type Output;
+    type Error;
 
     /// Apply the rule to the full input.
-    fn apply(&self, input: &'a str) -> Self::Output;
+    fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error>;
 }

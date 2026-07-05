@@ -8,8 +8,10 @@ use crate::RaxNmeaError;
 pub struct NmeaGsvLineCount;
 impl IRule for NmeaGsvLineCount {}
 impl<'a> IGlobalRule<'a> for NmeaGsvLineCount {
-    type Output = Result<u8, RaxNmeaError>;
-    fn apply(&self, input: &'a str) -> Self::Output {
+    type Output = u8;
+    type Error = RaxNmeaError;
+
+    fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error> {
         let s = input
             .split(',')
             .nth(1)

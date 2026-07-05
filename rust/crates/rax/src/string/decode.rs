@@ -109,7 +109,7 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> R::Output
+    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, R::Error>
     where
         R: IGlobalRule<'a>,
     {

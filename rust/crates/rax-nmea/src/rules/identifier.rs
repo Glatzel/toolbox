@@ -11,8 +11,10 @@ pub struct NmeaIdentifier;
 
 impl IRule for NmeaIdentifier {}
 impl<'a> IGlobalRule<'a> for NmeaIdentifier {
-    type Output = Result<Identifier, RaxNmeaError>;
-    fn apply(&self, input: &'a str) -> Self::Output {
+    type Output = Identifier;
+    type Error = RaxNmeaError;
+
+    fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error> {
         let s = input
             .get(3..6)
             .ok_or(RaxNmeaError::InvalidSentenceLength(input.len()))?;

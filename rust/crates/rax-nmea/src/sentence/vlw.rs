@@ -5,6 +5,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 ///Poll a standard message (Talker ID GL)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -26,21 +27,15 @@ pub struct Vlw {
 impl IDecode<RaxNmeaError> for Vlw {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let twd = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let wd = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let tgd = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
-        let gd = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
+        let wd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
+        let tgd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
+        let gd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         Ok(Vlw { twd, wd, tgd, gd })
     }
 }

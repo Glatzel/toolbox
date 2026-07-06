@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/rules/degree.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "Missing degree string.",
+    },
+)

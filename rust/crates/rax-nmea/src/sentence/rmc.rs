@@ -5,6 +5,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[doc = "Recommended minimum data"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -40,23 +41,15 @@ pub struct Rmc {
 
 impl IDecode<RaxNmeaError> for Rmc {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let status = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let lat = parser.take(&NmeaCoord);
-        let lon = parser.take(&NmeaCoord);
-        let spd = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let cog = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let date = parser.take(&NmeaDate);
-        let mv = parser.take(&NmeaDegree);
-        let pos_mode = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let status = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let lat = parser.take(&NmeaCoord)?;
+        let lon = parser.take(&NmeaCoord)?;
+        let spd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let cog = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let date = parser.take(&NmeaDate)?;
+        let mv = parser.take(&NmeaDegree)?;
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         Ok(Rmc {
             time,
             status,

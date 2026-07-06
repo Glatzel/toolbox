@@ -1,6 +1,6 @@
 use thiserror::Error;
 extern crate alloc;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use core::fmt::Debug;
 
 use crate::string::{IRule, Verb};
@@ -10,21 +10,21 @@ pub struct RuleError {
     pub reason: String,
 }
 impl RuleError {
-    pub fn to_verb<'a, R: IRule>(self, verb: Verb, input: &'a str) -> VerbError<'a> {
+    pub fn to_verb<R: IRule>(self, verb: Verb, input: &str) -> VerbError {
         VerbError {
             verb,
             rule: R::type_name(),
-            input,
+            input: input.to_string(),
             rule_error: self,
         }
     }
 }
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
 #[error("Verb Error: verb={verb:?}, rule={rule}, input={input}, rule_error={rule_error}")]
-pub struct VerbError<'a> {
+pub struct VerbError {
     pub verb: Verb,
     pub rule: &'static str,
-    pub input: &'a str,
+    pub input: String,
     pub rule_error: RuleError,
 }
 #[derive(Error, Debug, Clone, PartialEq, Eq)]

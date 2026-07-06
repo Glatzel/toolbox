@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/rules/time.rs
+expression: result
+---
+Ok(
+    (
+        None,
+        "foo,bar",
+    ),
+)

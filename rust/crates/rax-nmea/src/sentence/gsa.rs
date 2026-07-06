@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -61,45 +62,37 @@ pub struct Gsa {
 impl IDecode<RaxNmeaError> for Gsa {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
         let nav_mode = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse().ok())
-            {
-                Some(sat_id) => svid.push(sat_id),
-                None => continue,
-            }
+            svid.push(
+                parser
+                    .skip(&UNTIL_COMMA_DISCARD)?
+                    .take(&UNTIL_COMMA_DISCARD)?
+                    .parse()?,
+            );
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
-        let pdop = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let pdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: pdop={:?}", pdop);
 
-        let hdop = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
-        let vdop = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
 
-        let system_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let system_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
         Ok(Gsa {

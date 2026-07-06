@@ -4,6 +4,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[doc = "Poll a standard message (Talker ID GL)"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -18,12 +19,10 @@ pub struct Ths {
 impl IDecode<RaxNmeaError> for Ths {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let headt = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let mi = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
+        let mi = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Ths { headt, mi })
     }

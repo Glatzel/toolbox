@@ -3,6 +3,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 ///Time and date
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
@@ -28,22 +29,12 @@ pub struct Zda {
 
 impl IDecode<RaxNmeaError> for Zda {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let day = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let month = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let year = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let ltzh = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let ltzn = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let day = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let month = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let year = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let ltzh = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let ltzn = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Zda {
             time,

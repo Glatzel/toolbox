@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -79,63 +80,49 @@ impl IDecode<RaxNmeaError> for Gga {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         clerk::debug!("utc_time: {:?}", time);
 
         clerk::debug!("Parsing lat...");
-        let lat = parser.take(&NmeaCoord);
+        let lat = parser.take(&NmeaCoord)?;
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = parser.take(&NmeaCoord);
+        let lon = parser.take(&NmeaCoord)?;
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing quality...");
-        let quality = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let quality = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("quality: {:?}", quality);
 
         clerk::debug!("Parsing satellite_count...");
-        let num_sv = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("satellite_count: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let alt = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Skipping char_comma and char_m for altitude units...");
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing geoid_separation...");
-        let sep = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let sep = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("geoid_separation: {:?}", sep);
 
         clerk::debug!("Skipping char_m for geoid units...");
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
         clerk::debug!("Parsing age_of_differential_gps_data...");
-        let diff_age = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let diff_age = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("age_of_differential_gps_data: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
-        let diff_station = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let diff_station = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         Ok(Gga {

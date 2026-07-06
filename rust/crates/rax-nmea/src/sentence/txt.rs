@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
@@ -39,7 +40,7 @@ impl TryFrom<u8> for TxtType {
 #[derive(Debug, Clone, Getters)]
 pub struct Txt {
     /// Text information
-    message: Vec<(Option<TxtType>, Option<String>)>,
+    message: Vec<(TxtType, String)>,
 }
 
 impl IDecode<RaxNmeaError> for Txt {
@@ -48,16 +49,14 @@ impl IDecode<RaxNmeaError> for Txt {
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
             let txt_type = parser
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse::<u8>().ok())
-                .map(TxtType::try_from)
-                .and_then(Result::ok);
-            let info = parser.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .take(&UNTIL_COMMA_DISCARD)?
+                .parse::<TxtType>()?;
+            let info = parser.take(&UNTIL_STAR_DISCARD)?.to_string();
             infos.push((txt_type, info));
-            parser.skip(&UNTIL_NEW_LINE_DISCARD);
+            parser.skip(&UNTIL_NEW_LINE_DISCARD)?;
         }
 
         Ok(Self { message: infos })

@@ -6,6 +6,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 /// Poll a standard message(Talker ID GB)"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -17,9 +18,9 @@ pub struct Gbq {
 impl IDecode<RaxNmeaError> for Gbq {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_STAR_DISCARD)?
+            .parse_option()?;
 
         Ok(Gbq { msg_id })
     }

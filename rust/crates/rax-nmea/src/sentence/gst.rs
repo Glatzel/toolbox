@@ -5,6 +5,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 ///GNSS pseudorange error statistics
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
@@ -35,28 +36,14 @@ pub struct Gst {
 }
 impl IDecode<RaxNmeaError> for Gst {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let rms = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_major = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_minor = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let orient = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_lat = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_lon = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_alt = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_major = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_minor = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let orient = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_lat = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_lon = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_alt = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Gst {
             time,

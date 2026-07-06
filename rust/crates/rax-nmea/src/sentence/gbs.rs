@@ -4,6 +4,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 /// GNSS satellite fault detection
 ///
@@ -47,34 +48,16 @@ pub struct Gbs {
 
 impl IDecode<RaxNmeaError> for Gbs {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let err_lat = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let err_lon = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let err_alt = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let svid = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let prob = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let bias = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let std_dev = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let system_id = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let signal_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let err_lat = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let err_lon = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let err_alt = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let svid = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let prob = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let bias = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let std_dev = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let system_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Gbs {
             time,

@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 /// Represents a single satellite's data in a GSV sentence.
 #[derive(Debug, Clone, Copy, Getters)]
@@ -45,13 +46,12 @@ impl IDecode<RaxNmeaError> for Gsv {
         clerk::trace!("Gsv::new: line_count={}", line_count);
 
         // The first line contains the talker, number of lines, and number of satellites
-        let satellite_count = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok())
-            .expect("Cannot get the count of satellites.");
+        let satellite_count: usize = parser
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse()?;
         clerk::trace!("Gsv::new: satellite_count={}", satellite_count);
 
         // The last line may have fewer than 4 satellites, so we calculate how many
@@ -71,10 +71,10 @@ impl IDecode<RaxNmeaError> for Gsv {
             satellites.push(Self::parse_satellite(parser, true)?);
             // Skip any extra fields after the 4th satellite in the line
             parser
-                .skip(&UNTIL_COMMA_DISCARD)
-                .skip(&UNTIL_COMMA_DISCARD)
-                .skip(&UNTIL_COMMA_DISCARD)
-                .skip(&UNTIL_COMMA_DISCARD);
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?;
         }
 
         // Parse the last line (may have fewer than 4 satellites)
@@ -84,9 +84,7 @@ impl IDecode<RaxNmeaError> for Gsv {
             }
             satellites.push(Self::parse_satellite(parser, true)?);
         }
-        let signal_id = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let signal_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
 
         Ok(Self {
             satellites,
@@ -98,13 +96,13 @@ impl Gsv {
     /// Helper to parse a single satellite entry.
     /// If `last` is true, the SNR field is terminated by a star.
     fn parse_satellite(ctx: &mut Decoder, last: bool) -> Result<Satellite, RaxNmeaError> {
-        let id = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
-        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
-        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let id = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let snr = if last {
-            ctx.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok())
+            ctx.take(&UNTIL_STAR_DISCARD)?.parse_option()?
         } else {
-            ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok())
+            ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?
         };
         Ok(Satellite {
             svid: id,

@@ -1,0 +1,10 @@
+---
+source: crates/rax-nmea/src/rules/degree.rs
+expression: result
+---
+Ok(
+    (
+        None,
+        "other_data",
+    ),
+)

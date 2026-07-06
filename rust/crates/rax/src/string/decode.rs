@@ -1,4 +1,5 @@
 extern crate alloc;
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use crate::error::VerbError;
@@ -51,25 +52,10 @@ impl<'a> Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
-    /// Attempts to take a value using a flow rule.
-    ///
-    /// Advances the parser's `rest` pointer if the rule matches.
-    pub fn take<R>(&mut self, rule: &R) -> Option<R::Output>
-    where
-        R: IStrFlowRule<'a>,
-    {
-        match rule.apply(self.rest) {
-            Ok((v, rest)) => {
-                self.rest = rest;
-                Some(v)
-            }
-            Err(_) => None,
-        }
-    }
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take_strict<R>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_>>
+    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IStrFlowRule<'a>,
     {
@@ -81,26 +67,16 @@ impl<'a> Decoder<'a> {
             Err(e) => Err(VerbError {
                 verb: Verb::TakeStrict,
                 rule: R::type_name(),
-                input: self.rest,
+                input: self.rest.to_string(),
                 rule_error: e,
             }),
         }
-    }
-    /// Skips input matching a rule, ignoring the output.
-    ///
-    /// Advances the `rest` pointer regardless of match success.
-    pub fn skip<R>(&mut self, rule: &R) -> &mut Self
-    where
-        R: IStrFlowRule<'a>,
-    {
-        self.take(rule);
-        self
     }
 
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn skip_strict<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError<'_>>
+    pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
         R: IStrFlowRule<'a>,
     {
@@ -112,7 +88,7 @@ impl<'a> Decoder<'a> {
             Err(e) => Err(VerbError {
                 verb: Verb::SkipStrict,
                 rule: R::type_name(),
-                input: self.rest,
+                input: self.rest.to_string(),
                 rule_error: e,
             }),
         }
@@ -122,14 +98,14 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_>>
+    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IGlobalRule<'a>,
     {
         rule.apply(self.full).map_err(|e| VerbError {
             verb: Verb::Global,
             rule: R::type_name(),
-            input: self.full,
+            input: self.full.to_string(),
             rule_error: e,
         })
     }

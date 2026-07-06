@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -43,11 +44,9 @@ pub struct Grs {
 }
 impl IDecode<RaxNmeaError> for Grs {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
-        let mode = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!(
             "Grs::new: utc_time={:?}, grs_residual_mode={:?}",
             time,
@@ -56,22 +55,12 @@ impl IDecode<RaxNmeaError> for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse().ok())
-            {
-                Some(r) => residual.push(r),
-                None => continue,
-            }
+            residual.push(parser.take(&UNTIL_COMMA_DISCARD)?.parse()?);
         }
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
-        let system_id = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let signal_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let system_id = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         Ok(Grs {
             time,
             mode,

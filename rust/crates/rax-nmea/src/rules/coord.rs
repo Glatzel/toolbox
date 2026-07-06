@@ -94,6 +94,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
 #[cfg(test)]
 mod tests {
     use clerk::{LevelFilter, init_log_with_level};
+
     use super::*;
     #[rstest::rstest]
     #[case("east", "12319.123,E,rest")]
@@ -103,10 +104,10 @@ mod tests {
     #[case("invalid_sign", "12319.123,X,rest")]
     #[case("invalid_number", "abc123.456,N,foo")]
     #[case("missing_comma", "12319.123Erest")]
+    #[case("empty", ",,bar")]
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let result = rule.apply(input);
+        let result = NmeaCoord.apply(input);
         insta::assert_debug_snapshot!(name, result)
     }
 }

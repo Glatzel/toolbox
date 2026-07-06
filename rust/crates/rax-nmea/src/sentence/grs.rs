@@ -54,9 +54,8 @@ impl IDecode<RaxNmeaError> for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
-                Some(r) => residual.push(r),
-                None => (),
+            if let Some(r)= parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+                residual.push(r)
             }
         }
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);

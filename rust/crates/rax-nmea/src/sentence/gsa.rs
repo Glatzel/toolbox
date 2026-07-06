@@ -70,9 +70,8 @@ impl IDecode<RaxNmeaError> for Gsa {
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
-                Some(id) => svid.push(id),
-                None => (),
+            if let Some(id)=parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+               svid.push(id)          
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);

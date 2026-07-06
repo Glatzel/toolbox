@@ -4,7 +4,8 @@ use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
-use crate::{error::RuleError, string::rules::IRule};
+use crate::error::RuleError;
+use crate::string::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
 ///
@@ -59,10 +60,14 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                     first_char,
                     C
                 );
-                Err(RuleError{reason: "first character does not match.".to_string()})
+                Err(RuleError {
+                    reason: "first character does not match.".to_string(),
+                })
             }
         } else {
-            Err(RuleError{reason: "input is empty.".to_string()})
+            Err(RuleError {
+                reason: "input is empty.".to_string(),
+            })
         }
     }
 }

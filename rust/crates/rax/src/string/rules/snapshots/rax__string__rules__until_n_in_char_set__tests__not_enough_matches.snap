@@ -1,0 +1,7 @@
+---
+source: crates/rax/src/string/rules/until_n_in_char_set.rs
+expression: result
+---
+Err(
+    "fewer than N matches found",
+)

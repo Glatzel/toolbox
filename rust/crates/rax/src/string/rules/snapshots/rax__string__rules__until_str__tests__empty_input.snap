@@ -1,0 +1,7 @@
+---
+source: crates/rax/src/string/rules/until_str.rs
+expression: result
+---
+Err(
+    "no match found",
+)

@@ -23,6 +23,7 @@ impl<const N: usize> IRule for ByteCount<N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     type Output = &'a str;
+    type Error = &'static str;
 
     /// Applies the `ByteCount` rule to the input string.
     ///
@@ -31,12 +32,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    ///
-    /// # Logging
-    ///
-    /// Logs trace messages showing the input and requested byte count,
-    /// and debug messages showing the matched prefix and remaining input.
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
         // Trace input and requested byte count
         clerk::trace!("{:?}: input='{}', byte_count={}", self, input, N);
 
@@ -44,7 +40,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
             Some(out) => {
                 let rest = &input[N..];
                 clerk::debug!("{:?}: matched prefix='{}', rest='{}'", self, out, rest);
-                (Some(out), rest)
+                Ok((out, rest))
             }
             None => {
                 clerk::debug!(
@@ -53,7 +49,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
                     N,
                     input
                 );
-                (None, input)
+                Err("input too short")
             }
         }
     }
@@ -62,65 +58,31 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
 #[cfg(test)]
 mod tests {
     extern crate std;
+    #[cfg(test)]
+    use core::marker::PhantomData;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
 
-    #[test]
-    fn test_count_exact_length() {
+    #[rstest::rstest]
+    #[case("count_exact_length","test", PhantomData::<ByteCount<4>>)]
+    #[case("count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
+    #[case("count_more_than_length","short", PhantomData::<ByteCount<10>>)]
+    #[case("count_zero","abc", PhantomData::<ByteCount<0>>)]
+    #[case("count_empty_input","", PhantomData::<ByteCount<0>>)]
+    #[case("count_non_ascii","你好世界", PhantomData::<ByteCount<2>>)]
+    fn test_byte_count<const N: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<ByteCount<N>>,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<4>;
-        let input = "test";
-        let result = rule.apply(input);
-        assert_eq!(result, (Some("test"), ""));
-    }
-
-    #[test]
-    fn test_count_less_than_length() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<2>;
-        let input = "hello";
-        let result = rule.apply(input);
-        assert_eq!(result, (Some("he"), "llo"));
-    }
-
-    #[test]
-    fn test_count_more_than_length() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<10>;
-        let input = "short";
-        let result = rule.apply(input);
-        assert_eq!(result, (None, "short"));
-    }
-
-    #[test]
-    fn test_count_zero() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<0>;
-        let input = "abc";
-        let result = rule.apply(input);
-        assert_eq!(result, (Some(""), "abc"));
-    }
-
-    #[test]
-    fn test_count_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<0>;
-        let input = "";
-        let result = rule.apply(input);
-        assert_eq!(result, (Some(""), ""));
-    }
-
-    #[test]
-    fn test_count_non_ascii() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = ByteCount::<2>;
-        let input = "你好世界";
-
-        // Each Chinese character is 3 bytes, but .get(..n) is by byte index, not char
-        // index. So Count(2) will get the first 2 bytes, which is not a valid
-        // UTF-8 boundary. This should return None.
-        let result = rule.apply(input);
-        assert_eq!(result, (None, "你好世界"));
+        let result = ByteCount::<N>.apply(input);
+        insta::assert_debug_snapshot!(
+            format!("{}",  name),
+            result
+        );
     }
 }

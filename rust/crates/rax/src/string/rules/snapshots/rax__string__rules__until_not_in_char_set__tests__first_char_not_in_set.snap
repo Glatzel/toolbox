@@ -1,0 +1,10 @@
+---
+source: crates/rax/src/string/rules/until_not_in_char_set.rs
+expression: result
+---
+Ok(
+    (
+        "",
+        "123",
+    ),
+)

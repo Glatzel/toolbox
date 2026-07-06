@@ -38,13 +38,14 @@ impl<const C: char> IRule for UntilChar<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     type Output = &'a str;
+    type Error = &'static str;
 
     /// Applies the `UntilChar` rule to the input string.
     ///
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(&'a str, &'a str), Self::Error> {
         clerk::trace!(
             "{:?} rule: input='{}', char='{}', mode={:?}",
             self,
@@ -64,7 +65,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                             &input[..i],
                             &input[end..]
                         );
-                        return (Some(&input[..i]), &input[end..]);
+                        return Ok((&input[..i], &input[end..]));
                     }
                     UntilMode::KeepLeft => {
                         let end = i + C.len_utf8();
@@ -74,7 +75,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                             &input[..end],
                             &input[end..]
                         );
-                        return (Some(&input[..end]), &input[end..]);
+                        return Ok((&input[..end], &input[end..]));
                     }
                     UntilMode::KeepRight => {
                         clerk::debug!(
@@ -83,101 +84,41 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                             &input[..i],
                             &input[i..]
                         );
-                        return (Some(&input[..i]), &input[i..]);
+                        return Ok((&input[..i], &input[i..]));
                     }
                 }
             }
         }
 
-        (None, input)
+        Err("delimiter not found")
     }
 }
 
 #[cfg(test)]
 mod tests {
+    #[cfg(test)]
+    use core::marker::PhantomData;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
 
-    #[test]
-    fn test_until_basic_not_include() {
+    #[rstest::rstest]
+    #[case("discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
+    #[case("keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
+    #[case("delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    fn test_until_char<const C: char>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<UntilChar<C>>,
+        #[case] mode: UntilMode,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::Discard,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_basic_include() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::KeepLeft,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc;"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_keep_right() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::KeepRight,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, ";def");
-    }
-    #[test]
-    fn test_until_first() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::Discard,
-        };
-        let input = ";abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(""));
-        assert_eq!(rest, "abcdef");
-    }
-    #[test]
-    fn test_until_no_delimiter() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::Discard,
-        };
-        let input = "abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "abcdef");
-    }
-
-    #[test]
-    fn test_until_delimiter_at_start() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::KeepLeft,
-        };
-        let input = ";abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(";"));
-        assert_eq!(rest, "abcdef");
-    }
-
-    #[test]
-    fn test_until_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilChar::<';'> {
-            mode: super::UntilMode::Discard,
-        };
-        let input = "";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "");
+        let result = UntilChar::<C> { mode }.apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

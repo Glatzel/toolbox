@@ -42,8 +42,8 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
-
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    type Error = &'static str;
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
@@ -65,7 +65,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
                         after,
                         N
                     );
-                    return (Some(prefix), rest);
+                    return Ok((prefix, rest));
                 }
             }
         }
@@ -76,102 +76,78 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
             N,
             input
         );
-        (None, input)
+        Err("fewer than N matches found")
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use core::marker::PhantomData;
     use std::str::FromStr;
     extern crate std;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     use crate::string::filters::DIGITS;
 
-    #[test]
-    fn test_until_n_in_char_set_discard() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilNInCharSet::<2, 10> {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "a1b2c3";
-        let (prefix, rest) = rule.apply(input);
-        // Should split before the second digit ('2'), so prefix is "a1b", rest is "2c3"
-        assert_eq!(prefix, Some("a1b"));
-        assert_eq!(rest, "c3");
-    }
+    #[rstest::rstest]
+    #[case(
+        "discard",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<2, _>>,
+        &DIGITS,
+        UntilMode::Discard
+    )]
+    #[case(
+        "keep_left",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<2, _>>,
+        &DIGITS,
+        UntilMode::KeepLeft,
 
-    #[test]
-    fn test_until_n_in_char_set_keep_left() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilNInCharSet::<2, 10> {
-            filter: &DIGITS,
-            mode: UntilMode::KeepLeft,
-        };
-        let input = "a1b2c3";
-        let (prefix, rest) = rule.apply(input);
-        // Should split after the second digit ('2'), so prefix is "a1b2", rest is "c3"
-        assert_eq!(prefix, Some("a1b2"));
-        assert_eq!(rest, "c3");
-    }
+    )]
+    #[case(
+        "keep_right",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<2, _>>,
+        &DIGITS,
+        UntilMode::KeepRight,
 
-    #[test]
-    fn test_until_n_in_char_set_keep_right() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilNInCharSet::<2, 10> {
-            filter: &DIGITS,
-            mode: UntilMode::KeepRight,
-        };
-        let input = "a1b2c3";
-        let (prefix, rest) = rule.apply(input);
-        // Should split before the second digit ('2'), so prefix is "a1b", rest is "2c3"
-        assert_eq!(prefix, Some("a1b"));
-        assert_eq!(rest, "2c3");
-    }
+    )]
+    #[case(
+        "not_enough_matches",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<4, _>>,
+        &DIGITS,
+        UntilMode::Discard,
 
-    #[test]
-    fn test_until_n_in_char_set_not_enough_matches() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilNInCharSet::<4, 10> {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "a1b2c3";
-        let (prefix, rest) = rule.apply(input);
-        // Only 3 digits, so should return None and the original input
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "a1b2c3");
-    }
+    )]
+    #[case(
+        "empty_input",
+        "",
+        PhantomData::<UntilNInCharSet<1, _>>,
+        &DIGITS,
+        UntilMode::Discard,
 
-    #[test]
-    fn test_until_n_in_char_set_empty_input() {
+    )]
+    #[case(
+        "unicode_keep_left",
+        "",
+        PhantomData::<UntilNInCharSet<2, 3>>,
+        &CharSetFilter::from_str("你世好").unwrap(),
+        UntilMode::KeepLeft,
+    )]
+    fn test_until_n_in_char_set<const N: usize, const M: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<UntilNInCharSet<N, M>>,
+        #[case] filter: &CharSetFilter<M>,
+        #[case] mode: UntilMode,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilNInCharSet::<1, 10> {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "");
-    }
-
-    #[test]
-    fn test_until_n_in_char_set_unicode_keep_left() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let filter: CharSetFilter<3> = CharSetFilter::from_str("你世好")?;
-        let rule = UntilNInCharSet::<2, 3> {
-            filter: &filter,
-            mode: UntilMode::KeepLeft,
-        };
-        let input = "你好世界";
-        let (prefix, rest) = rule.apply(input);
-        // Should split after the second match ('世'), so prefix is "你好世", rest is
-        // "界"
-        assert_eq!(prefix, Some("你好"));
-        assert_eq!(rest, "世界");
-        Ok(())
+        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

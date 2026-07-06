@@ -111,7 +111,6 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
         for line in input.split_inclusive("\n") {
             validator.apply(line)?;
         }
-
         Ok(())
     }
 }

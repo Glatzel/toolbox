@@ -1,0 +1,7 @@
+---
+source: crates/rax/src/string/rules/char.rs
+expression: result
+---
+Err(
+    "input is empty.",
+)

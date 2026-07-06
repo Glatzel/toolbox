@@ -1,0 +1,10 @@
+---
+source: crates/rax/src/string/rules/n_in_charset.rs
+expression: result
+---
+Ok(
+    (
+        "你好",
+        "世界",
+    ),
+)

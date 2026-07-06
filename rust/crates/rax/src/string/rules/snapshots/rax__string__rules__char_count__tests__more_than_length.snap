@@ -1,0 +1,7 @@
+---
+source: crates/rax/src/string/rules/char_count.rs
+expression: result
+---
+Err(
+    "not enough chars in input",
+)

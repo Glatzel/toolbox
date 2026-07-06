@@ -12,7 +12,7 @@ pub struct NmeaIdentifier;
 impl IRule for NmeaIdentifier {}
 impl<'a> IGlobalRule<'a> for NmeaIdentifier {
     type Output = Identifier;
-    type Error = RaxNmeaError;
+
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error> {
         let s = input

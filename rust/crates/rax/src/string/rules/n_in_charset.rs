@@ -28,6 +28,7 @@ impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
     type Output = &'a str;
+    type Error = &'static str;
 
     /// Applies the `NInCharSet` rule to the input string.
     ///
@@ -42,7 +43,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
         let mut count = 0;
         for (i, c) in input.char_indices() {
             if self.0.filter(&c) {
@@ -52,7 +53,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     let matched = &input[..end_idx];
                     let rest = &input[end_idx..];
                     clerk::debug!("{:?} matched: '{}', rest='{}'", self, matched, rest);
-                    return (Some(matched), rest);
+                    return Ok((matched, rest));
                 }
             } else {
                 clerk::debug!(
@@ -61,76 +62,42 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     c,
                     i
                 );
-                return (None, input);
+                return Err("char not in set");
             }
         }
-
         clerk::debug!(
             "{:?} did not match: input too short or not enough chars in set",
             self
         );
-        (None, input)
+        Err("input too short or not enough chars in set")
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use core::marker::PhantomData;
     use std::str::FromStr;
     extern crate std;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
-
-    #[test]
-    fn test_n_in_charset_match() {
+    #[rstest::rstest]
+    #[case("match","abc123", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("no_match","12abc", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
+    #[case("too_short","ab", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("empty_input","", PhantomData::<NInCharSet<1,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("unicode","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::from_str("你好").unwrap())]
+    fn test_n_in_charset<const N: usize, const M: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<NInCharSet<N, M>>,
+        #[case] charset: &CharSetFilter<M>,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = NInCharSet::<3, 62>(&ASCII_LETTERS_DIGITS);
-        let input = "abc123";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, Some("abc"));
-        assert_eq!(rest, "123");
-    }
-
-    #[test]
-    fn test_n_in_charset_no_match() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NInCharSet::<3, 10>(&DIGITS);
-        let input = "12abc";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, None);
-        assert_eq!(rest, "12abc");
-    }
-
-    #[test]
-    fn test_n_in_charset_too_short() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NInCharSet::<4, 62>(&ASCII_LETTERS_DIGITS);
-        let input = "ab";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, None);
-        assert_eq!(rest, "ab");
-    }
-
-    #[test]
-    fn test_n_in_charset_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NInCharSet::<1, 62>(&ASCII_LETTERS_DIGITS);
-        let input = "";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, None);
-        assert_eq!(rest, "");
-    }
-
-    #[test]
-    fn test_n_in_charset_unicode() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let filter: CharSetFilter<2> = CharSetFilter::from_str("你好")?;
-        let rule = NInCharSet::<2, 2>(&filter);
-        let input = "你好世界";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, Some("你好"));
-        assert_eq!(rest, "世界");
-        Ok(())
+        let result = NInCharSet::<N, M>(charset).apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

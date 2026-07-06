@@ -1197,7 +1197,9 @@ version = "2026.6.10"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
+ "insta",
  "mischief",
+ "rstest",
  "strum",
  "thiserror",
 ]

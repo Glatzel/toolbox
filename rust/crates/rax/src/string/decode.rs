@@ -1,8 +1,16 @@
 extern crate alloc;
-use alloc::string::ToString;
+use core::fmt::Debug;
 
-use crate::RaxError;
+use crate::error::VerbError;
 use crate::string::{IGlobalRule, IStrFlowRule};
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Verb {
+    Take,
+    TakeStrict,
+    Skip,
+    SkipStrict,
+    Global,
+}
 pub trait IDecode<E>: Sized {
     fn decode(parser: &mut Decoder) -> Result<Self, E>;
 }
@@ -51,33 +59,34 @@ impl<'a> Decoder<'a> {
         R: IStrFlowRule<'a>,
     {
         match rule.apply(self.rest) {
-            (Some(result), rest) => {
+            Ok((v, rest)) => {
                 self.rest = rest;
-                Some(result)
+                Some(v)
             }
-            (None, rest) => {
-                self.rest = rest;
-                None
-            }
+            Err(_) => None,
         }
     }
-
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take_strict<R>(&mut self, rule: &'a R) -> Result<R::Output, RaxError>
+    pub fn take_strict<R, E>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_, E>>
     where
-        R: IStrFlowRule<'a>,
+        R: IStrFlowRule<'a, Error = E>,
+        E: Debug,
     {
-        match self.take(rule) {
-            Some(s) => Ok(s),
-            None => Err(RaxError::VerbError {
-                verb: "TakeStrict".to_string(),
-                rule: core::any::type_name::<R>(),
+        match rule.apply(self.rest) {
+            Ok((v, rest)) => {
+                self.rest = rest;
+                Ok(v)
+            }
+            Err(e) => Err(VerbError {
+                verb: Verb::TakeStrict,
+                rule: R::type_name(),
+                input: self.rest,
+                extra: e,
             }),
         }
     }
-
     /// Skips input matching a rule, ignoring the output.
     ///
     /// Advances the `rest` pointer regardless of match success.
@@ -92,15 +101,21 @@ impl<'a> Decoder<'a> {
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn skip_strict<R>(&mut self, rule: &'a R) -> Result<&mut Self, RaxError>
+    pub fn skip_strict<R, E>(&mut self, rule: &R) -> Result<&mut Self, VerbError<'_, E>>
     where
-        R: IStrFlowRule<'a>,
+        R: IStrFlowRule<'a, Error = E>,
+        E: Debug,
     {
-        match self.take_strict(rule) {
-            Ok(_) => Ok(self),
-            Err(_) => Err(RaxError::VerbError {
-                verb: "SkipStrict".to_string(),
-                rule: core::any::type_name::<R>(),
+        match rule.apply(self.rest) {
+            Ok((_, rest)) => {
+                self.rest = rest;
+                Ok(self)
+            }
+            Err(e) => Err(VerbError {
+                verb: Verb::SkipStrict,
+                rule: R::type_name(),
+                input: self.rest,
+                extra: e,
             }),
         }
     }
@@ -109,11 +124,17 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, R::Error>
+    pub fn global<R, E>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_, E>>
     where
-        R: IGlobalRule<'a>,
+        R: IGlobalRule<'a, Error = E>,
+        E: Debug,
     {
-        rule.apply(self.full)
+        rule.apply(self.full).map_err(|e| VerbError {
+            verb: Verb::Global,
+            rule: R::type_name(),
+            input: self.full,
+            extra: e,
+        })
     }
 }
 impl<'a> Decoder<'a> {

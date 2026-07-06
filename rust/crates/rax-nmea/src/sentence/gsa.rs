@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
@@ -35,7 +34,7 @@ pub enum GsaNavigationMode {
 
 ///GNSS DOP and active satellites
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gsa {
     /// Operation mode
     op_mode: Option<GsaOperationMode>,
@@ -66,20 +65,15 @@ impl IDecode<RaxNmeaError> for Gsa {
             .take(&UNTIL_COMMA_DISCARD)?
             .parse_option()?;
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
-        let nav_mode = parser
-            .skip(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)?
-            .parse_option()?;
+        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            svid.push(
-                parser
-                    .skip(&UNTIL_COMMA_DISCARD)?
-                    .take(&UNTIL_COMMA_DISCARD)?
-                    .parse()?,
-            );
+            match parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+                Some(id) => svid.push(id),
+                None => (),
+            }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
@@ -89,9 +83,11 @@ impl IDecode<RaxNmeaError> for Gsa {
         let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
-        let vdop = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let vdop = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
-
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         let system_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
@@ -104,36 +100,6 @@ impl IDecode<RaxNmeaError> for Gsa {
             vdop,
             system_id,
         })
-    }
-}
-
-impl fmt::Debug for Gsa {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GSA");
-
-        if let Some(op_mode) = self.op_mode {
-            ds.field("op_mode", &op_mode);
-        }
-        if let Some(nav_mode) = self.nav_mode {
-            ds.field("nav_mode", &nav_mode);
-        }
-        if !self.svid.is_empty() {
-            ds.field("svid", &self.svid);
-        }
-        if let Some(pdop) = self.pdop {
-            ds.field("svid", &pdop);
-        }
-        if let Some(hdop) = self.hdop {
-            ds.field("hdop", &hdop);
-        }
-        if let Some(vdop) = self.vdop {
-            ds.field("vdop", &vdop);
-        }
-        if let Some(system_id) = self.system_id {
-            ds.field("system_id", &system_id);
-        }
-
-        ds.finish()
     }
 }
 

@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
@@ -60,13 +59,11 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
         }
 
         clerk::debug!(
-            "{:?}: all characters in set, returning None, input='{}'",
+            "{:?}: all characters in set, returning input, input='{}'",
             self,
             input
         );
-        Err(RuleError {
-            reason: "no match found".to_string(),
-        })
+        return Ok((input, ""));
     }
 }
 

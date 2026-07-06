@@ -13,26 +13,14 @@ use crate::rules::*;
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
-    #[strum(serialize = "Error", serialize = "0")]
+    #[strum(serialize = "Error", serialize = "00")]
     Error = 0,
-    #[strum(serialize = "Warn", serialize = "1")]
+    #[strum(serialize = "Warn", serialize = "01")]
     Warn = 1,
-    #[strum(serialize = "Info", serialize = "2")]
+    #[strum(serialize = "Info", serialize = "02")]
     Info = 2,
-    #[strum(serialize = "User", serialize = "7")]
+    #[strum(serialize = "User", serialize = "07")]
     User = 7,
-}
-impl TryFrom<u8> for TxtType {
-    type Error = RaxNmeaError;
-    fn try_from(s: u8) -> Result<Self, RaxNmeaError> {
-        match s {
-            0 => Ok(Self::Error),
-            1 => Ok(Self::Warn),
-            2 => Ok(Self::Info),
-            7 => Ok(Self::User),
-            other => Err(RaxNmeaError::UnknownTxtType(other)),
-        }
-    }
 }
 
 ///Text transmission
@@ -54,9 +42,11 @@ impl IDecode<RaxNmeaError> for Txt {
                 .skip(&UNTIL_COMMA_DISCARD)?
                 .take(&UNTIL_COMMA_DISCARD)?
                 .parse::<TxtType>()?;
+            clerk::debug!("txt_type: {:?}", txt_type);
             let info = parser.take(&UNTIL_STAR_DISCARD)?.to_string();
+            clerk::debug!("info: {:?}", info);
             infos.push((txt_type, info));
-            parser.skip(&UNTIL_NEW_LINE_DISCARD)?;
+            let _ = parser.skip(&UNTIL_NEW_LINE_DISCARD);
         }
 
         Ok(Self { message: infos })

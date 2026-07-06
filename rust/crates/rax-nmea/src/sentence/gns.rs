@@ -57,23 +57,23 @@ pub struct Gns {
 }
 
 impl IDecode<RaxNmeaError> for Gns {
-    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::decode: sentence='{}'", ctx.full_str());
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
-        let time = ctx.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         clerk::debug!("utc_time: {:?}", time);
 
         clerk::debug!("Parsing lat...");
-        let lat = ctx.take(&NmeaCoord)?;
+        let lat = parser.take(&NmeaCoord)?;
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = ctx.take(&NmeaCoord)?;
+        let lon = parser.take(&NmeaCoord)?;
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing mode...");
-        let mode_str = ctx.take(&UNTIL_COMMA_DISCARD)?;
+        let mode_str = parser.take(&UNTIL_COMMA_DISCARD)?;
         let pos_mode = mode_str
             .char_indices()
             .filter_map(|(_, c)| FaaMode::try_from(&c).ok())
@@ -81,33 +81,37 @@ impl IDecode<RaxNmeaError> for Gns {
         clerk::debug!("mode: {:?}", pos_mode);
 
         clerk::debug!("Parsing satellites...");
-        let num_sv = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("satellites: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let alt = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Parsing goeidal_separation...");
-        let sep = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let sep = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("goeidal_separation: {:?}", sep);
 
         clerk::debug!("Parsing differential_data_age...");
-        let diff_age = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let diff_age = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("differential_data_age: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
 
-        let diff_station = ctx.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        let diff_station = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
 
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         clerk::debug!("Parsing navigational_status...");
-        let nav_status = ctx.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
+        let nav_status = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::debug!("navigational_status: {:?}", nav_status);
 
         Ok(Gns {

@@ -1,5 +1,3 @@
-use core::fmt;
-
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
@@ -8,7 +6,7 @@ use crate::rules::*;
 use crate::utils::ParseOptionPrimitive;
 ///GNSS pseudorange error statistics
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gst {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
@@ -55,39 +53,6 @@ impl IDecode<RaxNmeaError> for Gst {
             std_lon,
             std_alt,
         })
-    }
-}
-
-impl fmt::Debug for Gst {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GST");
-
-        if let Some(ref time) = self.time {
-            ds.field("time", time);
-        }
-        if let Some(rms) = self.rms {
-            ds.field("rms", &rms);
-        }
-        if let Some(std_major) = self.std_major {
-            ds.field("std_major", &std_major);
-        }
-        if let Some(std_minor) = self.std_minor {
-            ds.field("std_minor", &std_minor);
-        }
-        if let Some(orient) = self.orient {
-            ds.field("orient", &orient);
-        }
-        if let Some(std_lat) = self.std_lat {
-            ds.field("std_lat", &std_lat);
-        }
-        if let Some(std_lon) = self.std_lon {
-            ds.field("std_lon", &std_lon);
-        }
-        if let Some(std_alt) = self.std_alt {
-            ds.field("std_alt", &std_alt);
-        }
-
-        ds.finish()
     }
 }
 

@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
@@ -25,7 +24,7 @@ pub enum GrsResidualMode {
 
 /// GNSS range residuals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Grs {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
@@ -55,11 +54,17 @@ impl IDecode<RaxNmeaError> for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            residual.push(parser.take(&UNTIL_COMMA_DISCARD)?.parse()?);
+            match parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+                Some(r) => residual.push(r),
+                None => (),
+            }
         }
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
-        let system_id = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let system_id = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         Ok(Grs {
             time,
@@ -68,32 +73,6 @@ impl IDecode<RaxNmeaError> for Grs {
             system_id,
             signal_id,
         })
-    }
-}
-
-impl fmt::Debug for Grs {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GSA");
-
-        if let Some(time) = self.time {
-            ds.field("time", &time);
-        }
-
-        if let Some(mode) = self.mode {
-            ds.field("mode", &mode);
-        }
-
-        ds.field("residual", &self.residual);
-
-        if let Some(system_id) = self.system_id {
-            ds.field("system_id", &system_id);
-        }
-
-        if let Some(signal_id) = self.signal_id {
-            ds.field("signal_id", &signal_id);
-        }
-
-        ds.finish()
     }
 }
 

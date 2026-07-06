@@ -19,5 +19,5 @@ expression: gsa
   "pdop": 1.0,
   "hdop": 0.7,
   "vdop": 0.7,
-  "system_id": null
+  "system_id": "GPS"
 }

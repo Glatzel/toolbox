@@ -64,19 +64,20 @@ impl IDecode<RaxNmeaError> for Gsv {
 
         let mut satellites = Vec::with_capacity(satellite_count);
         // Parse all but the last line (each has 4 satellites)
-        for _ in 0..line_count - 1 {
+        for _i in 0..line_count - 1 {
+            clerk::info!("line{} begin", _i);
             for _ in 0..3 {
                 satellites.push(Self::parse_satellite(parser, false)?);
             }
             satellites.push(Self::parse_satellite(parser, true)?);
+            clerk::info!("line{} end", _i);
             // Skip any extra fields after the 4th satellite in the line
             parser
                 .skip(&UNTIL_COMMA_DISCARD)?
                 .skip(&UNTIL_COMMA_DISCARD)?
-                .skip(&UNTIL_COMMA_DISCARD)?
                 .skip(&UNTIL_COMMA_DISCARD)?;
         }
-
+        clerk::info!("last line");
         // Parse the last line (may have fewer than 4 satellites)
         if last_line_satellite_count != 0 {
             for _ in 0..(last_line_satellite_count - 1) {
@@ -84,7 +85,8 @@ impl IDecode<RaxNmeaError> for Gsv {
             }
             satellites.push(Self::parse_satellite(parser, true)?);
         }
-        let signal_id = parser.take(&UNTIL_COMMA_OR_STAR_DISCARD)?.parse_option()?;
+        clerk::debug!("rest: {}", parser.rest_str());
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Self {
             satellites,
@@ -100,7 +102,9 @@ impl Gsv {
         let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let snr = if last {
-            ctx.take(&UNTIL_STAR_DISCARD)?.parse_option()?
+            let snr = ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+            let _ = ctx.skip(&UNTIL_COMMA_DISCARD);
+            snr
         } else {
             ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?
         };
@@ -122,7 +126,7 @@ mod test {
     use super::*;
     extern crate std;
     #[test]
-    fn test_new_gsv() -> mischief::Result<()> {
+    fn test_new_gsv_10() -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
         let s = "$GPGSV,3,1,10,25,68,053,47,21,59,306,49,29,56,161,49,31,36,265,49*79\r\n$GPGSV,3,2,10,12,29,048,49,05,22,123,49,18,13,000,49,01,00,000,49*72\r\n$GPGSV,3,3,10,14,00,000,03,16,00,000,27*7C";
         let mut decoder = Decoder::new(s);

@@ -63,7 +63,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
             self,
             input
         );
-        return Ok((input, ""));
+        Ok((input, ""))
     }
 }
 

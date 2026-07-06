@@ -1,4 +1,9 @@
+extern crate alloc;
+use alloc::format;
+use alloc::string::ToString;
+
 use chrono::NaiveTime;
+use rax::error::RuleError;
 use rax::string::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
@@ -8,19 +13,25 @@ fn parse_field(
     label: &str,
     parser: &impl core::fmt::Debug,
     input: &str,
-) -> Result<u32, ()> {
+) -> Result<u32, RuleError> {
     let s = res.get(range).ok_or_else(|| {
-        clerk::warn!("{:?}: missing {}, input='{:?}'", parser, label, input);
+        clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
+        RuleError {
+            reason: format!("Missing {} field.", label),
+        }
     })?;
 
     s.parse::<u32>().map_err(|_| {
-        clerk::warn!(
+        clerk::error!(
             "{:?}: failed to parse {}, value='{}', input={:?}",
             parser,
             label,
             s,
             input
         );
+        RuleError {
+            reason: format!("Failed to parse {} field.", label),
+        }
     })
 }
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
@@ -33,22 +44,25 @@ pub struct NmeaTime;
 impl IRule for NmeaTime {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
-    type Output = NaiveTime;
+    type Output = Option<NaiveTime>;
     /// Applies the NmeaUtc rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> (Option<NaiveTime>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Option<NaiveTime>, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let (res, rest) = UNTIL_COMMA_DISCARD.apply(input);
-        let res = match res {
-            Some("") | None => {
-                clerk::info!("{:?}: got empty string.", self,);
-                return (None, rest);
+        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input) {
+            Ok(result) => result,
+            Err(_) => {
+                return Err(RuleError {
+                    reason: "Missing time string.".to_string(),
+                });
             }
-            Some(res) => res,
         };
+        if res.is_empty() {
+            return Ok((None, rest));
+        }
 
         let nanos = match res.get(7..) {
             Some(frac) => {
@@ -56,28 +70,19 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                 match frac.parse::<u64>() {
                     Ok(frac) => frac * 1_000_000_000 / 10_u64.pow(digits),
                     Err(_) => {
-                        clerk::warn!("Can not parse nano:{}", frac);
-                        return (None, rest);
+                        clerk::error!("Can not parse nano:{}", frac);
+                        return Err(RuleError {
+                            reason: "Failed to parse nano field.".to_string(),
+                        });
                     }
                 }
             }
             None => 0,
         };
 
-        let hour = match parse_field(res, 0..2, "hour", self, input) {
-            Ok(v) => v,
-            Err(_) => return (None, rest),
-        };
-
-        let min = match parse_field(res, 2..4, "minute", self, input) {
-            Ok(v) => v,
-            Err(_) => return (None, rest),
-        };
-
-        let sec = match parse_field(res, 4..6, "second", self, input) {
-            Ok(v) => v,
-            Err(_) => return (None, rest),
-        };
+        let hour = parse_field(res, 0..2, "hour", self, input)?;
+        let min = parse_field(res, 2..4, "minute", self, input)?;
+        let sec = parse_field(res, 4..6, "second", self, input)?;
 
         clerk::debug!(
             "{:?}: parsed hour={}, min={}, sec={}, nanos={}",
@@ -91,10 +96,10 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
                 clerk::debug!("{:?}: parsed time: {}", self, t);
-                (Some(t), rest)
+                Ok((Some(t), rest))
             }
             None => {
-                clerk::warn!(
+                clerk::error!(
                     "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
                     self,
                     hour,
@@ -102,7 +107,12 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                     sec,
                     nanos
                 );
-                (None, rest)
+                Err(RuleError {
+                    reason: format!(
+                        "invalid time: hour={}, min={}, sec={}, nanos={}",
+                        hour, min, sec, nanos
+                    ),
+                })
             }
         }
     }
@@ -110,82 +120,21 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Timelike;
     use clerk::{LevelFilter, init_log_with_level};
     use rax::string::IStrFlowRule;
 
     use super::*;
-
-    #[test]
-    fn test_nmea_utc_valid() {
+    #[rstest::rstest]
+    #[case("valid", "123456.789,foo,bar")]
+    #[case("no_fraction", "235959,foo,bar")]
+    #[case("invalid_hour", "xx0000,foo,bar")]
+    #[case("invalid_minute", "12xx00,foo,bar")]
+    #[case("invalid_second", "1236xx,foo,bar")]
+    #[case("empty", ",foo,bar")]
+    #[case("no_comma", "123456")]
+    fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("123456.789,foo,bar");
-        let dt = dt.expect("Should parse valid UTC time");
-        assert_eq!(dt.hour(), 12);
-        assert_eq!(dt.minute(), 34);
-        assert_eq!(dt.second(), 56);
-        assert_eq!(dt.nanosecond(), 789_000_000);
-
-        assert_eq!(rest, "foo,bar");
-    }
-
-    #[test]
-    fn test_nmea_utc_no_fraction() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("235959,rest");
-        let dt = dt.expect("Should parse valid time");
-        assert_eq!(dt.hour(), 23);
-        assert_eq!(dt.minute(), 59);
-        assert_eq!(dt.second(), 59);
-        assert_eq!(dt.nanosecond(), 0);
-
-        assert_eq!(rest, "rest");
-    }
-
-    #[test]
-    fn test_nmea_utc_invalid_hour() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("xx3456,foo");
-        assert!(dt.is_none());
-        assert_eq!(rest, "foo");
-    }
-
-    #[test]
-    fn test_nmea_utc_invalid_minute() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("12xx56,foo");
-        assert!(dt.is_none());
-        assert_eq!(rest, "foo");
-    }
-
-    #[test]
-    fn test_nmea_utc_invalid_second() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("1234xx,foo");
-        assert!(dt.is_none());
-        assert_eq!(rest, "foo");
-    }
-
-    #[test]
-    fn test_nmea_utc_empty() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply(",foo");
-        assert!(dt.is_none());
-        assert_eq!(rest, "foo");
-    }
-
-    #[test]
-    fn test_nmea_utc_no_comma() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaTime;
-        let (dt, rest) = rule.apply("123456");
-        assert!(dt.is_none());
-        assert_eq!(rest, "123456");
+        let result = NmeaTime.apply(input);
+        insta::assert_debug_snapshot!(name, result)
     }
 }

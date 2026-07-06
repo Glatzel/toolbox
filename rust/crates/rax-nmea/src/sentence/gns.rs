@@ -89,23 +89,31 @@ impl IDecode<RaxNmeaError> for Gns {
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let alt = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Parsing goeidal_separation...");
-        let sep = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let sep = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("goeidal_separation: {:?}", sep);
 
         clerk::debug!("Parsing differential_data_age...");
-        let diff_age = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let diff_age = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("differential_data_age: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
 
-        let diff_station = parser.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
+        let diff_station = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
 
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);

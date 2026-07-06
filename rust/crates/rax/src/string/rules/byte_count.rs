@@ -49,7 +49,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
                     N,
                     input
                 );
-                Err("input too short")
+                Err("input too short or invalid UTF-8 boundary.")
             }
         }
     }
@@ -72,7 +72,8 @@ mod tests {
     #[case("count_more_than_length","short", PhantomData::<ByteCount<10>>)]
     #[case("count_zero","abc", PhantomData::<ByteCount<0>>)]
     #[case("count_empty_input","", PhantomData::<ByteCount<0>>)]
-    #[case("count_non_ascii","你好世界", PhantomData::<ByteCount<2>>)]
+    #[case("valid_utf8_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
+    #[case("invalid_utf8_boundary","你好世界", PhantomData::<ByteCount<2>>)]
     fn test_byte_count<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,
@@ -80,9 +81,6 @@ mod tests {
     ) {
         init_log_with_level(LevelFilter::TRACE);
         let result = ByteCount::<N>.apply(input);
-        insta::assert_debug_snapshot!(
-            format!("{}",  name),
-            result
-        );
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -107,7 +107,7 @@ mod tests {
     #[rstest::rstest]
     #[case("discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     #[case("keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
-    #[case("keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
+    #[case("keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepRight)]
     #[case("delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     #[case("no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     #[case("empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]

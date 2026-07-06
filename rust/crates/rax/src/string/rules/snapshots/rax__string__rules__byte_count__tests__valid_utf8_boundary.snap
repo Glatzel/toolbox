@@ -2,6 +2,9 @@
 source: crates/rax/src/string/rules/byte_count.rs
 expression: result
 ---
-Err(
-    "input too short",
+Ok(
+    (
+        "你",
+        "好世界",
+    ),
 )

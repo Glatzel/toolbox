@@ -54,7 +54,7 @@ impl IDecode<RaxNmeaError> for Grs {
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..12 {
-            if let Some(r)= parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+            if let Some(r) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
                 residual.push(r)
             }
         }

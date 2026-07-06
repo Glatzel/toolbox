@@ -83,9 +83,9 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             N,
             length
         );
-        return Err(RuleError {
+        Err(RuleError {
             reason: "not enough chars in input".to_string(),
-        });
+        })
     }
 }
 

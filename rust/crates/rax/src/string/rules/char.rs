@@ -1,7 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
-use crate::string::rules::IRule;
+use crate::{error::RuleError, string::rules::IRule};
 
 /// Rule that matches a specific character at the start of the input string.
 ///
@@ -19,7 +22,6 @@ impl<const C: char> IRule for Char<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     type Output = char;
-    type Error = &'static str;
 
     /// Applies the `Char` rule to the input string.
     ///
@@ -34,7 +36,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{}', expected='{}'", self, input, C);
 
         let mut chars = input.char_indices();
@@ -57,10 +59,10 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                     first_char,
                     C
                 );
-                Err("first character does not match.")
+                Err(RuleError{reason: "first character does not match.".to_string()})
             }
         } else {
-            Err("input is empty.")
+            Err(RuleError{reason: "input is empty.".to_string()})
         }
     }
 }

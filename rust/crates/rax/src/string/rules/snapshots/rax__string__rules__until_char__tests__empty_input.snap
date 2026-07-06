@@ -3,5 +3,7 @@ source: crates/rax/src/string/rules/until_char.rs
 expression: result
 ---
 Err(
-    "delimiter not found",
+    RuleError {
+        reason: "delimiter not found",
+    },
 )

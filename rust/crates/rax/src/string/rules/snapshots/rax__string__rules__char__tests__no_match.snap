@@ -3,5 +3,7 @@ source: crates/rax/src/string/rules/char.rs
 expression: result
 ---
 Err(
-    "first character does not match.",
+    RuleError {
+        reason: "first character does not match.",
+    },
 )

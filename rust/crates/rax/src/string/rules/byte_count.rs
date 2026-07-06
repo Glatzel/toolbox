@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of bytes from the input string.
@@ -23,7 +27,6 @@ impl<const N: usize> IRule for ByteCount<N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     type Output = &'a str;
-    type Error = &'static str;
 
     /// Applies the `ByteCount` rule to the input string.
     ///
@@ -32,7 +35,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         // Trace input and requested byte count
         clerk::trace!("{:?}: input='{}', byte_count={}", self, input, N);
 
@@ -49,7 +52,9 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
                     N,
                     input
                 );
-                Err("input too short or invalid UTF-8 boundary.")
+                Err(RuleError {
+                    reason: "input too short or invalid UTF-8 boundary.".to_string(),
+                })
             }
         }
     }

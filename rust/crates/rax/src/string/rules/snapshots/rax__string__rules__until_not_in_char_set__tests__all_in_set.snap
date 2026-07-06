@@ -3,5 +3,7 @@ source: crates/rax/src/string/rules/until_not_in_char_set.rs
 expression: result
 ---
 Err(
-    "no match found",
+    RuleError {
+        reason: "no match found",
+    },
 )

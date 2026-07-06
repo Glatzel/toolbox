@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 
@@ -26,7 +30,6 @@ impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-    type Error = &'static str;
 
     /// Applies the `OneOfCharSet` rule to the input string.
     ///
@@ -41,7 +44,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     ///
     /// - Trace-level logs show the input string.
     /// - Debug-level logs indicate matches or mismatches.
-    fn apply(&self, input: &'a str) -> Result<(char, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(char, &'a str), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
 
         if let Some((_, c)) = input.char_indices().next() {
@@ -51,10 +54,14 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 Ok((c, &input[next_i..]))
             } else {
                 clerk::debug!("OneOfCharSet did not match: found '{}', not in set", c);
-                Err("character not in set")
+                Err(RuleError {
+                    reason: "character not in set".to_string(),
+                })
             }
         } else {
-            Err("empty input")
+            Err(RuleError {
+                reason: "empty input".to_string(),
+            })
         }
     }
 }

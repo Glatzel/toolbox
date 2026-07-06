@@ -1,8 +1,11 @@
+extern crate alloc;
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
-
 /// Rule that extracts a prefix from the input string until the N-th character
 /// matching a given character set is reached.
 ///
@@ -42,8 +45,8 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
-    type Error = &'static str;
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
@@ -76,7 +79,9 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
             N,
             input
         );
-        Err("fewer than N matches found")
+        Err(RuleError {
+            reason: "fewer than N matches found".to_string(),
+        })
     }
 }
 

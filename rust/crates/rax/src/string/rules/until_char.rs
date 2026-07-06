@@ -1,7 +1,11 @@
+extern crate alloc;
+
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::rules::UntilMode;
-
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
 ///
@@ -38,14 +42,13 @@ impl<const C: char> IRule for UntilChar<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     type Output = &'a str;
-    type Error = &'static str;
 
     /// Applies the `UntilChar` rule to the input string.
     ///
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str) -> Result<(&'a str, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(&'a str, &'a str), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{}', char='{}', mode={:?}",
             self,
@@ -90,7 +93,9 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             }
         }
 
-        Err("delimiter not found")
+        Err(RuleError {
+            reason: "delimiter not found".to_string(),
+        })
     }
 }
 

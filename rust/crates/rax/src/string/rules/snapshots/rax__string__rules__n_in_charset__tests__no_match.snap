@@ -3,5 +3,7 @@ source: crates/rax/src/string/rules/n_in_charset.rs
 expression: result
 ---
 Err(
-    "char not in set",
+    RuleError {
+        reason: "char not in set",
+    },
 )

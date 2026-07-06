@@ -44,5 +44,5 @@ pub enum RaxNmeaError {
     UnknownGsaNavigationMode(String),
 
     #[error("RaxError")]
-    RaxError(#[from] rax::RaxError),
+    RaxError(#[from] rax::error::VerbError),
 }

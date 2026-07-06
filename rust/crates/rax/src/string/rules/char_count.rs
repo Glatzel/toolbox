@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
@@ -24,7 +28,6 @@ impl<const N: usize> IRule for CharCount<N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     type Output = &'a str;
-    type Error = &'static str;
 
     /// Applies the `CharCount` rule to the input string.
     ///
@@ -38,7 +41,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         // Trace input and requested character count
         clerk::trace!("{:?}: input='{}', count={}", self, input, N);
 
@@ -80,7 +83,9 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             N,
             length
         );
-        return Err("not enough chars in input");
+        return Err(RuleError {
+            reason: "not enough chars in input".to_string(),
+        });
     }
 }
 

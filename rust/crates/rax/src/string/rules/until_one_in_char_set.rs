@@ -1,8 +1,11 @@
+extern crate alloc;
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
-
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of any character in the provided character set.
 ///
@@ -33,9 +36,8 @@ impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
-    type Error = &'static str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
                 let (prefix, rest) = match self.mode {
@@ -63,7 +65,9 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
             self,
             input
         );
-        Err("no match found")
+        Err(RuleError {
+            reason: "no match found".to_string(),
+        })
     }
 }
 

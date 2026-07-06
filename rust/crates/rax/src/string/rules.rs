@@ -21,7 +21,9 @@ pub use until_n_in_char_set::*;
 pub use until_not_in_char_set::*;
 pub use until_one_in_char_set::*;
 pub use until_str::*;
+
 pub use self::char::*;
+use crate::error::RuleError;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -50,13 +52,12 @@ pub trait IRule {
 pub trait IStrFlowRule<'a>: IRule {
     /// Type of the value produced by this rule.
     type Output;
-    type Error: Debug;
 
     /// Apply the rule to the given input.
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error>;
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).
@@ -66,8 +67,7 @@ pub trait IStrFlowRule<'a>: IRule {
 pub trait IGlobalRule<'a>: IRule {
     /// Type of the value produced by this rule.
     type Output;
-    type Error: Debug;
 
     /// Apply the rule to the full input.
-    fn apply(&self, input: &'a str) -> Result<Self::Output, Self::Error>;
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError>;
 }

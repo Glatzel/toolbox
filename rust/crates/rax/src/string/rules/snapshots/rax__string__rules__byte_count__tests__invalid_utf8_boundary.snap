@@ -3,5 +3,7 @@ source: crates/rax/src/string/rules/byte_count.rs
 expression: result
 ---
 Err(
-    "input too short or invalid UTF-8 boundary.",
+    RuleError {
+        reason: "input too short or invalid UTF-8 boundary.",
+    },
 )

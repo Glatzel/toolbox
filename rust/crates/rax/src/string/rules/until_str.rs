@@ -1,4 +1,9 @@
+extern crate alloc;
+
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::rules::UntilMode;
 
@@ -29,8 +34,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    type Error = &'static str;
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -56,7 +60,9 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     self,
                     self.pattern
                 );
-                Err("no match found")
+                Err(RuleError {
+                    reason: "no match found".to_string(),
+                })
             }
         }
     }

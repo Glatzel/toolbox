@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 
@@ -28,7 +32,6 @@ impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
     type Output = &'a str;
-    type Error = &'static str;
 
     /// Applies the `NInCharSet` rule to the input string.
     ///
@@ -43,7 +46,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), Self::Error> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         let mut count = 0;
         for (i, c) in input.char_indices() {
             if self.0.filter(&c) {
@@ -62,14 +65,18 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     c,
                     i
                 );
-                return Err("char not in set");
+                return Err(RuleError {
+                    reason: "char not in set".to_string(),
+                });
             }
         }
         clerk::debug!(
             "{:?} did not match: input too short or not enough chars in set",
             self
         );
-        Err("input too short or not enough chars in set")
+        Err(RuleError {
+            reason: "input too short or not enough chars in set".to_string(),
+        })
     }
 }
 

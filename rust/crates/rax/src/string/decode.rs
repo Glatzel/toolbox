@@ -69,10 +69,9 @@ impl<'a> Decoder<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take_strict<R, E>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_, E>>
+    pub fn take_strict<R>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_>>
     where
-        R: IStrFlowRule<'a, Error = E>,
-        E: Debug,
+        R: IStrFlowRule<'a>,
     {
         match rule.apply(self.rest) {
             Ok((v, rest)) => {
@@ -83,7 +82,7 @@ impl<'a> Decoder<'a> {
                 verb: Verb::TakeStrict,
                 rule: R::type_name(),
                 input: self.rest,
-                extra: e,
+                rule_error: e,
             }),
         }
     }
@@ -101,10 +100,9 @@ impl<'a> Decoder<'a> {
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn skip_strict<R, E>(&mut self, rule: &R) -> Result<&mut Self, VerbError<'_, E>>
+    pub fn skip_strict<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError<'_>>
     where
-        R: IStrFlowRule<'a, Error = E>,
-        E: Debug,
+        R: IStrFlowRule<'a>,
     {
         match rule.apply(self.rest) {
             Ok((_, rest)) => {
@@ -115,7 +113,7 @@ impl<'a> Decoder<'a> {
                 verb: Verb::SkipStrict,
                 rule: R::type_name(),
                 input: self.rest,
-                extra: e,
+                rule_error: e,
             }),
         }
     }
@@ -124,16 +122,15 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R, E>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_, E>>
+    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError<'_>>
     where
-        R: IGlobalRule<'a, Error = E>,
-        E: Debug,
+        R: IGlobalRule<'a>,
     {
         rule.apply(self.full).map_err(|e| VerbError {
             verb: Verb::Global,
             rule: R::type_name(),
             input: self.full,
-            extra: e,
+            rule_error: e,
         })
     }
 }

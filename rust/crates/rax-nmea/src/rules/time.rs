@@ -127,9 +127,12 @@ mod tests {
     #[rstest::rstest]
     #[case("valid", "123456.789,foo,bar")]
     #[case("no_fraction", "235959,foo,bar")]
+    #[case("invalid_fraction", "235959.12x,foo,bar")]
+    #[case("invalid_time", "235961,foo,bar")]
     #[case("invalid_hour", "xx0000,foo,bar")]
     #[case("invalid_minute", "12xx00,foo,bar")]
     #[case("invalid_second", "1236xx,foo,bar")]
+    #[case("invalid_second_range", "12345,foo,bar")]
     #[case("empty", ",foo,bar")]
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {

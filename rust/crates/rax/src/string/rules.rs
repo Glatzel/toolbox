@@ -1,25 +1,29 @@
 extern crate alloc;
-mod byte_count;
-pub use byte_count::*;
-mod char_count;
-pub use char_count::*;
-mod until_str;
-pub use until_str::*;
-mod one_in_char_set;
-pub use one_in_char_set::*;
-mod char;
-pub use self::char::*;
-mod until_one_in_char_set;
-pub use until_one_in_char_set::*;
-mod until_not_in_char_set;
-pub use until_not_in_char_set::*;
-mod until_n_in_char_set;
-pub use until_n_in_char_set::*;
-mod n_in_charset;
-pub use n_in_charset::*;
-mod until_char;
+use core::fmt::Debug;
 
+mod byte_count;
+mod char;
+mod char_count;
+mod n_in_charset;
+mod one_in_char_set;
+mod until_char;
+mod until_n_in_char_set;
+mod until_not_in_char_set;
+mod until_one_in_char_set;
+mod until_str;
+
+pub use byte_count::*;
+pub use char_count::*;
+pub use n_in_charset::*;
+pub use one_in_char_set::*;
 pub use until_char::*;
+pub use until_n_in_char_set::*;
+pub use until_not_in_char_set::*;
+pub use until_one_in_char_set::*;
+pub use until_str::*;
+
+pub use self::char::*;
+use crate::error::RuleError;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -36,7 +40,9 @@ pub enum UntilMode {
 }
 
 /// Base trait for all parser rules.
-pub trait IRule {}
+pub trait IRule {
+    fn type_name() -> &'static str { core::any::type_name::<Self>() }
+}
 
 /// Trait for rules that consume input sequentially (flow rules).
 ///
@@ -51,7 +57,7 @@ pub trait IStrFlowRule<'a>: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str) -> (Option<Self::Output>, &'a str);
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).
@@ -63,5 +69,5 @@ pub trait IGlobalRule<'a>: IRule {
     type Output;
 
     /// Apply the rule to the full input.
-    fn apply(&self, input: &'a str) -> Self::Output;
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError>;
 }

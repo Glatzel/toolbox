@@ -1,0 +1,9 @@
+---
+source: crates/rax/src/string/rules/n_in_charset.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "input too short or not enough chars in set",
+    },
+)

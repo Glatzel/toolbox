@@ -1,0 +1,9 @@
+---
+source: crates/rax/src/string/rules/n_in_charset.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "char not in set",
+    },
+)

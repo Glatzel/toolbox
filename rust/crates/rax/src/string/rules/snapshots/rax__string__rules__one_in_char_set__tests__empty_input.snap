@@ -1,0 +1,9 @@
+---
+source: crates/rax/src/string/rules/one_in_char_set.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "empty input",
+    },
+)

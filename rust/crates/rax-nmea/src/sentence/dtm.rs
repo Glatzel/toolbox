@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
@@ -42,17 +43,13 @@ pub struct Dtm {
 impl IDecode<RaxNmeaError> for Dtm {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let datum = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let sub_datum = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let lat = parser.take(&NmeaDegree);
-        let lon = parser.take(&NmeaDegree);
-        let alt = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
+        let sub_datum = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let lat = parser.take(&NmeaDegree)?;
+        let lon = parser.take(&NmeaDegree)?;
+        let alt = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
 
         Ok(Dtm {
             datum,
@@ -72,14 +69,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_dtm() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B")]
+    fn test_dtm(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let dtm = Dtm::decode(&mut decoder)?;
         println!("{dtm:?}");
-        insta::assert_json_snapshot!(dtm);
+        insta::assert_json_snapshot!(index, dtm);
         Ok(())
     }
 }

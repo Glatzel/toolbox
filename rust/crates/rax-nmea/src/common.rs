@@ -247,22 +247,22 @@ impl TryFrom<&char> for FaaMode {
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SystemId {
-    #[strum(serialize = "GPS", serialize = "G")]
+    #[strum(serialize = "GPS", serialize = "G", serialize = "1")]
     GPS = 1,
 
-    #[strum(serialize = "GLONASS", serialize = "L")]
+    #[strum(serialize = "GLONASS", serialize = "L", serialize = "2")]
     GLONASS = 2,
 
-    #[strum(serialize = "Galileo", serialize = "A")]
+    #[strum(serialize = "Galileo", serialize = "A", serialize = "3")]
     Galileo = 3,
 
-    #[strum(serialize = "BDS", serialize = "B")]
+    #[strum(serialize = "BDS", serialize = "B", serialize = "4")]
     BDS = 4,
 
-    #[strum(serialize = "QZSS", serialize = "Q")]
+    #[strum(serialize = "QZSS", serialize = "Q", serialize = "5")]
     QZSS = 5,
 
-    #[strum(serialize = "NavIC", serialize = "I")]
+    #[strum(serialize = "NavIC", serialize = "I", serialize = "6")]
     NavIC = 6,
 }
 

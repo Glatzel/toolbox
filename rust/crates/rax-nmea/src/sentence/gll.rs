@@ -4,6 +4,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
@@ -30,20 +31,19 @@ impl IDecode<RaxNmeaError> for Gll {
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");
-        let lat = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord);
+        let lat = ctx.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord)?;
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = ctx.take(&NmeaCoord);
+        let lon = ctx.take(&NmeaCoord)?;
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing utc_time...");
-        let time = ctx.take(&NmeaTime);
+        let time = ctx.take(&NmeaTime)?;
         clerk::debug!("utc_time: {:?}", time);
 
-        let status = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
-
-        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
+        let status = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let pos_mode = ctx.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Gll {
             lat,
@@ -63,14 +63,14 @@ mod test {
 
     extern crate std;
     use super::*;
-    #[test]
-    fn test_new_ggl() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E")]
+    fn test_gll(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gll = Gll::decode(&mut decoder)?;
         println!("{gll:?}");
-        insta::assert_json_snapshot!(gll);
+        insta::assert_json_snapshot!(index, gll);
         Ok(())
     }
 }

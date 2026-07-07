@@ -8,6 +8,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 ///Poll a standard message (Talker ID GL)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -19,9 +20,9 @@ pub struct Gpq {
 impl IDecode<RaxNmeaError> for Gpq {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_STAR_DISCARD)?
+            .parse_option()?;
 
         Ok(Gpq { msg_id })
     }
@@ -47,14 +48,14 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_gpq() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$EIGPQ,RMC*3A")]
+    fn test_gpq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$EIGPQ,RMC*3A";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gpq = Gpq::decode(&mut decoder)?;
         println!("{gpq:?}");
-        insta::assert_json_snapshot!(gpq);
+        insta::assert_json_snapshot!(index, gpq);
         Ok(())
     }
 }

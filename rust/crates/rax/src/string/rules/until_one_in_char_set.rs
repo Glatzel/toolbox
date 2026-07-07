@@ -1,8 +1,11 @@
+extern crate alloc;
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
-
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of any character in the provided character set.
 ///
@@ -34,7 +37,7 @@ impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
                 let (prefix, rest) = match self.mode {
@@ -53,7 +56,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                     i,
                     c
                 );
-                return (Some(prefix), rest);
+                return Ok((prefix, rest));
             }
         }
 
@@ -62,92 +65,38 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
             self,
             input
         );
-        (None, input)
+        Err(RuleError {
+            reason: "no match found".to_string(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use core::marker::PhantomData;
+
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
+    use std::format;
+
     use super::*;
     use crate::string::filters::{ASCII_LETTERS, DIGITS};
-
-    #[test]
-    fn test_until_one_in_char_set_discard() {
+    #[rstest::rstest]
+    #[case("discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
+    #[case("keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepRight)]
+    #[case("keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
+    #[case("no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
+    #[case("empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    fn test_until_one_in_char_set<const N: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<UntilOneInCharSet<N>>,
+        #[case] filter: &CharSetFilter<N>,
+        #[case] mode: UntilMode,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "abc1def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_one_in_char_set_keep_left() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &DIGITS,
-            mode: UntilMode::KeepLeft,
-        };
-        let input = "abc1def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc1"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_one_in_char_set_keep_right_first_char() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &ASCII_LETTERS,
-            mode: UntilMode::KeepRight,
-        };
-        let input = "a123";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(""));
-        assert_eq!(rest, "a123");
-    }
-
-    #[test]
-    fn test_until_one_in_char_set_keep_right_not_first_char() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &DIGITS,
-            mode: UntilMode::KeepRight,
-        };
-        let input = "abc1def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, "1def");
-    }
-
-    #[test]
-    fn test_until_one_in_char_set_no_match() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "abcdef");
-    }
-
-    #[test]
-    fn test_until_one_in_char_set_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilOneInCharSet {
-            filter: &DIGITS,
-            mode: UntilMode::Discard,
-        };
-        let input = "";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "");
+        let result = UntilOneInCharSet::<N> { filter, mode }.apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

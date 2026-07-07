@@ -3,6 +3,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 /// Dhv - Velocity in 3 dimensions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
@@ -27,22 +28,12 @@ pub struct Dhv {
 }
 impl IDecode<RaxNmeaError> for Dhv {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let speed3d = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let speed_x = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let speed_y = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let speed_z = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let gdspd = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let speed3d = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let speed_x = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let speed_y = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let speed_z = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let gdspd = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Dhv {
             time,
@@ -63,14 +54,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_dhv() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65")]
+    fn test_dhv(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let dhv = Dhv::decode(&mut decoder)?;
         println!("{dhv:?}");
-        insta::assert_json_snapshot!(dhv);
+        insta::assert_json_snapshot!(index, dhv);
         Ok(())
     }
 }

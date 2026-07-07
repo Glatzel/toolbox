@@ -15,4 +15,6 @@ thiserror.workspace = true
 [dev-dependencies]
 clerk = { workspace = true, features = ["tracing"] }
 criterion.workspace = true
+insta.workspace = true
 mischief.workspace = true
+rstest.workspace = true

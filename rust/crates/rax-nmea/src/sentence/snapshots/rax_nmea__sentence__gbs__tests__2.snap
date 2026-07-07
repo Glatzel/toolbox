@@ -11,6 +11,6 @@ expression: gbs
   "prob": null,
   "bias": -21.4,
   "std_dev": 3.8,
-  "system_id": null,
+  "system_id": "GPS",
   "signal_id": 0
 }

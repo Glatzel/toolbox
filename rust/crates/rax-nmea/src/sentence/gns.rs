@@ -11,10 +11,11 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum NavigationStatus {
+pub enum GnsNavigationStatus {
     #[strum(serialize = "Safe", serialize = "S")]
     Safe,
     #[strum(serialize = "Caution", serialize = "C")]
@@ -52,29 +53,27 @@ pub struct Gns {
     /// Differential reference station ID
     diff_station: Option<u16>,
     /// Navigational status
-    nav_status: Option<NavigationStatus>,
+    nav_status: Option<GnsNavigationStatus>,
 }
 
 impl IDecode<RaxNmeaError> for Gns {
-    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        clerk::trace!("Gga::decode: sentence='{}'", ctx.full_str());
+    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+        clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
-        let time = ctx.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         clerk::debug!("utc_time: {:?}", time);
 
         clerk::debug!("Parsing lat...");
-        let lat = ctx.take(&NmeaCoord);
+        let lat = parser.take(&NmeaCoord)?;
         clerk::debug!("lat: {:?}", lat);
 
         clerk::debug!("Parsing lon...");
-        let lon = ctx.take(&NmeaCoord);
+        let lon = parser.take(&NmeaCoord)?;
         clerk::debug!("lon: {:?}", lon);
 
         clerk::debug!("Parsing mode...");
-        let mode_str = ctx
-            .take(&UNTIL_COMMA_DISCARD)
-            .expect("Mode string should not be empty.");
+        let mode_str = parser.take(&UNTIL_COMMA_DISCARD)?;
         let pos_mode = mode_str
             .char_indices()
             .filter_map(|(_, c)| FaaMode::try_from(&c).ok())
@@ -82,41 +81,45 @@ impl IDecode<RaxNmeaError> for Gns {
         clerk::debug!("mode: {:?}", pos_mode);
 
         clerk::debug!("Parsing satellites...");
-        let num_sv = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let num_sv = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("satellites: {:?}", num_sv);
 
         clerk::debug!("Parsing hdop...");
-        let hdop = ctx.take(&UNTIL_COMMA_DISCARD).and_then(|s| s.parse().ok());
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!("hdop: {:?}", hdop);
 
         clerk::debug!("Parsing altitude...");
-        let alt = ctx
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let alt = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("altitude: {:?}", alt);
 
         clerk::debug!("Parsing goeidal_separation...");
-        let sep = ctx
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let sep = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("goeidal_separation: {:?}", sep);
 
         clerk::debug!("Parsing differential_data_age...");
-        let diff_age = ctx
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let diff_age = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("differential_data_age: {:?}", diff_age);
 
         clerk::debug!("Parsing differential_reference_station_id...");
 
-        let diff_station = ctx
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let diff_station = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
 
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
         clerk::debug!("Parsing navigational_status...");
-        let nav_status = ctx.take(&UNTIL_STAR_DISCARD).and_then(|s| s.parse().ok());
+        let nav_status = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::debug!("navigational_status: {:?}", nav_status);
 
         Ok(Gns {
@@ -142,26 +145,15 @@ mod test {
     use std::println;
 
     use super::*;
-
-    #[test]
-    fn test_gns_parsing1() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57")]
+    #[case("2", "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59")]
+    fn test_gns(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gns = Gns::decode(&mut decoder)?;
         println!("{gns:?}");
-        insta::assert_json_snapshot!(gns);
-
-        Ok(())
-    }
-    #[test]
-    fn test_gns_parsing2() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
-        let mut decoder = Decoder::new(s);
-        let gns = Gns::decode(&mut decoder)?;
-        println!("{gns:?}");
-        insta::assert_json_snapshot!(gns);
+        insta::assert_json_snapshot!(index, gns);
         Ok(())
     }
 }

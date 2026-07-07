@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/rules/coord.rs
+expression: result
+---
+Ok(
+    (
+        Some(
+            -123.31871666666666,
+        ),
+        "foo",
+    ),
+)

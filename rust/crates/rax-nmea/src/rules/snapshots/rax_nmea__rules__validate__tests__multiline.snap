@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/rules/validate.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "Invalid checksum length: expected 2, got 184",
+    },
+)

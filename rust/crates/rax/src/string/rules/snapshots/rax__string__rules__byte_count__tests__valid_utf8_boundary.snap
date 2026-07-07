@@ -1,0 +1,10 @@
+---
+source: crates/rax/src/string/rules/byte_count.rs
+expression: result
+---
+Ok(
+    (
+        "你",
+        "好世界",
+    ),
+)

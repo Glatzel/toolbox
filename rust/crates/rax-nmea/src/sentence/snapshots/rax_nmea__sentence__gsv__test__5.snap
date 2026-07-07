@@ -1,0 +1,75 @@
+---
+source: crates/rax-nmea/src/sentence/gsv.rs
+expression: gsv
+---
+{
+  "satellites": [
+    {
+      "svid": 5,
+      "elv": 19,
+      "az": 222,
+      "cno": 36
+    },
+    {
+      "svid": 7,
+      "elv": 5,
+      "az": 90,
+      "cno": 29
+    },
+    {
+      "svid": 13,
+      "elv": 84,
+      "az": 239,
+      "cno": 39
+    },
+    {
+      "svid": 14,
+      "elv": 56,
+      "az": 52,
+      "cno": 36
+    },
+    {
+      "svid": 15,
+      "elv": 50,
+      "az": 296,
+      "cno": 25
+    },
+    {
+      "svid": 17,
+      "elv": 35,
+      "az": 125,
+      "cno": 24
+    },
+    {
+      "svid": 23,
+      "elv": 11,
+      "az": 319,
+      "cno": 28
+    },
+    {
+      "svid": 24,
+      "elv": 16,
+      "az": 284,
+      "cno": 32
+    },
+    {
+      "svid": 19,
+      "elv": 23,
+      "az": 147,
+      "cno": null
+    },
+    {
+      "svid": 20,
+      "elv": 3,
+      "az": 201,
+      "cno": null
+    },
+    {
+      "svid": 30,
+      "elv": 28,
+      "az": 84,
+      "cno": null
+    }
+  ],
+  "signal_id": 1
+}

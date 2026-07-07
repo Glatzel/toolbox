@@ -4,6 +4,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 /// GNSS satellite fault detection
 ///
@@ -47,34 +48,45 @@ pub struct Gbs {
 
 impl IDecode<RaxNmeaError> for Gbs {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
-        let err_lat = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let err_lon = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let err_alt = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
+        let err_lat = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_M_DISCARD);
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
+        let err_lon = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_M_DISCARD);
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
+        let err_alt = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
+        let _ = parser.skip(&UNTIL_M_DISCARD);
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
         let svid = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
         let prob = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
         let bias = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
         let std_dev = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
         let system_id = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let signal_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Gbs {
             time,
@@ -98,22 +110,15 @@ mod tests {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_gbs() {
+    #[rstest::rstest]
+    #[case("1", "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07")]
+    #[case("2", "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B")]
+    fn test_gbs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07";
-        let mut decoder = Decoder::new(s);
-        let gbs = Gbs::decode(&mut decoder).unwrap();
+        let mut decoder = Decoder::new(input);
+        let gbs = Gbs::decode(&mut decoder)?;
         println!("{gbs:?}");
-        insta::assert_json_snapshot!(gbs);
-    }
-    #[test]
-    fn test_gbs_4_1() {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B";
-        let mut decoder = Decoder::new(s);
-        let gbs = Gbs::decode(&mut decoder).unwrap();
-        println!("{gbs:?}");
-        insta::assert_json_snapshot!(gbs);
+        insta::assert_json_snapshot!(index, gbs);
+        Ok(())
     }
 }

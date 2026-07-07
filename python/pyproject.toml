@@ -1,6 +1,6 @@
 [project]
 name = "toolbox"
-version = "2026.6.10"
+version = "2026.7.6"
 requires-python = ">=3.11"
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
 dependencies = ["lazy-loader", "rich"]

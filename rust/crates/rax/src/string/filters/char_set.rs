@@ -1,6 +1,6 @@
 use core::str::FromStr;
 
-use crate::RaxError;
+use crate::error::FilterError;
 use crate::string::filters::IFilter;
 extern crate alloc;
 use alloc::format;
@@ -47,13 +47,13 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
 }
 
 impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = RaxError;
+    type Err = FilterError;
 
     /// Parses a string into a `CharSetFilter`.
     ///
     /// The string must have exactly `N` characters, otherwise a `RaxError` is
     /// returned.
-    fn from_str(s: &str) -> Result<Self, RaxError> {
+    fn from_str(s: &str) -> Result<Self, FilterError> {
         let mut chars = [0 as char; N];
         let mut i = 0;
         for c in s.chars() {
@@ -61,7 +61,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
                 chars[i] = c;
                 i += 1;
             } else {
-                return Err(RaxError::FilterError(format!(
+                return Err(FilterError(format!(
                     "String too long for CharSet, expected {} but got {}",
                     N,
                     i + 1
@@ -69,7 +69,7 @@ impl<const N: usize> FromStr for CharSetFilter<N> {
             }
         }
         if i != N {
-            return Err(RaxError::FilterError(format!(
+            return Err(FilterError(format!(
                 "String length does not match CharSet size, expected {} but got {}",
                 N, i
             )));

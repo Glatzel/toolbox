@@ -11,5 +11,6 @@ expression: rmc
   "cog": 84.6,
   "date": "2017-03-31",
   "mv": 8.9,
-  "pos_mode": "Differential"
+  "pos_mode": "Differential",
+  "nav_status": null
 }

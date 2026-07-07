@@ -1,6 +1,8 @@
-use core::num::ParseIntError;
 extern crate alloc;
 use alloc::string::String;
+use core::convert::Infallible;
+use core::num::{ParseFloatError, ParseIntError};
+
 #[derive(Debug, thiserror::Error)]
 pub enum RaxNmeaError {
     #[error("Invalid sentence: {0:?}")]
@@ -11,8 +13,6 @@ pub enum RaxNmeaError {
     InvalidSentencePrefix(String),
     #[error("require checksum_str length 2, get {0}")]
     InvalidChecksumLength(usize),
-    #[error("Invalid hex checksum")]
-    InvalidHexChecksum(#[from] ParseIntError),
     #[error("Missing checksum delimiter`*`: {0}")]
     MissingChecksumDelimiter(String),
     #[error("Checksum mismatch: calculated {calculated:02X}, expected {expected:02X}")]
@@ -43,6 +43,14 @@ pub enum RaxNmeaError {
     #[error("Unknown GSA navigation mode: {0:?}")]
     UnknownGsaNavigationMode(String),
 
-    #[error("RaxError")]
-    RaxError(#[from] rax::RaxError),
+    #[error(transparent)]
+    RaxVerb(#[from] rax::error::VerbError),
+    #[error(transparent)]
+    ParseFloat(#[from] ParseFloatError),
+    #[error(transparent)]
+    ParseInt(#[from] ParseIntError),
+    #[error(transparent)]
+    Infallible(#[from] Infallible),
+    #[error(transparent)]
+    Strum(#[from] strum::ParseError),
 }

@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 
@@ -40,20 +44,24 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     ///
     /// - Trace-level logs show the input string.
     /// - Debug-level logs indicate matches or mismatches.
-    fn apply(&self, input: &'a str) -> (Option<char>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(char, &'a str), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
 
         if let Some((_, c)) = input.char_indices().next() {
             if self.0.filter(&c) {
                 let next_i = input.char_indices().nth(1).map_or(input.len(), |(j, _)| j);
                 clerk::debug!("OneOfCharSet matched: '{}', rest='{}'", c, &input[next_i..]);
-                (Some(c), &input[next_i..])
+                Ok((c, &input[next_i..]))
             } else {
                 clerk::debug!("OneOfCharSet did not match: found '{}', not in set", c);
-                (None, input)
+                Err(RuleError {
+                    reason: "character not in set".to_string(),
+                })
             }
         } else {
-            (None, input)
+            Err(RuleError {
+                reason: "empty input".to_string(),
+            })
         }
     }
 }
@@ -62,50 +70,26 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
 mod tests {
     use std::str::FromStr;
     extern crate std;
+    use core::marker::PhantomData;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
-
-    #[test]
-    fn test_char_match() {
+    #[rstest::rstest]
+    #[case("match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
+    #[case("empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("unicode","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::from_str("你").unwrap())]
+    fn test_one_in_char_set<const N: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<OneOfCharSet<N>>,
+        #[case] charset: &CharSetFilter<N>,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = OneOfCharSet(&ASCII_LETTERS_DIGITS);
-        let input = "a123";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, Some('a'));
-        assert_eq!(rest, "123");
-    }
-
-    #[test]
-    fn test_char_no_match() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = OneOfCharSet(&DIGITS);
-        let input = "abc";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, None);
-        assert_eq!(rest, "abc");
-    }
-
-    #[test]
-    fn test_char_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = OneOfCharSet(&ASCII_LETTERS_DIGITS);
-        let input = "";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, None);
-        assert_eq!(rest, "");
-    }
-
-    #[test]
-    fn test_char_unicode() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let filter: CharSetFilter<1> = CharSetFilter::from_str("你")?;
-        let rule = OneOfCharSet(&filter);
-        let input = "你好";
-        let (matched, rest) = rule.apply(input);
-        assert_eq!(matched, Some('你'));
-        assert_eq!(rest, "好");
-        Ok(())
+        let result = OneOfCharSet::<N>(charset).apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

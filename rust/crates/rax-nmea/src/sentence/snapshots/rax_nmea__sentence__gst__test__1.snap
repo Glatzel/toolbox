@@ -1,6 +1,6 @@
 ---
 source: crates/rax-nmea/src/sentence/gst.rs
-expression: vtg
+expression: gst
 ---
 {
   "time": "18:21:41",

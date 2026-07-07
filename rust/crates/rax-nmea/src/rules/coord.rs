@@ -1,3 +1,8 @@
+extern crate alloc;
+use alloc::format;
+use alloc::string::ToString;
+
+use rax::error::RuleError;
 use rax::string::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
@@ -18,52 +23,69 @@ impl NmeaCoord {
     }
 }
 impl<'a> IStrFlowRule<'a> for NmeaCoord {
-    type Output = f64;
+    type Output = Option<f64>;
     /// Applies the NmeaCoord rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);
-        let (sign_str, rest2) = UNTIL_COMMA_DISCARD.apply(rest1);
+        let (num_str, rest1) = match UNTIL_COMMA_DISCARD.apply(input) {
+            Ok(result) => result,
+            Err(_) => {
+                return Err(RuleError {
+                    reason: "Missing number string.".to_string(),
+                });
+            }
+        };
+        let (sign_str, rest2) = match UNTIL_COMMA_DISCARD.apply(rest1) {
+            Ok(result) => result,
+            Err(_) => {
+                return Err(RuleError {
+                    reason: "Missing sign string.".to_string(),
+                });
+            }
+        };
+        if num_str.is_empty() && sign_str.is_empty() {
+            return Ok((None, rest2));
+        }
 
-        match (num_str.and_then(|s| s.parse::<f64>().ok()), sign_str) {
-            (Some(v), Some(_sign @ ("N" | "E"))) => {
+        match (num_str.parse::<f64>(), sign_str) {
+            (Ok(v), "N" | "E") => {
                 let result = Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
                     "{:?}: positive sign '{}', deg={}, min={}, result={}",
                     self,
-                    _sign,
+                    sign_str,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                (Some(result), rest2)
+                Ok((Some(result), rest2))
             }
-            (Some(v), Some(_sign @ ("S" | "W"))) => {
+            (Ok(v), "S" | "W") => {
                 let result = -Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
                     "{:?}: negative sign '{}', deg={}, min={}, result={}",
                     self,
-                    _sign,
+                    sign_str,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                (Some(result), rest2)
+                Ok((Some(result), rest2))
             }
-            (Some(_), Some(_sign)) => {
-                clerk::info!("{:?}: invalid sign '{}'", self, _sign);
-                (None, rest2)
+            (Ok(_), _sign) => {
+                clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
+                Err(RuleError {
+                    reason: format!("invalid sign string: '{}'", _sign),
+                })
             }
-            (_, Some("")) => {
-                clerk::info!("{:?}: Null coord: '{}'", self, input);
-                (None, rest2)
-            }
-            _ => {
-                clerk::warn!("{:?}: Invalid input: '{}'", self, input);
-                (None, rest2)
+            (Err(_), _) => {
+                clerk::error!("{:?}: invalid coord string: '{}'", self, num_str);
+                Err(RuleError {
+                    reason: format!("invalid coord string: '{}'", num_str),
+                })
             }
         }
     }
@@ -71,91 +93,21 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
 
 #[cfg(test)]
 mod tests {
-
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-
-    #[test]
-    fn test_nmea_coord_east() {
+    #[rstest::rstest]
+    #[case("east", "12319.123,E,rest")]
+    #[case("west", "12319.123,W,foo")]
+    #[case("north", "4807.038,N,bar")]
+    #[case("south", "4807.038,S,xyz")]
+    #[case("invalid_sign", "12319.123,X,rest")]
+    #[case("invalid_number", "abc123.456,N,foo")]
+    #[case("missing_comma", "12319.123Erest")]
+    #[case("empty", ",,bar")]
+    fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        // 12319.123,E,rest
-        let input = "12319.123,E,rest";
-        let (val, rest) = rule.apply(input);
-        // 12319.123 means 123 degrees, 19.123 minutes
-        // deg = 123, min = 19.123, value = 123 + 19.123/60
-        let expected = 123.0 + 19.123 / 60.0;
-        assert_eq!(val, Some(expected));
-        assert_eq!(rest, "rest");
-    }
-
-    #[test]
-    fn test_nmea_coord_west() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "12319.123,W,foo";
-
-        let (val, rest) = rule.apply(input);
-        let expected = -(123.0 + 19.123 / 60.0);
-        assert_eq!(val, Some(expected));
-        assert_eq!(rest, "foo");
-    }
-
-    #[test]
-    fn test_nmea_coord_north() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "4807.038,N,bar";
-
-        let (val, rest) = rule.apply(input);
-        let expected = 48.0 + 7.038 / 60.0;
-        float_cmp::assert_approx_eq!(f64, val.unwrap(), expected);
-        assert_eq!(rest, "bar");
-    }
-
-    #[test]
-    fn test_nmea_coord_south() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "4807.038,S,xyz";
-
-        let (val, rest) = rule.apply(input);
-        let expected = -(48.0 + 7.038 / 60.0);
-        float_cmp::assert_approx_eq!(f64, val.unwrap(), expected);
-        assert_eq!(rest, "xyz");
-    }
-
-    #[test]
-    fn test_nmea_coord_invalid_sign() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "12319.123,X,rest";
-
-        let (val, rest) = rule.apply(input);
-        assert_eq!(val, None);
-        assert_eq!(rest, "rest");
-    }
-
-    #[test]
-    fn test_nmea_coord_invalid_number() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "notanumber,E,rest";
-
-        let (val, rest) = rule.apply(input);
-        assert_eq!(val, None);
-        assert_eq!(rest, "rest");
-    }
-
-    #[test]
-    fn test_nmea_coord_missing_comma() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaCoord;
-        let input = "12319.123Erest";
-
-        let (val, rest) = rule.apply(input);
-        assert_eq!(val, None);
-        assert_eq!(rest, "12319.123Erest");
+        let result = NmeaCoord.apply(input);
+        insta::assert_debug_snapshot!(name, result)
     }
 }

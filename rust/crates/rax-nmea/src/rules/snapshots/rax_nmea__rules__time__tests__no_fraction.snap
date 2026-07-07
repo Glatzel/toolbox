@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/rules/time.rs
+expression: result
+---
+Ok(
+    (
+        Some(
+            23:59:59,
+        ),
+        "foo,bar",
+    ),
+)

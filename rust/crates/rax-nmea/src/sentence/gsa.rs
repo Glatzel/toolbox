@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
@@ -11,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -34,7 +34,7 @@ pub enum GsaNavigationMode {
 
 ///GNSS DOP and active satellites
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Gsa {
     /// Operation mode
     op_mode: Option<GsaOperationMode>,
@@ -61,45 +61,33 @@ pub struct Gsa {
 impl IDecode<RaxNmeaError> for Gsa {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
         clerk::trace!("Gsa::new: selection_mode={:?}", op_mode);
-        let nav_mode = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let nav_mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: mode={:?}", nav_mode);
 
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
-            match parser
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse().ok())
-            {
-                Some(sat_id) => svid.push(sat_id),
-                None => continue,
+            if let Some(id) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+                svid.push(id)
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
 
-        let pdop = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let pdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: pdop={:?}", pdop);
 
-        let hdop = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: hdop={:?}", hdop);
 
         let vdop = parser
-            .take(&UNTIL_COMMA_OR_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
         clerk::trace!("Gsa::new: vdop={:?}", vdop);
-
-        let system_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+        let system_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
         Ok(Gsa {
@@ -114,36 +102,6 @@ impl IDecode<RaxNmeaError> for Gsa {
     }
 }
 
-impl fmt::Debug for Gsa {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GSA");
-
-        if let Some(op_mode) = self.op_mode {
-            ds.field("op_mode", &op_mode);
-        }
-        if let Some(nav_mode) = self.nav_mode {
-            ds.field("nav_mode", &nav_mode);
-        }
-        if !self.svid.is_empty() {
-            ds.field("svid", &self.svid);
-        }
-        if let Some(pdop) = self.pdop {
-            ds.field("svid", &pdop);
-        }
-        if let Some(hdop) = self.hdop {
-            ds.field("hdop", &hdop);
-        }
-        if let Some(vdop) = self.vdop {
-            ds.field("vdop", &vdop);
-        }
-        if let Some(system_id) = self.system_id {
-            ds.field("system_id", &system_id);
-        }
-
-        ds.finish()
-    }
-}
-
 #[cfg(test)]
 mod test {
     extern crate std;
@@ -152,26 +110,15 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-
-    #[test]
-    fn test_new_gsa_with_system_id() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38")]
+    #[case("2", "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B")]
+    fn test_gsa(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gsa = Gsa::decode(&mut decoder)?;
         println!("{gsa:?}");
-        insta::assert_json_snapshot!(gsa);
-
-        Ok(())
-    }
-    #[test]
-    fn test_new_gsa_without_system_id() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut decoder = Decoder::new(s);
-        let gsa = Gsa::decode(&mut decoder)?;
-        println!("{gsa:?}");
-        insta::assert_json_snapshot!(gsa);
+        insta::assert_json_snapshot!(index, gsa);
         Ok(())
     }
 }

@@ -5,10 +5,10 @@ expression: gbs
 {
   "time": "12:50:27",
   "err_lat": 23.43,
-  "err_lon": null,
-  "err_alt": 13.91,
+  "err_lon": 13.91,
+  "err_alt": 34.01,
   "svid": null,
-  "prob": 34.01,
+  "prob": null,
   "bias": null,
   "std_dev": null,
   "system_id": null,

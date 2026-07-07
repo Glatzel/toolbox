@@ -1,19 +1,17 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::fmt;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GrsResidualMode {
     #[strum(serialize = "Used in GGA", serialize = "0")]
     UsedInGga,
@@ -24,7 +22,7 @@ pub enum GrsResidualMode {
 
 /// GNSS range residuals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Getters)]
+#[derive(Debug, Clone, Getters)]
 pub struct Grs {
     /// UTC time of the position fix
     time: Option<chrono::NaiveTime>,
@@ -43,11 +41,9 @@ pub struct Grs {
 }
 impl IDecode<RaxNmeaError> for Grs {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
-        let time = parser.skip_strict(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime);
+        let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
-        let mode = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         clerk::debug!(
             "Grs::new: utc_time={:?}, grs_residual_mode={:?}",
             time,
@@ -55,23 +51,25 @@ impl IDecode<RaxNmeaError> for Grs {
         );
 
         let mut residual = Vec::with_capacity(12);
-        for _ in 0..12 {
-            match parser
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse().ok())
-            {
-                Some(r) => residual.push(r),
-                None => continue,
+        for _ in 0..11 {
+            if let Some(r) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
+                residual.push(r)
             }
         }
+        if let Some(r) = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?
+        {
+            residual.push(r)
+        }
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
         let system_id = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let signal_id = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?;
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
+        let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         Ok(Grs {
             time,
             mode,
@@ -79,32 +77,6 @@ impl IDecode<RaxNmeaError> for Grs {
             system_id,
             signal_id,
         })
-    }
-}
-
-impl fmt::Debug for Grs {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut ds = f.debug_struct("GSA");
-
-        if let Some(time) = self.time {
-            ds.field("time", &time);
-        }
-
-        if let Some(mode) = self.mode {
-            ds.field("mode", &mode);
-        }
-
-        ds.field("residual", &self.residual);
-
-        if let Some(system_id) = self.system_id {
-            ds.field("system_id", &system_id);
-        }
-
-        if let Some(signal_id) = self.signal_id {
-            ds.field("signal_id", &signal_id);
-        }
-
-        ds.finish()
     }
 }
 
@@ -116,14 +88,15 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_grs() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55")]
+    #[case("2", "$GNGRS,181604.00,1,,,,,,,,,,,,*5A")]
+    fn test_grs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let grs = Grs::decode(&mut decoder)?;
         println!("{grs:?}");
-        insta::assert_json_snapshot!(grs);
+        insta::assert_json_snapshot!(index, grs);
         Ok(())
     }
 }

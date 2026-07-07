@@ -4,6 +4,7 @@ use rax::string::{Decoder, IDecode};
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 
 #[doc = "Poll a standard message (Talker ID GL)"]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -18,12 +19,10 @@ pub struct Ths {
 impl IDecode<RaxNmeaError> for Ths {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let headt = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        let mi = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
+        let mi = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Ths { headt, mi })
     }
@@ -37,14 +36,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_parse() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPTHS,77.52,E*34")]
+    fn test_ths(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPTHS,77.52,E*34";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let ths = Ths::decode(&mut decoder)?;
         println!("{ths:?}");
-        insta::assert_json_snapshot!(ths);
+        insta::assert_json_snapshot!(index, ths);
         Ok(())
     }
 }

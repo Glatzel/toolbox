@@ -23,7 +23,6 @@ thiserror.workspace = true
 [dev-dependencies]
 clerk = { workspace = true, features = ["tracing"] }
 criterion.workspace = true
-float-cmp.workspace = true
 insta = { workspace = true, features = ["filters", "json"] }
 mischief.workspace = true
 rstest.workspace = true

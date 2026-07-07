@@ -1,4 +1,9 @@
+extern crate alloc;
+
+use alloc::string::ToString;
+
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::rules::UntilMode;
 
@@ -29,8 +34,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -48,7 +52,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     UntilMode::KeepRight => (&input[..idx], &input[idx..]),
                 };
                 clerk::debug!("{:?} matched: prefix='{}', rest='{}'", self, prefix, rest);
-                (Some(prefix), rest)
+                Ok((prefix, rest))
             }
             None => {
                 clerk::debug!(
@@ -56,7 +60,9 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     self,
                     self.pattern
                 );
-                (None, input)
+                Err(RuleError {
+                    reason: "no match found".to_string(),
+                })
             }
         }
     }
@@ -65,85 +71,21 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 #[cfg(test)]
 mod tests {
     extern crate std;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-
-    #[test]
-    fn test_until_basic_not_include() {
+    #[rstest::rstest]
+    #[case("discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepLeft })]
+    #[case("keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepRight })]
+    #[case("no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::Discard,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_basic_include() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::KeepLeft,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc;"));
-        assert_eq!(rest, "def");
-    }
-
-    #[test]
-    fn test_until_keep_right() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::KeepRight,
-        };
-        let input = "abc;def";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("abc"));
-        assert_eq!(rest, ";def");
-    }
-
-    #[test]
-    fn test_until_no_delimiter() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::Discard,
-        };
-        let input = "abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "abcdef");
-    }
-
-    #[test]
-    fn test_until_delimiter_at_start() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::KeepLeft,
-        };
-        let input = ";abcdef";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(";"));
-        assert_eq!(rest, "abcdef");
-    }
-
-    #[test]
-    fn test_until_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = UntilStr {
-            pattern: ";",
-            mode: super::UntilMode::Discard,
-        };
-        let input = "";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "");
+        let result = rule.apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

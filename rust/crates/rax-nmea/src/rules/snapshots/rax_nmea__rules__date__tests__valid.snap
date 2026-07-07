@@ -1,0 +1,12 @@
+---
+source: crates/rax-nmea/src/rules/date.rs
+expression: result
+---
+Ok(
+    (
+        Some(
+            2024-03-11,
+        ),
+        "foo,bar",
+    ),
+)

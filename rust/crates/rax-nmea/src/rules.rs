@@ -24,6 +24,12 @@ pub use crate::rules::validate::{NmeaValidate, NmeaValidateMultiLine};
 pub const UNTIL_COMMA_DISCARD: UntilChar<','> = UntilChar {
     mode: UntilMode::Discard,
 };
+pub const UNTIL_COMMA_KEEP_RIGHT: UntilChar<','> = UntilChar {
+    mode: UntilMode::KeepRight,
+};
+pub const UNTIL_M_DISCARD: UntilChar<'M'> = UntilChar {
+    mode: UntilMode::Discard,
+};
 pub const UNTIL_STAR_DISCARD: UntilChar<'*'> = UntilChar {
     mode: UntilMode::Discard,
 };
@@ -34,4 +40,8 @@ pub const UNTIL_NEW_LINE_DISCARD: UntilChar<'\n'> = UntilChar {
 pub const UNTIL_COMMA_OR_STAR_DISCARD: UntilOneInCharSet<2> = UntilOneInCharSet {
     filter: &CharSetFilter::new([',', '*']),
     mode: UntilMode::Discard,
+};
+pub const UNTIL_COMMA_OR_STAR_KEEP_RIGHT: UntilOneInCharSet<2> = UntilOneInCharSet {
+    filter: &CharSetFilter::new([',', '*']),
+    mode: UntilMode::KeepRight,
 };

@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/rules/time.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "Failed to parse minute field.",
+    },
+)

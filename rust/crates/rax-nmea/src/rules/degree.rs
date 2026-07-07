@@ -1,3 +1,9 @@
+extern crate alloc;
+
+use alloc::format;
+use alloc::string::ToString;
+
+use rax::error::RuleError;
 use rax::string::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
@@ -12,27 +18,44 @@ pub struct NmeaDegree;
 impl IRule for NmeaDegree {}
 
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
-    type Output = f64;
+    type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str) -> (core::option::Option<f64>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Option<f64>, &'a str), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, rest1) = UNTIL_COMMA_DISCARD.apply(input);
-        let (sign_str, rest2) = UNTIL_COMMA_DISCARD.apply(rest1);
-        match (deg_str.and_then(|d| d.parse::<f64>().ok()), sign_str) {
-            (Some(val), Some("E" | "N")) => (Some(val), rest2),
-            (Some(val), Some("W" | "S")) => (Some(-val), rest2),
-            (Some(_), Some(_sign)) => {
-                clerk::info!("{:?}: unknown sign '{}'", self, _sign);
-                (None, rest2)
+        let (deg_str, rest1) = match UNTIL_COMMA_DISCARD.apply(input) {
+            Ok(result) => result,
+            Err(_) => {
+                return Err(RuleError {
+                    reason: "Missing degree string.".to_string(),
+                });
             }
-            (_, Some("")) => {
-                clerk::info!("{:?}: Null degree: `{}`", self, input);
-                (None, rest2)
+        };
+        let (sign_str, rest2) = match UNTIL_COMMA_DISCARD.apply(rest1) {
+            Ok(result) => result,
+            Err(_) => {
+                return Err(RuleError {
+                    reason: "Missing sign string.".to_string(),
+                });
             }
-            _ => {
-                clerk::warn!("{:?}: failed to parse input '{}'", self, input);
-                (None, rest2)
+        };
+        if deg_str.is_empty() && sign_str.is_empty() {
+            return Ok((None, rest2));
+        }
+        match (deg_str.parse::<f64>(), sign_str) {
+            (Ok(val), "E" | "N") => Ok((Some(val), rest2)),
+            (Ok(val), "W" | "S") => Ok((Some(-val), rest2)),
+            (Ok(_), _sign) => {
+                clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
+                Err(RuleError {
+                    reason: format!("invalid sign string: '{}'", _sign),
+                })
+            }
+            (Err(_), _) => {
+                clerk::error!("{:?}: invalid coord string: '{}'", self, deg_str);
+                Err(RuleError {
+                    reason: format!("invalid coord string: '{}'", deg_str),
+                })
             }
         }
     }
@@ -40,54 +63,17 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
 #[cfg(test)]
 mod test {
     use clerk::{LevelFilter, init_log_with_level};
-    use float_cmp::assert_approx_eq;
 
     use super::*;
-    #[test]
-    fn test_nmea_degree() {
+    #[rstest::rstest]
+    #[case("valid_positive", "123.45,N,other_data")]
+    #[case("valid_negative", "123.45,S,other_data")]
+    #[case("invalid", "invalid_input")]
+    #[case("no_second_comma", "12345.6789,Nother_data")]
+    #[case("null", ",,other_data")]
+    fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaDegree;
-        let input = "123.45,N,other_data";
-        let (result, rest) = rule.apply(input);
-        assert!(result.is_some());
-        assert_approx_eq!(f64, result.unwrap(), 123.45);
-        assert_eq!(rest, "other_data");
-    }
-    #[test]
-    fn test_nmea_degree_negative() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaDegree;
-        let input = "123.45,S,other_data";
-        let (result, rest) = rule.apply(input);
-        assert!(result.is_some());
-        assert_approx_eq!(f64, result.unwrap(), -123.45);
-        assert_eq!(rest, "other_data");
-    }
-    #[test]
-    fn test_nmea_degree_invalid() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaDegree;
-        let input = "invalid_input";
-        let (result, rest) = rule.apply(input);
-        assert!(result.is_none());
-        assert_eq!(rest, input);
-    }
-    #[test]
-    fn test_nmea_degree_no_second_comma() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaDegree;
-        let input = "12345.6789,Nother_data";
-        let (result, rest) = rule.apply(input);
-        assert!(result.is_none());
-        assert_eq!(rest, "Nother_data");
-    }
-    #[test]
-    fn test_nmea_degree_null() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = NmeaDegree;
-        let input = ",,Nother_data";
-        let (result, rest) = rule.apply(input);
-        assert!(result.is_none());
-        assert_eq!(rest, "Nother_data");
+        let result = NmeaDegree.apply(input);
+        insta::assert_debug_snapshot!(name, result)
     }
 }

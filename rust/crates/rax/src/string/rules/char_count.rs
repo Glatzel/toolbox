@@ -1,6 +1,10 @@
+extern crate alloc;
+
+use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
+use crate::error::RuleError;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
@@ -37,16 +41,16 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str) -> (Option<&'a str>, &'a str) {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         // Trace input and requested character count
-        clerk::trace!("{:?}: input='{}', count={}", self, input, N);
+        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
 
         if N == 0 {
-            clerk::debug!(
+            clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
-            return (Some(""), input);
+            return Ok(("", input));
         }
 
         let length = input.chars().count();
@@ -56,20 +60,20 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                 "{:?}: count matches input length, returning whole input.",
                 self
             );
-            return (Some(input), "");
+            return Ok((input, ""));
         }
 
         for (count, (idx, _)) in input.char_indices().enumerate() {
             if count == N {
                 clerk::debug!(
-                    "{:?}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    "{:?}: found split at char {}, byte idx {}: prefix='{:?}', rest='{:?}'",
                     self,
                     count,
                     idx,
                     &input[..idx],
                     &input[idx..]
                 );
-                return (Some(&input[..idx]), &input[idx..]);
+                return Ok((&input[..idx], &input[idx..]));
             }
         }
 
@@ -79,75 +83,37 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             N,
             length
         );
-        (None, input)
+        Err(RuleError {
+            reason: "not enough chars in input".to_string(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     extern crate std;
+
+    use core::marker::PhantomData;
+    use std::format;
+
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
 
-    #[test]
-    fn test_count_exact_length() {
+    #[rstest::rstest]
+    #[case("exact_length","test", PhantomData::<CharCount<4>>)]
+    #[case("less_than_length","hello", PhantomData::<CharCount<2>>)]
+    #[case("more_than_length","short", PhantomData::<CharCount<10>>)]
+    #[case("zero","abc", PhantomData::<CharCount<0>>)]
+    #[case("empty_input","", PhantomData::<CharCount<0>>)]
+    #[case("non_ascii","你好世界", PhantomData::<CharCount<2>>)]
+    fn test_char_count<const C: usize>(
+        #[case] name: &str,
+        #[case] input: &str,
+        #[case] _rule: PhantomData<CharCount<C>>,
+    ) {
         init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<4>;
-        let input = "test";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("test"));
-        assert_eq!(rest, "");
-    }
-
-    #[test]
-    fn test_count_less_than_length() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<2>;
-        let input = "hello";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("he"));
-        assert_eq!(rest, "llo");
-    }
-
-    #[test]
-    fn test_count_more_than_length() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<10>;
-        let input = "short";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, None);
-        assert_eq!(rest, "short");
-    }
-
-    #[test]
-    fn test_count_zero() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<0>;
-        let input = "abc";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(""));
-        assert_eq!(rest, "abc");
-    }
-
-    #[test]
-    fn test_count_empty_input() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<0>;
-        let input = "";
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some(""));
-        assert_eq!(rest, "");
-    }
-
-    #[test]
-    fn test_count_non_ascii() {
-        init_log_with_level(LevelFilter::TRACE);
-        let rule = CharCount::<2>;
-        let input = "你好世界";
-        // Should return first 2 chars ("你", "好") and the rest ("世界")
-        let (prefix, rest) = rule.apply(input);
-        assert_eq!(prefix, Some("你好"));
-        assert_eq!(rest, "世界");
+        let result = CharCount::<C>.apply(input);
+        insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -9,29 +9,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
+
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
-    #[strum(serialize = "Error", serialize = "0")]
+    #[strum(serialize = "Error", serialize = "00")]
     Error = 0,
-    #[strum(serialize = "Warn", serialize = "1")]
+    #[strum(serialize = "Warn", serialize = "01")]
     Warn = 1,
-    #[strum(serialize = "Info", serialize = "2")]
+    #[strum(serialize = "Info", serialize = "02")]
     Info = 2,
-    #[strum(serialize = "User", serialize = "7")]
+    #[strum(serialize = "User", serialize = "07")]
     User = 7,
-}
-impl TryFrom<u8> for TxtType {
-    type Error = RaxNmeaError;
-    fn try_from(s: u8) -> Result<Self, RaxNmeaError> {
-        match s {
-            0 => Ok(Self::Error),
-            1 => Ok(Self::Warn),
-            2 => Ok(Self::Info),
-            7 => Ok(Self::User),
-            other => Err(RaxNmeaError::UnknownTxtType(other)),
-        }
-    }
 }
 
 ///Text transmission
@@ -39,7 +28,7 @@ impl TryFrom<u8> for TxtType {
 #[derive(Debug, Clone, Getters)]
 pub struct Txt {
     /// Text information
-    message: Vec<(Option<TxtType>, Option<String>)>,
+    message: Vec<(TxtType, String)>,
 }
 
 impl IDecode<RaxNmeaError> for Txt {
@@ -48,16 +37,16 @@ impl IDecode<RaxNmeaError> for Txt {
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
             let txt_type = parser
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .skip_strict(&UNTIL_COMMA_DISCARD)?
-                .take(&UNTIL_COMMA_DISCARD)
-                .and_then(|s| s.parse::<u8>().ok())
-                .map(TxtType::try_from)
-                .and_then(Result::ok);
-            let info = parser.take(&UNTIL_STAR_DISCARD).map(|f| f.to_string());
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .skip(&UNTIL_COMMA_DISCARD)?
+                .take(&UNTIL_COMMA_DISCARD)?
+                .parse::<TxtType>()?;
+            clerk::debug!("txt_type: {:?}", txt_type);
+            let info = parser.take(&UNTIL_STAR_DISCARD)?.to_string();
+            clerk::debug!("info: {:?}", info);
             infos.push((txt_type, info));
-            parser.skip(&UNTIL_NEW_LINE_DISCARD);
+            let _ = parser.skip(&UNTIL_NEW_LINE_DISCARD);
         }
 
         Ok(Self { message: infos })
@@ -71,14 +60,17 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_txt() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case(
+        "1",
+        "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D"
+    )]
+    fn test_txt(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let txt = Txt::decode(&mut decoder)?;
         println!("{txt:?}");
-        insta::assert_json_snapshot!(txt);
+        insta::assert_json_snapshot!(index, txt);
         Ok(())
     }
 }

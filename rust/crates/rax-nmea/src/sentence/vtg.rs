@@ -5,6 +5,7 @@ extern crate alloc;
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
 use crate::rules::*;
+use crate::utils::ParseOptionPrimitive;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
@@ -28,29 +29,21 @@ pub struct Vtg {
 impl IDecode<RaxNmeaError> for Vtg {
     fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
         let cogt = parser
-            .skip_strict(&UNTIL_COMMA_DISCARD)?
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+            .skip(&UNTIL_COMMA_DISCARD)?
+            .take(&UNTIL_COMMA_DISCARD)?
+            .parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
-        let cogm = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let cogm = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
-        let sogn = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let sogn = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
-        let sogk = parser
-            .take(&UNTIL_COMMA_DISCARD)
-            .and_then(|s| s.parse().ok());
-        parser.skip_strict(&UNTIL_COMMA_DISCARD)?;
+        let sogk = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        parser.skip(&UNTIL_COMMA_DISCARD)?;
 
-        let pos_mode = parser
-            .take(&UNTIL_STAR_DISCARD)
-            .and_then(|s| s.parse().ok());
+        let pos_mode = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Vtg {
             cogt,
@@ -69,14 +62,14 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_vtg() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22")]
+    fn test_vtg(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let vtg = Vtg::decode(&mut decoder)?;
         println!("{vtg:?}");
-        insta::assert_json_snapshot!(vtg);
+        insta::assert_json_snapshot!(index, vtg);
         Ok(())
     }
 }

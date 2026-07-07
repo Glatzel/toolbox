@@ -1,0 +1,9 @@
+---
+source: crates/rax-nmea/src/rules/coord.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "invalid coord string: 'abc123.456'",
+    },
+)

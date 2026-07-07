@@ -1,5 +1,4 @@
 mod char_set;
-use core::fmt::{Debug, Display};
 
 pub use self::char_set::*;
 
@@ -7,7 +6,7 @@ pub use self::char_set::*;
 ///
 /// Implementors define the `filter` method to determine whether a given
 /// input satisfies the filter criteria.
-pub trait IFilter<I>: Debug + Display {
+pub trait IFilter<I> {
     /// Returns `true` if the input passes the filter, `false` otherwise.
     fn filter(&self, input: I) -> bool;
 }

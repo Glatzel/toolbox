@@ -97,27 +97,19 @@ impl IDecode<RaxNmeaError> for Gsv {
 }
 impl Gsv {
     fn parse_satellite(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
-        let id = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let snr = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         Ok(Satellite {
-            svid: id,
-            elv: elevation_degrees,
-            az: azimuth_degree,
-            cno: snr,
+            svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            az: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
     fn parse_satellite_last(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
-        let id = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let snr = ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
         Ok(Satellite {
-            svid: id,
-            elv: elevation_degrees,
-            az: azimuth_degree,
-            cno: snr,
+            svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            az: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
+            cno: ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?,
         })
     }
 }

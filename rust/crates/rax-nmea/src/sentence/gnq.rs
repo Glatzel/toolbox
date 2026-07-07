@@ -44,5 +44,4 @@ mod test {
         insta::assert_json_snapshot!(index, gnq);
         Ok(())
     }
-   
 }

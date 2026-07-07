@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.7.6] - 2026-07-07
+
+### Added
+
+- **(mischief)** Add backtrace by @Glatzel in [#560](https://github.com/Glatzel/toolbox/pull/560)
+- **(rax-nmea)** Add some common varient by @Glatzel in [#572](https://github.com/Glatzel/toolbox/pull/572)
+- **(mischief)** Add backtrace feature by @Glatzel in [#592](https://github.com/Glatzel/toolbox/pull/592)
+
+### Changed
+
+- **(envoy)** Simplify to_vec_string for `*mut *mut c_char` by @Glatzel in [#576](https://github.com/Glatzel/toolbox/pull/576)
+- **(envoy)** Distinguish `to_vec_string` and `to_vec_string_null_terminated` by @Glatzel in [#577](https://github.com/Glatzel/toolbox/pull/577)
+- **(vinaya)** Change `check_is_installed` to `installed` by @Glatzel in [#579](https://github.com/Glatzel/toolbox/pull/579)
+- **(rax)** Zero-copy decoder by @Glatzel in [#586](https://github.com/Glatzel/toolbox/pull/586)
+- Delete tools/shook directory by @Glatzel in [#603](https://github.com/Glatzel/toolbox/pull/603)
+
+### Fixed
+
+- **(mischief)** Report size least 128 bytes by @Glatzel in [#590](https://github.com/Glatzel/toolbox/pull/590)
+
+### Refactor
+
+- Split vinaya to crates by @Glatzel in [#557](https://github.com/Glatzel/toolbox/pull/557)
+- **(rax)** Add dispatcher trait to parser by @Glatzel in [#569](https://github.com/Glatzel/toolbox/pull/569)
+- **(rax)** Modify rax interface by @Glatzel in [#610](https://github.com/Glatzel/toolbox/pull/610)
+
+### Removed
+
+- **(vinaya)** Remove generate proto cmd by @Glatzel in [#559](https://github.com/Glatzel/toolbox/pull/559)
+
+### Revert
+
+- "feat(mischief): add backtrace" by @Glatzel in [#563](https://github.com/Glatzel/toolbox/pull/563)
+
+### Testing
+
+- **(mischief)** Clean test by @Glatzel in [#564](https://github.com/Glatzel/toolbox/pull/564)
+- **(vinaya)** Test static path by @Glatzel in [#573](https://github.com/Glatzel/toolbox/pull/573)
+- **(vinaya)** Add test from version by @Glatzel in [#575](https://github.com/Glatzel/toolbox/pull/575)
+- **(envoy)** Add test for `to_vec_cstring` by @Glatzel in [#578](https://github.com/Glatzel/toolbox/pull/578)
+- **(rax-nmea)** Add some time test by @Glatzel in [#611](https://github.com/Glatzel/toolbox/pull/611)
+
 ## [2026.5.29] - 2026-06-01
 
 ### Added
@@ -488,6 +530,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.7.6]: https://github.com/Glatzel/toolbox/compare/v2026.5.29..v2026.7.6
 [2026.5.29]: https://github.com/Glatzel/toolbox/compare/v2026.5.18..v2026.5.29
 [2026.5.18]: https://github.com/Glatzel/toolbox/compare/v2026.5.14..v2026.5.18
 [2026.5.14]: https://github.com/Glatzel/toolbox/compare/v2026.5.13..v2026.5.14

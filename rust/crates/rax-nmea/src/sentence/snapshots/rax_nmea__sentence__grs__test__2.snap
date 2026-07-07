@@ -1,0 +1,11 @@
+---
+source: crates/rax-nmea/src/sentence/grs.rs
+expression: grs
+---
+{
+  "time": "18:16:04",
+  "mode": "CalculatedAfterGga",
+  "residual": [],
+  "system_id": null,
+  "signal_id": null
+}

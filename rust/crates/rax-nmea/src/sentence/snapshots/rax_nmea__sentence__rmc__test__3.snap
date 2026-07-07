@@ -11,5 +11,6 @@ expression: rmc
   "cog": null,
   "date": null,
   "mv": null,
-  "pos_mode": "NotValid"
+  "pos_mode": "NotValid",
+  "nav_status": "Valid"
 }

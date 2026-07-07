@@ -15,7 +15,7 @@ use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum NavigationStatus {
+pub enum GnsNavigationStatus {
     #[strum(serialize = "Safe", serialize = "S")]
     Safe,
     #[strum(serialize = "Caution", serialize = "C")]
@@ -53,7 +53,7 @@ pub struct Gns {
     /// Differential reference station ID
     diff_station: Option<u16>,
     /// Navigational status
-    nav_status: Option<NavigationStatus>,
+    nav_status: Option<GnsNavigationStatus>,
 }
 
 impl IDecode<RaxNmeaError> for Gns {
@@ -145,26 +145,15 @@ mod test {
     use std::println;
 
     use super::*;
-
-    #[test]
-    fn test_gns_parsing1() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57")]
+    #[case("2", "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59")]
+    fn test_gns(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gns = Gns::decode(&mut decoder)?;
         println!("{gns:?}");
-        insta::assert_json_snapshot!(gns);
-
-        Ok(())
-    }
-    #[test]
-    fn test_gns_parsing2() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59";
-        let mut decoder = Decoder::new(s);
-        let gns = Gns::decode(&mut decoder)?;
-        println!("{gns:?}");
-        insta::assert_json_snapshot!(gns);
+        insta::assert_json_snapshot!(index, gns);
         Ok(())
     }
 }

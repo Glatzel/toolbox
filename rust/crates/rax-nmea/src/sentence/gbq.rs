@@ -34,14 +34,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_gbq() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$EIGBQ,RMC*28")]
+    fn test_gbq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$EIGBQ,RMC*28";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gbq = Gbq::decode(&mut decoder)?;
         println!("{gbq:?}");
-        insta::assert_json_snapshot!(gbq);
+        insta::assert_json_snapshot!(index, gbq);
         Ok(())
     }
 }

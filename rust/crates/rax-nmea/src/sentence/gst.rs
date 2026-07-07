@@ -64,14 +64,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_gst() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54")]
+    fn test_gst(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54";
-        let mut decoder = Decoder::new(s);
-        let vtg = Gst::decode(&mut decoder)?;
-        println!("{vtg:?}");
-        insta::assert_json_snapshot!(vtg);
+        let mut decoder = Decoder::new(input);
+        let gst = Gst::decode(&mut decoder)?;
+        println!("{gst:?}");
+        insta::assert_json_snapshot!(index, gst);
         Ok(())
     }
 }

@@ -54,14 +54,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_dhv() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65")]
+    fn test_dhv(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let dhv = Dhv::decode(&mut decoder)?;
         println!("{dhv:?}");
-        insta::assert_json_snapshot!(dhv);
+        insta::assert_json_snapshot!(index, dhv);
         Ok(())
     }
 }

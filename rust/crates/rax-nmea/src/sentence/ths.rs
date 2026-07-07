@@ -36,14 +36,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_parse() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPTHS,77.52,E*34")]
+    fn test_ths(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPTHS,77.52,E*34";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let ths = Ths::decode(&mut decoder)?;
         println!("{ths:?}");
-        insta::assert_json_snapshot!(ths);
+        insta::assert_json_snapshot!(index, ths);
         Ok(())
     }
 }

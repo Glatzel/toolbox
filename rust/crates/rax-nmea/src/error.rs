@@ -13,8 +13,6 @@ pub enum RaxNmeaError {
     InvalidSentencePrefix(String),
     #[error("require checksum_str length 2, get {0}")]
     InvalidChecksumLength(usize),
-    #[error("Invalid hex checksum")]
-    InvalidHexChecksum(#[from] ParseIntError),
     #[error("Missing checksum delimiter`*`: {0}")]
     MissingChecksumDelimiter(String),
     #[error("Checksum mismatch: calculated {calculated:02X}, expected {expected:02X}")]
@@ -49,6 +47,8 @@ pub enum RaxNmeaError {
     RaxVerb(#[from] rax::error::VerbError),
     #[error(transparent)]
     ParseFloat(#[from] ParseFloatError),
+    #[error(transparent)]
+    ParseInt(#[from] ParseIntError),
     #[error(transparent)]
     Infallible(#[from] Infallible),
     #[error(transparent)]

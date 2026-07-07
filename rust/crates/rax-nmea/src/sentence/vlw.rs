@@ -47,14 +47,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
-    #[test]
-    fn test_new_vlw() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPVLW,,N,,N,15.8,N,1.2,N*65")]
+    fn test_vlw(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPVLW,,N,,N,15.8,N,1.2,N*65";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let vlw = Vlw::decode(&mut decoder)?;
         println!("{vlw:?}");
-        insta::assert_json_snapshot!(vlw);
+        insta::assert_json_snapshot!(index, vlw);
         Ok(())
     }
 }

@@ -63,14 +63,14 @@ mod test {
 
     extern crate std;
     use super::*;
-    #[test]
-    fn test_new_ggl() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E")]
+    fn test_gll(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gll = Gll::decode(&mut decoder)?;
         println!("{gll:?}");
-        insta::assert_json_snapshot!(gll);
+        insta::assert_json_snapshot!(index, gll);
         Ok(())
     }
 }

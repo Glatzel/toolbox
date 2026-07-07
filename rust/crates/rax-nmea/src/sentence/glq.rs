@@ -33,14 +33,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
-    #[test]
-    fn test_new_glq() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$EIGLQ,RMC*26")]
+    fn test_glq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$EIGLQ,RMC*26";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let glq = Glq::decode(&mut decoder)?;
         println!("{glq:?}");
-        insta::assert_json_snapshot!(glq);
+        insta::assert_json_snapshot!(index, glq);
         Ok(())
     }
 }

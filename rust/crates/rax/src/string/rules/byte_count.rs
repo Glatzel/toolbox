@@ -37,17 +37,17 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(None, input)` otherwise.
     fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         // Trace input and requested byte count
-        clerk::trace!("{:?}: input='{}', byte_count={}", self, input, N);
+        clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
 
         match input.get(..N) {
             Some(out) => {
                 let rest = &input[N..];
-                clerk::debug!("{:?}: matched prefix='{}', rest='{}'", self, out, rest);
+                clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, rest);
                 Ok((out, rest))
             }
             None => {
                 clerk::debug!(
-                    "{:?}: not enough bytes or invalid UTF-8 boundary for count {} in '{}'",
+                    "{:?}: not enough bytes or invalid UTF-8 boundary for count {:?} in '{:?}'",
                     self,
                     N,
                     input

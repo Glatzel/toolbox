@@ -69,14 +69,14 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_new_dtm() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B")]
+    fn test_dtm(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let dtm = Dtm::decode(&mut decoder)?;
         println!("{dtm:?}");
-        insta::assert_json_snapshot!(dtm);
+        insta::assert_json_snapshot!(index, dtm);
         Ok(())
     }
 }

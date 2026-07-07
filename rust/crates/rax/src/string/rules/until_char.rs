@@ -50,7 +50,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - If the delimiter is not found, returns `(None, input)`.
     fn apply(&self, input: &'a str) -> Result<(&'a str, &'a str), RuleError> {
         clerk::trace!(
-            "{:?} rule: input='{}', char='{}', mode={:?}",
+            "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
             input,
             C,
@@ -63,7 +63,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     UntilMode::Discard => {
                         let end = i + C.len_utf8();
                         clerk::debug!(
-                            "{:?} matched (discard): prefix='{}', rest='{}'",
+                            "{:?} matched (discard): prefix='{:?}', rest='{:?}'",
                             self,
                             &input[..i],
                             &input[end..]
@@ -73,7 +73,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     UntilMode::KeepLeft => {
                         let end = i + C.len_utf8();
                         clerk::debug!(
-                            "{:?} matched (keep left): prefix='{}', rest='{}'",
+                            "{:?} matched (keep left): prefix='{:?}', rest='{:?}'",
                             self,
                             &input[..end],
                             &input[end..]
@@ -82,7 +82,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                     }
                     UntilMode::KeepRight => {
                         clerk::debug!(
-                            "{:?} matched (keep right): prefix='{}', rest='{}'",
+                            "{:?} matched (keep right): prefix='{:?}', rest='{:?}'",
                             self,
                             &input[..i],
                             &input[i..]

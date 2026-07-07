@@ -2,15 +2,13 @@ extern crate alloc;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::rules::*;
 use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GgaQualityIndicator {
     #[strum(serialize = "Invalid", serialize = "0")]
     Invalid = 0,
@@ -148,15 +146,17 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-
-    #[test]
-    fn test_new_gga1() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case(
+        "1",
+        "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D"
+    )]
+    fn test_gga(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gga = Gga::decode(&mut decoder)?;
         println!("{gga:?}");
-        insta::assert_json_snapshot!(gga);
+        insta::assert_json_snapshot!(index, gga);
         Ok(())
     }
 }

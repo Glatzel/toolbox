@@ -60,14 +60,17 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_txt() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case(
+        "1",
+        "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D"
+    )]
+    fn test_txt(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let txt = Txt::decode(&mut decoder)?;
         println!("{txt:?}");
-        insta::assert_json_snapshot!(txt);
+        insta::assert_json_snapshot!(index, txt);
         Ok(())
     }
 }

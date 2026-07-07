@@ -43,7 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// is too short.
     fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
         // Trace input and requested character count
-        clerk::trace!("{:?}: input='{}', count={}", self, input, N);
+        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
 
         if N == 0 {
             clerk::warn!(
@@ -66,7 +66,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
         for (count, (idx, _)) in input.char_indices().enumerate() {
             if count == N {
                 clerk::debug!(
-                    "{:?}: found split at char {}, byte idx {}: prefix='{}', rest='{}'",
+                    "{:?}: found split at char {}, byte idx {}: prefix='{:?}', rest='{:?}'",
                     self,
                     count,
                     idx,

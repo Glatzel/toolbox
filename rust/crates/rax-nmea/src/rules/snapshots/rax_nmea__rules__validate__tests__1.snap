@@ -1,0 +1,7 @@
+---
+source: crates/rax-nmea/src/rules/validate.rs
+expression: result
+---
+Ok(
+    (),
+)

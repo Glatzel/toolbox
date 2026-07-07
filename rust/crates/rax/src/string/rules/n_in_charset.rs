@@ -55,7 +55,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 if count == N {
                     let matched = &input[..end_idx];
                     let rest = &input[end_idx..];
-                    clerk::debug!("{:?} matched: '{}', rest='{}'", self, matched, rest);
+                    clerk::debug!("{:?} matched: '{}', rest='{:?}'", self, matched, rest);
                     return Ok((matched, rest));
                 }
             } else {

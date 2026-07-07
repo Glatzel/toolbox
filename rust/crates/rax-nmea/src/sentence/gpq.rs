@@ -48,14 +48,14 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_gpq() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$EIGPQ,RMC*3A")]
+    fn test_gpq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$EIGPQ,RMC*3A";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gpq = Gpq::decode(&mut decoder)?;
         println!("{gpq:?}");
-        insta::assert_json_snapshot!(gpq);
+        insta::assert_json_snapshot!(index, gpq);
         Ok(())
     }
 }

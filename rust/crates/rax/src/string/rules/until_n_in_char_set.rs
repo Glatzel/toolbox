@@ -60,7 +60,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
                         UntilMode::KeepRight => (&input[..idx], &input[idx..]),
                     };
                     clerk::debug!(
-                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{}', idx={}, after={}, N={}",
+                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{:?}', idx={}, after={}, N={}",
                         self.mode,
                         prefix,
                         rest,
@@ -74,7 +74,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
         }
 
         clerk::debug!(
-            "{:?}: fewer than {} matches found, returning None, input='{}'",
+            "{:?}: fewer than {} matches found, returning None, input='{:?}'",
             self,
             N,
             input

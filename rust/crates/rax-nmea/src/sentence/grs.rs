@@ -4,8 +4,6 @@ use alloc::vec::Vec;
 
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
@@ -13,7 +11,7 @@ use crate::rules::*;
 use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GrsResidualMode {
     #[strum(serialize = "Used in GGA", serialize = "0")]
     UsedInGga,
@@ -53,11 +51,18 @@ impl IDecode<RaxNmeaError> for Grs {
         );
 
         let mut residual = Vec::with_capacity(12);
-        for _ in 0..12 {
+        for _ in 0..11 {
             if let Some(r) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
                 residual.push(r)
             }
         }
+        if let Some(r) = parser
+            .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
+            .parse_option()?
+        {
+            residual.push(r)
+        }
+        let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
         let system_id = parser
@@ -83,14 +88,15 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    #[test]
-    fn test_grs() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55")]
+    #[case("2", "$GNGRS,181604.00,1,,,,,,,,,,,,*5A")]
+    fn test_grs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let grs = Grs::decode(&mut decoder)?;
         println!("{grs:?}");
-        insta::assert_json_snapshot!(grs);
+        insta::assert_json_snapshot!(index, grs);
         Ok(())
     }
 }

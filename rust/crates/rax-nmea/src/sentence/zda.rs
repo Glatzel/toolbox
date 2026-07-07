@@ -54,14 +54,14 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_zda() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPZDA,160012.71,11,03,2004,-1,00*7D")]
+    fn test_zda(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPZDA,160012.71,11,03,2004,-1,00*7D";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let zda = Zda::decode(&mut decoder)?;
         println!("{zda:?}");
-        insta::assert_json_snapshot!(zda);
+        insta::assert_json_snapshot!(index, zda);
         Ok(())
     }
 }

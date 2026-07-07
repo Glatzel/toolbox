@@ -62,14 +62,15 @@ mod test {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_new_vtg() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22")]
+    fn test_vtg(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let vtg = Vtg::decode(&mut decoder)?;
         println!("{vtg:?}");
-        insta::assert_json_snapshot!(vtg);
+        insta::assert_json_snapshot!(index, vtg);
         Ok(())
     }
+
 }

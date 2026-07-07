@@ -129,9 +129,8 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
     fn apply(&self, input: &'a str) -> Result<(), RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
-        let validator = NmeaValidate;
         for line in input.split_inclusive("\n") {
-            validator.apply(line)?;
+            NmeaValidate.apply(line)?;
         }
         Ok(())
     }
@@ -155,7 +154,7 @@ mod tests {
         "$GPGSV,4,1,15,05,00,000,17,07,06,105,20,08,11,032,15,10,00,000,16*77",
         "$GPGSV,4,2,15,15,40,292,19,17,26,156,17,18,09,330,19,19,07,171,13*7E",
         "$GPGSV,4,3,15,30,45,105,21,01,04,081,,11,18,068,,13,64,241,*73",
-        "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42",
+        "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42\n",
     ]
     .join("\n"))]
     #[case(
@@ -181,6 +180,25 @@ mod tests {
     fn test_nmea_validate(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
         let result = NmeaValidate.apply(input);
+        insta::assert_debug_snapshot!(name, result)
+    }
+    #[rstest]
+    #[case("1", &[
+        "$GPGSV,4,1,15,05,00,000,17,07,06,105,20,08,11,032,15,10,00,000,16*77",
+        "$GPGSV,4,2,15,15,40,292,19,17,26,156,17,18,09,330,19,19,07,171,13*7E",
+        "$GPGSV,4,3,15,30,45,105,21,01,04,081,,11,18,068,,13,64,241,*73",
+        "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42\n",
+    ]
+    .join("\n"))]
+    #[case("2", &[
+        "$GPGSV,4,1,15,05,00,000,17,07,06,105,20,08,11,032,15,10,00,000,16*77",
+        "$GPGSV,4,2,15,15,40,292,19,17,26,156,17,18,09,330,19,19,07,171,13*7E",
+        "$GPGSV,4,3,15,30,45,105,21,01,04,081,,11,18,068,,13,64,241,*73",
+        "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42",
+    ] .join("\n"))]
+    fn test_nmea_validate_multiline(#[case] name: &str, #[case] input: &str) {
+        init_log_with_level(LevelFilter::TRACE);
+        let result = NmeaValidateMultiLine.apply(input);
         insta::assert_debug_snapshot!(name, result)
     }
 }

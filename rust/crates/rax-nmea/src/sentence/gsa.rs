@@ -110,26 +110,15 @@ mod test {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-
-    #[test]
-    fn test_new_gsa_with_system_id() -> mischief::Result<()> {
+    #[rstest::rstest]
+    #[case("1", "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38")]
+    #[case("2", "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B")]
+    fn test_gsa(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38";
-        let mut decoder = Decoder::new(s);
+        let mut decoder = Decoder::new(input);
         let gsa = Gsa::decode(&mut decoder)?;
         println!("{gsa:?}");
-        insta::assert_json_snapshot!(gsa);
-
-        Ok(())
-    }
-    #[test]
-    fn test_new_gsa_without_system_id() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B";
-        let mut decoder = Decoder::new(s);
-        let gsa = Gsa::decode(&mut decoder)?;
-        println!("{gsa:?}");
-        insta::assert_json_snapshot!(gsa);
+        insta::assert_json_snapshot!(index, gsa);
         Ok(())
     }
 }

@@ -110,22 +110,15 @@ mod tests {
     use std::println;
 
     use super::*;
-    #[test]
-    fn test_gbs() {
+    #[rstest::rstest]
+    #[case("1", "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07")]
+    #[case("2", "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B")]
+    fn test_gbs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07";
-        let mut decoder = Decoder::new(s);
-        let gbs = Gbs::decode(&mut decoder).unwrap();
+        let mut decoder = Decoder::new(input);
+        let gbs = Gbs::decode(&mut decoder)?;
         println!("{gbs:?}");
-        insta::assert_json_snapshot!(gbs);
-    }
-    #[test]
-    fn test_gbs_4_1() {
-        init_log_with_level(LevelFilter::TRACE);
-        let s = "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B";
-        let mut decoder = Decoder::new(s);
-        let gbs = Gbs::decode(&mut decoder).unwrap();
-        println!("{gbs:?}");
-        insta::assert_json_snapshot!(gbs);
+        insta::assert_json_snapshot!(index, gbs);
+        Ok(())
     }
 }

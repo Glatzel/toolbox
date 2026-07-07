@@ -66,9 +66,9 @@ impl IDecode<RaxNmeaError> for Gsv {
         // Parse all but the last line (each has 4 satellites)
         for _i in 0..line_count - 1 {
             for _ in 0..3 {
-                satellites.push(Self::parse_satellite(parser, false)?);
+                satellites.push(Self::parse_satellite(parser)?);
             }
-            satellites.push(Self::parse_satellite(parser, true)?);
+            satellites.push(Self::parse_satellite_last(parser)?);
             // Skip any extra fields after the 4th satellite in the line
             parser
                 .skip(&UNTIL_NEW_LINE_DISCARD)?
@@ -80,9 +80,9 @@ impl IDecode<RaxNmeaError> for Gsv {
         // Parse the last line (may have fewer than 4 satellites)
         if last_line_satellite_count != 0 {
             for _ in 0..(last_line_satellite_count - 1) {
-                satellites.push(Self::parse_satellite(parser, false)?);
+                satellites.push(Self::parse_satellite(parser)?);
             }
-            satellites.push(Self::parse_satellite(parser, true)?);
+            satellites.push(Self::parse_satellite_last(parser)?);
             let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         }
         clerk::debug!("satellites: {:?}", satellites);
@@ -96,17 +96,23 @@ impl IDecode<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    /// Helper to parse a single satellite entry.
-    /// If `last` is true, the SNR field is terminated by a star.
-    fn parse_satellite(ctx: &mut Decoder, last: bool) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
         let id = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        let snr = if last {
-            ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?
-        } else {
-            ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?
-        };
+        let snr = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        Ok(Satellite {
+            svid: id,
+            elv: elevation_degrees,
+            az: azimuth_degree,
+            cno: snr,
+        })
+    }
+    fn parse_satellite_last(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
+        let id = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
+        let snr = ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
         Ok(Satellite {
             svid: id,
             elv: elevation_degrees,

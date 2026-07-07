@@ -103,8 +103,7 @@ impl Gsv {
         let elevation_degrees = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let azimuth_degree = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let snr = if last {
-            let snr = ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?;
-            snr
+            ctx.take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?.parse_option()?
         } else {
             ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?
         };

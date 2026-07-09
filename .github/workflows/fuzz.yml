@@ -16,3 +16,4 @@ jobs:
         with:
           working-directory: ./rust/fuzz
           target: fuzz_target_1
+          time: 2

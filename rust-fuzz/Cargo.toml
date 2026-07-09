@@ -1,6 +1,6 @@
 [package]
 name = "foo-fuzz"
-edition = "2018"
+edition = "2024"
 
 [package.metadata]
 cargo-fuzz = true
@@ -14,3 +14,4 @@ test = false
 
 [dependencies]
 libfuzzer-sys = "0.4"
+rax = { path = "../rust/crates/rax" }

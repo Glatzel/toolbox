@@ -1,0 +1,52 @@
+# This file is automatically synchronized from https://github.com/Glatzel/template
+
+name: cargo fuzz
+description: Run Rust fuzz test
+
+inputs:
+  working-directory:
+    description: Working directory
+    default: .
+  target:
+    description: fuzz target name
+    required: true
+  time:
+    description: max fuzz test time
+    required: false
+    defualt: 300
+  options:
+    description: Options passed to cargo fuzz test
+    required: false
+  args:
+    description: Additional arguments pass
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Run fuzz tests
+      shell: pwsh
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        $ErrorActionPreference = "Stop"
+        $PSNativeCommandUseErrorActionPreference = $true
+
+        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+
+        cargo +nightly fuzz run --fuzz-dir ./ ${{ inputs.options }} ${{ inputs.target }} -- -max_total_time=${{ input.time }} ${{inputs.args}}
+    - name: coverage
+      shell: pwsh
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        cargo +nightly fuzz coverage ${{ inputs.target }}
+        cargo +nightly cov -- show ./target/$((rustc -vV | Select-String "host").ToString().Split(": ")[1])/release/${{ inputs.target }} `
+            --format=html `
+            -instr-profile=./coverage/${{ inputs.target }}/coverage.profdata `
+            > index.html
+    - name: Upload coverage report
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: coverage-report-${{ inputs.target }}
+        path: |
+          ${{ inputs.target }}/index.html
+          ${{ inputs.target }}/artifacts/

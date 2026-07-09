@@ -46,5 +46,7 @@ runs:
       run: |
         pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov
         cargo +nightly fuzz coverage --fuzz-dir ./ ${{ inputs.target }}
-        cargo +nightly llvm-cov report --target x86_64-unknown-linux-gnu
-        cargo +nightly llvm-cov report --lcov --output-path lcov.info --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1])
+        new-item -ItemType Directory -Path ./target/llvm-cov-target -Force -recurse
+        copy-item -Path ./target/**/*.profraw -Destination ./target/llvm-cov-target -recurse
+        cargo +nightly llvm-cov report
+        cargo +nightly llvm-cov report --lcov --output-path lcov.info

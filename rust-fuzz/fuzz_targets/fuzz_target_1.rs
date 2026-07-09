@@ -4,6 +4,6 @@ use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {
-    rax::string::rules::ByteCount<1>.apply(s);
+    rax::string::rules::ByteCount::<1>.apply(s);
     }
 });

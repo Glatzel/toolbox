@@ -47,6 +47,6 @@ runs:
         pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov
         cargo +nightly fuzz coverage --fuzz-dir ./ ${{ inputs.target }}
         new-item -ItemType Directory -Path ./target/llvm-cov-target -Force
-        copy-item -Path ./target/**/*.profraw -Destination ./target/llvm-cov-target -recurse
+        Copy-Item (Get-ChildItem ./target -Recurse -Filter *.profraw) ./target/llvm-cov-target
         cargo +nightly llvm-cov report
         cargo +nightly llvm-cov report --lcov --output-path lcov.info

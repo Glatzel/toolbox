@@ -33,7 +33,7 @@ runs:
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
-        cargo +nightly fuzz run --fuzz-dir ./ ${{ inputs.options }} ${{ inputs.target }} -- -max_total_time=${{ input.time }} ${{inputs.args}}
+        cargo +nightly fuzz run --fuzz-dir ./ ${{ inputs.options }} ${{ inputs.target }} -- -max_total_time=${{ inputs.time }} ${{inputs.args}}
     - name: coverage
       shell: pwsh
       working-directory: ${{ inputs.working-directory }}

@@ -136,7 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest,macos-latest,ubuntu-latest]
+        machine: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -157,17 +157,8 @@ jobs:
 
   fuzz:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: llvm-tools-preview
-      - uses: ./.github/actions/rust/cargo-fuzz
-        with:
-          working-directory: ./rust/fuzz
-          target: fuzz_target_1
+    uses: ./.github/workflows/fuzz.yml
+
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:

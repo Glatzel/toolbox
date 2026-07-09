@@ -30,9 +30,8 @@ runs:
       run: |
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
-
+        pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-fuzz
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-
         cargo +nightly fuzz run --fuzz-dir ./ ${{ inputs.options }} ${{ inputs.target }} -- -max_total_time=${{ inputs.time }} ${{inputs.args}}
     - name: coverage
       shell: pwsh

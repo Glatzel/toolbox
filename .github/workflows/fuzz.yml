@@ -17,3 +17,5 @@ jobs:
           working-directory: ./rust-fuzz
           target: fuzz_target_1
           time: 2
+      - uses: ./.github/actions/common/codecov
+        if: ${{!cancelled()}}

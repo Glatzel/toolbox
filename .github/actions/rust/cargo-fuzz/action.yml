@@ -40,16 +40,10 @@ runs:
         name: artifacts-${{ inputs.target }}
         path: ${{ inputs.target }}/artifacts/
     - name: coverage
+      if: ${{ !cancelled() }}
       shell: pwsh
       working-directory: ${{ inputs.working-directory }}
       run: |
+        pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov
         cargo +nightly fuzz coverage --fuzz-dir ./ ${{ inputs.target }}
-        cargo +nightly cov -- show ./target/$((rustc -vV | Select-String "host").ToString().Split(": ")[1])/release/${{ inputs.target }} `
-            --format=html `
-            -instr-profile=./coverage/${{ inputs.target }}/coverage.profdata `
-            > index.html
-    - name: Upload coverage report
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: coverage-report-${{ inputs.target }}
-        path: ${{ inputs.target }}/index.html
+        cargo llvm-cov report --lcov --output-path lcov.info --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1])

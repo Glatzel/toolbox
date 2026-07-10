@@ -1,23 +1,11 @@
-[package]
-name = "foo-fuzz"
+[workspace]
+resolver = "2"
+members = ["./crates/*"]
+
+[workspace.package]
+version = "2026.7.6"
 edition = "2024"
 
-[package.metadata]
-cargo-fuzz = true
-
-[[bin]]
-bench = false
-doc = false
-name = "fuzz-rax"
-path = "fuzz_targets/fuzz_rax.rs"
-test = false
-
-[[bin]]
-bench = false
-doc = false
-name = "fuzz-rax-nmea"
-path = "fuzz_targets/fuzz_rax_nmea.rs"
-test = false
 
 [dependencies]
 libfuzzer-sys = "0.4"

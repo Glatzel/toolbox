@@ -1,0 +1,11 @@
+[package]
+name = "arbor"
+version.workspace = true
+edition.workspace = true
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys.workspace = true
+rax.workspace = true

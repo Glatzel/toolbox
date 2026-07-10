@@ -95,7 +95,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
-          nextest-args: --all-features --dep-coverage arbor clap-style clerk mischief
+          nextest-args: --all-features --dep-coverage arbor,clap-style,clerk,mischief
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
@@ -127,7 +127,7 @@ jobs:
         with:
           working-directory: ./tools/ttyw
           doc: false
-          nextest-args: --all-features --dep-coverage clap-style clerk mischief
+          nextest-args: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 
@@ -153,7 +153,7 @@ jobs:
         with:
           working-directory: ./tools/vinaya
           doc: false
-          nextest-args: --all-features --dep-coverage clap-style clerk mischief
+          nextest-args: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 

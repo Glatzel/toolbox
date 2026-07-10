@@ -20,4 +20,3 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: fuzz
-          

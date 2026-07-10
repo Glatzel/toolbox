@@ -9,6 +9,12 @@ jobs:
       fail-fast: false
       matrix:
         target: [fuzz-rax, fuzz-rax-nmea]
+        include:
+          - target: fuzz-rax
+            pwd: ./fuzz/fuzz-rax
+          - target: fuzz-rax-nmea
+            pwd: ./fuzz/fuzz-rax-nmea
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -18,7 +24,7 @@ jobs:
           components: llvm-tools-preview
       - uses: ./.github/actions/rust/cargo-fuzz
         with:
-          working-directory: ./rust-fuzz
+          working-directory: ${{matrix.pwd}}
           target: ${{matrix.target}}
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}

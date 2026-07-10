@@ -1,16 +1,9 @@
 [package]
-name = "foo-fuzz"
+name = "fuzz"
 edition = "2024"
 
 [package.metadata]
 cargo-fuzz = true
-
-[[bin]]
-bench = false
-doc = false
-name = "fuzz-rax"
-path = "fuzz_targets/fuzz_rax.rs"
-test = false
 
 [[bin]]
 bench = false
@@ -21,5 +14,5 @@ test = false
 
 [dependencies]
 libfuzzer-sys = "0.4"
-rax = { path = "../rust/crates/rax" }
-rax-nmea = { path = "../rust/crates/rax-nmea" }
+rax = { path = "../../rust/crates/rax" }
+rax-nmea = { path = "../../rust/crates/rax-nmea" }

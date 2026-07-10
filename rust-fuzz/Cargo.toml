@@ -17,8 +17,8 @@ bench = false
 doc = false
 name = "fuzz-rax-nmea"
 path = "fuzz_targets/fuzz_rax_nmea.rs"
-
 test = false
+
 [dependencies]
 libfuzzer-sys = "0.4"
 rax = { path = "../rust/crates/rax" }

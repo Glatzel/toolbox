@@ -158,13 +158,13 @@ jobs:
         if: ${{!cancelled()}}
 
   fuzz:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     uses: ./.github/workflows/fuzz.yml
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:
       [
+        fuzz,
         benchmark,
         changed,
         lefthook,

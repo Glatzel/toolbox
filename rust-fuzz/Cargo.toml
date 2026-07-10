@@ -8,10 +8,18 @@ cargo-fuzz = true
 [[bin]]
 bench = false
 doc = false
-name = "fuzz_rax"
+name = "fuzz-rax"
 path = "fuzz_targets/fuzz_rax.rs"
 test = false
 
+[[bin]]
+bench = false
+doc = false
+name = "fuzz-rax-nmea"
+path = "fuzz_targets/fuzz_rax_nmea.rs"
+
+test = false
 [dependencies]
 libfuzzer-sys = "0.4"
 rax = { path = "../rust/crates/rax" }
+rax-nmea = { path = "../rust/crates/rax-nmea" }

@@ -1,4 +1,5 @@
 extern crate alloc;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
@@ -53,6 +54,11 @@ impl IDecode<RaxNmeaError> for Gsv {
             .take(&UNTIL_COMMA_DISCARD)?
             .parse()?;
         clerk::trace!("Gsv::new: satellite_count={}", satellite_count);
+        if satellite_count > line_count * 4 || satellite_count < (line_count - 1) * 4 {
+            return Err(RaxNmeaError::InvalidSentence(
+                "satellite_count is out of range".to_string(),
+            ));
+        }
 
         // The last line may have fewer than 4 satellites, so we calculate how many
         // satellites are in the last line based on the total count.

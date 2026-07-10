@@ -66,13 +66,18 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
 
         let nanos = match res.get(7..) {
             Some(frac) => {
+                if frac.len() > 9 {
+                    return Err(RuleError {
+                        reason: "Nano field has too many digits.".into(),
+                    });
+                }
                 let digits = frac.len() as u32;
                 match frac.parse::<u64>() {
-                    Ok(frac) => frac * 1_000_000_000 / 10_u64.pow(digits),
+                    Ok(frac) => frac * (1_000_000_000 / 10_u64.pow(digits)),
                     Err(_) => {
                         clerk::error!("Can not parse nano:{}", frac);
                         return Err(RuleError {
-                            reason: "Failed to parse nano field.".to_string(),
+                            reason: "Failed to parse nano field.".into(),
                         });
                     }
                 }

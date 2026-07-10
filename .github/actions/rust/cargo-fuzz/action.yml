@@ -48,6 +48,6 @@ runs:
         cargo +nightly fuzz coverage --fuzz-dir ./ ${{ inputs.target }}
         new-item -ItemType Directory -Path ./target/llvm-cov-target -Force
         Copy-Item (Get-ChildItem ./coverage -Recurse -Filter *.profraw) ./target/llvm-cov-target
-        Copy-Item ./target/$((rustc -vV | Select-String "host").ToString().Split(": ")[1])/release ./target/
-        cargo +nightly llvm-cov report --target  --release
-        cargo +nightly llvm-cov report --target --lcov --output-path lcov.info --release
+        Copy-Item ./target/$((rustc -vV | Select-String "host").ToString().Split(": ")[1])/release ./target/llvm-cov-target
+        cargo +nightly llvm-cov report --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1]) --release
+        cargo +nightly llvm-cov report --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1]) --lcov --output-path lcov.info --release

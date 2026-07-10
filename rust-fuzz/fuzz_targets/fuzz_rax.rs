@@ -18,4 +18,3 @@ fuzz_target!(|data: &[u8]| {
         let _ = rax::string::rules::CharCount::<2>.apply(s);
     }
 });
-f

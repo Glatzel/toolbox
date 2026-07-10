@@ -95,7 +95,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
-          global-args: --all-features
+          nextest-args: --all-features --dep-coverage arbor,clap-style,clerk,mischief
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
@@ -127,6 +127,7 @@ jobs:
         with:
           working-directory: ./tools/ttyw
           doc: false
+          nextest-args: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 
@@ -136,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest,macos-latest,ubuntu-latest]
+        machine: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -152,13 +153,19 @@ jobs:
         with:
           working-directory: ./tools/vinaya
           doc: false
+          nextest-args: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+
+  fuzz:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    uses: ./.github/workflows/fuzz.yml
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:
       [
+        fuzz,
         benchmark,
         changed,
         lefthook,

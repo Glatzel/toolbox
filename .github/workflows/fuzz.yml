@@ -19,3 +19,5 @@ jobs:
           time: 2
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+        with:
+          flags: fuzz

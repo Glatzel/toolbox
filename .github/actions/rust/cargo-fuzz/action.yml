@@ -13,7 +13,7 @@ inputs:
   time:
     description: max fuzz test time
     required: false
-    defualt: 300
+    default: "300"
   options:
     description: Options passed to cargo fuzz test
     required: false

@@ -8,8 +8,8 @@ cargo-fuzz = true
 [[bin]]
 bench = false
 doc = false
-name = "fuzz_target_1"
-path = "fuzz_targets/fuzz_target_1.rs"
+name = "fuzz_rax"
+path = "fuzz_targets/fuzz_rax.rs"
 test = false
 
 [dependencies]

@@ -15,8 +15,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-fuzz
         with:
           working-directory: ./rust-fuzz
-          target: fuzz_target_1
-          time: 2
+          target: fuzz_rax
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
         with:

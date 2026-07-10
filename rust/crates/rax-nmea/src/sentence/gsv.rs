@@ -1,4 +1,5 @@
 extern crate alloc;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
@@ -56,7 +57,9 @@ impl IDecode<RaxNmeaError> for Gsv {
 
         // The last line may have fewer than 4 satellites, so we calculate how many
         // satellites are in the last line based on the total count.
-        let last_line_satellite_count = satellite_count - 4 * (line_count - 1);
+        let last_line_satellite_count = satellite_count.checked_sub(4 * (line_count - 1)).ok_or(
+            RaxNmeaError::InvalidSentence("satellite_count is too small".to_string()),
+        )?;
         clerk::trace!(
             "Gsv::new: last_line_satellite_count={}",
             last_line_satellite_count

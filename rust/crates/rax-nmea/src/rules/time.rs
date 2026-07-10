@@ -68,7 +68,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             Some(frac) => {
                 let digits = frac.len() as u32;
                 match frac.parse::<u64>() {
-                    Ok(frac) => frac * 1_000_000_000 / 10_u64.pow(digits),
+                    Ok(frac) => frac * (1_000_000_000 / 10_u64.pow(digits)),
                     Err(_) => {
                         clerk::error!("Can not parse nano:{}", frac);
                         return Err(RuleError {

@@ -28,7 +28,8 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ${{env.WORKDIR}}
-          options: ${{matrix.options}} -- -D warnings
+          options: ${{matrix.options}} 
+          args: -D warnings
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ${{env.WORKDIR}}

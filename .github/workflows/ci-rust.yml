@@ -32,7 +32,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ${{env.WORKDIR}}
-          global-args: ${{matrix.options}}
+          global-options: ${{matrix.options}}
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 

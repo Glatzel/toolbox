@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        args:
+        options:
           - --workspace --all-features --exclude clerk --exclude mischief
           - -p mischief --no-default-features --features macros,fancy
           - -p mischief --no-default-features --features macros
@@ -28,11 +28,11 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ${{env.WORKDIR}}
-          args: ${{matrix.args}} -- -D warnings
+          options: ${{matrix.options}} -- -D warnings
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ${{env.WORKDIR}}
-          global-args: ${{matrix.args}}
+          global-args: ${{matrix.options}}
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
 
@@ -51,13 +51,13 @@ jobs:
       - uses: ./.github/actions/rust/cargo-miri
         with:
           working-directory: ${{env.WORKDIR}}
-          args: -p envoy
+          options: -p envoy
 
   cargo-doc:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        args:
+        options:
           - --workspace --all-features --exclude clerk
           - --features tracing -p clerk
     steps:
@@ -66,4 +66,4 @@ jobs:
       - uses: ./.github/actions/rust/cargo-doc
         with:
           working-directory: ${{env.WORKDIR}}
-          args: ${{matrix.args}}
+          options: ${{matrix.options}}

@@ -13,5 +13,5 @@ path = "fuzz_targets/fuzz_rax.rs"
 test = false
 
 [dependencies]
-libfuzzer-sys = "0.4"
+libfuzzer-sys = "0.4.13"
 rax = { path = "../../rust/crates/rax" }

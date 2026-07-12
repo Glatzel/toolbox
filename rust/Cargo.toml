@@ -18,11 +18,11 @@ backtrace = "0.3.76"
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 clap = "4.6.1"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.1" }
-defmt = "1.1.0"
+defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"
 owo-colors = "4.3.0"
-quote = "1.0.45"
+quote = "1.0.46"
 rstest = "0.26.1"
 serde = "1.0.228"
 serialport = "4.9.0"
@@ -30,7 +30,7 @@ strum = { version = "0.28.0", features = ["derive"] }
 supports-color = "3.0.2"
 supports-hyperlinks = "3.2.0"
 supports-unicode = "3.0.0"
-syn = "2.0.117"
+syn = "2.0.118"
 tempfile = "3.27.0"
 terminal_size = "0.4.4"
 textwrap = { git = "https://github.com/Glatzel/textwrap.git", default-features = false }  # if official no_std released, change to official crate
@@ -40,7 +40,7 @@ tokio-util = "0.7.18"
 tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
-uuid = "1.23.3"
+uuid = "1.23.4"
 
 [profile.dev.package]
 insta.opt-level = 3

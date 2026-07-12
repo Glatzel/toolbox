@@ -17,7 +17,7 @@ async-trait = "0.1.89"
 backtrace = "0.3.76"
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 clap = "4.6.1"
-criterion = { package = "codspeed-criterion-compat", version = "4.7.0" }
+criterion = { package = "codspeed-criterion-compat", version = "5.0.1" }
 defmt = "1.1.0"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"

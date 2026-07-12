@@ -7,9 +7,7 @@ use crate::string::{IGlobalRule, IStrFlowRule};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
     Take,
-    TakeStrict,
     Skip,
-    SkipStrict,
     Global,
 }
 pub trait IDecode<E>: Sized {
@@ -20,7 +18,7 @@ pub trait IDecode<E>: Sized {
 /// [`Decoder`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub struct Decoder<'a> {
     /// The full input string.
     full: &'a str,
@@ -65,7 +63,7 @@ impl<'a> Decoder<'a> {
                 Ok(v)
             }
             Err(e) => Err(VerbError {
-                verb: Verb::TakeStrict,
+                verb: Verb::Take,
                 rule: R::type_name(),
                 input: self.rest.to_string(),
                 rule_error: e,
@@ -86,7 +84,7 @@ impl<'a> Decoder<'a> {
                 Ok(self)
             }
             Err(e) => Err(VerbError {
-                verb: Verb::SkipStrict,
+                verb: Verb::Skip,
                 rule: R::type_name(),
                 input: self.rest.to_string(),
                 rule_error: e,

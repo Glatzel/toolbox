@@ -1154,7 +1154,6 @@ dependencies = [
  "clerk",
  "codspeed-criterion-compat",
  "insta",
- "mischief",
  "rstest",
  "strum",
  "thiserror",

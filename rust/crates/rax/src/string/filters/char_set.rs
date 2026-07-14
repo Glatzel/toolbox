@@ -1,9 +1,6 @@
-use core::str::FromStr;
-
-use crate::error::FilterError;
 use crate::string::filters::IFilter;
 extern crate alloc;
-use alloc::format;
+
 /// A fixed, sorted set of characters for efficient membership testing.
 ///
 /// The `table` must be sorted and contain unique characters. The `filter`
@@ -36,38 +33,6 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     }
 }
 
-impl<const N: usize> FromStr for CharSetFilter<N> {
-    type Err = FilterError;
-
-    /// Parses a string into a `CharSetFilter`.
-    ///
-    /// The string must have exactly `N` characters, otherwise a `RaxError` is
-    /// returned.
-    fn from_str(s: &str) -> Result<Self, FilterError> {
-        let mut chars = [0 as char; N];
-        let mut i = 0;
-        for c in s.chars() {
-            if i < N {
-                chars[i] = c;
-                i += 1;
-            } else {
-                return Err(FilterError(format!(
-                    "String too long for CharSet, expected {} but got {}",
-                    N,
-                    i + 1
-                )));
-            }
-        }
-        if i != N {
-            return Err(FilterError(format!(
-                "String length does not match CharSet size, expected {} but got {}",
-                N, i
-            )));
-        }
-        Ok(Self::new(chars))
-    }
-}
-
 // Predefined filters
 
 /// Digits 0–9.
@@ -97,129 +62,16 @@ mod tests {
 
     use super::*;
     #[test]
-    fn test_char_set_filter() -> mischief::Result<()> {
+    fn test_char_set_filter() {
         init_log_with_level(LevelFilter::TRACE);
-        let filter = CharSetFilter::<3>::from_str("abc")?;
+        let filter = CharSetFilter::<_>::new(['a', '1', ',', 'あ']);
         assert!(filter.filter(&'a'));
-        assert!(filter.filter(&'b'));
-        assert!(filter.filter(&'c'));
-        assert!(!filter.filter(&'d'));
-        assert!(!filter.filter(&'1'));
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_from_str() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let filter: CharSetFilter<3> = CharSetFilter::from_str("abc")?;
-        assert!(filter.filter(&'a'));
-        assert!(filter.filter(&'b'));
-        assert!(filter.filter(&'c'));
-        assert!(!filter.filter(&'d'));
-        assert!(!filter.filter(&'1'));
-
-        let filter: CharSetFilter<2> = CharSetFilter::from_str(",*")?;
         assert!(filter.filter(&','));
-        assert!(filter.filter(&'*'));
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_invalid_length() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("abcd");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
-            );
-        }
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_too_short() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("ab");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e)
-                    .contains("String length does not match CharSet size, expected 3 but got 2")
-            );
-        }
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_empty() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e)
-                    .contains("String length does not match CharSet size, expected 3 but got 0")
-            );
-        }
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_invalid_chars() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("abce");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn test_char_set_filter_unicode() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let filter = CharSetFilter::<3>::from_str("あいう")?;
         assert!(filter.filter(&'あ'));
-        assert!(filter.filter(&'い'));
-        assert!(filter.filter(&'う'));
-        assert!(!filter.filter(&'え'));
-        assert!(!filter.filter(&'1'));
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_unicode_invalid_length() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("あいうえ");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e).contains("String too long for CharSet, expected 3 but got 4")
-            );
-        }
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_unicode_too_short() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("あい");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e)
-                    .contains("String length does not match CharSet size, expected 3 but got 2")
-            );
-        }
-        Ok(())
-    }
-    #[test]
-    fn test_char_set_filter_unicode_empty() -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharSetFilter::<3>::from_str("");
-        assert!(result.is_err());
-        if let Err(e) = result {
-            assert!(
-                format!("{:?}", e)
-                    .contains("String length does not match CharSet size, expected 3 but got 0")
-            );
-        }
-        Ok(())
+
+        assert!(!filter.filter(&'b'));
+        assert!(!filter.filter(&'2'));
+        assert!(!filter.filter(&'-'));
+        assert!(!filter.filter(&'い'));
     }
 }

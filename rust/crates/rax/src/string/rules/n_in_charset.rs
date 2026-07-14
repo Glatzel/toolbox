@@ -83,7 +83,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
 #[cfg(test)]
 mod tests {
     use core::marker::PhantomData;
-    use std::str::FromStr;
+
     extern crate std;
     use std::format;
 
@@ -96,7 +96,7 @@ mod tests {
     #[case("no_match","12abc", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
     #[case("too_short","ab", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
     #[case("empty_input","", PhantomData::<NInCharSet<1,_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("unicode","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::from_str("你好").unwrap())]
+    #[case("unicode","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::new(['你', '好']))]
     fn test_n_in_charset<const N: usize, const M: usize>(
         #[case] name: &str,
         #[case] input: &str,

@@ -68,7 +68,6 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     extern crate std;
     use core::marker::PhantomData;
     use std::format;
@@ -81,7 +80,7 @@ mod tests {
     #[case("match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
     #[case("no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
     #[case("empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("unicode","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::from_str("你").unwrap())]
+    #[case("unicode","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::new(['你']))]
     fn test_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

@@ -9,19 +9,9 @@ use alloc::format;
 /// The `table` must be sorted and contain unique characters. The `filter`
 /// method uses a simple linear search, which is effectively O(N) but very
 /// fast for small sets and `const` friendly. No nightly features are required.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CharSetFilter<const N: usize> {
     table: [char; N],
-}
-
-impl<const N: usize> core::fmt::Debug for CharSetFilter<N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "CharSetFilter<N={}>{{table: {:?}}}", N, self.table)
-    }
-}
-
-impl<const N: usize> core::fmt::Display for CharSetFilter<N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl<const N: usize> CharSetFilter<N> {

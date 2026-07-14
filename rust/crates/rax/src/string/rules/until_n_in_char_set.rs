@@ -88,7 +88,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
 #[cfg(test)]
 mod tests {
     use core::marker::PhantomData;
-    use std::str::FromStr;
+
     extern crate std;
     use std::format;
 
@@ -141,7 +141,7 @@ mod tests {
         "unicode_keep_left",
         "",
         PhantomData::<UntilNInCharSet<2, 3>>,
-        &CharSetFilter::from_str("你世好").unwrap(),
+        &CharSetFilter::new(['你', '世', '好']),
         UntilMode::KeepLeft,
     )]
     fn test_until_n_in_char_set<const N: usize, const M: usize>(

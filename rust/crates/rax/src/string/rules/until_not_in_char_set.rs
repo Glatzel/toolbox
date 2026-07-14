@@ -70,7 +70,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
 #[cfg(test)]
 mod tests {
     use core::marker::PhantomData;
-    use std::str::FromStr;
+
     extern crate std;
     use std::format;
 
@@ -85,7 +85,7 @@ mod tests {
     #[case("all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     #[case("first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     #[case("empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("unicode", "你好世界", PhantomData::<UntilNotInCharSet<2>>, &CharSetFilter::from_str("好你").unwrap(), UntilMode::Discard)]
+    #[case("unicode", "你好世界", PhantomData::<UntilNotInCharSet<2>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
     fn test_until_not_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

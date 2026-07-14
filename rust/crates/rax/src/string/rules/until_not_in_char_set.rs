@@ -70,7 +70,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
 #[cfg(test)]
 mod tests {
     use core::marker::PhantomData;
-    use std::str::FromStr;
+
     extern crate std;
     use std::format;
 

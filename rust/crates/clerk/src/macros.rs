@@ -3,7 +3,7 @@
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! trace {
-    ($($arg:tt)*) => {}
+    ($($arg:tt)*) => {};
 }
 
 /// Logs a debug-level message (no-op if neither `tracing` nor `defmt` is
@@ -11,7 +11,7 @@ macro_rules! trace {
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! debug {
-    ($($arg:tt)*) => {}
+    ($($arg:tt)*) => {};
 }
 
 /// Logs an info-level message (no-op if neither `tracing` nor `defmt` is
@@ -19,21 +19,21 @@ macro_rules! debug {
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! info {
-    ($($arg:tt)*) => {}
+    ($($arg:tt)*) => {};
 }
 
 /// Logs a warning message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! warn {
-    ($($arg:tt)*) => {}
+    ($($arg:tt)*) => {};
 }
 
 /// Logs an error message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! error {
-    ($($arg:tt)*) => {}
+    ($($arg:tt)*) => {};
 }
 
 // ============================================================================

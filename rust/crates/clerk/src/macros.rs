@@ -3,7 +3,7 @@
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! trace {
-    ($($arg:tt)*) => {};
+    ($($arg:tt)*) => {}
 }
 
 /// Logs a debug-level message (no-op if neither `tracing` nor `defmt` is
@@ -11,7 +11,7 @@ macro_rules! trace {
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! debug {
-    ($($arg:tt)*) => {};
+    ($($arg:tt)*) => {}
 }
 
 /// Logs an info-level message (no-op if neither `tracing` nor `defmt` is
@@ -19,21 +19,21 @@ macro_rules! debug {
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! info {
-    ($($arg:tt)*) => {};
+    ($($arg:tt)*) => {}
 }
 
 /// Logs a warning message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! warn {
-    ($($arg:tt)*) => {};
+    ($($arg:tt)*) => {}
 }
 
 /// Logs an error message (no-op if neither `tracing` nor `defmt` is enabled).
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
 #[macro_export]
 macro_rules! error {
-    ($($arg:tt)*) => {};
+    ($($arg:tt)*) => {}
 }
 
 // ============================================================================
@@ -45,7 +45,7 @@ macro_rules! error {
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
-        $crate::tracing::trace!($($arg)*);
+        $crate::tracing::trace!($($arg)*)
     };
 }
 
@@ -54,7 +54,7 @@ macro_rules! trace {
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
-        $crate::tracing::debug!($($arg)*);
+        $crate::tracing::debug!($($arg)*)
     };
 }
 
@@ -63,7 +63,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
-        $crate::tracing::info!($($arg)*);
+        $crate::tracing::info!($($arg)*)
     };
 }
 
@@ -72,7 +72,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
-        $crate::tracing::warn!($($arg)*);
+        $crate::tracing::warn!($($arg)*)
     };
 }
 
@@ -81,7 +81,7 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
-        $crate::tracing::error!($($arg)*);
+        $crate::tracing::error!($($arg)*)
     };
 }
 
@@ -94,7 +94,7 @@ macro_rules! error {
 #[macro_export]
 macro_rules! trace {
     ($($arg:tt)*) => {
-        $crate::defmt::trace!($($arg)*);
+        $crate::defmt::trace!($($arg)*)
     };
 }
 
@@ -103,7 +103,7 @@ macro_rules! trace {
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {
-        $crate::defmt::debug!($($arg)*);
+        $crate::defmt::debug!($($arg)*)
     };
 }
 
@@ -112,7 +112,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
-        $crate::defmt::info!($($arg)*);
+        $crate::defmt::info!($($arg)*)
     };
 }
 
@@ -121,7 +121,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {
-        $crate::defmt::warn!($($arg)*);
+        $crate::defmt::warn!($($arg)*)
     };
 }
 
@@ -130,6 +130,6 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
-        $crate::defmt::error!($($arg)*);
+        $crate::defmt::error!($($arg)*)
     };
 }

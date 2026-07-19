@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.7.19] - 2026-07-19
+
+### Added
+
+- **(rax)** Add default for decoder by @Glatzel in [#625](https://github.com/Glatzel/toolbox/pull/625)
+
+### Fixed
+
+- **(rax-nmea)** Gsv subtract with overflow by @Glatzel in [#618](https://github.com/Glatzel/toolbox/pull/618)
+- Benchmark.yml by @Glatzel in [#624](https://github.com/Glatzel/toolbox/pull/624)
+- Trailing semicolons in expression macro bodies by @Glatzel in [#633](https://github.com/Glatzel/toolbox/pull/633)
+
+### Testing
+
+- **(rax, rax-nmea)** Add fuzz test by @Glatzel in [#613](https://github.com/Glatzel/toolbox/pull/613)
+- Add function to fuzz by @Glatzel in [#616](https://github.com/Glatzel/toolbox/pull/616)
+
 ## [2026.7.6] - 2026-07-07
 
 ### Added
@@ -530,6 +547,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.7.19]: https://github.com/Glatzel/toolbox/compare/v2026.7.6..v2026.7.19
 [2026.7.6]: https://github.com/Glatzel/toolbox/compare/v2026.5.29..v2026.7.6
 [2026.5.29]: https://github.com/Glatzel/toolbox/compare/v2026.5.18..v2026.5.29
 [2026.5.18]: https://github.com/Glatzel/toolbox/compare/v2026.5.14..v2026.5.18

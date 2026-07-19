@@ -92,6 +92,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/orc
+        background: true
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/orc
@@ -123,6 +124,7 @@ jobs:
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/ttyw
+        background: true
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/ttyw
@@ -149,6 +151,7 @@ jobs:
         if: ${{matrix.machine=='ubuntu-latest'}}
         with:
           working-directory: ./tools/vinaya
+        background: true
       - uses: ./.github/actions/rust/cargo-test
         with:
           working-directory: ./tools/vinaya

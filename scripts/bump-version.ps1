@@ -34,3 +34,11 @@ Write-Host "Updated vinaya version to $version"
 Set-Location tools/vinaya
 cargo update
 Set-Location $PSScriptRoot/..
+
+Set-Location fuzz/fuzz-rax
+cargo update
+Set-Location $PSScriptRoot/..
+
+Set-Location fuzz/fuzz-rax-nmea
+cargo update
+Set-Location $PSScriptRoot/..

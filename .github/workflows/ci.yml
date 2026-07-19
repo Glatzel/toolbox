@@ -84,11 +84,12 @@ jobs:
         machine: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.machine }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: ./.github/actions/rust/setup-rust
+          with:
+            toolchain: nightly
+            components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/orc
@@ -105,21 +106,22 @@ jobs:
     if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
-        with:
-          run-install: false
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - name: Set up pixi
+          uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
+          with:
+            run-install: false
+        - uses: ./.github/actions/rust/setup-rust
+          with:
+            toolchain: nightly
+            components: clippy
       - name: frontend
         run: |
           pixi run install
           pixi run check
           pixi run build
         working-directory: ./tools/ttyw
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ./tools/ttyw
@@ -140,11 +142,12 @@ jobs:
         machine: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: ./.github/actions/rust/setup-rust
+          with:
+            toolchain: nightly
+            components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
         if: ${{matrix.machine=='ubuntu-latest'}}
         with:

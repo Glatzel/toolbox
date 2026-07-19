@@ -20,11 +20,12 @@ jobs:
           - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: clippy
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: ./.github/actions/rust/setup-rust
+          with:
+            toolchain: nightly
+            components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ${{env.WORKDIR}}
@@ -44,11 +45,12 @@ jobs:
         machine: [ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: "miri"
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: ./.github/actions/rust/setup-rust
+          with:
+            toolchain: nightly
+            components: "miri"
       - uses: ./.github/actions/rust/cargo-miri
         with:
           working-directory: ${{env.WORKDIR}}
@@ -62,8 +64,9 @@ jobs:
           - --workspace --all-features --exclude clerk
           - --features tracing -p clerk
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: ./.github/actions/rust/setup-rust
+      - parallel:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: ./.github/actions/rust/setup-rust
       - uses: ./.github/actions/rust/cargo-doc
         with:
           working-directory: ${{env.WORKDIR}}

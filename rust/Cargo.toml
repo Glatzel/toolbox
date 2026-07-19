@@ -30,7 +30,7 @@ strum = { version = "0.28.0", features = ["derive"] }
 supports-color = "3.0.2"
 supports-hyperlinks = "3.2.0"
 supports-unicode = "3.0.0"
-syn = "2.0.119"
+syn = "3.0.0"
 tempfile = "3.27.0"
 terminal_size = "0.4.4"
 textwrap = { git = "https://github.com/Glatzel/textwrap.git", default-features = false }  # if official no_std released, change to official crate

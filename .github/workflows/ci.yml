@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - if: ${{github.event_name == 'pull_request'}}
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: main
         if: ${{github.event_name == 'pull_request'}}
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
@@ -84,7 +84,7 @@ jobs:
         machine: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.machine }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly
@@ -105,7 +105,7 @@ jobs:
     if: ${{ needs.changed.outputs.changed-tools-ttyw != 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
@@ -140,7 +140,7 @@ jobs:
         machine: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly

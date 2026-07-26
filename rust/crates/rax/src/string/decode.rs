@@ -27,6 +27,7 @@ pub struct Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
+    #[inline]
     pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
         let s = input.as_ref();
         Self {
@@ -60,6 +61,7 @@ impl<'a> Decoder<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
+    #[inline]
     pub fn take<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IStrFlowRule<'a>,
@@ -76,6 +78,7 @@ impl<'a> Decoder<'a> {
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
+    #[inline]
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
         R: IStrFlowRule<'a>,
@@ -103,6 +106,7 @@ impl<'a> Decoder<'a> {
     }
 }
 impl<'a> Decoder<'a> {
+    #[inline]
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
         D: IDecode<E>,

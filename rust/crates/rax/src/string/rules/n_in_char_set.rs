@@ -1,12 +1,10 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-use core::fmt::Debug;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -46,28 +44,57 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        if N == 0 {
+            return Ok(("", input));
+        }
+
+        if is_ascii {
+            let bytes = input.as_bytes();
+
+            if bytes.len() < N {
+                return Err(RuleError {
+                    reason: "input too short or not enough chars in set".into(),
+                });
+            }
+
+            for (_i, &b) in bytes.iter().enumerate().take(N) {
+                let c = b as char;
+
+                if !self.0.filter(&c) {
+                    clerk::debug!(
+                        "{:?} did not match: char '{}' not in set at byte pos {}",
+                        self,
+                        c,
+                        _i
+                    );
+
+                    return Err(RuleError {
+                        reason: "char not in set".into(),
+                    });
+                }
+            }
+            return Ok(unsafe { input.split_at_unsafe(N) });
+        }
         let mut count = 0;
         for (i, c) in input.char_indices() {
-            if self.0.filter(&c) {
-                count += 1;
-                let end_idx = i + c.len_utf8();
-                if count == N {
-                    let matched = &input[..end_idx];
-                    let rest = &input[end_idx..];
-                    clerk::debug!("{:?} matched: '{}', rest='{:?}'", self, matched, rest);
-                    return Ok((matched, rest));
-                }
-            } else {
+            if !self.0.filter(&c) {
                 clerk::debug!(
-                    "{:?} did not match: char '{}' not in set at pos {}",
+                    "{:?} did not match: char '{}' not in set at byte pos {}",
                     self,
                     c,
                     i
                 );
+
                 return Err(RuleError {
-                    reason: "char not in set".to_string(),
+                    reason: "char not in set".into(),
                 });
+            }
+
+            count += 1;
+
+            if count == N {
+                return Ok(unsafe { input.split_at_unsafe(i + c.len_utf8()) });
             }
         }
         clerk::debug!(
@@ -75,7 +102,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             self
         );
         Err(RuleError {
-            reason: "input too short or not enough chars in set".to_string(),
+            reason: "input too short or not enough chars in set".into(),
         })
     }
 }
@@ -92,11 +119,11 @@ mod tests {
     use super::*;
     use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
     #[rstest::rstest]
-    #[case("match","abc123", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("no_match","12abc", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
-    #[case("too_short","ab", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("empty_input","", PhantomData::<NInCharSet<1,_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("unicode","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::new(['你', '好']))]
+    #[case("ascii_match","abc123", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("ascii_no_match","12abc", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
+    #[case("ascii_too_short","ab", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("ascii_empty_input","", PhantomData::<NInCharSet<1,_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("utf8_match","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::new(['你', '好']))]
     fn test_n_in_charset<const N: usize, const M: usize>(
         #[case] name: &str,
         #[case] input: &str,
@@ -104,7 +131,7 @@ mod tests {
         #[case] charset: &CharSetFilter<M>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NInCharSet::<N, M>(charset).apply(input);
+        let result = NInCharSet::<N, M>(charset).apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

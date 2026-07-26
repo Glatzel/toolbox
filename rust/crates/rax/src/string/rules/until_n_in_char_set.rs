@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
@@ -19,10 +18,10 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the N-th matched character is treated:
 ///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix
 ///     and removed from the rest.
-///   - [`UntilMode::KeepLeft`]: The N-th character is included at the end of
-///     the prefix.
-///   - [`UntilMode::KeepRight`]: The N-th character is included at the start of
-///     the rest.
+///   - [`UntilMode::KeepInOutput`]: The N-th character is included at the end
+///     of the prefix.
+///   - [`UntilMode::KeepInRest`]: The N-th character is included at the start
+///     of the rest.
 ///
 /// # Type Parameters
 ///
@@ -46,41 +45,43 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        if N == 0 {
+            return Ok(("", input));
+        }
+
+        if is_ascii {
+            let mut remaining = N;
+            for (idx, &b) in input.as_bytes().iter().enumerate() {
+                let ch = b as char;
+
+                if self.filter.filter(&ch) {
+                    remaining -= 1;
+                    if remaining == 0 {
+                        return Ok(self.mode.split_str(input, idx, 1));
+                    }
+                }
+            }
+
+            return Err(RuleError {
+                reason: "fewer than N matches found".into(),
+            });
+        }
+
+        // UTF-8 path
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
             if self.filter.filter(&ch) {
                 remaining -= 1;
                 if remaining == 0 {
-                    let after = idx + ch.len_utf8();
-                    let (prefix, rest) = match self.mode {
-                        UntilMode::Discard => (&input[..idx], &input[after..]),
-                        UntilMode::KeepLeft => (&input[..after], &input[after..]),
-                        UntilMode::KeepRight => (&input[..idx], &input[idx..]),
-                    };
-                    clerk::debug!(
-                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{:?}', idx={}, after={}, N={}",
-                        self.mode,
-                        prefix,
-                        rest,
-                        idx,
-                        after,
-                        N
-                    );
-                    return Ok((prefix, rest));
+                    return Ok(self.mode.split_str(input, idx, ch.len_utf8()));
                 }
             }
         }
 
-        clerk::debug!(
-            "{:?}: fewer than {} matches found, returning None, input='{:?}'",
-            self,
-            N,
-            input
-        );
         Err(RuleError {
-            reason: "fewer than N matches found".to_string(),
+            reason: "fewer than N matches found".into(),
         })
     }
 }
@@ -99,30 +100,30 @@ mod tests {
 
     #[rstest::rstest]
     #[case(
-        "discard",
+        "ascii_discard",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
         UntilMode::Discard
     )]
     #[case(
-        "keep_left",
+        "ascii_keep_left",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
-        UntilMode::KeepLeft,
+        UntilMode::KeepInOutput,
 
     )]
     #[case(
-        "keep_right",
+        "ascii_keep_right",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
-        UntilMode::KeepRight,
+        UntilMode::KeepInRest,
 
     )]
     #[case(
-        "not_enough_matches",
+        "ascii_not_enough_matches",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<4, _>>,
         &DIGITS,
@@ -130,7 +131,7 @@ mod tests {
 
     )]
     #[case(
-        "empty_input",
+        "ascii_empty_input",
         "",
         PhantomData::<UntilNInCharSet<1, _>>,
         &DIGITS,
@@ -138,11 +139,11 @@ mod tests {
 
     )]
     #[case(
-        "unicode_keep_left",
+        "utf8_unicode_keep_left",
         "",
         PhantomData::<UntilNInCharSet<2, 3>>,
         &CharSetFilter::new(['你', '世', '好']),
-        UntilMode::KeepLeft,
+        UntilMode::KeepInOutput,
     )]
     fn test_until_n_in_char_set<const N: usize, const M: usize>(
         #[case] name: &str,
@@ -152,7 +153,7 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input);
+        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

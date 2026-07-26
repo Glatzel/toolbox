@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "first character does not match.",
+        reason: "expected character not found",
     },
 )

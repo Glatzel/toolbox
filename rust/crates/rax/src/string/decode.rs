@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use crate::error::VerbError;
@@ -24,12 +23,17 @@ pub struct Decoder<'a> {
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
     rest: &'a str,
+    is_ascii: bool,
 }
 
 impl<'a> Decoder<'a> {
     pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
         let s = input.as_ref();
-        Self { full: s, rest: s }
+        Self {
+            full: s,
+            rest: s,
+            is_ascii: s.is_ascii(),
+        }
     }
 
     /// Returns the full input string.
@@ -57,17 +61,12 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest) {
+        match rule.apply(self.rest, self.is_ascii) {
             Ok((v, rest)) => {
                 self.rest = rest;
                 Ok(v)
             }
-            Err(e) => Err(VerbError {
-                verb: Verb::Take,
-                rule: R::type_name(),
-                input: self.rest.to_string(),
-                rule_error: e,
-            }),
+            Err(e) => Err(e.to_verb::<R>(Verb::Take, self.rest)),
         }
     }
 
@@ -78,17 +77,12 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest) {
+        match rule.apply(self.rest, self.is_ascii) {
             Ok((_, rest)) => {
                 self.rest = rest;
                 Ok(self)
             }
-            Err(e) => Err(VerbError {
-                verb: Verb::Skip,
-                rule: R::type_name(),
-                input: self.rest.to_string(),
-                rule_error: e,
-            }),
+            Err(e) => Err(e.to_verb::<R>(Verb::Skip, self.rest)),
         }
     }
 
@@ -100,12 +94,8 @@ impl<'a> Decoder<'a> {
     where
         R: IGlobalRule<'a>,
     {
-        rule.apply(self.full).map_err(|e| VerbError {
-            verb: Verb::Global,
-            rule: R::type_name(),
-            input: self.full.to_string(),
-            rule_error: e,
-        })
+        rule.apply(self.full)
+            .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
 impl<'a> Decoder<'a> {

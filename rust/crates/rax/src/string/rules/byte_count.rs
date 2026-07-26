@@ -1,8 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-use core::fmt::Debug;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::rules::IRule;
@@ -35,27 +32,12 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
-        // Trace input and requested byte count
-        clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
-
-        match input.get(..N) {
-            Some(out) => {
-                let rest = &input[N..];
-                clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, rest);
-                Ok((out, rest))
-            }
-            None => {
-                clerk::debug!(
-                    "{:?}: not enough bytes or invalid UTF-8 boundary for count {:?} in '{:?}'",
-                    self,
-                    N,
-                    input
-                );
-                Err(RuleError {
-                    reason: "input too short or invalid UTF-8 boundary.".to_string(),
-                })
-            }
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        match input.split_at_checked(N) {
+            Some((out, rest)) => Ok((out, rest)),
+            None => Err(RuleError {
+                reason: "input too short or invalid UTF-8 boundary.".into(),
+            }),
         }
     }
 }
@@ -72,20 +54,20 @@ mod tests {
     use super::*;
 
     #[rstest::rstest]
-    #[case("count_exact_length","test", PhantomData::<ByteCount<4>>)]
-    #[case("count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
-    #[case("count_more_than_length","short", PhantomData::<ByteCount<10>>)]
-    #[case("count_zero","abc", PhantomData::<ByteCount<0>>)]
-    #[case("count_empty_input","", PhantomData::<ByteCount<0>>)]
-    #[case("valid_utf8_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
-    #[case("invalid_utf8_boundary","你好世界", PhantomData::<ByteCount<2>>)]
+    #[case("ascii_count_exact_length","test", PhantomData::<ByteCount<4>>)]
+    #[case("ascii_count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
+    #[case("ascii_count_more_than_length","short", PhantomData::<ByteCount<10>>)]
+    #[case("ascii_count_zero","abc", PhantomData::<ByteCount<0>>)]
+    #[case("ascii_count_empty_input","", PhantomData::<ByteCount<0>>)]
+    #[case("utf8_valid_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
+    #[case("utf8_invalid_boundary","你好世界", PhantomData::<ByteCount<2>>)]
     fn test_byte_count<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,
         #[case] _rule: PhantomData<ByteCount<N>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = ByteCount::<N>.apply(input);
+        let result = ByteCount::<N>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

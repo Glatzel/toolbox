@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "delimiter not found",
+        reason: "input is empty or does not contain the expected character.",
     },
 )

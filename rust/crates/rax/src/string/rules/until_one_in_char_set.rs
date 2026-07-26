@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
@@ -15,9 +14,10 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the matched character is treated:
 ///   - [`UntilMode::Discard`]: Exclude the matched character from the prefix
 ///     and remove it from the rest.
-///   - [`UntilMode::KeepLeft`]: Include the matched character in the prefix.
-///   - [`UntilMode::KeepRight`]: Keep the matched character at the start of the
-///     rest.
+///   - [`UntilMode::KeepInOutput`]: Include the matched character in the
+///     prefix.
+///   - [`UntilMode::KeepInRest`]: Keep the matched character at the start of
+///     the rest.
 ///
 /// # Behavior
 ///
@@ -37,36 +37,28 @@ impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        if is_ascii {
+            for (i, &b) in input.as_bytes().iter().enumerate() {
+                if self.filter.filter(&(b as char)) {
+                    return Ok(self.mode.split_str(input, i, 1));
+                }
+            }
+
+            return Err(RuleError {
+                reason: "no match found".into(),
+            });
+        }
+
+        // UTF-8 path
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
-                let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..i], &input[i + c.len_utf8()..]),
-                    UntilMode::KeepLeft => {
-                        let end = i + c.len_utf8();
-                        (&input[..end], &input[end..])
-                    }
-                    UntilMode::KeepRight => (&input[..i], &input[i..]),
-                };
-                clerk::debug!(
-                    "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
-                    self,
-                    prefix,
-                    rest,
-                    i,
-                    c
-                );
-                return Ok((prefix, rest));
+                return Ok(self.mode.split_str(input, i, c.len_utf8()));
             }
         }
 
-        clerk::debug!(
-            "{:?}: no match found, returning None, input='{}'",
-            self,
-            input
-        );
         Err(RuleError {
-            reason: "no match found".to_string(),
+            reason: "no match found".into(),
         })
     }
 }
@@ -82,12 +74,12 @@ mod tests {
     use super::*;
     use crate::string::filters::{ASCII_LETTERS, DIGITS};
     #[rstest::rstest]
-    #[case("discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
-    #[case("keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepRight)]
-    #[case("keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
-    #[case("no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
-    #[case("empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepInOutput)]
+    #[case("ascii_keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepInRest)]
+    #[case("ascii_keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepInRest)]
+    #[case("ascii_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
+    #[case("ascii_empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     fn test_until_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,
@@ -96,7 +88,7 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilOneInCharSet::<N> { filter, mode }.apply(input);
+        let result = UntilOneInCharSet::<N> { filter, mode }.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

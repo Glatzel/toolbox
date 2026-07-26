@@ -5,13 +5,14 @@ use rax::string::{Decoder, IDecode, IGlobalRule, IStrFlowRule};
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {
-        let _ = rax_nmea::rules::NmeaCoord.apply(s);
-        let _ = rax_nmea::rules::NmeaDate.apply(s);
-        let _ = rax_nmea::rules::NmeaDegree.apply(s);
+        let is_ascii = s.is_ascii();
+        let _ = rax_nmea::rules::NmeaCoord.apply(s, is_ascii);
+        let _ = rax_nmea::rules::NmeaDate.apply(s, is_ascii);
+        let _ = rax_nmea::rules::NmeaDegree.apply(s, is_ascii);
         let _ = rax_nmea::rules::NmeaGsvLineCount.apply(s);
         let _ = rax_nmea::rules::NmeaIdentifier.apply(s);
         let _ = rax_nmea::rules::NmeaTalker.apply(s);
-        let _ = rax_nmea::rules::NmeaTime.apply(s);
+        let _ = rax_nmea::rules::NmeaTime.apply(s, is_ascii);
         let _ = rax_nmea::rules::NmeaTxtLineCount.apply(s);
         let _ = rax_nmea::rules::NmeaValidate.apply(s);
         let _ = rax_nmea::rules::NmeaValidateMultiLine.apply(s);

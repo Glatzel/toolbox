@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "not enough chars in input",
+        reason: "input too short or invalid UTF-8 boundary.",
     },
 )

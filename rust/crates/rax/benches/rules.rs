@@ -12,7 +12,7 @@ fn bench_rule<R: IStrFlowRule<'static>>(
     rule: R,
     input: &'static str,
 ) {
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input))));
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
 }
 
 fn benches(c: &mut Criterion) {
@@ -35,7 +35,7 @@ fn benches(c: &mut Criterion) {
         c,
         "until_char",
         UntilChar::<';'> {
-            mode: UntilMode::KeepRight,
+            mode: UntilMode::KeepInRest,
         },
         "123;abc",
     );
@@ -44,7 +44,7 @@ fn benches(c: &mut Criterion) {
         "until_n_in_char_set",
         UntilNInCharSet::<2, 10> {
             filter: &DIGITS,
-            mode: UntilMode::KeepRight,
+            mode: UntilMode::KeepInRest,
         },
         "a1b2c3",
     );
@@ -53,7 +53,7 @@ fn benches(c: &mut Criterion) {
         "until_not_in_char_set",
         UntilNotInCharSet {
             filter: &DIGITS,
-            mode: UntilMode::KeepRight,
+            mode: UntilMode::KeepInRest,
         },
         "123abc",
     );
@@ -63,7 +63,7 @@ fn benches(c: &mut Criterion) {
         "until_one_in_char_set",
         UntilOneInCharSet {
             filter: &FILTER,
-            mode: UntilMode::KeepRight,
+            mode: UntilMode::KeepInRest,
         },
         "0.7,1*38",
     );
@@ -72,7 +72,7 @@ fn benches(c: &mut Criterion) {
         "until_str",
         UntilStr {
             pattern: ";",
-            mode: UntilMode::KeepRight,
+            mode: UntilMode::KeepInRest,
         },
         "123;abc",
     );

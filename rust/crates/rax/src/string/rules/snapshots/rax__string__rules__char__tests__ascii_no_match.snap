@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "input is empty.",
+        reason: "expected character not found",
     },
 )

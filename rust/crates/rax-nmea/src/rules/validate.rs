@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::format;
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use rax::error::RuleError;
@@ -21,7 +20,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
 
@@ -35,7 +34,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 line
             );
             return Err(RuleError {
-                reason: format!("Invalid sentence prefix: expected '$', got '{}'", line),
+                reason: format!("Invalid sentence prefix: expected '$', got '{}'", line).into(),
             });
         }
 
@@ -47,7 +46,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 line
             );
             return Err(RuleError {
-                reason: format!("Missing checksum delimiter: expected '*', got '{}'", line),
+                reason: format!("Missing checksum delimiter: expected '*', got '{}'", line).into(),
             });
         };
 
@@ -72,17 +71,18 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 reason: format!(
                     "Invalid checksum length: expected 2, got {}",
                     checksum_str.len()
-                ),
+                )
+                .into(),
             });
         }
 
         // Parse the expected checksum from hex.
         let expected = match u8::from_str_radix(checksum_str, 16) {
             Ok(v) => v,
-            Err(e) => {
-                clerk::error!("{:?}: Invalid hex checksum: {:?}", self, e);
+            Err(_e) => {
+                clerk::error!("{:?}: Invalid hex checksum: {:?}", self, _e);
                 return Err(RuleError {
-                    reason: "Invalid hex checksum".to_string(),
+                    reason: "Invalid hex checksum".into(),
                 });
             }
         };
@@ -104,7 +104,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 expected
             );
             return Err(RuleError {
-                reason: "Checksum mismatch".to_string(),
+                reason: "Checksum mismatch".into(),
             });
         }
         clerk::info!("{:?}: sentence is valid: {:?}", self, line);
@@ -126,7 +126,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
         for line in input.split_inclusive("\n") {

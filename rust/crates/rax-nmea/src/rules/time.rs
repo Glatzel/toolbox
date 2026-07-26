@@ -1,6 +1,5 @@
 extern crate alloc;
 use alloc::format;
-use alloc::string::ToString;
 
 use chrono::NaiveTime;
 use rax::error::RuleError;
@@ -11,26 +10,26 @@ fn parse_field(
     res: &str,
     range: core::ops::Range<usize>,
     label: &str,
-    parser: &impl core::fmt::Debug,
-    input: &str,
+    _parser: &impl core::fmt::Debug,
+    _input: &str,
 ) -> Result<u32, RuleError> {
     let s = res.get(range).ok_or_else(|| {
-        clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
+        clerk::error!("{:?}: missing {}, input='{:?}'", _parser, label, _input);
         RuleError {
-            reason: format!("Missing {} field.", label),
+            reason: format!("Missing {} field.", label).into(),
         }
     })?;
 
     s.parse::<u32>().map_err(|_| {
         clerk::error!(
             "{:?}: failed to parse {}, value='{}', input={:?}",
-            parser,
+            _parser,
             label,
             s,
-            input
+            _input
         );
         RuleError {
-            reason: format!("Failed to parse {} field.", label),
+            reason: format!("Failed to parse {} field.", label).into(),
         }
     })
 }
@@ -49,14 +48,14 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveTime>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input) {
+        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input, is_ascii) {
             Ok(result) => result,
             Err(_) => {
                 return Err(RuleError {
-                    reason: "Missing time string.".to_string(),
+                    reason: "Missing time string.".into(),
                 });
             }
         };
@@ -85,9 +84,9 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             None => 0,
         };
 
-        let hour = parse_field(res, 0..2, "hour", self, input)?;
-        let min = parse_field(res, 2..4, "minute", self, input)?;
-        let sec = parse_field(res, 4..6, "second", self, input)?;
+        let hour = parse_field(res, 0..2, "hour", self, res)?;
+        let min = parse_field(res, 2..4, "minute", self, res)?;
+        let sec = parse_field(res, 4..6, "second", self, res)?;
 
         clerk::debug!(
             "{:?}: parsed hour={}, min={}, sec={}, nanos={}",
@@ -116,7 +115,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                     reason: format!(
                         "invalid time: hour={}, min={}, sec={}, nanos={}",
                         hour, min, sec, nanos
-                    ),
+                    )
+                    .into(),
                 })
             }
         }
@@ -142,7 +142,7 @@ mod tests {
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaTime.apply(input);
+        let result = NmeaTime.apply(input, true);
         insta::assert_debug_snapshot!(name, result)
     }
 }

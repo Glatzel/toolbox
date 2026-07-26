@@ -1,11 +1,12 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::ByteCount;
 use crate::string::rules::IRule;
+use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that extracts a fixed number of characters from the input string.
 ///
@@ -41,51 +42,37 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
-        // Trace input and requested character count
-        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
-
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
+
             return Ok(("", input));
         }
-
-        let length = input.chars().count();
-
-        if N == length {
-            clerk::debug!(
-                "{:?}: count matches input length, returning whole input.",
-                self
-            );
-            return Ok((input, ""));
+        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
+        if is_ascii {
+            return ByteCount::<N>.apply(input, is_ascii);
         }
+        let result = input
+            .char_indices()
+            .nth(N)
+            .map(|(idx, _)| idx)
+            .or_else(|| {
+                // exactly N chars: consume the whole string
+                if input.chars().count() == N {
+                    Some(input.len())
+                } else {
+                    None
+                }
+            })
+            .map(|idx| unsafe { input.split_at_unsafe(idx) })
+            .ok_or(RuleError {
+                reason: "not enough chars in input".into(),
+            })?;
 
-        for (count, (idx, _)) in input.char_indices().enumerate() {
-            if count == N {
-                clerk::debug!(
-                    "{:?}: found split at char {}, byte idx {}: prefix='{:?}', rest='{:?}'",
-                    self,
-                    count,
-                    idx,
-                    &input[..idx],
-                    &input[idx..]
-                );
-                return Ok((&input[..idx], &input[idx..]));
-            }
-        }
-
-        clerk::warn!(
-            "{:?}: not enough chars in input (needed {}, found {})",
-            self,
-            N,
-            length
-        );
-        Err(RuleError {
-            reason: "not enough chars in input".to_string(),
-        })
+        Ok(result)
     }
 }
 
@@ -101,19 +88,19 @@ mod tests {
     use super::*;
 
     #[rstest::rstest]
-    #[case("exact_length","test", PhantomData::<CharCount<4>>)]
-    #[case("less_than_length","hello", PhantomData::<CharCount<2>>)]
-    #[case("more_than_length","short", PhantomData::<CharCount<10>>)]
-    #[case("zero","abc", PhantomData::<CharCount<0>>)]
-    #[case("empty_input","", PhantomData::<CharCount<0>>)]
-    #[case("non_ascii","你好世界", PhantomData::<CharCount<2>>)]
+    #[case("ascii_exact_length","test", PhantomData::<CharCount<4>>)]
+    #[case("ascii_less_than_length","hello", PhantomData::<CharCount<2>>)]
+    #[case("ascii_more_than_length","short", PhantomData::<CharCount<10>>)]
+    #[case("ascii_zero","abc", PhantomData::<CharCount<0>>)]
+    #[case("ascii_empty_input","", PhantomData::<CharCount<0>>)]
+    #[case("utf8_less_than_length","你好世界", PhantomData::<CharCount<2>>)]
     fn test_char_count<const C: usize>(
         #[case] name: &str,
         #[case] input: &str,
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = CharCount::<C>.apply(input);
+        let result = CharCount::<C>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

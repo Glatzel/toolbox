@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
@@ -37,37 +36,25 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
-
-        let mut chars = input.char_indices();
-
-        if let Some((_, first_char)) = chars.next() {
-            if first_char == C {
-                // Find the next char boundary or end of string
-                let (end, _) = chars.next().unwrap_or((input.len(), '\0'));
-                clerk::debug!(
-                    "{:?} matched: '{:?}', rest='{:?}'",
-                    self,
-                    first_char,
-                    &input[end..]
-                );
-                Ok((first_char, &input[end..]))
-            } else {
-                clerk::debug!(
-                    "{:?} did not match: found '{:?}', expected '{:?}'",
-                    self,
-                    first_char,
-                    C
-                );
-                Err(RuleError {
-                    reason: "first character does not match.".to_string(),
-                })
+        if is_ascii && C.is_ascii() {
+            // C is a const generic, so `C.is_ascii()` and `C as u8` are compile-time
+            // constants
+            match input.as_bytes().first() {
+                Some(&b) if b == C as u8 => Ok((C, unsafe { input.get_unchecked(1..) })),
+                _ => Err(RuleError {
+                    reason: "expected character not found".into(),
+                }),
             }
         } else {
-            Err(RuleError {
-                reason: "input is empty.".to_string(),
-            })
+            if input.starts_with(C) {
+                Ok((C, unsafe { input.get_unchecked(C.len_utf8()..) }))
+            } else {
+                Err(RuleError {
+                    reason: "expected character not found".into(),
+                })
+            }
         }
     }
 }
@@ -83,17 +70,17 @@ mod tests {
 
     use super::*;
     #[rstest::rstest]
-    #[case("match","a123", PhantomData::<Char<'a'>>)]
-    #[case("no_match","abc", PhantomData::<Char<'d'>>)]
-    #[case("empty_input","", PhantomData::<Char<'a'>>)]
-    #[case("unicode","你好", PhantomData::<Char<'你'>>)]
+    #[case("ascii_match","a123", PhantomData::<Char<'a'>>)]
+    #[case("ascii_no_match","abc", PhantomData::<Char<'d'>>)]
+    #[case("ascii_empty_input","", PhantomData::<Char<'a'>>)]
+    #[case("utf8_match","你好", PhantomData::<Char<'你'>>)]
     fn test_byte_count<const C: char>(
         #[case] name: &str,
         #[case] input: &str,
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = Char::<C>.apply(input);
+        let result = Char::<C>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

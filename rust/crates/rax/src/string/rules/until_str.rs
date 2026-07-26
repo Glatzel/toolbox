@@ -1,7 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
@@ -16,8 +14,8 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the delimiter is treated:
 ///   - [`UntilMode::Discard`]: Exclude the delimiter from the prefix and remove
 ///     it from the rest.
-///   - [`UntilMode::KeepLeft`]: Include the delimiter in the prefix.
-///   - [`UntilMode::KeepRight`]: Keep the delimiter at the start of the rest.
+///   - [`UntilMode::KeepInOutput`]: Include the delimiter in the prefix.
+///   - [`UntilMode::KeepInRest`]: Keep the delimiter at the start of the rest.
 ///
 /// # Behavior
 ///
@@ -34,7 +32,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -44,16 +42,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
         );
 
         match input.find(self.pattern) {
-            Some(idx) => {
-                let end = idx + self.pattern.len();
-                let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..idx], &input[end..]),
-                    UntilMode::KeepLeft => (&input[..end], &input[end..]),
-                    UntilMode::KeepRight => (&input[..idx], &input[idx..]),
-                };
-                clerk::debug!("{:?} matched: prefix='{}', rest='{}'", self, prefix, rest);
-                Ok((prefix, rest))
-            }
+            Some(idx) => Ok(self.mode.split_str(input, idx, self.pattern.len())),
             None => {
                 clerk::debug!(
                     "{:?}: delimiter '{}' not found, returning None",
@@ -61,7 +50,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     self.pattern
                 );
                 Err(RuleError {
-                    reason: "no match found".to_string(),
+                    reason: "no match found".into(),
                 })
             }
         }
@@ -77,15 +66,15 @@ mod tests {
 
     use super::*;
     #[rstest::rstest]
-    #[case("discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepLeft })]
-    #[case("keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepRight })]
-    #[case("no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInOutput })]
+    #[case("ascii_keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInRest })]
+    #[case("ascii_no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = rule.apply(input);
+        let result = rule.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

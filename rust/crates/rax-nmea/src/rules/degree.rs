@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::format;
-use alloc::string::ToString;
 
 use rax::error::RuleError;
 use rax::string::{IRule, IStrFlowRule};
@@ -20,41 +19,37 @@ impl IRule for NmeaDegree {}
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str) -> Result<(Option<f64>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, rest1) = match UNTIL_COMMA_DISCARD.apply(input) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing degree string.".to_string(),
-                });
-            }
-        };
-        let (sign_str, rest2) = match UNTIL_COMMA_DISCARD.apply(rest1) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing sign string.".to_string(),
-                });
-            }
-        };
+        let (deg_str, rest) =
+            UNTIL_COMMA_DISCARD
+                .apply(input, is_ascii)
+                .map_err(|_| RuleError {
+                    reason: "Missing degree string.".into(),
+                })?;
+        let (sign_str, rest) =
+            UNTIL_COMMA_DISCARD
+                .apply(rest, is_ascii)
+                .map_err(|_| RuleError {
+                    reason: "Missing sign string.".into(),
+                })?;
         if deg_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, rest2));
+            return Ok((None, rest));
         }
         match (deg_str.parse::<f64>(), sign_str) {
-            (Ok(val), "E" | "N") => Ok((Some(val), rest2)),
-            (Ok(val), "W" | "S") => Ok((Some(-val), rest2)),
+            (Ok(val), "E" | "N") => Ok((Some(val), rest)),
+            (Ok(val), "W" | "S") => Ok((Some(-val), rest)),
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{}'", _sign),
+                    reason: format!("invalid sign string: '{}'", _sign).into(),
                 })
             }
             (Err(_), _) => {
                 clerk::error!("{:?}: invalid coord string: '{}'", self, deg_str);
                 Err(RuleError {
-                    reason: format!("invalid coord string: '{}'", deg_str),
+                    reason: format!("invalid coord string: '{}'", deg_str).into(),
                 })
             }
         }
@@ -73,7 +68,7 @@ mod test {
     #[case("null", ",,other_data")]
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaDegree.apply(input);
+        let result = NmeaDegree.apply(input, true);
         insta::assert_debug_snapshot!(name, result)
     }
 }

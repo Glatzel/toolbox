@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use chrono::NaiveDate;
@@ -19,17 +18,14 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveDate>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("NmeaUtc rule: input='{}'", input);
 
-        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing Date string.".to_string(),
-                });
-            }
-        };
+        let (res, rest) = UNTIL_COMMA_DISCARD
+            .apply(input, is_ascii)
+            .map_err(|_| RuleError {
+                reason: "Missing Date string.".into(),
+            })?;
         if res.is_empty() {
             return Ok((None, rest));
         }
@@ -39,7 +35,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse day from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse day.".to_string(),
+                    reason: "Failed to parse day.".into(),
                 });
             }
         };
@@ -48,7 +44,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse month from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse month.".to_string(),
+                    reason: "Failed to parse month.".into(),
                 });
             }
         };
@@ -57,7 +53,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse year from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse year.".to_string(),
+                    reason: "Failed to parse year.".into(),
                 });
             }
         };
@@ -75,7 +71,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                     day
                 );
                 return Err(RuleError {
-                    reason: "Invalid date.".to_string(),
+                    reason: "Invalid date.".into(),
                 });
             }
         };
@@ -98,7 +94,7 @@ mod tests {
     #[case("invalid_date", "320224,foo,bar")]
     #[case("empty", ",foo,bar")]
     fn test_nmea_date_valid(#[case] name: &str, #[case] input: &str) {
-        let result = NmeaDate.apply(input);
+        let result = NmeaDate.apply(input, true);
         insta::assert_debug_snapshot!(name, result)
     }
 }

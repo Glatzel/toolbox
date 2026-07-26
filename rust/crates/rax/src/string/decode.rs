@@ -45,6 +45,7 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
+    #[inline(always)]
     pub fn rest_str(&self) -> &'a str { &self.full[self.cursor..] }
 
     /// Resets the parser to the start of the input.
@@ -55,7 +56,7 @@ impl<'a> Decoder<'a> {
 
     /// Advances the parser by `n` bytes.
     pub fn advance(&mut self, n: usize) -> &mut Self {
-        self.cursor = self.cursor.saturating_add(n);
+        self.cursor += n;
         self
     }
     pub fn is_ascii(&self) -> bool { self.is_ascii }

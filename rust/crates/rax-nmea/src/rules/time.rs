@@ -4,7 +4,7 @@ use alloc::string::ToString;
 
 use chrono::NaiveTime;
 use rax::error::RuleError;
-use rax::string::{Decoder, IRule};
+use rax::string::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 fn parse_field(
@@ -49,10 +49,10 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        clerk::trace!("{:?}: input='{}'", self, decoder.rest_str());
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        clerk::trace!("{:?}: input='{}'", self, input);
 
-        let res = match UNTIL_COMMA_DISCARD.apply(decoder) {
+        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input, is_ascii) {
             Ok(result) => result,
             Err(_) => {
                 return Err(RuleError {
@@ -61,7 +61,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             }
         };
         if res.is_empty() {
-            return Ok(None);
+            return Ok((None, rest));
         }
 
         let nanos = match res.get(7..) {
@@ -101,7 +101,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
                 clerk::debug!("{:?}: parsed time: {}", self, t);
-                Ok(Some(t))
+                Ok((Some(t), rest))
             }
             None => {
                 clerk::error!(
@@ -142,10 +142,7 @@ mod tests {
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = NmeaTime
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = NmeaTime.apply(input, true);
         insta::assert_debug_snapshot!(name, result)
     }
 }

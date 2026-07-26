@@ -2,9 +2,9 @@ extern crate alloc;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
-use crate::string::{Decoder, IRule};
 /// Rule that extracts a prefix from the input string consisting of consecutive
 /// characters that are in the provided character set, stopping at the first
 /// character not in the set.
@@ -38,29 +38,26 @@ impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        let input = decoder.rest_str();
-        if decoder.is_ascii() {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        if is_ascii {
             for (i, &b) in input.as_bytes().iter().enumerate() {
                 let c = b as char;
 
                 if !self.filter.filter(&c) {
-                    return Ok(self.mode.advance(decoder, input, i, 1));
+                    return Ok(self.mode.split_str(input, i, 1));
                 }
             }
-            decoder.advance(input.len());
-            return Ok(input);
+            return Ok((input, ""));
         }
 
         // UTF-8 path
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
-                return Ok(self.mode.advance(decoder, input, i, c.len_utf8()));
+                return Ok(self.mode.split_str(input, i, c.len_utf8()));
             }
         }
 
-        decoder.advance(input.len());
-        return Ok(input);
+        return Ok((input, ""));
     }
 }
 
@@ -91,10 +88,7 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = UntilNotInCharSet::<N> { filter, mode }
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = UntilNotInCharSet::<N> { filter, mode }.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -4,7 +4,7 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::Decoder;
+use crate::string::ByteCount;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
@@ -41,27 +41,20 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
 
-            return Ok("");
+            return Ok(("", input));
         }
-        let input = decoder.rest_str();
         clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
-        if decoder.is_ascii() {
-            if input.len() >= N {
-                decoder.advance(N);
-                return Ok(&input[..N]);
-            }
-            return Err(RuleError {
-                reason: "not enough chars in input".into(),
-            });
+        if is_ascii {
+            return ByteCount::<N>.apply(input, is_ascii);
         }
-        let end = input
+        let result = input
             .char_indices()
             .nth(N)
             .map(|(idx, _)| idx)
@@ -73,11 +66,12 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                     None
                 }
             })
+            .map(|idx| input.split_at(idx))
             .ok_or(RuleError {
                 reason: "not enough chars in input".into(),
             })?;
-        decoder.advance(end);
-        Ok(&input[..end])
+
+        Ok(result)
     }
 }
 
@@ -105,10 +99,7 @@ mod tests {
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = CharCount::<C>
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = CharCount::<C>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

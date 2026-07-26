@@ -24,7 +24,6 @@ pub use until_str::*;
 
 pub use self::char::*;
 use crate::error::RuleError;
-use crate::string::Decoder;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -40,27 +39,11 @@ pub enum UntilMode {
     KeepRight,
 }
 impl UntilMode {
-    pub fn advance<'a>(
-        &self,
-        decoder: &mut Decoder<'_>,
-        input: &'a str,
-        left: usize,
-        length: usize,
-    ) -> &'a str {
+    pub fn split_str<'a>(&self, input: &'a str, left: usize, length: usize) -> (&'a str, &'a str) {
         match self {
-            UntilMode::Discard => {
-                decoder.advance(left + length);
-                &input[..left]
-            }
-            UntilMode::KeepLeft => {
-                let end = left + length;
-                decoder.advance(end);
-                &input[..end]
-            }
-            UntilMode::KeepRight => {
-                decoder.advance(left);
-                &input[..left]
-            }
+            UntilMode::Discard => (&input[..left], &input[left + length..]),
+            UntilMode::KeepLeft => input.split_at(left + length),
+            UntilMode::KeepRight => input.split_at(left),
         }
     }
 }
@@ -83,7 +66,7 @@ pub trait IStrFlowRule<'a>: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError>;
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).

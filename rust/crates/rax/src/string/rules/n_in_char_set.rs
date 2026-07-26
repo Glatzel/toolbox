@@ -5,8 +5,8 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
-use crate::string::{Decoder, IRule};
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -46,12 +46,12 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
-            return Ok("");
+            return Ok(("", input));
         }
-        let input = decoder.rest_str();
-        if decoder.is_ascii() {
+
+        if is_ascii {
             let bytes = input.as_bytes();
 
             if bytes.len() < N {
@@ -76,12 +76,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     });
                 }
             }
-
-            let matched = &input[..N];
-
-            clerk::debug!("{:?} matched: '{}', consumed={}", self, matched, N);
-            decoder.advance(N);
-            return Ok(matched);
+            return Ok(input.split_at(N));
         }
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -101,12 +96,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             count += 1;
 
             if count == N {
-                let end_idx = i + c.len_utf8();
-                let matched = &input[..end_idx];
-
-                clerk::debug!("{:?} matched: '{}', consumed={}", self, matched, end_idx);
-                decoder.advance(end_idx);
-                return Ok(matched);
+                return Ok(input.split_at(i + c.len_utf8()));
             }
         }
         clerk::debug!(
@@ -143,10 +133,7 @@ mod tests {
         #[case] charset: &CharSetFilter<M>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = NInCharSet::<N, M>(charset)
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = NInCharSet::<N, M>(charset).apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

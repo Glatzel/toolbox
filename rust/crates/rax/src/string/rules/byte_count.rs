@@ -5,7 +5,6 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::Decoder;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of bytes from the input string.
@@ -36,28 +35,12 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        let input = decoder.rest_str();
-        // Trace input and requested byte count
-        clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
-
-        match input.get(..N) {
-            Some(out) => {
-                decoder.advance(N);
-                clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, input);
-                Ok(out)
-            }
-            None => {
-                clerk::debug!(
-                    "{:?}: not enough bytes or invalid UTF-8 boundary for count {:?} in '{:?}'",
-                    self,
-                    N,
-                    input
-                );
-                Err(RuleError {
-                    reason: "input too short or invalid UTF-8 boundary.".to_string(),
-                })
-            }
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+        match input.split_at_checked(N) {
+            Some((out, rest)) => Ok((out, rest)),
+            None => Err(RuleError {
+                reason: "input too short or invalid UTF-8 boundary.".to_string(),
+            }),
         }
     }
 }
@@ -87,10 +70,7 @@ mod tests {
         #[case] _rule: PhantomData<ByteCount<N>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = ByteCount::<N>
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = ByteCount::<N>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

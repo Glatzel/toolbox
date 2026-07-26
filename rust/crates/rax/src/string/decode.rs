@@ -23,7 +23,7 @@ pub struct Decoder<'a> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
-    cursor: usize,
+    rest: &'a str,
     is_ascii: bool,
 }
 
@@ -32,7 +32,7 @@ impl<'a> Decoder<'a> {
         let s = input.as_ref();
         Self {
             full: s,
-            cursor: 0,
+            rest: s,
             is_ascii: s.is_ascii(),
         }
     }
@@ -45,22 +45,13 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    #[inline(always)]
-    pub fn rest_str(&self) -> &'a str { &self.full[self.cursor..] }
+    pub fn rest_str(&self) -> &str { self.rest }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {
-        self.cursor = 0;
+        self.rest = self.full;
         self
     }
-
-    /// Advances the parser by `n` bytes.
-    #[inline(always)]
-    pub fn advance(&mut self, n: usize) -> &mut Self {
-        self.cursor += n;
-        self
-    }
-    pub fn is_ascii(&self) -> bool { self.is_ascii }
 }
 
 impl<'a> Decoder<'a> {
@@ -71,12 +62,15 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self) {
-            Ok(v) => Ok(v),
+        match rule.apply(self.rest, self.is_ascii) {
+            Ok((v, rest)) => {
+                self.rest = rest;
+                Ok(v)
+            }
             Err(e) => Err(VerbError {
                 verb: Verb::Take,
                 rule: R::type_name(),
-                input: self.rest_str().to_string(),
+                input: self.rest.to_string(),
                 rule_error: e,
             }),
         }
@@ -89,12 +83,15 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self) {
-            Ok(_) => Ok(self),
+        match rule.apply(self.rest, self.is_ascii) {
+            Ok((_, rest)) => {
+                self.rest = rest;
+                Ok(self)
+            }
             Err(e) => Err(VerbError {
                 verb: Verb::Skip,
                 rule: R::type_name(),
-                input: self.rest_str().to_string(),
+                input: self.rest.to_string(),
                 rule_error: e,
             }),
         }

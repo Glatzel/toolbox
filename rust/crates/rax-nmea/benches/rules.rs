@@ -7,8 +7,7 @@ fn bench_rule<R: IStrFlowRule<'static>>(
     rule: R,
     input: &'static str,
 ) {
-    let mut decoder = rax::string::Decoder::new(input);
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(&mut decoder))));
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
 }
 fn benches(c: &mut Criterion) {
     bench_rule(c, "coord", NmeaCoord, "12319.123,E,rest");
@@ -28,4 +27,3 @@ fn bench_validate(c: &mut Criterion) {
 }
 criterion_group!(benches_group, benches, bench_validate);
 criterion_main!(benches_group);
- 

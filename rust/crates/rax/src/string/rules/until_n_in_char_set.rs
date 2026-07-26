@@ -2,9 +2,9 @@ extern crate alloc;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
-use crate::string::{Decoder, IRule};
 /// Rule that extracts a prefix from the input string until the N-th character
 /// matching a given character set is reached.
 ///
@@ -45,22 +45,20 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
-            return Ok("");
+            return Ok(("", input));
         }
-        let input = decoder.rest_str();
-        if decoder.is_ascii() {
-            let mut remaining = N;
 
+        if is_ascii {
+            let mut remaining = N;
             for (idx, &b) in input.as_bytes().iter().enumerate() {
                 let ch = b as char;
 
                 if self.filter.filter(&ch) {
                     remaining -= 1;
-
                     if remaining == 0 {
-                        return Ok(self.mode.advance(decoder, input, idx, ch.len_utf8()));
+                        return Ok(self.mode.split_str(input, idx, 1));
                     }
                 }
             }
@@ -77,7 +75,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
             if self.filter.filter(&ch) {
                 remaining -= 1;
                 if remaining == 0 {
-                    return Ok(self.mode.advance(decoder, input, idx, ch.len_utf8()));
+                    return Ok(self.mode.split_str(input, idx, ch.len_utf8()));
                 }
             }
         }
@@ -155,10 +153,7 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = UntilNInCharSet::<N, M> { filter, mode }
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

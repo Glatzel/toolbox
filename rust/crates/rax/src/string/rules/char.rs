@@ -4,7 +4,6 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::Decoder;
 use crate::string::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
@@ -37,8 +36,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        let input = decoder.rest_str();
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if input.is_empty() {
             return Err(RuleError {
@@ -47,13 +45,12 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
         }
 
         // Fast path: ASCII comparison
-        if decoder.is_ascii() {
+        if is_ascii {
             let expected = C as u8;
 
             if input.as_bytes()[0] == expected {
                 clerk::debug!("{:?} matched ASCII: '{:?}'", self, C);
-                decoder.advance(1);
-                return Ok(C);
+                return Ok((C, &input[1..]));
             }
 
             return Err(RuleError {
@@ -68,8 +65,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
 
         if first_char == C {
             clerk::debug!("{:?} matched: '{:?}'", self, first_char);
-            decoder.advance(first_char.len_utf8());
-            Ok(first_char)
+            return Ok((first_char, &input[first_char.len_utf8()..]));
         } else {
             clerk::debug!(
                 "{:?} did not match: found '{:?}', expected '{:?}'",
@@ -106,10 +102,7 @@ mod tests {
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = Char::<C>
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = Char::<C>.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

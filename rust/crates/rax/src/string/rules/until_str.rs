@@ -4,8 +4,8 @@ use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::IRule;
 use crate::string::rules::UntilMode;
-use crate::string::{Decoder, IRule};
 
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of a specified substring delimiter.
@@ -34,8 +34,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        let input = decoder.rest_str();
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -45,7 +44,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
         );
 
         match input.find(self.pattern) {
-            Some(idx) => Ok(self.mode.advance(decoder, input, idx, self.pattern.len())),
+            Some(idx) => Ok(self.mode.split_str(input, idx, self.pattern.len())),
             None => {
                 clerk::debug!(
                     "{:?}: delimiter '{}' not found, returning None",
@@ -77,10 +76,7 @@ mod tests {
     #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = rule
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = rule.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

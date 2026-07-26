@@ -2,7 +2,7 @@ extern crate alloc;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::{Decoder, IRule};
+use crate::string::IRule;
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
 ///
@@ -45,8 +45,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
-        let input = decoder.rest_str();
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -55,7 +54,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             self.mode
         );
 
-        let pos = if decoder.is_ascii() {
+        let pos = if is_ascii {
             input.as_bytes().iter().position(|&b| b == C as u8)
         } else {
             input
@@ -67,7 +66,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             reason: "delimiter not found".into(),
         })?;
 
-        Ok(self.mode.advance(decoder, input, i, C.len_utf8()))
+        Ok(self.mode.split_str(input, i, C.len_utf8()))
     }
 }
 
@@ -96,10 +95,7 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let result = UntilChar::<C> { mode }
-            .apply(&mut decoder)
-            .map(|out| (out, decoder.rest_str()));
+        let result = UntilChar::<C> { mode }.apply(input, input.is_ascii());
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

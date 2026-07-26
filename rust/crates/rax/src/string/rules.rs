@@ -40,7 +40,7 @@ pub enum UntilMode {
     KeepRight,
 }
 impl UntilMode {
-    pub fn split_str<'a>(self, input: &'a str, left: usize, length: usize) -> (&'a str, &'a str) {
+    pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, &str) {
         unsafe {
             match self {
                 UntilMode::Discard => (

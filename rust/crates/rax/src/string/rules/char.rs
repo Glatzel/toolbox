@@ -36,51 +36,13 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
-        if input.is_empty() {
-            return Err(RuleError {
-                reason: "input is empty.".into(),
-            });
-        }
-
-        // Fast path: ASCII comparison
-        if is_ascii {
-            if input.as_bytes()[0] == C as u8 {
-                clerk::debug!("{:?} matched ASCII: '{:?}'", self, C);
-                return Ok((C, &input[1..]));
-            }
-
-            return Err(RuleError {
-                reason: "first character does not match.".into(),
-            });
-        }
-
-        // Unicode fallback
-        let mut chars = input.chars();
-
-        match chars.next() {
-            Some(first_char) => {
-                if first_char == C {
-                    clerk::debug!("{:?} matched: '{:?}'", self, first_char);
-                    return Ok((first_char, &input[first_char.len_utf8()..]));
-                } else {
-                    clerk::debug!(
-                        "{:?} did not match: found '{:?}', expected '{:?}'",
-                        self,
-                        first_char,
-                        C
-                    );
-                    return Err(RuleError {
-                        reason: "first character does not match.".into(),
-                    });
-                }
-            }
-            None => {
-                return Err(RuleError {
-                    reason: "first character does not match.".into(),
-                });
-            }
+        match input.find(C) {
+            Some(idx) => Ok((C, &input[idx + C.len_utf8()..])),
+            None => Err(RuleError {
+                reason: "input is empty or does not contain the expected character.".into(),
+            }),
         }
     }
 }

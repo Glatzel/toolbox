@@ -23,7 +23,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -31,20 +31,10 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             C,
             self.mode
         );
-
-        let pos = if is_ascii {
-            input.as_bytes().iter().position(|&b| b == C as u8)
-        } else {
-            input
-                .char_indices()
-                .find_map(|(i, c)| (c == C).then_some(i))
-        };
-
-        let i = pos.ok_or_else(|| RuleError {
-            reason: "delimiter not found".into(),
-        })?;
-
-        Ok(self.mode.split_str(input, i, C.len_utf8()))
+        match input.split_once(C) {
+            Some((prefix, _)) => Ok(self.mode.split_str(input, prefix.len(), C.len_utf8())),
+            None => Ok((input, "")),
+        }
     }
 }
 

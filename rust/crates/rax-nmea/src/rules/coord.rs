@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::string::{CharCount, IRule, IStrFlowRule};
+use rax::string::{Char, CharCount, IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -41,6 +41,9 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             .map_err(|_| RuleError {
                 reason: "Missing sign string.".into(),
             })?;
+        let (_, rest) = Char::<','>.apply(rest, is_ascii).map_err(|_| RuleError {
+            reason: "Missing comma.".into(),
+        })?;
         if num_str.is_empty() && sign.is_empty() {
             return Ok((None, rest));
         }

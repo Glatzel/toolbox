@@ -14,8 +14,8 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the matched character is treated:
 ///   - [`UntilMode::Discard`]: Exclude the matched character from the prefix
 ///     and remove it from the rest.
-///   - [`UntilMode::KeepLeft`]: Include the matched character in the prefix.
-///   - [`UntilMode::KeepRight`]: Keep the matched character at the start of the
+///   - [`UntilMode::KeepInOutput`]: Include the matched character in the prefix.
+///   - [`UntilMode::KeepInRest`]: Keep the matched character at the start of the
 ///     rest.
 ///
 /// # Behavior

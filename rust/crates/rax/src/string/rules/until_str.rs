@@ -14,8 +14,8 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the delimiter is treated:
 ///   - [`UntilMode::Discard`]: Exclude the delimiter from the prefix and remove
 ///     it from the rest.
-///   - [`UntilMode::KeepLeft`]: Include the delimiter in the prefix.
-///   - [`UntilMode::KeepRight`]: Keep the delimiter at the start of the rest.
+///   - [`UntilMode::KeepInOutput`]: Include the delimiter in the prefix.
+///   - [`UntilMode::KeepInRest`]: Keep the delimiter at the start of the rest.
 ///
 /// # Behavior
 ///

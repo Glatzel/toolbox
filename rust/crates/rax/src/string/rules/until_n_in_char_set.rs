@@ -18,9 +18,9 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the N-th matched character is treated:
 ///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix
 ///     and removed from the rest.
-///   - [`UntilMode::KeepLeft`]: The N-th character is included at the end of
+///   - [`UntilMode::KeepInOutput`]: The N-th character is included at the end of
 ///     the prefix.
-///   - [`UntilMode::KeepRight`]: The N-th character is included at the start of
+///   - [`UntilMode::KeepInRest`]: The N-th character is included at the start of
 ///     the rest.
 ///
 /// # Type Parameters

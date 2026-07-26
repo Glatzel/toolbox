@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::string::{IRule, IStrFlowRule};
+use rax::string::{CharCount, IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -36,23 +36,22 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     reason: "Missing number string.".into(),
                 })?;
 
-        let (sign_str, rest) =
-            UNTIL_COMMA_DISCARD
-                .apply(rest, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".into(),
-                })?;
-        if num_str.is_empty() && sign_str.is_empty() {
+        let (sign, rest) = CharCount::<1>
+            .apply(rest, is_ascii)
+            .map_err(|_| RuleError {
+                reason: "Missing sign string.".into(),
+            })?;
+        if num_str.is_empty() && sign.is_empty() {
             return Ok((None, rest));
         }
 
-        match (num_str.parse::<f64>(), sign_str) {
+        match (num_str.parse::<f64>(), sign) {
             (Ok(v), "N" | "E") => {
                 let result = Self::convert_to_decimal_degrees(v);
                 clerk::debug!(
                     "{:?}: positive sign '{}', deg={}, min={}, result={}",
                     self,
-                    sign_str,
+                    sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result
@@ -64,7 +63,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                 clerk::debug!(
                     "{:?}: negative sign '{}', deg={}, min={}, result={}",
                     self,
-                    sign_str,
+                    sign,
                     (v / 100.0).floor(),
                     v - (v / 100.0).floor() * 100.0,
                     result

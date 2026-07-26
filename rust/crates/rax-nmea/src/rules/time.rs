@@ -1,6 +1,5 @@
 extern crate alloc;
 use alloc::format;
-use alloc::string::ToString;
 
 use chrono::NaiveTime;
 use rax::error::RuleError;

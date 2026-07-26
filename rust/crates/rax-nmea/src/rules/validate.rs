@@ -1,7 +1,6 @@
 extern crate alloc;
 
 use alloc::format;
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use rax::error::RuleError;

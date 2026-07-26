@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 
 use rax::error::RuleError;
 use rax::string::{IGlobalRule, IRule};

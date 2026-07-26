@@ -41,15 +41,10 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
         // Trace input and requested byte count
         clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
 
-        match decoder.rest_str().get(..N) {
+        match input.get(..N) {
             Some(out) => {
                 decoder.advance(N);
-                clerk::debug!(
-                    "{:?}: matched prefix='{:?}', rest='{:?}'",
-                    self,
-                    out,
-                    decoder.rest_str()
-                );
+                clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, input);
                 Ok(out)
             }
             None => {

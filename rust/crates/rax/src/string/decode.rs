@@ -55,6 +55,7 @@ impl<'a> Decoder<'a> {
     }
 
     /// Advances the parser by `n` bytes.
+    #[inline(always)]
     pub fn advance(&mut self, n: usize) -> &mut Self {
         self.cursor += n;
         self

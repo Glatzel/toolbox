@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
@@ -30,39 +29,20 @@ impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-
-    /// Applies the `OneOfCharSet` rule to the input string.
-    ///
-    /// # Returns
-    ///
-    /// - `(Some(matched), rest)` if the first character is in the character
-    ///   set.
-    /// - `(None, input)` if the first character is not in the set or the input
-    ///   is empty.
-    ///
-    /// # Logging
-    ///
-    /// - Trace-level logs show the input string.
-    /// - Debug-level logs indicate matches or mismatches.
-    fn apply(&self, input: &'a str) -> Result<(char, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(char, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
 
-        if let Some((_, c)) = input.char_indices().next() {
-            if self.0.filter(&c) {
-                let next_i = input.char_indices().nth(1).map_or(input.len(), |(j, _)| j);
-                clerk::debug!("OneOfCharSet matched: '{}', rest='{}'", c, &input[next_i..]);
-                Ok((c, &input[next_i..]))
-            } else {
-                clerk::debug!("OneOfCharSet did not match: found '{}', not in set", c);
-                Err(RuleError {
-                    reason: "character not in set".to_string(),
-                })
-            }
-        } else {
-            Err(RuleError {
-                reason: "empty input".to_string(),
-            })
+        let c = input.chars().next().ok_or_else(|| RuleError {
+            reason: "empty input".into(),
+        })?;
+
+        if !self.0.filter(&c) {
+            return Err(RuleError {
+                reason: "character not in set".into(),
+            });
         }
+
+        Ok((c, c.len_utf8()))
     }
 }
 
@@ -88,7 +68,9 @@ mod tests {
         #[case] charset: &CharSetFilter<N>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = OneOfCharSet::<N>(charset).apply(input);
+        let result = OneOfCharSet::<N>(charset)
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

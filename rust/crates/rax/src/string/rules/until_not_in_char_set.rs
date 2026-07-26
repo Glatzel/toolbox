@@ -38,13 +38,16 @@ impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
                 let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..i], &input[i + c.len_utf8()..]),
-                    UntilMode::KeepLeft => (&input[..i + c.len_utf8()], &input[i + c.len_utf8()..]),
-                    UntilMode::KeepRight => (&input[..i], &input[i..]),
+                    UntilMode::Discard => (&input[..i], i + c.len_utf8()),
+                    UntilMode::KeepLeft => {
+                        let after = i + c.len_utf8();
+                        (&input[..after], after)
+                    }
+                    UntilMode::KeepRight => (&input[..i], i),
                 };
                 clerk::debug!(
                     "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
@@ -63,7 +66,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
             self,
             input
         );
-        Ok((input, ""))
+        Ok((input, input.len()))
     }
 }
 
@@ -94,7 +97,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNotInCharSet::<N> { filter, mode }.apply(input);
+        let result = UntilNotInCharSet::<N> { filter, mode }
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

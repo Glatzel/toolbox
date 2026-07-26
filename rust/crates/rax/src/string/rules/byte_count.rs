@@ -35,7 +35,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         // Trace input and requested byte count
         clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
 
@@ -43,7 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
             Some(out) => {
                 let rest = &input[N..];
                 clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, rest);
-                Ok((out, rest))
+                Ok((out, N))
             }
             None => {
                 clerk::debug!(
@@ -85,7 +85,9 @@ mod tests {
         #[case] _rule: PhantomData<ByteCount<N>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = ByteCount::<N>.apply(input);
+        let result = ByteCount::<N>
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

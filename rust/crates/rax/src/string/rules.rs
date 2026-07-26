@@ -4,7 +4,7 @@ use core::fmt::Debug;
 mod byte_count;
 mod char;
 mod char_count;
-mod n_in_charset;
+mod n_in_char_set;
 mod one_in_char_set;
 mod until_char;
 mod until_n_in_char_set;
@@ -14,7 +14,7 @@ mod until_str;
 
 pub use byte_count::*;
 pub use char_count::*;
-pub use n_in_charset::*;
+pub use n_in_char_set::*;
 pub use one_in_char_set::*;
 pub use until_char::*;
 pub use until_n_in_char_set::*;
@@ -57,7 +57,7 @@ pub trait IStrFlowRule<'a>: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError>;
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).

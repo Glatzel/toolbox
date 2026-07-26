@@ -34,7 +34,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -45,11 +45,13 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 
         match input.find(self.pattern) {
             Some(idx) => {
-                let end = idx + self.pattern.len();
                 let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..idx], &input[end..]),
-                    UntilMode::KeepLeft => (&input[..end], &input[end..]),
-                    UntilMode::KeepRight => (&input[..idx], &input[idx..]),
+                    UntilMode::Discard => (&input[..idx], idx + self.pattern.len()),
+                    UntilMode::KeepLeft => {
+                        let end = idx + self.pattern.len();
+                        (&input[..end], end)
+                    }
+                    UntilMode::KeepRight => (&input[..idx], idx),
                 };
                 clerk::debug!("{:?} matched: prefix='{}', rest='{}'", self, prefix, rest);
                 Ok((prefix, rest))
@@ -85,7 +87,7 @@ mod tests {
     #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = rule.apply(input);
+        let result = rule.apply(input).map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

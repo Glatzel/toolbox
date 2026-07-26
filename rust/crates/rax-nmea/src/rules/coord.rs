@@ -27,27 +27,21 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
     /// Applies the NmeaCoord rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, rest1) = match UNTIL_COMMA_DISCARD.apply(input) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing number string.".to_string(),
-                });
-            }
-        };
-        let (sign_str, rest2) = match UNTIL_COMMA_DISCARD.apply(rest1) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
+        let (num_str, consumed1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing number string.".to_string(),
+        })?;
+
+        let (sign_str, consumed2) =
+            UNTIL_COMMA_DISCARD
+                .apply(&input[consumed1..])
+                .map_err(|_| RuleError {
                     reason: "Missing sign string.".to_string(),
-                });
-            }
-        };
+                })?;
         if num_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, rest2));
+            return Ok((None, consumed1 + consumed2));
         }
 
         match (num_str.parse::<f64>(), sign_str) {
@@ -61,7 +55,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), rest2))
+                Ok((Some(result), consumed1 + consumed2))
             }
             (Ok(v), "S" | "W") => {
                 let result = -Self::convert_to_decimal_degrees(v);
@@ -73,7 +67,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), rest2))
+                Ok((Some(result), consumed1 + consumed2))
             }
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);

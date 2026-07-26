@@ -37,7 +37,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
 
         let mut chars = input.char_indices();
@@ -52,7 +52,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                     first_char,
                     &input[end..]
                 );
-                Ok((first_char, &input[end..]))
+                Ok((first_char, C.len_utf8()))
             } else {
                 clerk::debug!(
                     "{:?} did not match: found '{:?}', expected '{:?}'",
@@ -93,7 +93,9 @@ mod tests {
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = Char::<C>.apply(input);
+        let result = Char::<C>
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

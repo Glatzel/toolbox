@@ -1,5 +1,5 @@
 ---
-source: crates/rax/src/string/rules/n_in_charset.rs
+source: crates/rax/src/string/rules/n_in_char_set.rs
 expression: result
 ---
 Ok(

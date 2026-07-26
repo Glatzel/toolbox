@@ -20,31 +20,24 @@ impl IRule for NmeaDegree {}
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str) -> Result<(Option<f64>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Option<f64>, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, rest1) = match UNTIL_COMMA_DISCARD.apply(input) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing degree string.".to_string(),
-                });
-            }
-        };
-        let (sign_str, rest2) = match UNTIL_COMMA_DISCARD.apply(rest1) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
+        let (deg_str, consumed1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing degree string.".to_string(),
+        })?;
+        let (sign_str, consumed2) =
+            UNTIL_COMMA_DISCARD
+                .apply(&input[consumed1..])
+                .map_err(|_| RuleError {
                     reason: "Missing sign string.".to_string(),
-                });
-            }
-        };
+                })?;
         if deg_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, rest2));
+            return Ok((None, consumed1 + consumed2));
         }
         match (deg_str.parse::<f64>(), sign_str) {
-            (Ok(val), "E" | "N") => Ok((Some(val), rest2)),
-            (Ok(val), "W" | "S") => Ok((Some(-val), rest2)),
+            (Ok(val), "E" | "N") => Ok((Some(val), consumed1 + consumed2)),
+            (Ok(val), "W" | "S") => Ok((Some(-val), consumed1 + consumed2)),
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {

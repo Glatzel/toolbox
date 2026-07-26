@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
@@ -41,7 +40,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         // Trace input and requested character count
         clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
 
@@ -50,42 +49,21 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
-            return Ok(("", input));
+            return Ok(("", 0));
+        }
+        if N == input.chars().count() {
+            return Ok((input, input.len()));
         }
 
-        let length = input.chars().count();
+        let end = input
+            .char_indices()
+            .nth(N)
+            .map(|(idx, _)| idx)
+            .ok_or(RuleError {
+                reason: "not enough chars in input".into(),
+            })?;
 
-        if N == length {
-            clerk::debug!(
-                "{:?}: count matches input length, returning whole input.",
-                self
-            );
-            return Ok((input, ""));
-        }
-
-        for (count, (idx, _)) in input.char_indices().enumerate() {
-            if count == N {
-                clerk::debug!(
-                    "{:?}: found split at char {}, byte idx {}: prefix='{:?}', rest='{:?}'",
-                    self,
-                    count,
-                    idx,
-                    &input[..idx],
-                    &input[idx..]
-                );
-                return Ok((&input[..idx], &input[idx..]));
-            }
-        }
-
-        clerk::warn!(
-            "{:?}: not enough chars in input (needed {}, found {})",
-            self,
-            N,
-            length
-        );
-        Err(RuleError {
-            reason: "not enough chars in input".to_string(),
-        })
+        Ok((&input[..end], end))
     }
 }
 
@@ -113,7 +91,9 @@ mod tests {
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = CharCount::<C>.apply(input);
+        let result = CharCount::<C>
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -46,28 +46,34 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+        if N == 0 {
+            return Ok(("", 0));
+        }
         let mut count = 0;
         for (i, c) in input.char_indices() {
-            if self.0.filter(&c) {
-                count += 1;
-                let end_idx = i + c.len_utf8();
-                if count == N {
-                    let matched = &input[..end_idx];
-                    let rest = &input[end_idx..];
-                    clerk::debug!("{:?} matched: '{}', rest='{:?}'", self, matched, rest);
-                    return Ok((matched, rest));
-                }
-            } else {
+            if !self.0.filter(&c) {
                 clerk::debug!(
-                    "{:?} did not match: char '{}' not in set at pos {}",
+                    "{:?} did not match: char '{}' not in set at byte pos {}",
                     self,
                     c,
                     i
                 );
+
                 return Err(RuleError {
                     reason: "char not in set".to_string(),
                 });
+            }
+
+            count += 1;
+
+            if count == N {
+                let end_idx = i + c.len_utf8();
+                let matched = &input[..end_idx];
+
+                clerk::debug!("{:?} matched: '{}', consumed={}", self, matched, end_idx);
+
+                return Ok((matched, end_idx));
             }
         }
         clerk::debug!(
@@ -104,7 +110,9 @@ mod tests {
         #[case] charset: &CharSetFilter<M>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NInCharSet::<N, M>(charset).apply(input);
+        let result = NInCharSet::<N, M>(charset)
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

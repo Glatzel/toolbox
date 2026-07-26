@@ -49,10 +49,10 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveTime>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Option<NaiveTime>, usize), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input) {
+        let (res, consumed) = match UNTIL_COMMA_DISCARD.apply(input) {
             Ok(result) => result,
             Err(_) => {
                 return Err(RuleError {
@@ -61,7 +61,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             }
         };
         if res.is_empty() {
-            return Ok((None, rest));
+            return Ok((None, consumed));
         }
 
         let nanos = match res.get(7..) {
@@ -101,7 +101,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
                 clerk::debug!("{:?}: parsed time: {}", self, t);
-                Ok((Some(t), rest))
+                Ok((Some(t), consumed))
             }
             None => {
                 clerk::error!(

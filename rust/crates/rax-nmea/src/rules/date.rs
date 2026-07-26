@@ -19,19 +19,14 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveDate>, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Option<NaiveDate>, usize), RuleError> {
         clerk::trace!("NmeaUtc rule: input='{}'", input);
 
-        let (res, rest) = match UNTIL_COMMA_DISCARD.apply(input) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing Date string.".to_string(),
-                });
-            }
-        };
+        let (res, consumed) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing Date string.".to_string(),
+        })?;
         if res.is_empty() {
-            return Ok((None, rest));
+            return Ok((None, consumed));
         }
 
         let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
@@ -79,7 +74,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                 });
             }
         };
-        Ok((Some(dt), rest))
+        Ok((Some(dt), consumed))
     }
 }
 

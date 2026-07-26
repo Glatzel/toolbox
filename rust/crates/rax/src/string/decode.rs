@@ -23,13 +23,13 @@ pub struct Decoder<'a> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
-    rest: &'a str,
+    cursor: usize,
 }
 
 impl<'a> Decoder<'a> {
     pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
         let s = input.as_ref();
-        Self { full: s, rest: s }
+        Self { full: s, cursor: 0 }
     }
 
     /// Returns the full input string.
@@ -40,11 +40,11 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    pub fn rest_str(&self) -> &str { self.rest }
+    pub fn rest_str(&self) -> &'a str { self.full.get(self.cursor..).unwrap() }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {
-        self.rest = self.full;
+        self.cursor = 0;
         self
     }
 }
@@ -57,15 +57,15 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest) {
-            Ok((v, rest)) => {
-                self.rest = rest;
+        match rule.apply(self.rest_str()) {
+            Ok((v, advanced)) => {
+                self.cursor += advanced;
                 Ok(v)
             }
             Err(e) => Err(VerbError {
                 verb: Verb::Take,
                 rule: R::type_name(),
-                input: self.rest.to_string(),
+                input: self.rest_str().to_string(),
                 rule_error: e,
             }),
         }
@@ -78,15 +78,15 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest) {
-            Ok((_, rest)) => {
-                self.rest = rest;
+        match rule.apply(self.rest_str()) {
+            Ok((_, advanced)) => {
+                self.cursor += advanced;
                 Ok(self)
             }
             Err(e) => Err(VerbError {
                 verb: Verb::Skip,
                 rule: R::type_name(),
-                input: self.rest.to_string(),
+                input: self.rest_str().to_string(),
                 rule_error: e,
             }),
         }

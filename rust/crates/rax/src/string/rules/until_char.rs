@@ -48,7 +48,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str) -> Result<(&'a str, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(&'a str, usize), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -61,14 +61,13 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             if c == C {
                 match self.mode {
                     UntilMode::Discard => {
-                        let end = i + C.len_utf8();
                         clerk::debug!(
                             "{:?} matched (discard): prefix='{:?}', rest='{:?}'",
                             self,
                             &input[..i],
-                            &input[end..]
+                            &input[i + C.len_utf8()..]
                         );
-                        return Ok((&input[..i], &input[end..]));
+                        return Ok((&input[..i], i + C.len_utf8()));
                     }
                     UntilMode::KeepLeft => {
                         let end = i + C.len_utf8();
@@ -78,7 +77,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                             &input[..end],
                             &input[end..]
                         );
-                        return Ok((&input[..end], &input[end..]));
+                        return Ok((&input[..end], end));
                     }
                     UntilMode::KeepRight => {
                         clerk::debug!(
@@ -87,7 +86,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
                             &input[..i],
                             &input[i..]
                         );
-                        return Ok((&input[..i], &input[i..]));
+                        return Ok((&input[..i], i));
                     }
                 }
             }
@@ -123,7 +122,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilChar::<C> { mode }.apply(input);
+        let result = UntilChar::<C> { mode }
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

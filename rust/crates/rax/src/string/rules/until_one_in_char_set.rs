@@ -37,16 +37,16 @@ impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
                 let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..i], &input[i + c.len_utf8()..]),
+                    UntilMode::Discard => (&input[..i], i + c.len_utf8()),
                     UntilMode::KeepLeft => {
                         let end = i + c.len_utf8();
-                        (&input[..end], &input[end..])
+                        (&input[..end], end)
                     }
-                    UntilMode::KeepRight => (&input[..i], &input[i..]),
+                    UntilMode::KeepRight => (&input[..i], i),
                 };
                 clerk::debug!(
                     "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
@@ -96,7 +96,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilOneInCharSet::<N> { filter, mode }.apply(input);
+        let result = UntilOneInCharSet::<N> { filter, mode }
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

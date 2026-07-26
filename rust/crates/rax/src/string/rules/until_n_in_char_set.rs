@@ -46,26 +46,30 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+        if N == 0 {
+            return Ok(("", 0));
+        }
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
             if self.filter.filter(&ch) {
                 remaining -= 1;
                 if remaining == 0 {
-                    let after = idx + ch.len_utf8();
                     let (prefix, rest) = match self.mode {
-                        UntilMode::Discard => (&input[..idx], &input[after..]),
-                        UntilMode::KeepLeft => (&input[..after], &input[after..]),
-                        UntilMode::KeepRight => (&input[..idx], &input[idx..]),
+                        UntilMode::Discard => (&input[..idx], idx + ch.len_utf8()),
+                        UntilMode::KeepLeft => {
+                            let after = idx + ch.len_utf8();
+                            (&input[..after], after)
+                        }
+                        UntilMode::KeepRight => (&input[..idx], idx),
                     };
                     clerk::debug!(
-                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{:?}', idx={}, after={}, N={}",
+                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{:?}', idx={}, N={}",
                         self.mode,
                         prefix,
                         rest,
                         idx,
-                        after,
                         N
                     );
                     return Ok((prefix, rest));
@@ -152,7 +156,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input);
+        let result = UntilNInCharSet::<N, M> { filter, mode }
+            .apply(input)
+            .map(|(out, rest)| (out, &input[rest..]));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

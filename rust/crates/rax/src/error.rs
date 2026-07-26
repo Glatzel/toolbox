@@ -1,20 +1,21 @@
 use thiserror::Error;
 extern crate alloc;
-use alloc::string::{String, ToString};
+use alloc::borrow::Cow;
+use alloc::string::String;
 use core::fmt::Debug;
 
 use crate::string::{IRule, Verb};
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
 #[error("Rule Error: {reason}")]
 pub struct RuleError {
-    pub reason: String,
+    pub reason: Cow<'static, str>,
 }
 impl RuleError {
     pub fn to_verb<R: IRule>(self, verb: Verb, input: &str) -> VerbError {
         VerbError {
             verb,
             rule: R::type_name(),
-            input: input.to_string(),
+            input: Cow::Owned(input.into()),
             rule_error: self,
         }
     }
@@ -24,7 +25,7 @@ impl RuleError {
 pub struct VerbError {
     pub verb: Verb,
     pub rule: &'static str,
-    pub input: String,
+    pub input: Cow<'static, str>,
     pub rule_error: RuleError,
 }
 #[derive(Error, Debug, Clone, PartialEq, Eq)]

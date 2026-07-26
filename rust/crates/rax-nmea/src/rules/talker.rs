@@ -15,12 +15,12 @@ impl<'a> IGlobalRule<'a> for NmeaTalker {
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         let s = input.get(1..3).ok_or(RuleError {
-            reason: "missing talker".to_string(),
+            reason: "missing talker".into(),
         })?;
         match Talker::from_str(s) {
             Ok(talker) => Ok(talker),
             Err(_) => Err(RuleError {
-                reason: "unknown talker".to_string(),
+                reason: "unknown talker".into(),
             }),
         }
     }

@@ -36,14 +36,25 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
-        if input.starts_with(C) {
-            Ok((C, &input[C.len_utf8()..]))
+        if is_ascii && C.is_ascii() {
+            // C is a const generic, so `C.is_ascii()` and `C as u8` are compile-time
+            // constants
+            match input.as_bytes().first() {
+                Some(&b) if b == C as u8 => Ok((C, &input[1..])),
+                _ => Err(RuleError {
+                    reason: "expected character not found".into(),
+                }),
+            }
         } else {
-            Err(RuleError {
-                reason: "expected character not found".into(),
-            })
+            if input.starts_with(C) {
+                Ok((C, &input[C.len_utf8()..]))
+            } else {
+                Err(RuleError {
+                    reason: "expected character not found".into(),
+                })
+            }
         }
     }
 }

@@ -27,13 +27,13 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
-                    reason: "Missing degree string.".to_string(),
+                    reason: "Missing degree string.".into(),
                 })?;
         let (sign_str, rest) =
             UNTIL_COMMA_DISCARD
                 .apply(rest, is_ascii)
                 .map_err(|_| RuleError {
-                    reason: "Missing sign string.".to_string(),
+                    reason: "Missing sign string.".into(),
                 })?;
         if deg_str.is_empty() && sign_str.is_empty() {
             return Ok((None, rest));
@@ -44,13 +44,13 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{}'", _sign),
+                    reason: format!("invalid sign string: '{}'", _sign).into(),
                 })
             }
             (Err(_), _) => {
                 clerk::error!("{:?}: invalid coord string: '{}'", self, deg_str);
                 Err(RuleError {
-                    reason: format!("invalid coord string: '{}'", deg_str),
+                    reason: format!("invalid coord string: '{}'", deg_str).into(),
                 })
             }
         }

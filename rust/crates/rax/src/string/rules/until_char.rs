@@ -9,7 +9,9 @@ use crate::string::IRule;
 pub struct UntilChar<const C: char> {
     pub mode: super::UntilMode,
 }
-
+impl<const C: char> UntilChar<C> {
+    const DELIM_LEN: usize = C.len_utf8();
+}
 impl<const C: char> IRule for UntilChar<C> {}
 
 impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
@@ -29,7 +31,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             self.mode
         );
         match input.find(C) {
-            Some(idx) => Ok(self.mode.split_str(input, idx, C.len_utf8())),
+            Some(idx) => Ok(self.mode.split_str(input, idx, Self::DELIM_LEN)),
             None => Err(RuleError {
                 reason: "input is empty or does not contain the expected character.".into(),
             }),

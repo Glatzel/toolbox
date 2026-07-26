@@ -1,8 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-use core::fmt::Debug;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
@@ -89,7 +86,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 );
 
                 return Err(RuleError {
-                    reason: "char not in set".to_string(),
+                    reason: "char not in set".into(),
                 });
             }
 
@@ -104,7 +101,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             self
         );
         Err(RuleError {
-            reason: "input too short or not enough chars in set".to_string(),
+            reason: "input too short or not enough chars in set".into(),
         })
     }
 }

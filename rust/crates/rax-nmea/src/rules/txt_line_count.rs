@@ -11,10 +11,10 @@ impl<'a> IGlobalRule<'a> for NmeaTxtLineCount {
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         let s = input.split(',').nth(1).ok_or_else(|| RuleError {
-            reason: "missing line count".to_string(),
+            reason: "missing line count".into(),
         })?;
         s.parse::<u8>().map_err(|_| RuleError {
-            reason: "invalid line count".to_string(),
+            reason: "invalid line count".into(),
         })
     }
 }

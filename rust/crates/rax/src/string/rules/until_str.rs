@@ -1,7 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
@@ -52,7 +50,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                     self.pattern
                 );
                 Err(RuleError {
-                    reason: "no match found".to_string(),
+                    reason: "no match found".into(),
                 })
             }
         }

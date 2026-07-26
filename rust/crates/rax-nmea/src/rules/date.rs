@@ -25,7 +25,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
         let (res, rest) = UNTIL_COMMA_DISCARD
             .apply(input, is_ascii)
             .map_err(|_| RuleError {
-                reason: "Missing Date string.".to_string(),
+                reason: "Missing Date string.".into(),
             })?;
         if res.is_empty() {
             return Ok((None, rest));
@@ -36,7 +36,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse day from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse day.".to_string(),
+                    reason: "Failed to parse day.".into(),
                 });
             }
         };
@@ -45,7 +45,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse month from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse month.".to_string(),
+                    reason: "Failed to parse month.".into(),
                 });
             }
         };
@@ -54,7 +54,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             None => {
                 clerk::error!("{:?}: failed to parse year from '{}'", self, res);
                 return Err(RuleError {
-                    reason: "Failed to parse year.".to_string(),
+                    reason: "Failed to parse year.".into(),
                 });
             }
         };
@@ -72,7 +72,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                     day
                 );
                 return Err(RuleError {
-                    reason: "Invalid date.".to_string(),
+                    reason: "Invalid date.".into(),
                 });
             }
         };

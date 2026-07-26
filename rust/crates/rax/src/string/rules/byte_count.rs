@@ -1,8 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-use core::fmt::Debug;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::rules::IRule;
@@ -39,7 +36,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
         match input.split_at_checked(N) {
             Some((out, rest)) => Ok((out, rest)),
             None => Err(RuleError {
-                reason: "input too short or invalid UTF-8 boundary.".to_string(),
+                reason: "input too short or invalid UTF-8 boundary.".into(),
             }),
         }
     }

@@ -34,14 +34,14 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
-                    reason: "Missing number string.".to_string(),
+                    reason: "Missing number string.".into(),
                 })?;
 
         let (sign_str, rest) =
             UNTIL_COMMA_DISCARD
                 .apply(rest, is_ascii)
                 .map_err(|_| RuleError {
-                    reason: "Missing sign string.".to_string(),
+                    reason: "Missing sign string.".into(),
                 })?;
         if num_str.is_empty() && sign_str.is_empty() {
             return Ok((None, rest));
@@ -75,13 +75,13 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{}'", _sign),
+                    reason: format!("invalid sign string: '{}'", _sign).into(),
                 })
             }
             (Err(_), _) => {
                 clerk::error!("{:?}: invalid coord string: '{}'", self, num_str);
                 Err(RuleError {
-                    reason: format!("invalid coord string: '{}'", num_str),
+                    reason: format!("invalid coord string: '{}'", num_str).into(),
                 })
             }
         }

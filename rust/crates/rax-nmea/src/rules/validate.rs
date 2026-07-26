@@ -35,7 +35,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 line
             );
             return Err(RuleError {
-                reason: format!("Invalid sentence prefix: expected '$', got '{}'", line),
+                reason: format!("Invalid sentence prefix: expected '$', got '{}'", line).into(),
             });
         }
 
@@ -47,7 +47,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 line
             );
             return Err(RuleError {
-                reason: format!("Missing checksum delimiter: expected '*', got '{}'", line),
+                reason: format!("Missing checksum delimiter: expected '*', got '{}'", line).into(),
             });
         };
 
@@ -72,7 +72,8 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 reason: format!(
                     "Invalid checksum length: expected 2, got {}",
                     checksum_str.len()
-                ),
+                )
+                .into(),
             });
         }
 
@@ -82,7 +83,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
             Err(_e) => {
                 clerk::error!("{:?}: Invalid hex checksum: {:?}", self, _e);
                 return Err(RuleError {
-                    reason: "Invalid hex checksum".to_string(),
+                    reason: "Invalid hex checksum".into(),
                 });
             }
         };
@@ -104,7 +105,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
                 expected
             );
             return Err(RuleError {
-                reason: "Checksum mismatch".to_string(),
+                reason: "Checksum mismatch".into(),
             });
         }
         clerk::info!("{:?}: sentence is valid: {:?}", self, line);

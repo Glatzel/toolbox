@@ -15,12 +15,12 @@ impl<'a> IGlobalRule<'a> for NmeaIdentifier {
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         let s = input.get(3..6).ok_or(RuleError {
-            reason: "missing identifier".to_string(),
+            reason: "missing identifier".into(),
         })?;
         match Identifier::from_str(s) {
             Ok(ident) => Ok(ident),
             Err(_) => Err(RuleError {
-                reason: "unknown identifier".to_string(),
+                reason: "unknown identifier".into(),
             }),
         }
     }

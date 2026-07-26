@@ -11,10 +11,10 @@ impl<'a> IGlobalRule<'a> for NmeaGsvLineCount {
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         let s = input.split(',').nth(1).ok_or_else(|| RuleError {
-            reason: "missing second field".to_string(),
+            reason: "missing second field".into(),
         })?;
         s.parse::<u8>().map_err(|_| RuleError {
-            reason: "invalid second field".to_string(),
+            reason: "invalid second field".into(),
         })
     }
 }

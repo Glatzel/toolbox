@@ -17,7 +17,7 @@ fn parse_field(
     let s = res.get(range).ok_or_else(|| {
         clerk::error!("{:?}: missing {}, input='{:?}'", _parser, label, _input);
         RuleError {
-            reason: format!("Missing {} field.", label),
+            reason: format!("Missing {} field.", label).into(),
         }
     })?;
 
@@ -30,7 +30,7 @@ fn parse_field(
             _input
         );
         RuleError {
-            reason: format!("Failed to parse {} field.", label),
+            reason: format!("Failed to parse {} field.", label).into(),
         }
     })
 }
@@ -56,7 +56,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             Ok(result) => result,
             Err(_) => {
                 return Err(RuleError {
-                    reason: "Missing time string.".to_string(),
+                    reason: "Missing time string.".into(),
                 });
             }
         };
@@ -116,7 +116,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                     reason: format!(
                         "invalid time: hour={}, min={}, sec={}, nanos={}",
                         hour, min, sec, nanos
-                    ),
+                    )
+                    .into(),
                 })
             }
         }

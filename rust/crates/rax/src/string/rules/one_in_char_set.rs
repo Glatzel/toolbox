@@ -32,7 +32,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
         if is_ascii {
-            let b = input.as_bytes().get(0).ok_or_else(|| RuleError {
+            let b = input.as_bytes().first().ok_or_else(|| RuleError {
                 reason: "empty input".into(),
             })?;
 

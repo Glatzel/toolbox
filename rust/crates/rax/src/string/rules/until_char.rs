@@ -5,9 +5,6 @@ use crate::error::RuleError;
 use crate::string::IRule;
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
-///
-/// `UntilChar<C>` searches the input string for the first occurrence of
-/// character `C` and splits the input according to the selected [`UntilMode`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilChar<const C: char> {
     pub mode: super::UntilMode,
@@ -31,9 +28,11 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             C,
             self.mode
         );
-        match input.split_once(C) {
-            Some((prefix, _)) => Ok(self.mode.split_str(input, prefix.len(), C.len_utf8())),
-            None => Ok((input, "")),
+        match input.find(C) {
+            Some(idx) => Ok(self.mode.split_str(input, idx, C.len_utf8())),
+            None => Err(RuleError {
+                reason: "input is empty or does not contain the expected character.".into(),
+            }),
         }
     }
 }

@@ -37,6 +37,7 @@ impl<'a> Decoder<'a> {
     }
 
     /// Returns the full input string.
+    #[inline]
     pub fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
@@ -44,9 +45,11 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
+    #[inline]
     pub fn rest_str(&self) -> &str { self.rest }
 
     /// Resets the parser to the start of the input.
+    #[inline]
     pub fn reset(&mut self) -> &mut Self {
         self.rest = self.full;
         self
@@ -90,6 +93,7 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
+    #[inline]
     pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IGlobalRule<'a>,

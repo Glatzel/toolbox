@@ -28,3 +28,4 @@ fn bench_validate(c: &mut Criterion) {
 }
 criterion_group!(benches_group, benches, bench_validate);
 criterion_main!(benches_group);
+ 

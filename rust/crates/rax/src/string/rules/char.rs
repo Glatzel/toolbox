@@ -46,12 +46,6 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
             });
         }
 
-        if input.is_empty() {
-            return Err(RuleError {
-                reason: "input is empty.".into(),
-            });
-        }
-
         // Fast path: ASCII comparison
         if decoder.is_ascii() {
             let expected = C as u8;

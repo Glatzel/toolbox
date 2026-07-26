@@ -59,22 +59,28 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
         // Unicode fallback
         let mut chars = input.chars();
 
-        let first_char = chars.next().unwrap();
-
-        if first_char == C {
-            clerk::debug!("{:?} matched: '{:?}'", self, first_char);
-            return Ok((first_char, &input[first_char.len_utf8()..]));
-        } else {
-            clerk::debug!(
-                "{:?} did not match: found '{:?}', expected '{:?}'",
-                self,
-                first_char,
-                C
-            );
-
-            Err(RuleError {
-                reason: "first character does not match.".into(),
-            })
+        match chars.next() {
+            Some(first_char) => {
+                if first_char == C {
+                    clerk::debug!("{:?} matched: '{:?}'", self, first_char);
+                    return Ok((first_char, &input[first_char.len_utf8()..]));
+                } else {
+                    clerk::debug!(
+                        "{:?} did not match: found '{:?}', expected '{:?}'",
+                        self,
+                        first_char,
+                        C
+                    );
+                    return Err(RuleError {
+                        reason: "first character does not match.".into(),
+                    });
+                }
+            }
+            None => {
+                return Err(RuleError {
+                    reason: "first character does not match.".into(),
+                });
+            }
         }
     }
 }

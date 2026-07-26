@@ -8,28 +8,6 @@ use crate::string::IRule;
 ///
 /// `UntilChar<C>` searches the input string for the first occurrence of
 /// character `C` and splits the input according to the selected [`UntilMode`].
-///
-/// # Fields
-///
-/// - `mode`: Determines how the delimiter is treated in the output:
-///   - [`UntilMode::Discard`]: The delimiter is removed from the prefix and
-///     rest.
-///   - [`UntilMode::KeepLeft`]: The delimiter is included at the end of the
-///     prefix.
-///   - [`UntilMode::KeepRight`]: The delimiter is included at the start of the
-///     rest.
-///
-/// # Type Parameters
-///
-/// - `C`: The delimiter character to search for.
-///
-/// # Behavior
-///
-/// - Returns `(Some(prefix), rest)` if the delimiter is found.
-/// - Returns `(None, input)` if the delimiter is not present in the input.
-///
-/// This rule respects UTF-8 character boundaries and logs trace/debug
-/// information for each operation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilChar<const C: char> {
     pub mode: super::UntilMode,

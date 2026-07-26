@@ -82,7 +82,7 @@ impl<'a> Decoder<'a> {
                 self.rest = rest;
                 Ok(self)
             }
-            Err(e) => Err(e.to_verb::<R>(Verb::Skip, self.rest.into())),
+            Err(e) => Err(e.to_verb::<R>(Verb::Skip, self.rest)),
         }
     }
 
@@ -95,7 +95,7 @@ impl<'a> Decoder<'a> {
         R: IGlobalRule<'a>,
     {
         rule.apply(self.full)
-            .map_err(|e| e.to_verb::<R>(Verb::Global, self.full.into()))
+            .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
 impl<'a> Decoder<'a> {

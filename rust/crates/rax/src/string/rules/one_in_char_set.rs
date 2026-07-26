@@ -52,7 +52,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 reason: "character not in set".into(),
             });
         }
-        Ok((c, &input[c.len_utf8()..]))
+        Ok((c, unsafe { input.get_unchecked(c.len_utf8()..) }))
     }
 }
 

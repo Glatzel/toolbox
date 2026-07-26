@@ -24,6 +24,7 @@ pub use until_str::*;
 
 pub use self::char::*;
 use crate::error::RuleError;
+use crate::string::utils::SplitAtUnsafe;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -39,11 +40,19 @@ pub enum UntilMode {
     KeepRight,
 }
 impl UntilMode {
-    pub fn split_str<'a>(&self, input: &'a str, left: usize, length: usize) -> (&'a str, &'a str) {
-        match self {
-            UntilMode::Discard => (&input[..left], &input[left + length..]),
-            UntilMode::KeepLeft => input.split_at(left + length),
-            UntilMode::KeepRight => input.split_at(left),
+    pub fn split_str<'a>(self, input: &'a str, left: usize, length: usize) -> (&'a str, &'a str) {
+        unsafe {
+            match self {
+                UntilMode::Discard => (
+                    input.get_unchecked(..left),
+                    input.get_unchecked(left + length..),
+                ),
+                UntilMode::KeepLeft => {
+                    let idx = left + length;
+                    input.split_at_unsafe(idx)
+                }
+                UntilMode::KeepRight => input.split_at_unsafe(left),
+            }
         }
     }
 }

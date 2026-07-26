@@ -4,6 +4,7 @@ use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -73,7 +74,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     });
                 }
             }
-            return Ok(input.split_at(N));
+            return Ok(unsafe { input.split_at_unsafe(N) });
         }
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -93,7 +94,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             count += 1;
 
             if count == N {
-                return Ok(input.split_at(i + c.len_utf8()));
+                return Ok(unsafe { input.split_at_unsafe(i + c.len_utf8()) });
             }
         }
         clerk::debug!(

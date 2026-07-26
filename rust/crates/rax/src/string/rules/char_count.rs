@@ -6,6 +6,7 @@ use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::ByteCount;
 use crate::string::rules::IRule;
+use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that extracts a fixed number of characters from the input string.
 ///
@@ -66,7 +67,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                     None
                 }
             })
-            .map(|idx| input.split_at(idx))
+            .map(|idx| unsafe { input.split_at_unsafe(idx) })
             .ok_or(RuleError {
                 reason: "not enough chars in input".into(),
             })?;

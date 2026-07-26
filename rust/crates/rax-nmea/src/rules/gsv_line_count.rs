@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::string::ToString;
 
 use rax::error::RuleError;
-use rax::string::{ IGlobalRule, IRule};
+use rax::string::{IGlobalRule, IRule};
 
 pub struct NmeaGsvLineCount;
 impl IRule for NmeaGsvLineCount {}

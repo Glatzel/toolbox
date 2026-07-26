@@ -5,7 +5,7 @@ use alloc::string::ToString;
 use core::fmt::Debug;
 
 use rax::error::RuleError;
-use rax::string::{ IRule};
+use rax::string::IRule;
 
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.

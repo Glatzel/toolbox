@@ -67,7 +67,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             reason: "delimiter not found".into(),
         })?;
 
-        Ok(self.mode.advance(decoder, input, i,  C.len_utf8()))
+        Ok(self.mode.advance(decoder, input, i, C.len_utf8()))
     }
 }
 

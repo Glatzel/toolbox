@@ -11,6 +11,7 @@ pub struct RuleError {
     pub reason: Cow<'static, str>,
 }
 impl RuleError {
+    #[cold]
     pub fn to_verb<R: IRule>(self, verb: Verb, input: &str) -> VerbError {
         VerbError {
             verb,

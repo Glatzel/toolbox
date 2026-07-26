@@ -67,8 +67,8 @@ mod tests {
     use super::*;
     #[rstest::rstest]
     #[case("ascii_discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("ascii_keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepLeft })]
-    #[case("ascii_keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepRight })]
+    #[case("ascii_keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInOutput })]
+    #[case("ascii_keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInRest })]
     #[case("ascii_no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     #[case("ascii_delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     #[case("ascii_empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]

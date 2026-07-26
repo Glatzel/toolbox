@@ -74,8 +74,8 @@ mod tests {
     use crate::string::filters::DIGITS;
     #[rstest::rstest]
     #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
-    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
+    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepInOutput)]
+    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepInRest)]
     #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]

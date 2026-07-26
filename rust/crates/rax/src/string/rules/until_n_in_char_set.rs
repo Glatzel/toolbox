@@ -111,7 +111,7 @@ mod tests {
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
-        UntilMode::KeepLeft,
+        UntilMode::KeepInOutput,
 
     )]
     #[case(
@@ -119,7 +119,7 @@ mod tests {
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
-        UntilMode::KeepRight,
+        UntilMode::KeepInRest,
 
     )]
     #[case(
@@ -143,7 +143,7 @@ mod tests {
         "",
         PhantomData::<UntilNInCharSet<2, 3>>,
         &CharSetFilter::new(['你', '世', '好']),
-        UntilMode::KeepLeft,
+        UntilMode::KeepInOutput,
     )]
     fn test_until_n_in_char_set<const N: usize, const M: usize>(
         #[case] name: &str,

@@ -34,10 +34,10 @@ pub enum UntilMode {
     Discard,
     /// Keep the delimiter on the left side → result like ("a,", "b")
     #[strum(serialize = "keep_left")]
-    KeepLeft,
+    KeepInOutput,
     /// Keep the delimiter on the right side → result like ("a", ",b")
     #[strum(serialize = "keep_right")]
-    KeepRight,
+    KeepInRest,
 }
 impl UntilMode {
     pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, &str) {
@@ -47,11 +47,11 @@ impl UntilMode {
                     input.get_unchecked(..left),
                     input.get_unchecked(left + length..),
                 ),
-                UntilMode::KeepLeft => {
+                UntilMode::KeepInOutput => {
                     let idx = left + length;
                     input.split_at_unsafe(idx)
                 }
-                UntilMode::KeepRight => input.split_at_unsafe(left),
+                UntilMode::KeepInRest => input.split_at_unsafe(left),
             }
         }
     }

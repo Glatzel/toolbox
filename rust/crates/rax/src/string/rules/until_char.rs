@@ -52,8 +52,8 @@ mod tests {
 
     #[rstest::rstest]
     #[case("ascii_discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("ascii_keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
-    #[case("ascii_keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepRight)]
+    #[case("ascii_keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepInOutput)]
+    #[case("ascii_keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepInRest)]
     #[case("ascii_delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     #[case("ascii_no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     #[case("utf8_empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]

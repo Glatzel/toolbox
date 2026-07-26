@@ -40,7 +40,7 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    pub fn rest_str(&self) -> &'a str { self.full.get(self.cursor..).unwrap() }
+    pub fn rest_str(&self) -> &'a str { &self.full[self.cursor..] }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {

@@ -15,8 +15,8 @@ use crate::string::rules::UntilMode;
 /// - `mode`: Determines how the first character *not* in the set is treated:
 ///   - [`UntilMode::Discard`]: Exclude the first non-matching character from
 ///     the prefix and remove it from the rest.
-///   - [`UntilMode::KeepInOutput`]: Include the first non-matching character at the
-///     end of the prefix.
+///   - [`UntilMode::KeepInOutput`]: Include the first non-matching character at
+///     the end of the prefix.
 ///   - [`UntilMode::KeepInRest`]: Keep the first non-matching character at the
 ///     start of the rest.
 ///

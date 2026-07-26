@@ -11,6 +11,7 @@ pub trait SplitAtUnsafe {
 }
 
 impl SplitAtUnsafe for str {
+    #[inline(always)]
     unsafe fn split_at_unsafe(&self, idx: usize) -> (&str, &str) {
         // SAFETY: caller guarantees `idx` is a valid char boundary in `self`.
         unsafe { (self.get_unchecked(..idx), self.get_unchecked(idx..)) }

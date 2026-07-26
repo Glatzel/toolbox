@@ -40,6 +40,7 @@ pub enum UntilMode {
     KeepInRest,
 }
 impl UntilMode {
+    #[inline(always)]
     pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, &str) {
         unsafe {
             match self {

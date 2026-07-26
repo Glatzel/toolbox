@@ -100,14 +100,14 @@ mod tests {
 
     #[rstest::rstest]
     #[case(
-        "discard",
+        "ascii_discard",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
         UntilMode::Discard
     )]
     #[case(
-        "keep_left",
+        "ascii_keep_left",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
@@ -115,7 +115,7 @@ mod tests {
 
     )]
     #[case(
-        "keep_right",
+        "ascii_keep_right",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
         &DIGITS,
@@ -123,7 +123,7 @@ mod tests {
 
     )]
     #[case(
-        "not_enough_matches",
+        "ascii_not_enough_matches",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<4, _>>,
         &DIGITS,
@@ -131,7 +131,7 @@ mod tests {
 
     )]
     #[case(
-        "empty_input",
+        "ascii_empty_input",
         "",
         PhantomData::<UntilNInCharSet<1, _>>,
         &DIGITS,
@@ -139,7 +139,7 @@ mod tests {
 
     )]
     #[case(
-        "unicode_keep_left",
+        "utf8_unicode_keep_left",
         "",
         PhantomData::<UntilNInCharSet<2, 3>>,
         &CharSetFilter::new(['你', '世', '好']),

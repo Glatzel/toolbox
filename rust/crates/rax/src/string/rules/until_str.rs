@@ -68,12 +68,12 @@ mod tests {
 
     use super::*;
     #[rstest::rstest]
-    #[case("discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepLeft })]
-    #[case("keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepRight })]
-    #[case("no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepLeft })]
+    #[case("ascii_keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepRight })]
+    #[case("ascii_no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
+    #[case("ascii_empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
         let result = rule.apply(input, input.is_ascii());

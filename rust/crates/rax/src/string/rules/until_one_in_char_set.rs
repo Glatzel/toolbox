@@ -73,12 +73,12 @@ mod tests {
     use super::*;
     use crate::string::filters::{ASCII_LETTERS, DIGITS};
     #[rstest::rstest]
-    #[case("discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
-    #[case("keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepRight)]
-    #[case("keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
-    #[case("no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
-    #[case("empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
+    #[case("ascii_keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepRight)]
+    #[case("ascii_keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
+    #[case("ascii_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
+    #[case("ascii_empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
     fn test_until_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

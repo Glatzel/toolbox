@@ -60,12 +60,12 @@ mod tests {
     use crate::string::UntilMode;
 
     #[rstest::rstest]
-    #[case("discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
-    #[case("keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepRight)]
-    #[case("delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("ascii_discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("ascii_keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepLeft)]
+    #[case("ascii_keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepRight)]
+    #[case("ascii_delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("ascii_no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
+    #[case("utf8_empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
     fn test_until_char<const C: char>(
         #[case] name: &str,
         #[case] input: &str,

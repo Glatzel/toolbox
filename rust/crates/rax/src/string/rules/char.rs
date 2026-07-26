@@ -96,10 +96,10 @@ mod tests {
 
     use super::*;
     #[rstest::rstest]
-    #[case("match","a123", PhantomData::<Char<'a'>>)]
-    #[case("no_match","abc", PhantomData::<Char<'d'>>)]
-    #[case("empty_input","", PhantomData::<Char<'a'>>)]
-    #[case("unicode","你好", PhantomData::<Char<'你'>>)]
+    #[case("ascii_match","a123", PhantomData::<Char<'a'>>)]
+    #[case("ascii_no_match","abc", PhantomData::<Char<'d'>>)]
+    #[case("ascii_empty_input","", PhantomData::<Char<'a'>>)]
+    #[case("utf8_match","你好", PhantomData::<Char<'你'>>)]
     fn test_byte_count<const C: char>(
         #[case] name: &str,
         #[case] input: &str,

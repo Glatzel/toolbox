@@ -67,10 +67,10 @@ mod tests {
     use super::*;
     use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
     #[rstest::rstest]
-    #[case("match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
-    #[case("empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("unicode","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::new(['你']))]
+    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
+    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::new(['你']))]
     fn test_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

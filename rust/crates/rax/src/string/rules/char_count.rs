@@ -87,12 +87,12 @@ mod tests {
     use super::*;
 
     #[rstest::rstest]
-    #[case("exact_length","test", PhantomData::<CharCount<4>>)]
-    #[case("less_than_length","hello", PhantomData::<CharCount<2>>)]
-    #[case("more_than_length","short", PhantomData::<CharCount<10>>)]
-    #[case("zero","abc", PhantomData::<CharCount<0>>)]
-    #[case("empty_input","", PhantomData::<CharCount<0>>)]
-    #[case("non_ascii","你好世界", PhantomData::<CharCount<2>>)]
+    #[case("ascii_exact_length","test", PhantomData::<CharCount<4>>)]
+    #[case("ascii_less_than_length","hello", PhantomData::<CharCount<2>>)]
+    #[case("ascii_more_than_length","short", PhantomData::<CharCount<10>>)]
+    #[case("ascii_zero","abc", PhantomData::<CharCount<0>>)]
+    #[case("ascii_empty_input","", PhantomData::<CharCount<0>>)]
+    #[case("utf8_less_than_length","你好世界", PhantomData::<CharCount<2>>)]
     fn test_char_count<const C: usize>(
         #[case] name: &str,
         #[case] input: &str,

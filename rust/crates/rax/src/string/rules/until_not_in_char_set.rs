@@ -73,13 +73,13 @@ mod tests {
     use super::*;
     use crate::string::filters::DIGITS;
     #[rstest::rstest]
-    #[case("discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
-    #[case("keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
-    #[case("all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("unicode", "你好世界", PhantomData::<UntilNotInCharSet<2>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
+    #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepLeft)]
+    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepRight)]
+    #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("utf8_discard", "你好世界", PhantomData::<UntilNotInCharSet<2>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
     fn test_until_not_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

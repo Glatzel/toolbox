@@ -57,13 +57,13 @@ mod tests {
     use super::*;
 
     #[rstest::rstest]
-    #[case("count_exact_length","test", PhantomData::<ByteCount<4>>)]
-    #[case("count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
-    #[case("count_more_than_length","short", PhantomData::<ByteCount<10>>)]
-    #[case("count_zero","abc", PhantomData::<ByteCount<0>>)]
-    #[case("count_empty_input","", PhantomData::<ByteCount<0>>)]
-    #[case("valid_utf8_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
-    #[case("invalid_utf8_boundary","你好世界", PhantomData::<ByteCount<2>>)]
+    #[case("ascii_count_exact_length","test", PhantomData::<ByteCount<4>>)]
+    #[case("ascii_count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
+    #[case("ascii_count_more_than_length","short", PhantomData::<ByteCount<10>>)]
+    #[case("ascii_count_zero","abc", PhantomData::<ByteCount<0>>)]
+    #[case("ascii_count_empty_input","", PhantomData::<ByteCount<0>>)]
+    #[case("utf8_valid_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
+    #[case("utf8_invalid_boundary","你好世界", PhantomData::<ByteCount<2>>)]
     fn test_byte_count<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

@@ -12,8 +12,7 @@ fn bench_rule<R: IStrFlowRule<'static>>(
     rule: R,
     input: &'static str,
 ) {
-    let is_ascii = input.is_ascii();
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), is_ascii)));
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
 }
 
 fn benches(c: &mut Criterion) {

@@ -51,14 +51,26 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             );
             return Ok(("", 0));
         }
-        if N == input.chars().count() {
-            return Ok((input, input.len()));
+        if input.is_ascii() {
+            if input.len() >= N {
+                return Ok((&input[..N], N));
+            }
+            return Err(RuleError {
+                reason: "not enough chars in input".into(),
+            });
         }
-
         let end = input
             .char_indices()
             .nth(N)
             .map(|(idx, _)| idx)
+            .or_else(|| {
+                // exactly N chars: consume the whole string
+                if input.chars().count() == N {
+                    Some(input.len())
+                } else {
+                    None
+                }
+            })
             .ok_or(RuleError {
                 reason: "not enough chars in input".into(),
             })?;

@@ -1,6 +1,5 @@
 extern crate alloc;
 
-use alloc::string::ToString;
 use core::fmt::Debug;
 
 use super::IStrFlowRule;
@@ -39,34 +38,50 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     ///   of the input.
     fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
+        if input.is_empty() {
+            return Err(RuleError {
+                reason: "input is empty.".into(),
+            });
+        }
 
-        let mut chars = input.char_indices();
+        if input.is_empty() {
+            return Err(RuleError {
+                reason: "input is empty.".into(),
+            });
+        }
 
-        if let Some((_, first_char)) = chars.next() {
-            if first_char == C {
-                // Find the next char boundary or end of string
-                let (end, _) = chars.next().unwrap_or((input.len(), '\0'));
-                clerk::debug!(
-                    "{:?} matched: '{:?}', rest='{:?}'",
-                    self,
-                    first_char,
-                    &input[end..]
-                );
-                Ok((first_char, C.len_utf8()))
-            } else {
-                clerk::debug!(
-                    "{:?} did not match: found '{:?}', expected '{:?}'",
-                    self,
-                    first_char,
-                    C
-                );
-                Err(RuleError {
-                    reason: "first character does not match.".to_string(),
-                })
+        // Fast path: ASCII comparison
+        if C.is_ascii() {
+            let expected = C as u8;
+
+            if input.as_bytes()[0] == expected {
+                clerk::debug!("{:?} matched ASCII: '{:?}'", self, C);
+                return Ok((C, 1));
             }
+
+            return Err(RuleError {
+                reason: "first character does not match.".into(),
+            });
+        }
+
+        // Unicode fallback
+        let mut chars = input.chars();
+
+        let first_char = chars.next().unwrap();
+
+        if first_char == C {
+            clerk::debug!("{:?} matched: '{:?}'", self, first_char);
+            Ok((first_char, C.len_utf8()))
         } else {
+            clerk::debug!(
+                "{:?} did not match: found '{:?}', expected '{:?}'",
+                self,
+                first_char,
+                C
+            );
+
             Err(RuleError {
-                reason: "input is empty.".to_string(),
+                reason: "first character does not match.".into(),
             })
         }
     }

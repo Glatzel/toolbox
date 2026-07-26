@@ -60,7 +60,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 });
             }
 
-            for (i, &b) in bytes.iter().enumerate().take(N) {
+            for (_i, &b) in bytes.iter().enumerate().take(N) {
                 let c = b as char;
 
                 if !self.0.filter(&c) {
@@ -68,7 +68,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                         "{:?} did not match: char '{}' not in set at byte pos {}",
                         self,
                         c,
-                        i
+                        _i
                     );
 
                     return Err(RuleError {

@@ -4,7 +4,7 @@ use alloc::format;
 use alloc::string::ToString;
 
 use rax::error::RuleError;
-use rax::string::{IRule, IStrFlowRule};
+use rax::string::{Decoder, IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -20,24 +20,21 @@ impl IRule for NmeaDegree {}
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str) -> Result<(Option<f64>, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
         // Log the input at trace level.
-        clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, consumed1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+        clerk::trace!("{:?}: input='{}'", self, decoder.rest_str());
+        let deg_str = UNTIL_COMMA_DISCARD.apply(decoder).map_err(|_| RuleError {
             reason: "Missing degree string.".to_string(),
         })?;
-        let (sign_str, consumed2) =
-            UNTIL_COMMA_DISCARD
-                .apply(&input[consumed1..])
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".to_string(),
-                })?;
+        let sign_str = UNTIL_COMMA_DISCARD.apply(decoder).map_err(|_| RuleError {
+            reason: "Missing sign string.".to_string(),
+        })?;
         if deg_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, consumed1 + consumed2));
+            return Ok(None);
         }
         match (deg_str.parse::<f64>(), sign_str) {
-            (Ok(val), "E" | "N") => Ok((Some(val), consumed1 + consumed2)),
-            (Ok(val), "W" | "S") => Ok((Some(-val), consumed1 + consumed2)),
+            (Ok(val), "E" | "N") => Ok(Some(val)),
+            (Ok(val), "W" | "S") => Ok(Some(-val)),
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
@@ -66,7 +63,10 @@ mod test {
     #[case("null", ",,other_data")]
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaDegree.apply(input);
+        let mut decoder = Decoder::new(input);
+        let result = NmeaDegree
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

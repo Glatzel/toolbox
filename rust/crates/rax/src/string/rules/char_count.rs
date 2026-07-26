@@ -4,6 +4,7 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::Decoder;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
@@ -40,20 +41,21 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
-        // Trace input and requested character count
-        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
-
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
-            return Ok(("", 0));
+
+            return Ok("");
         }
-        if input.is_ascii() {
+        let input = decoder.rest_str();
+        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
+        if decoder.is_ascii() {
             if input.len() >= N {
-                return Ok((&input[..N], N));
+                decoder.advance(N);
+                return Ok(&input[..N]);
             }
             return Err(RuleError {
                 reason: "not enough chars in input".into(),
@@ -74,8 +76,8 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             .ok_or(RuleError {
                 reason: "not enough chars in input".into(),
             })?;
-
-        Ok((&input[..end], end))
+        decoder.advance(end);
+        Ok(&input[..end])
     }
 }
 
@@ -103,9 +105,10 @@ mod tests {
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = CharCount::<C>
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -4,7 +4,7 @@ use alloc::string::ToString;
 
 use chrono::NaiveTime;
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::string::{Decoder, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 fn parse_field(
@@ -49,10 +49,10 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveTime>, usize), RuleError> {
-        clerk::trace!("{:?}: input='{}'", self, input);
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        clerk::trace!("{:?}: input='{}'", self, decoder.rest_str());
 
-        let (res, consumed) = match UNTIL_COMMA_DISCARD.apply(input) {
+        let res = match UNTIL_COMMA_DISCARD.apply(decoder) {
             Ok(result) => result,
             Err(_) => {
                 return Err(RuleError {
@@ -61,7 +61,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             }
         };
         if res.is_empty() {
-            return Ok((None, consumed));
+            return Ok(None);
         }
 
         let nanos = match res.get(7..) {
@@ -85,9 +85,9 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             None => 0,
         };
 
-        let hour = parse_field(res, 0..2, "hour", self, input)?;
-        let min = parse_field(res, 2..4, "minute", self, input)?;
-        let sec = parse_field(res, 4..6, "second", self, input)?;
+        let hour = parse_field(res, 0..2, "hour", self, res)?;
+        let min = parse_field(res, 2..4, "minute", self, res)?;
+        let sec = parse_field(res, 4..6, "second", self, res)?;
 
         clerk::debug!(
             "{:?}: parsed hour={}, min={}, sec={}, nanos={}",
@@ -101,7 +101,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
         match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
             Some(t) => {
                 clerk::debug!("{:?}: parsed time: {}", self, t);
-                Ok((Some(t), consumed))
+                Ok(Some(t))
             }
             None => {
                 clerk::error!(
@@ -142,7 +142,10 @@ mod tests {
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaTime.apply(input);
+        let mut decoder = Decoder::new(input);
+        let result = NmeaTime
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

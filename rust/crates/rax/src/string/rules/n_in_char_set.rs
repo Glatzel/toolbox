@@ -5,8 +5,8 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::{Decoder, IRule};
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -46,9 +46,42 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
         if N == 0 {
-            return Ok(("", 0));
+            return Ok("");
+        }
+        let input = decoder.rest_str();
+        if decoder.is_ascii() {
+            let bytes = input.as_bytes();
+
+            if bytes.len() < N {
+                return Err(RuleError {
+                    reason: "input too short or not enough chars in set".into(),
+                });
+            }
+
+            for (i, &b) in bytes.iter().enumerate().take(N) {
+                let c = b as char;
+
+                if !self.0.filter(&c) {
+                    clerk::debug!(
+                        "{:?} did not match: char '{}' not in set at byte pos {}",
+                        self,
+                        c,
+                        i
+                    );
+
+                    return Err(RuleError {
+                        reason: "char not in set".into(),
+                    });
+                }
+            }
+
+            let matched = &input[..N];
+
+            clerk::debug!("{:?} matched: '{}', consumed={}", self, matched, N);
+            decoder.advance(N);
+            return Ok(matched);
         }
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -72,8 +105,8 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                 let matched = &input[..end_idx];
 
                 clerk::debug!("{:?} matched: '{}', consumed={}", self, matched, end_idx);
-
-                return Ok((matched, end_idx));
+                decoder.advance(end_idx);
+                return Ok(matched);
             }
         }
         clerk::debug!(
@@ -110,9 +143,10 @@ mod tests {
         #[case] charset: &CharSetFilter<M>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = NInCharSet::<N, M>(charset)
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

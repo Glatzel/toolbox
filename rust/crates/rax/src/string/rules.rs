@@ -24,6 +24,7 @@ pub use until_str::*;
 
 pub use self::char::*;
 use crate::error::RuleError;
+use crate::string::Decoder;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -37,6 +38,31 @@ pub enum UntilMode {
     /// Keep the delimiter on the right side → result like ("a", ",b")
     #[strum(serialize = "keep_right")]
     KeepRight,
+}
+impl UntilMode {
+    pub fn advance<'a>(
+        &self,
+        decoder: &mut Decoder<'_>,
+        input: &'a str,
+        left: usize,
+        length: usize,
+    ) -> &'a str {
+        match self {
+            UntilMode::Discard => {
+                decoder.advance(left + length);
+                &input[..left]
+            }
+            UntilMode::KeepLeft => {
+                let end = left + length;
+                decoder.advance(end);
+                &input[..end]
+            }
+            UntilMode::KeepRight => {
+                decoder.advance(left);
+                &input[..left]
+            }
+        }
+    }
 }
 
 /// Base trait for all parser rules.
@@ -57,7 +83,7 @@ pub trait IStrFlowRule<'a>: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError>;
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).

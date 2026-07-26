@@ -4,8 +4,8 @@ use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
 use crate::string::rules::UntilMode;
+use crate::string::{Decoder, IRule};
 
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of a specified substring delimiter.
@@ -34,7 +34,8 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -44,18 +45,7 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
         );
 
         match input.find(self.pattern) {
-            Some(idx) => {
-                let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..idx], idx + self.pattern.len()),
-                    UntilMode::KeepLeft => {
-                        let end = idx + self.pattern.len();
-                        (&input[..end], end)
-                    }
-                    UntilMode::KeepRight => (&input[..idx], idx),
-                };
-                clerk::debug!("{:?} matched: prefix='{}', rest='{}'", self, prefix, rest);
-                Ok((prefix, rest))
-            }
+            Some(idx) => Ok(self.mode.advance(decoder, input, idx, self.pattern.len())),
             None => {
                 clerk::debug!(
                     "{:?}: delimiter '{}' not found, returning None",
@@ -87,7 +77,10 @@ mod tests {
     #[case("empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = rule.apply(input).map(|(out, rest)| (out, &input[rest..]));
+        let mut decoder = Decoder::new(input);
+        let result = rule
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

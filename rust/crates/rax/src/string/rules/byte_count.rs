@@ -5,6 +5,7 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::Decoder;
 use crate::string::rules::IRule;
 
 /// Rule that extracts a fixed number of bytes from the input string.
@@ -35,15 +36,21 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         // Trace input and requested byte count
         clerk::trace!("{:?}: input='{:?}', byte_count={:?}", self, input, N);
 
-        match input.get(..N) {
+        match decoder.rest_str().get(..N) {
             Some(out) => {
-                let rest = &input[N..];
-                clerk::debug!("{:?}: matched prefix='{:?}', rest='{:?}'", self, out, rest);
-                Ok((out, N))
+                decoder.advance(N);
+                clerk::debug!(
+                    "{:?}: matched prefix='{:?}', rest='{:?}'",
+                    self,
+                    out,
+                    decoder.rest_str()
+                );
+                Ok(out)
             }
             None => {
                 clerk::debug!(
@@ -85,9 +92,10 @@ mod tests {
         #[case] _rule: PhantomData<ByteCount<N>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = ByteCount::<N>
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

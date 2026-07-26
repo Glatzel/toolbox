@@ -12,7 +12,8 @@ fn bench_rule<R: IStrFlowRule<'static>>(
     rule: R,
     input: &'static str,
 ) {
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input))));
+    let mut decoder = rax::string::Decoder::new(input);
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(&mut decoder))));
 }
 
 fn benches(c: &mut Criterion) {

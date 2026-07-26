@@ -2,9 +2,9 @@ extern crate alloc;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
+use crate::string::{Decoder, IRule};
 /// Rule that extracts a prefix from the input string consisting of consecutive
 /// characters that are in the provided character set, stopping at the first
 /// character not in the set.
@@ -38,35 +38,29 @@ impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
+        if decoder.is_ascii() {
+            for (i, &b) in input.as_bytes().iter().enumerate() {
+                let c = b as char;
+
+                if !self.filter.filter(&c) {
+                    return Ok(self.mode.advance(decoder, input, i, 1));
+                }
+            }
+            decoder.advance(input.len());
+            return Ok(input);
+        }
+
+        // UTF-8 path
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
-                let (prefix, rest) = match self.mode {
-                    UntilMode::Discard => (&input[..i], i + c.len_utf8()),
-                    UntilMode::KeepLeft => {
-                        let after = i + c.len_utf8();
-                        (&input[..after], after)
-                    }
-                    UntilMode::KeepRight => (&input[..i], i),
-                };
-                clerk::debug!(
-                    "{:?}: prefix='{}', rest='{}', i={}, c='{}'",
-                    self,
-                    prefix,
-                    rest,
-                    i,
-                    c
-                );
-                return Ok((prefix, rest));
+                return Ok(self.mode.advance(decoder, input, i, c.len_utf8()));
             }
         }
 
-        clerk::debug!(
-            "{:?}: all characters in set, returning input, input='{}'",
-            self,
-            input
-        );
-        Ok((input, input.len()))
+        decoder.advance(input.len());
+        return Ok(input);
     }
 }
 
@@ -97,9 +91,10 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = UntilNotInCharSet::<N> { filter, mode }
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

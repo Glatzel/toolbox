@@ -5,7 +5,7 @@ use alloc::string::ToString;
 use core::fmt::Debug;
 
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::string::{ IRule};
 
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
@@ -21,7 +21,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
 
@@ -126,7 +126,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(), RuleError> {
+    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
         for line in input.split_inclusive("\n") {

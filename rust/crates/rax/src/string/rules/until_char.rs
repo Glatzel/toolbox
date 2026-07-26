@@ -1,11 +1,8 @@
 extern crate alloc;
 
-use alloc::string::ToString;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::rules::UntilMode;
+use crate::string::{Decoder, IRule};
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
 ///
@@ -48,7 +45,8 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str) -> Result<(&'a str, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -57,44 +55,19 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             self.mode
         );
 
-        for (i, c) in input.char_indices() {
-            if c == C {
-                match self.mode {
-                    UntilMode::Discard => {
-                        clerk::debug!(
-                            "{:?} matched (discard): prefix='{:?}', rest='{:?}'",
-                            self,
-                            &input[..i],
-                            &input[i + C.len_utf8()..]
-                        );
-                        return Ok((&input[..i], i + C.len_utf8()));
-                    }
-                    UntilMode::KeepLeft => {
-                        let end = i + C.len_utf8();
-                        clerk::debug!(
-                            "{:?} matched (keep left): prefix='{:?}', rest='{:?}'",
-                            self,
-                            &input[..end],
-                            &input[end..]
-                        );
-                        return Ok((&input[..end], end));
-                    }
-                    UntilMode::KeepRight => {
-                        clerk::debug!(
-                            "{:?} matched (keep right): prefix='{:?}', rest='{:?}'",
-                            self,
-                            &input[..i],
-                            &input[i..]
-                        );
-                        return Ok((&input[..i], i));
-                    }
-                }
-            }
-        }
+        let pos = if decoder.is_ascii() {
+            input.as_bytes().iter().position(|&b| b == C as u8)
+        } else {
+            input
+                .char_indices()
+                .find_map(|(i, c)| (c == C).then_some(i))
+        };
 
-        Err(RuleError {
-            reason: "delimiter not found".to_string(),
-        })
+        let i = pos.ok_or_else(|| RuleError {
+            reason: "delimiter not found".into(),
+        })?;
+
+        Ok(self.mode.advance(decoder, input, i,  C.len_utf8()))
     }
 }
 
@@ -107,6 +80,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
+    use crate::string::UntilMode;
 
     #[rstest::rstest]
     #[case("discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
@@ -122,9 +96,10 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = UntilChar::<C> { mode }
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

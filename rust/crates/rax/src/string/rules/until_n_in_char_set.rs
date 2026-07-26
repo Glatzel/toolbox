@@ -1,11 +1,10 @@
 extern crate alloc;
-use alloc::string::ToString;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
 use crate::string::rules::UntilMode;
+use crate::string::{Decoder, IRule};
 /// Rule that extracts a prefix from the input string until the N-th character
 /// matching a given character set is reached.
 ///
@@ -46,45 +45,45 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
         if N == 0 {
-            return Ok(("", 0));
+            return Ok("");
         }
+        let input = decoder.rest_str();
+        if decoder.is_ascii() {
+            let mut remaining = N;
+
+            for (idx, &b) in input.as_bytes().iter().enumerate() {
+                let ch = b as char;
+
+                if self.filter.filter(&ch) {
+                    remaining -= 1;
+
+                    if remaining == 0 {
+                        return Ok(self.mode.advance(decoder, input, idx, ch.len_utf8()));
+                    }
+                }
+            }
+
+            return Err(RuleError {
+                reason: "fewer than N matches found".into(),
+            });
+        }
+
+        // UTF-8 path
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
             if self.filter.filter(&ch) {
                 remaining -= 1;
                 if remaining == 0 {
-                    let (prefix, rest) = match self.mode {
-                        UntilMode::Discard => (&input[..idx], idx + ch.len_utf8()),
-                        UntilMode::KeepLeft => {
-                            let after = idx + ch.len_utf8();
-                            (&input[..after], after)
-                        }
-                        UntilMode::KeepRight => (&input[..idx], idx),
-                    };
-                    clerk::debug!(
-                        "UntilNInCharSet: mode={:?}, prefix='{}', rest='{:?}', idx={}, N={}",
-                        self.mode,
-                        prefix,
-                        rest,
-                        idx,
-                        N
-                    );
-                    return Ok((prefix, rest));
+                    return Ok(self.mode.advance(decoder, input, idx, ch.len_utf8()));
                 }
             }
         }
 
-        clerk::debug!(
-            "{:?}: fewer than {} matches found, returning None, input='{:?}'",
-            self,
-            N,
-            input
-        );
         Err(RuleError {
-            reason: "fewer than N matches found".to_string(),
+            reason: "fewer than N matches found".into(),
         })
     }
 }
@@ -156,9 +155,10 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = UntilNInCharSet::<N, M> { filter, mode }
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

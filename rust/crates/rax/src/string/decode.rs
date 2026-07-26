@@ -24,12 +24,17 @@ pub struct Decoder<'a> {
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
     cursor: usize,
+    is_ascii: bool,
 }
 
 impl<'a> Decoder<'a> {
     pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
         let s = input.as_ref();
-        Self { full: s, cursor: 0 }
+        Self {
+            full: s,
+            cursor: 0,
+            is_ascii: s.is_ascii(),
+        }
     }
 
     /// Returns the full input string.
@@ -47,6 +52,13 @@ impl<'a> Decoder<'a> {
         self.cursor = 0;
         self
     }
+
+    /// Advances the parser by `n` bytes.
+    pub fn advance(&mut self, n: usize) -> &mut Self {
+        self.cursor = self.cursor.saturating_add(n);
+        self
+    }
+    pub fn is_ascii(&self) -> bool { self.is_ascii }
 }
 
 impl<'a> Decoder<'a> {
@@ -57,11 +69,8 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest_str()) {
-            Ok((v, advanced)) => {
-                self.cursor += advanced;
-                Ok(v)
-            }
+        match rule.apply(self) {
+            Ok(v) => Ok(v),
             Err(e) => Err(VerbError {
                 verb: Verb::Take,
                 rule: R::type_name(),
@@ -78,11 +87,8 @@ impl<'a> Decoder<'a> {
     where
         R: IStrFlowRule<'a>,
     {
-        match rule.apply(self.rest_str()) {
-            Ok((_, advanced)) => {
-                self.cursor += advanced;
-                Ok(self)
-            }
+        match rule.apply(self) {
+            Ok(_) => Ok(self),
             Err(e) => Err(VerbError {
                 verb: Verb::Skip,
                 rule: R::type_name(),

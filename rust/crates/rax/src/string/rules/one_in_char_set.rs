@@ -4,8 +4,8 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
+use crate::string::{Decoder, IRule};
 
 /// Rule that matches the first character of the input string if it belongs to
 /// a specified character set.
@@ -29,9 +29,22 @@ impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-    fn apply(&self, input: &'a str) -> Result<(char, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
+        if decoder.is_ascii() {
+            let b = input.as_bytes().get(0).ok_or_else(|| RuleError {
+                reason: "empty input".into(),
+            })?;
 
+            if !self.0.filter(&(*b as char)) {
+                return Err(RuleError {
+                    reason: "character not in set".into(),
+                });
+            }
+            decoder.advance(1);
+            return Ok(*b as char);
+        }
         let c = input.chars().next().ok_or_else(|| RuleError {
             reason: "empty input".into(),
         })?;
@@ -41,8 +54,8 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 reason: "character not in set".into(),
             });
         }
-
-        Ok((c, c.len_utf8()))
+        decoder.advance(c.len_utf8());
+        Ok(c)
     }
 }
 
@@ -68,9 +81,10 @@ mod tests {
         #[case] charset: &CharSetFilter<N>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = OneOfCharSet::<N>(charset)
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

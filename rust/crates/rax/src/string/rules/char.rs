@@ -4,6 +4,7 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
+use crate::string::Decoder;
 use crate::string::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
@@ -36,7 +37,8 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if input.is_empty() {
             return Err(RuleError {
@@ -51,12 +53,13 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
         }
 
         // Fast path: ASCII comparison
-        if C.is_ascii() {
+        if decoder.is_ascii() {
             let expected = C as u8;
 
             if input.as_bytes()[0] == expected {
                 clerk::debug!("{:?} matched ASCII: '{:?}'", self, C);
-                return Ok((C, 1));
+                decoder.advance(1);
+                return Ok(C);
             }
 
             return Err(RuleError {
@@ -71,7 +74,8 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
 
         if first_char == C {
             clerk::debug!("{:?} matched: '{:?}'", self, first_char);
-            Ok((first_char, C.len_utf8()))
+            decoder.advance(first_char.len_utf8());
+            Ok(first_char)
         } else {
             clerk::debug!(
                 "{:?} did not match: found '{:?}', expected '{:?}'",
@@ -108,9 +112,10 @@ mod tests {
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
+        let mut decoder = Decoder::new(input);
         let result = Char::<C>
-            .apply(input)
-            .map(|(out, rest)| (out, &input[rest..]));
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

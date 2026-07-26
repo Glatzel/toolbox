@@ -5,7 +5,7 @@ use core::fmt::Debug;
 
 use chrono::NaiveDate;
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::string::{Decoder, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -19,14 +19,14 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str) -> Result<(Option<NaiveDate>, usize), RuleError> {
-        clerk::trace!("NmeaUtc rule: input='{}'", input);
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        clerk::trace!("NmeaUtc rule: input='{}'", decoder.rest_str());
 
-        let (res, consumed) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+        let res = UNTIL_COMMA_DISCARD.apply(decoder).map_err(|_| RuleError {
             reason: "Missing Date string.".to_string(),
         })?;
         if res.is_empty() {
-            return Ok((None, consumed));
+            return Ok(None);
         }
 
         let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
@@ -74,7 +74,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                 });
             }
         };
-        Ok((Some(dt), consumed))
+        Ok(Some(dt))
     }
 }
 
@@ -93,7 +93,10 @@ mod tests {
     #[case("invalid_date", "320224,foo,bar")]
     #[case("empty", ",foo,bar")]
     fn test_nmea_date_valid(#[case] name: &str, #[case] input: &str) {
-        let result = NmeaDate.apply(input);
+        let mut decoder = Decoder::new(input);
+        let result = NmeaDate
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

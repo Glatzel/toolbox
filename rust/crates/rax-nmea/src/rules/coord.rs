@@ -3,7 +3,7 @@ use alloc::format;
 use alloc::string::ToString;
 
 use rax::error::RuleError;
-use rax::string::{IRule, IStrFlowRule};
+use rax::string::{Decoder, IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -27,21 +27,19 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
     /// Applies the NmeaCoord rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<(Self::Output, usize), RuleError> {
+    fn apply(&self, decoder: &mut Decoder<'a>) -> Result<Self::Output, RuleError> {
+        let input = decoder.rest_str();
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, consumed1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+        let num_str = UNTIL_COMMA_DISCARD.apply(decoder).map_err(|_| RuleError {
             reason: "Missing number string.".to_string(),
         })?;
 
-        let (sign_str, consumed2) =
-            UNTIL_COMMA_DISCARD
-                .apply(&input[consumed1..])
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".to_string(),
-                })?;
+        let sign_str = UNTIL_COMMA_DISCARD.apply(decoder).map_err(|_| RuleError {
+            reason: "Missing sign string.".to_string(),
+        })?;
         if num_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, consumed1 + consumed2));
+            return Ok(None);
         }
 
         match (num_str.parse::<f64>(), sign_str) {
@@ -55,7 +53,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), consumed1 + consumed2))
+                Ok(Some(result))
             }
             (Ok(v), "S" | "W") => {
                 let result = -Self::convert_to_decimal_degrees(v);
@@ -67,7 +65,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), consumed1 + consumed2))
+                Ok(Some(result))
             }
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
@@ -101,7 +99,10 @@ mod tests {
     #[case("empty", ",,bar")]
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaCoord.apply(input);
+        let mut decoder = Decoder::new(input);
+        let result = NmeaCoord
+            .apply(&mut decoder)
+            .map(|out| (out, decoder.rest_str()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

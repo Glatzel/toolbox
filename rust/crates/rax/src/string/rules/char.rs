@@ -38,11 +38,12 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     ///   of the input.
     fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
-        match input.find(C) {
-            Some(idx) => Ok((C, &input[idx + C.len_utf8()..])),
-            None => Err(RuleError {
-                reason: "input is empty or does not contain the expected character.".into(),
-            }),
+        if input.starts_with(C) {
+            Ok((C, &input[C.len_utf8()..]))
+        } else {
+            Err(RuleError {
+                reason: "expected character not found".into(),
+            })
         }
     }
 }

@@ -27,7 +27,6 @@ pub struct Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
-    #[inline]
     pub fn new<S: AsRef<str> + ?Sized>(input: &'a S) -> Self {
         let s = input.as_ref();
         Self {
@@ -38,7 +37,6 @@ impl<'a> Decoder<'a> {
     }
 
     /// Returns the full input string.
-    #[inline]
     pub fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
@@ -46,11 +44,9 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    #[inline]
     pub fn rest_str(&self) -> &str { self.rest }
 
     /// Resets the parser to the start of the input.
-    #[inline]
     pub fn reset(&mut self) -> &mut Self {
         self.rest = self.full;
         self
@@ -61,7 +57,6 @@ impl<'a> Decoder<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    #[inline]
     pub fn take<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IStrFlowRule<'a>,
@@ -78,7 +73,6 @@ impl<'a> Decoder<'a> {
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
-    #[inline]
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
         R: IStrFlowRule<'a>,
@@ -96,7 +90,6 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    #[inline]
     pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
     where
         R: IGlobalRule<'a>,
@@ -106,7 +99,6 @@ impl<'a> Decoder<'a> {
     }
 }
 impl<'a> Decoder<'a> {
-    #[inline]
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
         D: IDecode<E>,

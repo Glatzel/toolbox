@@ -46,9 +46,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
 
         // Fast path: ASCII comparison
         if is_ascii {
-            let expected = C as u8;
-
-            if input.as_bytes()[0] == expected {
+            if input.as_bytes()[0] == C as u8 {
                 clerk::debug!("{:?} matched ASCII: '{:?}'", self, C);
                 return Ok((C, &input[1..]));
             }

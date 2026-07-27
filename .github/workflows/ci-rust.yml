@@ -36,6 +36,8 @@ jobs:
           global-options: ${{matrix.options}}
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+        with:
+          flags: ci-rust
 
   cargo-miri:
     strategy:

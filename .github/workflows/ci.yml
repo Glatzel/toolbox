@@ -99,6 +99,8 @@ jobs:
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+        with:
+          flags: ci-tools-orc
 
   tools-ttyw:
     needs: changed
@@ -130,6 +132,8 @@ jobs:
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+        with:
+          flags: ci-tools-ttyw
 
   tools-vinaya:
     needs: changed
@@ -156,6 +160,8 @@ jobs:
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled()}}
+        with:
+          flags: ci-tools-vinaya
 
   fuzz:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'

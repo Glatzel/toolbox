@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "char not in set",
+        reason: "input too short or not enough chars in set",
     },
 )

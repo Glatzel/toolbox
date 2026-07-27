@@ -97,7 +97,14 @@ mod tests {
 
     use super::*;
     use crate::string::filters::DIGITS;
-
+    #[rstest::rstest]
+    #[case(
+        "zero_n",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<0, _>>,
+        &DIGITS,
+        UntilMode::Discard
+    )]
     #[rstest::rstest]
     #[case(
         "ascii_discard",

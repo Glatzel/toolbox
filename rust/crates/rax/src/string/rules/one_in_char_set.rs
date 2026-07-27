@@ -43,9 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
             }
             return Ok((*b as char, &input[1..]));
         }
-        let c = input.chars().next().ok_or_else(|| RuleError {
-            reason: "empty input".into(),
-        })?;
+        let c = input.chars().next().ok_or_else(|| unreachable!())?;
 
         if !self.0.filter(&c) {
             return Err(RuleError {

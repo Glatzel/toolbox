@@ -70,7 +70,8 @@ mod tests {
     #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
     #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
     #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<1>>,&CharSetFilter::new(['你']))]
+    #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CharSetFilter::new(['你']))]
+    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
     fn test_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

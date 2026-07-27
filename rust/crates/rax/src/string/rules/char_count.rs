@@ -68,7 +68,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                 }
             })
             .map(|idx| unsafe { input.split_at_unsafe(idx) })
-            .ok_or_else(||RuleError {
+            .ok_or_else(|| RuleError {
                 reason: "not enough chars in input".into(),
             })?;
 

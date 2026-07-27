@@ -123,7 +123,10 @@ mod tests {
     #[case("ascii_no_match","12abc", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
     #[case("ascii_too_short","ab", PhantomData::<NInCharSet<4,_>>,&ASCII_LETTERS_DIGITS)]
     #[case("ascii_empty_input","", PhantomData::<NInCharSet<1,_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("utf8_match","你好世界", PhantomData::<NInCharSet<2,2>>,&CharSetFilter::new(['你', '好']))]
+    #[case("utf8_match","你好世界", PhantomData::<NInCharSet<2,_>>,&CharSetFilter::new(['你', '好']))]
+    #[case("utf8_no_match","你好世界", PhantomData::<NInCharSet<3,_>>,&DIGITS)]
+    #[case("utf8_too_short","你好世界", PhantomData::<NInCharSet<5,_>>,&CharSetFilter::new(['你', '好']))]
+    #[case("zero_n","abc123", PhantomData::<NInCharSet<0,_>>,&CharSetFilter::new(['你', '好']))]
     fn test_n_in_charset<const N: usize, const M: usize>(
         #[case] name: &str,
         #[case] input: &str,

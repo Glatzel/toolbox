@@ -46,6 +46,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///   insufficient input.
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
+            clerk::warn!("N is 0, returning empty string");
             return Ok(("", input));
         }
 

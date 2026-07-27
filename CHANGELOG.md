@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.7.27] - 2026-07-27
+
+### Performance
+
+- More compact decoder structure by @Glatzel in [#664](https://github.com/Glatzel/toolbox/pull/664)
+- Try improve perf by inline by @Glatzel in [#665](https://github.com/Glatzel/toolbox/pull/665)
+
+### Testing
+
+- **(rax)** Add test cases by @Glatzel in [#667](https://github.com/Glatzel/toolbox/pull/667)
+
 ## [2026.7.19] - 2026-07-19
 
 ### Added
@@ -547,6 +558,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.7.27]: https://github.com/Glatzel/toolbox/compare/v2026.7.19..v2026.7.27
 [2026.7.19]: https://github.com/Glatzel/toolbox/compare/v2026.7.6..v2026.7.19
 [2026.7.6]: https://github.com/Glatzel/toolbox/compare/v2026.5.29..v2026.7.6
 [2026.5.29]: https://github.com/Glatzel/toolbox/compare/v2026.5.18..v2026.5.29

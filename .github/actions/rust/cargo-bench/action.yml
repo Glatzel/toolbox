@@ -10,14 +10,7 @@ inputs:
   options:
     description: Options passed to cargo fuzz test
     required: false
-    default: >
-      --all-features
-      --config profile.release.debug=false
-      --config profile.release.lto="fat"
-      --config profile.release.codegen-units=1
-      --config profile.release.strip=true
-      --config profile.release.opt-level=3
-      --config build.rustflags=["-C","target-cpu=native"]
+    default: --all-features
 
 runs:
   using: composite

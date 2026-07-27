@@ -13,7 +13,7 @@ impl<'a> IGlobalRule<'a> for NmeaTalker {
     type Output = Talker;
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
-        let s = input.get(1..3).ok_or(RuleError {
+        let s = input.get(1..3).ok_or_else(|| RuleError {
             reason: "missing talker".into(),
         })?;
         match Talker::from_str(s) {

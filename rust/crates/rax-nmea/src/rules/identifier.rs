@@ -13,7 +13,7 @@ impl<'a> IGlobalRule<'a> for NmeaIdentifier {
     type Output = Identifier;
 
     fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
-        let s = input.get(3..6).ok_or(RuleError {
+        let s = input.get(3..6).ok_or_else(||RuleError {
             reason: "missing identifier".into(),
         })?;
         match Identifier::from_str(s) {

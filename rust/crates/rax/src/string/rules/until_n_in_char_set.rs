@@ -47,6 +47,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
 
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
         if N == 0 {
+            clerk::warn!("N is 0, returning empty string");
             return Ok(("", input));
         }
 
@@ -97,7 +98,14 @@ mod tests {
 
     use super::*;
     use crate::string::filters::DIGITS;
-
+    #[rstest::rstest]
+    #[case(
+        "zero_n",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<0, _>>,
+        &DIGITS,
+        UntilMode::Discard
+    )]
     #[rstest::rstest]
     #[case(
         "ascii_discard",
@@ -140,8 +148,15 @@ mod tests {
     )]
     #[case(
         "utf8_unicode_keep_left",
-        "",
+        "你好世界",
         PhantomData::<UntilNInCharSet<2, 3>>,
+        &CharSetFilter::new(['你', '世', '好']),
+        UntilMode::KeepInOutput,
+    )]
+    #[case(
+        "utf8_not_enough_matches",
+        "你好世界",
+        PhantomData::<UntilNInCharSet<4, 3>>,
         &CharSetFilter::new(['你', '世', '好']),
         UntilMode::KeepInOutput,
     )]

@@ -2,9 +2,8 @@
 source: crates/rax/src/string/rules/until_n_in_char_set.rs
 expression: result
 ---
-Ok(
-    (
-        "你好",
-        "世界",
-    ),
+Err(
+    RuleError {
+        reason: "fewer than N matches found",
+    },
 )

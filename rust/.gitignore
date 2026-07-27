@@ -3,4 +3,4 @@ temp
 # pixi environments
 .pixi/*
 !.pixi/config.toml
-external/**
+external

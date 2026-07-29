@@ -17,7 +17,19 @@ impl<const N: usize> CharSetFilter<N> {
     ///
     /// The caller must guarantee that `table` is sorted and contains unique
     /// characters.
-    pub const fn new(table: [char; N]) -> Self {
+    pub const fn new(mut table: [char; N]) -> Self {
+        let mut i = 1;
+        while i < N {
+            let key = table[i];
+            let key_val = key as u32;
+            let mut j = i;
+            while j > 0 && (table[j - 1] as u32) > key_val {
+                table[j] = table[j - 1];
+                j -= 1;
+            }
+            table[j] = key;
+            i += 1;
+        }
         let ascii_mask = Self::compute_ascii_mask(&table);
         Self { table, ascii_mask }
     }
@@ -79,19 +91,23 @@ mod tests {
     extern crate std;
 
     use clerk::{LevelFilter, init_log_with_level};
+    use rstest::rstest;
 
     use super::*;
-    #[test]
-    fn test_char_set_filter() {
+    #[rstest]
+    #[case('a', true)]
+    #[case('1', true)]
+    #[case(',', true)]
+    #[case('あ', true)]
+    #[case('-', false)]
+    #[case('b', false)]
+    #[case('2', false)]
+    #[case('い', false)]
+    #[case('A', false)]
+    #[case('B', false)]
+    fn test_char_set_filter(#[case] input: char, #[case] in_set: bool) {
         init_log_with_level(LevelFilter::TRACE);
         let filter = CharSetFilter::<_>::new(['a', '1', ',', 'あ']);
-        assert!(filter.filter(&'a'));
-        assert!(filter.filter(&','));
-        assert!(filter.filter(&'あ'));
-
-        assert!(!filter.filter(&'b'));
-        assert!(!filter.filter(&'2'));
-        assert!(!filter.filter(&'-'));
-        assert!(!filter.filter(&'い'));
+        assert_eq!(filter.filter(&input), in_set);
     }
 }

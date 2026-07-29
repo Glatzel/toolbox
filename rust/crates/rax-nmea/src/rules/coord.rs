@@ -29,18 +29,19 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, advanced) =
+        let (num_str, advanced1) =
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
                     reason: "Missing number string.".into(),
                 })?;
 
-        let (sign_str, advanced) = UNTIL_COMMA_DISCARD
-            .apply(unsafe { input.get_unchecked(advanced..) }, is_ascii)
+        let (sign_str, advanced2) = UNTIL_COMMA_DISCARD
+            .apply(unsafe { input.get_unchecked(advanced1..) }, is_ascii)
             .map_err(|_| RuleError {
                 reason: "Missing sign string.".into(),
             })?;
+        let advanced = advanced1 + advanced2;
         if num_str.is_empty() && sign_str.is_empty() {
             return Ok((None, advanced));
         }

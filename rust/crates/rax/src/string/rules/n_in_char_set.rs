@@ -74,7 +74,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     });
                 }
             }
-            return Ok(unsafe { (input.get_unchecked(N..), N) });
+            return Ok(unsafe { (input.get_unchecked(..N), N) });
         }
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -95,7 +95,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
 
             if count == N {
                 let advanced = i + c.len_utf8();
-                return Ok(unsafe { (input.get_unchecked(advanced..), advanced) });
+                return Ok(unsafe { (input.get_unchecked(..advanced), advanced) });
             }
         }
         clerk::debug!(
@@ -135,7 +135,9 @@ mod tests {
         #[case] charset: &CharSetFilter<M>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NInCharSet::<N, M>(charset).apply(input, input.is_ascii());
+        let result = NInCharSet::<N, M>(charset)
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

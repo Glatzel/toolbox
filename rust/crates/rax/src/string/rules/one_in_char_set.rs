@@ -50,8 +50,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 reason: "character not in set".into(),
             });
         }
-        let advanced = c.len_utf8();
-        Ok((c, advanced))
+        Ok((c, c.len_utf8()))
     }
 }
 
@@ -78,7 +77,9 @@ mod tests {
         #[case] charset: &CharSetFilter<N>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = OneOfCharSet::<N>(charset).apply(input, input.is_ascii());
+        let result = OneOfCharSet::<N>(charset)
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

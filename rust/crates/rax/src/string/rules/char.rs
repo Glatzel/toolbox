@@ -80,7 +80,9 @@ mod tests {
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = Char::<C>.apply(input, input.is_ascii());
+        let result = Char::<C>
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

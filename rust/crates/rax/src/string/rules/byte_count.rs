@@ -33,7 +33,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
     fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
-        match input.get(N..) {
+        match input.get(..N) {
             Some(out) => Ok((out, N)),
             None => Err(RuleError {
                 reason: "input too short or invalid UTF-8 boundary.".into(),
@@ -67,7 +67,9 @@ mod tests {
         #[case] _rule: PhantomData<ByteCount<N>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = ByteCount::<N>.apply(input, input.is_ascii());
+        let result = ByteCount::<N>
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

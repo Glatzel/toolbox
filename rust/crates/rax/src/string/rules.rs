@@ -45,9 +45,9 @@ impl UntilMode {
                 UntilMode::Discard => (input.get_unchecked(..left), left + length),
                 UntilMode::KeepInOutput => {
                     let idx = left + length;
-                    (input.get_unchecked(idx..), idx)
+                    (input.get_unchecked(..idx), idx)
                 }
-                UntilMode::KeepInRest => (input.get_unchecked(left..), left),
+                UntilMode::KeepInRest => (input.get_unchecked(..left), left),
             }
         }
     }

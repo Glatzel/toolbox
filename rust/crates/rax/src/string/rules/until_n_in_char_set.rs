@@ -168,7 +168,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNInCharSet::<N, M> { filter, mode }.apply(input, input.is_ascii());
+        let result = UntilNInCharSet::<N, M> { filter, mode }
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

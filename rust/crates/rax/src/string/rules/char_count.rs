@@ -66,7 +66,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                     None
                 }
             })
-            .map(|idx| unsafe { (input.get_unchecked(idx..), idx) })
+            .map(|idx| unsafe { (input.get_unchecked(..idx), idx) })
             .ok_or_else(|| RuleError {
                 reason: "not enough chars in input".into(),
             })?;
@@ -99,7 +99,9 @@ mod tests {
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = CharCount::<C>.apply(input, input.is_ascii());
+        let result = CharCount::<C>
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

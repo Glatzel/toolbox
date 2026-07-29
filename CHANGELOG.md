@@ -5,12 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2026.7.27] - 2026-07-27
+## [2026.7.27] - 2026-07-29
 
 ### Performance
 
 - More compact decoder structure by @Glatzel in [#664](https://github.com/Glatzel/toolbox/pull/664)
 - Try improve perf by inline by @Glatzel in [#665](https://github.com/Glatzel/toolbox/pull/665)
+- More compact decoder by @Glatzel in [#674](https://github.com/Glatzel/toolbox/pull/674)
 
 ### Testing
 

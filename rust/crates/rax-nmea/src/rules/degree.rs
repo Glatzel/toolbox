@@ -68,7 +68,9 @@ mod test {
     #[case("null", ",,other_data")]
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaDegree.apply(input, true);
+        let result = NmeaDegree
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

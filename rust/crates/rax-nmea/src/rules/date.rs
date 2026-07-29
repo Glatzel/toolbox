@@ -95,7 +95,9 @@ mod tests {
     #[case("invalid_date", "320224,foo,bar")]
     #[case("empty", ",foo,bar")]
     fn test_nmea_date_valid(#[case] name: &str, #[case] input: &str) {
-        let result = NmeaDate.apply(input, true);
+        let result = NmeaDate
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

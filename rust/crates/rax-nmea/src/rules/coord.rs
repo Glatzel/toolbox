@@ -103,7 +103,9 @@ mod tests {
     #[case("empty", ",,bar")]
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaCoord.apply(input, true);
+        let result = NmeaCoord
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

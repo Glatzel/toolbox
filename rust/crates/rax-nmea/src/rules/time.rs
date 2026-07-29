@@ -142,7 +142,9 @@ mod tests {
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaTime.apply(input, true);
+        let result = NmeaTime
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

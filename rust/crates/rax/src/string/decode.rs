@@ -44,7 +44,7 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    pub fn rest_str(&self) -> &str { unsafe { &self.full.get_unchecked(self.cursor..) } }
+    pub fn rest_str(&self) -> &str { unsafe { self.full.get_unchecked(self.cursor..) } }
 
     /// Resets the parser to the start of the input.
     pub fn reset(&mut self) -> &mut Self {
@@ -62,7 +62,7 @@ impl<'a> Decoder<'a> {
         R: IStrFlowRule<'a>,
     {
         match rule.apply(
-            unsafe { &self.full.get_unchecked(self.cursor..) },
+            unsafe { self.full.get_unchecked(self.cursor..) },
             self.is_ascii,
         ) {
             Ok((v, advanced)) => {
@@ -81,7 +81,7 @@ impl<'a> Decoder<'a> {
         R: IStrFlowRule<'a>,
     {
         match rule.apply(
-            unsafe { &self.full.get_unchecked(self.cursor..) },
+            unsafe { self.full.get_unchecked(self.cursor..) },
             self.is_ascii,
         ) {
             Ok((_, advanced)) => {

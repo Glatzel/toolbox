@@ -19,21 +19,20 @@ impl IRule for NmeaDegree {}
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, rest) =
+        let (deg_str, advanced) =
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
                     reason: "Missing degree string.".into(),
                 })?;
-        let (sign_str, rest) =
-            UNTIL_COMMA_DISCARD
-                .apply(rest, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".into(),
-                })?;
+        let (sign_str, rest) = UNTIL_COMMA_DISCARD
+            .apply(unsafe { input.get_unchecked(advanced..) }, is_ascii)
+            .map_err(|_| RuleError {
+                reason: "Missing sign string.".into(),
+            })?;
         if deg_str.is_empty() && sign_str.is_empty() {
             return Ok((None, rest));
         }

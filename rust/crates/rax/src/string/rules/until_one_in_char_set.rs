@@ -37,7 +37,7 @@ impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if is_ascii {
             for (i, &b) in input.as_bytes().iter().enumerate() {
                 if self.filter.filter(&(b as char)) {

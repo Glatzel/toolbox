@@ -24,7 +24,6 @@ pub use until_str::*;
 
 pub use self::char::*;
 use crate::error::RuleError;
-use crate::string::utils::SplitAtUnsafe;
 
 /// Determines how a parser should treat the delimiter when splitting strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, strum::AsRefStr)]
@@ -40,18 +39,15 @@ pub enum UntilMode {
     KeepInRest,
 }
 impl UntilMode {
-    pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, &str) {
+    pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, usize) {
         unsafe {
             match self {
-                UntilMode::Discard => (
-                    input.get_unchecked(..left),
-                    input.get_unchecked(left + length..),
-                ),
+                UntilMode::Discard => (input.get_unchecked(..left), left + length),
                 UntilMode::KeepInOutput => {
                     let idx = left + length;
-                    input.split_at_unsafe(idx)
+                    (input.get_unchecked(idx..), idx)
                 }
-                UntilMode::KeepInRest => input.split_at_unsafe(left),
+                UntilMode::KeepInRest => (input.get_unchecked(left..), left),
             }
         }
     }
@@ -75,7 +71,7 @@ pub trait IStrFlowRule<'a>: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError>;
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).

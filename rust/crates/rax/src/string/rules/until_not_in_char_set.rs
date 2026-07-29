@@ -38,7 +38,7 @@ impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if is_ascii {
             for (i, &b) in input.as_bytes().iter().enumerate() {
                 let c = b as char;
@@ -47,7 +47,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
                     return Ok(self.mode.split_str(input, i, 1));
                 }
             }
-            return Ok((input, ""));
+            return Ok((input, input.len()));
         }
 
         // UTF-8 path
@@ -57,7 +57,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
             }
         }
 
-        Ok((input, ""))
+        Ok((input, input.len()))
     }
 }
 

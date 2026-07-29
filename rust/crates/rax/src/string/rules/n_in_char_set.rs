@@ -4,7 +4,6 @@ use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;
 use crate::string::filters::{CharSetFilter, IFilter};
-use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -44,10 +43,10 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
-            return Ok(("", input));
+            return Ok(("", 0));
         }
 
         if is_ascii {
@@ -75,7 +74,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
                     });
                 }
             }
-            return Ok(unsafe { input.split_at_unsafe(N) });
+            return Ok(unsafe { (input.get_unchecked(N..), N) });
         }
         let mut count = 0;
         for (i, c) in input.char_indices() {
@@ -95,7 +94,8 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             count += 1;
 
             if count == N {
-                return Ok(unsafe { input.split_at_unsafe(i + c.len_utf8()) });
+                let advanced = i + c.len_utf8();
+                return Ok(unsafe { (input.get_unchecked(advanced..), advanced) });
             }
         }
         clerk::debug!(

@@ -29,7 +29,7 @@ impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
         if is_ascii {
             let b = input.as_bytes().first().ok_or_else(|| RuleError {
@@ -41,7 +41,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                     reason: "character not in set".into(),
                 });
             }
-            return Ok((*b as char, &input[1..]));
+            return Ok((*b as char, 1));
         }
         let c = input.chars().next().ok_or_else(|| unreachable!())?;
 
@@ -50,7 +50,8 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 reason: "character not in set".into(),
             });
         }
-        Ok((c, unsafe { input.get_unchecked(c.len_utf8()..) }))
+        let advanced = c.len_utf8();
+        Ok((c, advanced))
     }
 }
 

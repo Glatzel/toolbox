@@ -45,10 +45,10 @@ impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
-            return Ok(("", input));
+            return Ok(("", 0));
         }
 
         if is_ascii {

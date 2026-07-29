@@ -9,45 +9,65 @@ extern crate alloc;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CharSetFilter<const N: usize> {
     table: [char; N],
+    ascii_mask: Option<u128>,
 }
 
 impl<const N: usize> CharSetFilter<N> {
-    /// Creates a new `CharSetFilter`.
-    ///
     /// # Safety
     ///
     /// The caller must guarantee that `table` is sorted and contains unique
     /// characters.
-    pub const fn new(table: [char; N]) -> Self { Self { table } }
+    pub const fn new(table: [char; N]) -> Self {
+        let ascii_mask = Self::compute_ascii_mask(&table);
+        Self { table, ascii_mask }
+    }
+
+    const fn compute_ascii_mask(table: &[char; N]) -> Option<u128> {
+        let mut mask: u128 = 0;
+        let mut i = 0;
+        while i < N {
+            let c = table[i];
+            if !c.is_ascii() {
+                return None;
+            }
+            mask |= 1u128 << (c as u32);
+            i += 1;
+        }
+        Some(mask)
+    }
+
+    pub const fn is_ascii(&self) -> bool { self.ascii_mask.is_some() }
+
+    /// Cached bitmask — O(1) to read, computed once in `new`.
+    pub const fn ascii_mask(&self) -> Option<u128> { self.ascii_mask }
 }
 
 impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
-    /// Returns `true` if the character is in the set, `false` otherwise.
     fn filter(&self, input: &char) -> bool {
         clerk::trace!(
             "CharSetFilter: checking if '{}' is in the set {:?}",
             input,
             self.table
         );
-        self.table.contains(input)
+        self.table.binary_search(input).is_ok()
     }
 }
 
 // Predefined filters
 
 /// Digits 0–9.
-pub const DIGITS: CharSetFilter<10> =
+pub const CHAR_SET_DIGITS: CharSetFilter<10> =
     CharSetFilter::new(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
 /// ASCII letters, uppercase and lowercase.
-pub const ASCII_LETTERS: CharSetFilter<52> = CharSetFilter::new([
+pub const CHAR_SET_ASCII_LETTERS: CharSetFilter<52> = CharSetFilter::new([
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
     'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
     'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ]);
 
 /// ASCII letters and digits.
-pub const ASCII_LETTERS_DIGITS: CharSetFilter<62> = CharSetFilter::new([
+pub const CHAR_SET_ASCII_LETTERS_DIGITS: CharSetFilter<62> = CharSetFilter::new([
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
     'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b',
     'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',

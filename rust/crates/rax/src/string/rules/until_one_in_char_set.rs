@@ -39,12 +39,24 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
 
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if is_ascii {
+            if let Some(mask) = self.filter.ascii_mask() {
+                return match input
+                    .as_bytes()
+                    .iter()
+                    .position(|&b| mask & (1u128 << b as u32) != 0)
+                {
+                    Some(i) => Ok(self.mode.split_str(input, i, 1)),
+                    None => Err(RuleError {
+                        reason: "no match found".into(),
+                    }),
+                };
+            }
+            // Fallback: table has non-ASCII entries
             for (i, &b) in input.as_bytes().iter().enumerate() {
                 if self.filter.filter(&(b as char)) {
                     return Ok(self.mode.split_str(input, i, 1));
                 }
             }
-
             return Err(RuleError {
                 reason: "no match found".into(),
             });
@@ -72,14 +84,14 @@ mod tests {
     use std::format;
 
     use super::*;
-    use crate::string::filters::{ASCII_LETTERS, DIGITS};
+    use crate::string::filters::{CHAR_SET_ASCII_LETTERS, CHAR_SET_DIGITS};
     #[rstest::rstest]
-    #[case("ascii_discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("ascii_keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepInOutput)]
-    #[case("ascii_keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &ASCII_LETTERS, UntilMode::KeepInRest)]
-    #[case("ascii_keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::KeepInRest)]
-    #[case("ascii_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &DIGITS , UntilMode::Discard)]
-    #[case("ascii_empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInOutput)]
+    #[case("ascii_keep_right_first_char", "a123", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_ASCII_LETTERS, UntilMode::KeepInRest)]
+    #[case("ascii_keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInRest)]
+    #[case("ascii_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS , UntilMode::Discard)]
+    #[case("ascii_empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     fn test_until_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

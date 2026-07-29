@@ -53,17 +53,28 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
 
         if is_ascii {
             let mut remaining = N;
-            for (idx, &b) in input.as_bytes().iter().enumerate() {
-                let ch = b as char;
-
-                if self.filter.filter(&ch) {
-                    remaining -= 1;
-                    if remaining == 0 {
-                        return Ok(self.mode.split_str(input, idx, 1));
+            if let Some(mask) = self.filter.ascii_mask() {
+                // Fast path: bitmask lookup, no per-char filter() call
+                for (idx, &b) in input.as_bytes().iter().enumerate() {
+                    if mask & (1u128 << b as u32) != 0 {
+                        remaining -= 1;
+                        if remaining == 0 {
+                            return Ok(self.mode.split_str(input, idx, 1));
+                        }
+                    }
+                }
+            } else {
+                // Fallback: table has non-ASCII entries, use original filter
+                for (idx, &b) in input.as_bytes().iter().enumerate() {
+                    let ch = b as char;
+                    if self.filter.filter(&ch) {
+                        remaining -= 1;
+                        if remaining == 0 {
+                            return Ok(self.mode.split_str(input, idx, 1));
+                        }
                     }
                 }
             }
-
             return Err(RuleError {
                 reason: "fewer than N matches found".into(),
             });
@@ -97,13 +108,13 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::DIGITS;
+    use crate::string::filters::CHAR_SET_DIGITS;
     #[rstest::rstest]
     #[case(
         "zero_n",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<0, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::Discard
     )]
     #[rstest::rstest]
@@ -111,14 +122,14 @@ mod tests {
         "ascii_discard",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::Discard
     )]
     #[case(
         "ascii_keep_left",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::KeepInOutput,
 
     )]
@@ -126,7 +137,7 @@ mod tests {
         "ascii_keep_right",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<2, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::KeepInRest,
 
     )]
@@ -134,7 +145,7 @@ mod tests {
         "ascii_not_enough_matches",
         "a1b2c3",
         PhantomData::<UntilNInCharSet<4, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::Discard,
 
     )]
@@ -142,7 +153,7 @@ mod tests {
         "ascii_empty_input",
         "",
         PhantomData::<UntilNInCharSet<1, _>>,
-        &DIGITS,
+        &CHAR_SET_DIGITS,
         UntilMode::Discard,
 
     )]

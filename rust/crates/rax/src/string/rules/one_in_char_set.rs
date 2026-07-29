@@ -63,13 +63,13 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
+    use crate::string::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
     #[rstest::rstest]
-    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
-    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
+    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
+    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
     #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CharSetFilter::new(['你']))]
-    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
+    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
     fn test_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

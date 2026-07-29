@@ -19,27 +19,27 @@ impl IRule for NmeaDegree {}
 impl<'a> IStrFlowRule<'a> for NmeaDegree {
     type Output = Option<f64>;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, rest) =
+        let (deg_str, advanced1) =
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
                     reason: "Missing degree string.".into(),
                 })?;
-        let (sign_str, rest) =
-            UNTIL_COMMA_DISCARD
-                .apply(rest, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".into(),
-                })?;
+        let (sign_str, advanced2) = UNTIL_COMMA_DISCARD
+            .apply(unsafe { input.get_unchecked(advanced1..) }, is_ascii)
+            .map_err(|_| RuleError {
+                reason: "Missing sign string.".into(),
+            })?;
+        let advanced = advanced1 + advanced2;
         if deg_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, rest));
+            return Ok((None, advanced));
         }
         match (deg_str.parse::<f64>(), sign_str) {
-            (Ok(val), "E" | "N") => Ok((Some(val), rest)),
-            (Ok(val), "W" | "S") => Ok((Some(-val), rest)),
+            (Ok(val), "E" | "N") => Ok((Some(val), advanced)),
+            (Ok(val), "W" | "S") => Ok((Some(-val), advanced)),
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
@@ -68,7 +68,9 @@ mod test {
     #[case("null", ",,other_data")]
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaDegree.apply(input, true);
+        let result = NmeaDegree
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

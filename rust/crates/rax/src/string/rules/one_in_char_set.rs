@@ -29,7 +29,7 @@ impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
         if is_ascii {
             let b = input.as_bytes().first().ok_or_else(|| RuleError {
@@ -41,7 +41,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                     reason: "character not in set".into(),
                 });
             }
-            return Ok((*b as char, &input[1..]));
+            return Ok((*b as char, 1));
         }
         let c = input.chars().next().ok_or_else(|| unreachable!())?;
 
@@ -50,7 +50,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
                 reason: "character not in set".into(),
             });
         }
-        Ok((c, unsafe { input.get_unchecked(c.len_utf8()..) }))
+        Ok((c, c.len_utf8()))
     }
 }
 
@@ -63,13 +63,13 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::{ASCII_LETTERS_DIGITS, DIGITS};
+    use crate::string::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
     #[rstest::rstest]
-    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
-    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
-    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&ASCII_LETTERS_DIGITS)]
+    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
+    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
+    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
     #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CharSetFilter::new(['你']))]
-    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&DIGITS)]
+    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
     fn test_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,
@@ -77,7 +77,9 @@ mod tests {
         #[case] charset: &CharSetFilter<N>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = OneOfCharSet::<N>(charset).apply(input, input.is_ascii());
+        let result = OneOfCharSet::<N>(charset)
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

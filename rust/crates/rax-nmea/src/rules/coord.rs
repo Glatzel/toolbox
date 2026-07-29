@@ -26,24 +26,24 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
     /// Applies the NmeaCoord rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, rest) =
+        let (num_str, advanced1) =
             UNTIL_COMMA_DISCARD
                 .apply(input, is_ascii)
                 .map_err(|_| RuleError {
                     reason: "Missing number string.".into(),
                 })?;
 
-        let (sign_str, rest) =
-            UNTIL_COMMA_DISCARD
-                .apply(rest, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing sign string.".into(),
-                })?;
+        let (sign_str, advanced2) = UNTIL_COMMA_DISCARD
+            .apply(unsafe { input.get_unchecked(advanced1..) }, is_ascii)
+            .map_err(|_| RuleError {
+                reason: "Missing sign string.".into(),
+            })?;
+        let advanced = advanced1 + advanced2;
         if num_str.is_empty() && sign_str.is_empty() {
-            return Ok((None, rest));
+            return Ok((None, advanced));
         }
 
         match (num_str.parse::<f64>(), sign_str) {
@@ -57,7 +57,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), rest))
+                Ok((Some(result), advanced))
             }
             (Ok(v), "S" | "W") => {
                 let result = -Self::convert_to_decimal_degrees(v);
@@ -69,7 +69,7 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                     v - (v / 100.0).floor() * 100.0,
                     result
                 );
-                Ok((Some(result), rest))
+                Ok((Some(result), advanced))
             }
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
@@ -103,7 +103,9 @@ mod tests {
     #[case("empty", ",,bar")]
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = NmeaCoord.apply(input, true);
+        let result = NmeaCoord
+            .apply(input, true)
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }
 }

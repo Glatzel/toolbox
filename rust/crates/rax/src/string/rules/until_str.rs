@@ -32,7 +32,7 @@ pub struct UntilStr {
 impl IRule for UntilStr {}
 impl<'a> IStrFlowRule<'a> for UntilStr {
     type Output = &'a str;
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -74,7 +74,9 @@ mod tests {
     #[case("ascii_empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
     fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = rule.apply(input, input.is_ascii());
+        let result = rule
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

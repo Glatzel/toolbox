@@ -38,16 +38,25 @@ impl<'a, const N: usize> IRule for UntilNotInCharSet<'a, N> {}
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
     type Output = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if is_ascii {
+            if let Some(mask) = self.filter.ascii_mask() {
+                // Fast path: bitmask, no per-byte filter() dispatch
+                for (i, &b) in input.as_bytes().iter().enumerate() {
+                    if mask & (1u128 << b as u32) == 0 {
+                        return Ok(self.mode.split_str(input, i, 1));
+                    }
+                }
+                return Ok((input, input.len()));
+            }
+            // Fallback: table has non-ASCII entries
             for (i, &b) in input.as_bytes().iter().enumerate() {
                 let c = b as char;
-
                 if !self.filter.filter(&c) {
                     return Ok(self.mode.split_str(input, i, 1));
                 }
             }
-            return Ok((input, ""));
+            return Ok((input, input.len()));
         }
 
         // UTF-8 path
@@ -57,7 +66,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
             }
         }
 
-        Ok((input, ""))
+        Ok((input, input.len()))
     }
 }
 
@@ -71,14 +80,14 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::DIGITS;
+    use crate::string::filters::CHAR_SET_DIGITS;
     #[rstest::rstest]
-    #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepInOutput)]
-    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::KeepInRest)]
-    #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
-    #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &DIGITS, UntilMode::Discard)]
+    #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInOutput)]
+    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInRest)]
+    #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     #[case("utf8_discard", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
     #[case("utf8_all_in_set", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['你', '好','世','界']), UntilMode::Discard)]
     fn test_until_not_in_char_set<const N: usize>(
@@ -89,7 +98,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNotInCharSet::<N> { filter, mode }.apply(input, input.is_ascii());
+        let result = UntilNotInCharSet::<N> { filter, mode }
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

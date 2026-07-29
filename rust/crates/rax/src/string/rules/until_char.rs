@@ -22,7 +22,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -64,7 +64,9 @@ mod tests {
         #[case] mode: UntilMode,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = UntilChar::<C> { mode }.apply(input, input.is_ascii());
+        let result = UntilChar::<C> { mode }
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

@@ -36,20 +36,20 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if is_ascii && C.is_ascii() {
             // C is a const generic, so `C.is_ascii()` and `C as u8` are compile-time
             // constants
             match input.as_bytes().first() {
-                Some(&b) if b == C as u8 => Ok((C, unsafe { input.get_unchecked(1..) })),
+                Some(&b) if b == C as u8 => Ok((C, 1)),
                 _ => Err(RuleError {
                     reason: "expected character not found".into(),
                 }),
             }
         } else {
             if input.starts_with(C) {
-                Ok((C, unsafe { input.get_unchecked(C.len_utf8()..) }))
+                Ok((C, C.len_utf8()))
             } else {
                 Err(RuleError {
                     reason: "expected character not found".into(),
@@ -80,7 +80,9 @@ mod tests {
         #[case] _rule: PhantomData<Char<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = Char::<C>.apply(input, input.is_ascii());
+        let result = Char::<C>
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

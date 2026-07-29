@@ -6,7 +6,6 @@ use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::ByteCount;
 use crate::string::rules::IRule;
-use crate::string::utils::SplitAtUnsafe;
 
 /// Rule that extracts a fixed number of characters from the input string.
 ///
@@ -42,14 +41,14 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, &'a str), RuleError> {
+    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
                 self
             );
 
-            return Ok(("", input));
+            return Ok(("", 0));
         }
         clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
         if is_ascii {
@@ -67,7 +66,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
                     None
                 }
             })
-            .map(|idx| unsafe { input.split_at_unsafe(idx) })
+            .map(|idx| unsafe { (input.get_unchecked(..idx), idx) })
             .ok_or_else(|| RuleError {
                 reason: "not enough chars in input".into(),
             })?;
@@ -100,7 +99,9 @@ mod tests {
         #[case] _rule: PhantomData<CharCount<C>>,
     ) {
         init_log_with_level(LevelFilter::TRACE);
-        let result = CharCount::<C>.apply(input, input.is_ascii());
+        let result = CharCount::<C>
+            .apply(input, input.is_ascii())
+            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(format!("{}", name), result);
     }
 }

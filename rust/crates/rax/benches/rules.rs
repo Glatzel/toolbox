@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rax::string::IStrFlowRule;
-use rax::string::filters::{ASCII_LETTERS_DIGITS, CharSetFilter, DIGITS};
+use rax::string::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS, CharSetFilter};
 use rax::string::rules::{
     ByteCount, Char, CharCount, NInCharSet, OneOfCharSet, UntilChar, UntilMode, UntilNInCharSet,
     UntilNotInCharSet, UntilOneInCharSet, UntilStr,
@@ -22,13 +22,13 @@ fn benches(c: &mut Criterion) {
     bench_rule(
         c,
         "n_in_char_set",
-        NInCharSet::<3, 62>(&ASCII_LETTERS_DIGITS),
+        NInCharSet::<3, 62>(&CHAR_SET_ASCII_LETTERS_DIGITS),
         "abc123",
     );
     bench_rule(
         c,
         "one_in_char_set",
-        OneOfCharSet(&ASCII_LETTERS_DIGITS),
+        OneOfCharSet(&CHAR_SET_ASCII_LETTERS_DIGITS),
         "a123",
     );
     bench_rule(
@@ -43,7 +43,7 @@ fn benches(c: &mut Criterion) {
         c,
         "until_n_in_char_set",
         UntilNInCharSet::<2, 10> {
-            filter: &DIGITS,
+            filter: &CHAR_SET_DIGITS,
             mode: UntilMode::KeepInRest,
         },
         "a1b2c3",
@@ -52,7 +52,7 @@ fn benches(c: &mut Criterion) {
         c,
         "until_not_in_char_set",
         UntilNotInCharSet {
-            filter: &DIGITS,
+            filter: &CHAR_SET_DIGITS,
             mode: UntilMode::KeepInRest,
         },
         "123abc",

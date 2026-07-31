@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ (github.event_name == 'issue_comment' && github.event.issue.pull_request != null) && steps.get-branch.outputs.branch || github.head_ref }}
+      - run: cp ./.ci/lefthook/lefthook.yaml ./lefthook.yaml
       - parallel:
         - name: comment if triggered by comment
           if: github.event_name == 'issue_comment' && github.event.issue.pull_request != null
@@ -40,13 +41,13 @@ jobs:
             run-install: false
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ./.github/actions/lefthook/.pixi
-          key: lefthook-${{ hashFiles('lefthook.yaml','./.github/actions/lefthook/pixi*')}}
+          path: ./.ci/lefthook/.pixi
+          key: lefthook-${{ hashFiles('./.ci/lefthook/lefthook.yaml','./.ci/lefthook/pixi*')}}
           restore-keys: |
             lefthook
       # pre-commit
       - name: lefthook
-        run: pixi run --manifest-path ./.github/actions/lefthook/pixi.toml lefthook-run
+        run: pixi run --manifest-path ./.ci/lefthook/pixi.toml lefthook-run
       - if: ${{!cancelled()}}
         run: |
           if ! git diff --quiet || ! git diff --cached --quiet; then

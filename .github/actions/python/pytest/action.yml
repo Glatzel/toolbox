@@ -7,21 +7,9 @@ inputs:
   environment:
     description: The pixi environment to use
     required: false
-    default: "default"
   args:
     description: Additional arguments to pass to pytest
     required: false
-    default: >
-      ./tests
-      --color=yes
-      --cov
-      --cov-report term
-      --cov-report=xml:tests_report/coverage.xml
-      --cov-report=html:tests_report/htmlcov
-      --durations=10
-      --junitxml=junit.xml
-      --maxfail 0
-      --verbose
   working-directory:
     description: Working directory
     default: .
@@ -30,6 +18,9 @@ runs:
   using: "composite"
   steps:
     - name: Run pytest
-      run: pixi run -e ${{ inputs.environment }} pytest ${{ inputs.args }}
+      run: ${{ github.workspace }}/.ci/python/pytest.sh
       shell: bash
+      env:
+        PIXI_ENVIRONMENT: ${{ inputs.environment }}
+        PYTEST_ARGS: ${{ inputs.args }}
       working-directory: ${{ inputs.working-directory }}

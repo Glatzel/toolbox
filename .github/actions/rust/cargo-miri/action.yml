@@ -13,16 +13,14 @@ inputs:
   args:
     description: Additional arguments passed to cargo fuzz test
     required: false
-    default: -- -D warnings
 
 runs:
   using: composite
   steps:
     - name: Run Miri tests
-      shell: pwsh
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: |
-        $ErrorActionPreference = "Stop"
-        $PSNativeCommandUseErrorActionPreference = $true
-        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo +nightly miri test ${{ inputs.options }} -- ${{inputs.args}}
+      run: ${{ github.workspace }}/.ci/rust/cargo-miri.sh
+      env:
+        CARGO_MIRI_OPTIONS: ${{ inputs.options }}
+        CARGO_MIRI_ARGS: ${{ inputs.args }}

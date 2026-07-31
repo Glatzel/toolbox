@@ -10,7 +10,6 @@ inputs:
   options:
     description: Options passed to cargo doc
     required: false
-    default: --all-features
   args:
     description: Additional arguments passed to cargo doc
     required: false
@@ -19,14 +18,9 @@ runs:
   using: composite
   steps:
     - name: Generate documentation
-      shell: pwsh
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: |
-        $ErrorActionPreference = "Stop"
-        $PSNativeCommandUseErrorActionPreference = $true
-
-        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-
-        cargo doc --no-deps ${{ inputs.options }} -- ${{ inputs.args }}
+      run: ${{ github.workspace }}/.ci/rust/cargo-doc.sh
       env:
-        RUSTDOCFLAGS: "-D warnings"
+        CARGO_DOC_OPTIONS: ${{ inputs.options }}
+        CARGO_DOC_ARGS: ${{ inputs.args }}

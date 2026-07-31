@@ -10,16 +10,13 @@ inputs:
   options:
     description: Options passed to cargo build
     required: false
-    default: --all-features
 
 runs:
   using: composite
   steps:
     - name: Build project
-      shell: pwsh
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: |
-        $ErrorActionPreference = "Stop"
-        $PSNativeCommandUseErrorActionPreference = $true
-        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo build ${{ inputs.options }}
+      run: ${{ github.workspace }}/.ci/rust/cargo-build.sh
+      env:
+        CARGO_BUILD_OPTIONS: ${{ inputs.options }}

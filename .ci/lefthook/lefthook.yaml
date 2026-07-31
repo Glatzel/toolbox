@@ -1,9 +1,9 @@
 # This File is automatically synchronized from https://github.com/Glatzel/template
 
-lefthook: pixi run -e lefthook --no-progress --manifest-path ./.github/actions/lefthook/pixi.toml lefthook
+lefthook: pixi run -e lefthook --no-progress --manifest-path ./.ci/lefthook/pixi.toml lefthook
 
 templates:
-  pixi-run: pixi run --no-progress --manifest-path ./.github/actions/lefthook/pixi.toml
+  pixi-run: pixi run --no-progress --manifest-path ./.ci/lefthook/pixi.toml
 
 colors: true
 

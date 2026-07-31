@@ -15,11 +15,11 @@ if ! command -v rustup >/dev/null 2>&1; then
     rustup-init -y \
         --default-toolchain "$TOOLCHAIN" \
         --profile minimal
+        export PATH="$HOME/.cargo/bin:$PATH"
 else
     rustup toolchain install "$TOOLCHAIN" --profile minimal
     rustup default "$TOOLCHAIN"
 fi
-. "$HOME/.cargo/env"
 if [ -n "$COMPONENTS" ]; then
     rustup component add $COMPONENTS
 fi

@@ -18,7 +18,7 @@ runs:
   using: "composite"
   steps:
     - name: Run pytest
-      run: ${{ github.workspace }}/.ci/python/pytest.sh
+      run: '${{ github.workspace }}/.ci/python/pytest.sh'
       shell: bash
       env:
         PIXI_ENVIRONMENT: ${{ inputs.environment }}

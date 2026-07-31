@@ -17,6 +17,6 @@ runs:
     - name: Build project
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ github.workspace }}/.ci/rust/cargo-build.sh
+      run: '${{ github.workspace }}/.ci/rust/cargo-build.sh'
       env:
         CARGO_BUILD_OPTIONS: ${{ inputs.options }}

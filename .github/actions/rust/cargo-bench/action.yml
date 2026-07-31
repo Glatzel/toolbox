@@ -15,7 +15,7 @@ runs:
   using: composite
   steps:
     - name: Build benchmark targets
-      run: ${{ github.workspace }}/.ci/rust/cargo-bench.sh
+      run: '${{ github.workspace }}/.ci/rust/cargo-bench.sh'
       env:
         CARGO_BENCH_OPTIONS: ${{ inputs.options }}
       working-directory: ${{ inputs.working-directory }}

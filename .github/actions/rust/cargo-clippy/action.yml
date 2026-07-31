@@ -20,7 +20,7 @@ runs:
     - name: Run clippy
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ github.workspace }}/.ci/rust/cargo-clippy.sh
+      run: '${{ github.workspace }}/.ci/rust/cargo-clippy.sh'
       env:
         CARGO_CLIPPY_OPTIONS: ${{ inputs.options }}
         CARGO_CLIPPY_ARGS: ${{ inputs.args }}

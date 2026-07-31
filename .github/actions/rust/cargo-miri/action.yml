@@ -20,7 +20,7 @@ runs:
     - name: Run Miri tests
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ github.workspace }}/.ci/rust/cargo-miri.sh
+      run: '${{ github.workspace }}/.ci/rust/cargo-miri.sh'
       env:
         CARGO_MIRI_OPTIONS: ${{ inputs.options }}
         CARGO_MIRI_ARGS: ${{ inputs.args }}

@@ -20,7 +20,7 @@ runs:
     - name: Generate documentation
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ github.workspace }}/.ci/rust/cargo-doc.sh
+      run: '${{ github.workspace }}/.ci/rust/cargo-doc.sh'
       env:
         CARGO_DOC_OPTIONS: ${{ inputs.options }}
         CARGO_DOC_ARGS: ${{ inputs.args }}

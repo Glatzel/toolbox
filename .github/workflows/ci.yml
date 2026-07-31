@@ -46,21 +46,16 @@ jobs:
               - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
-              - ./.github/actions/python/**
               - ./.github/workflows/ci-python.yml
             rust:
               - ./rust/**
-              - ./.github/actions/rust/**
               - ./.github/workflows/ci-rust.yml
 
             tools-orc:
-              - ./.github/actions/rust/**
               - ./tools/orc/**
             tools-ttyw:
-              - ./.github/actions/rust/**
               - ./tools/ttyw/**
             tools-vinaya:
-              - ./.github/actions/rust/**
               - ./tools/vinaya/**
   benchmark:
     needs: changed

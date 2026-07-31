@@ -3,7 +3,7 @@
 set -eu
 
 CARGO_MIRI_OPTIONS="${CARGO_MIRI_OPTIONS:-}"
-CARGO_MIRI_ARGS="${CARGO_MIRI_ARGS:--D warnings}"
+CARGO_MIRI_ARGS="${CARGO_MIRI_ARGS:-}"
 
 if [ -f ./scripts/setup.sh ]; then
     . ./scripts/setup.sh

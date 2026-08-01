@@ -84,19 +84,19 @@ impl HoudiniInstance {
         let instance: Self = Self {
             major: caps
                 .get(1)
-                .into_mischief()?
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,
             minor: caps
                 .get(2)
-                .into_mischief()?
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,
             patch: caps
                 .get(3)
-                .into_mischief()?
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,

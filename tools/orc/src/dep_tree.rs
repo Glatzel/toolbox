@@ -73,7 +73,6 @@ impl DepTree {
     /// Locate `dll` and its symlink target relative to `base`, using `info`'s
     /// rpath/runpath data on Linux.
     fn resolve_import(
-        &self,
         dll: &str,
         base: &Path,
         #[cfg(target_os = "linux")] info: &BinaryInfo,
@@ -241,7 +240,7 @@ impl DepTree {
         info.imports
             .iter()
             .map(|dll| {
-                let (dll_base, target) = self.resolve_import(
+                let (dll_base, target) = Self::resolve_import(
                     dll,
                     base,
                     #[cfg(target_os = "linux")]
@@ -276,7 +275,7 @@ impl DepTree {
                 continue;
             }
 
-            let (dll_base, target) = self.resolve_import(
+            let (dll_base, target) = Self::resolve_import(
                 dll,
                 base,
                 #[cfg(target_os = "linux")]

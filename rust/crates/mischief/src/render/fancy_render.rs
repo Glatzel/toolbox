@@ -247,18 +247,15 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
         let severity_color = theme.severity_style(diagnosis.severity());
 
         if let Some(s) = diagnosis.severity() {
-            self.apply_style(&mut buffer, &(s).to_string(), severity_color)
-                .unwrap();
+            Self::apply_style(&mut buffer, &(s).to_string(), severity_color).unwrap();
         }
 
         if let Some(s) = diagnosis.code() {
-            self.apply_style(&mut buffer, &format!("[{s}]"), severity_color)
-                .unwrap();
+            Self::apply_style(&mut buffer, &format!("[{s}]"), severity_color).unwrap();
         }
 
         if let Some(s) = diagnosis.url() {
-            self.apply_hyperlink_style(&mut buffer, s, "(link)", theme.hyperlink_style())
-                .unwrap();
+            Self::apply_hyperlink_style(&mut buffer, s, "(link)", theme.hyperlink_style()).unwrap();
         }
 
         if diagnosis.severity().is_some() || diagnosis.code().is_some() || diagnosis.url().is_some()
@@ -266,7 +263,7 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
             buffer.write_str(": ").unwrap();
         }
 
-        self.apply_style(
+        Self::apply_style(
             &mut buffer,
             diagnosis.description(),
             theme.description_style(),
@@ -275,10 +272,8 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
 
         if let Some(s) = diagnosis.help() {
             writeln!(buffer).unwrap();
-            self.apply_style(&mut buffer, "help: ", theme.help_style().0.as_ref())
-                .unwrap();
-            self.apply_style(&mut buffer, s, theme.help_style().1.as_ref())
-                .unwrap();
+            Self::apply_style(&mut buffer, "help: ", theme.help_style().0.as_ref()).unwrap();
+            Self::apply_style(&mut buffer, s, theme.help_style().1.as_ref()).unwrap();
         }
 
         buffer
@@ -286,7 +281,6 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
 
     /// Applies a text style to a string and writes it into the buffer.
     fn apply_style(
-        &self,
         buffer: &mut String,
         text: &str,
         style: Option<&owo_colors::Style>,
@@ -306,7 +300,6 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     /// Depending on the theme configuration, hyperlinks may be rendered
     /// as terminal hyperlinks or plain text representations.
     fn apply_hyperlink_style(
-        &self,
         buffer: &mut String,
         hyperlink: &str,
         text: &str,

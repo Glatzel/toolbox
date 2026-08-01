@@ -36,7 +36,7 @@ impl SideFXWeb {
         let reqwest_client = reqwest::Client::builder()
             .timeout(Duration::from_secs_f32(timeout))
             .build()
-            .unwrap();
+            .into_mischief()?;
         let client = reqwest_middleware::ClientBuilder::new(reqwest_client)
             .with(reqwest_retry::RetryTransientMiddleware::new_with_policy(
                 retry_policy,

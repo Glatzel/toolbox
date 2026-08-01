@@ -36,7 +36,7 @@ impl HoudiniPreference {
         if let Ok(val) = env::var("HOUDINI_USER_PREF_DIR") {
             let pref_dir: PathBuf = Path::new(&val)
                 .parent()
-                .unwrap()
+                .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
                 .join(format!("houdini{major}.{minor}"));
             let perf = Self {
                 major,

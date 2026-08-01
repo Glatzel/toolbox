@@ -12,6 +12,7 @@ pub struct RuleError {
 }
 impl RuleError {
     #[cold]
+    #[must_use]
     pub fn to_verb<R: IRule>(self, verb: Verb, input: &str) -> VerbError {
         VerbError {
             verb,

@@ -3,7 +3,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_COMMA_KEEP_RIGHT, UNTIL_M_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
 /// GNSS satellite fault detection
@@ -88,7 +88,7 @@ impl IDecode<RaxNmeaError> for Gbs {
 
         let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Gbs {
+        Ok(Self {
             time,
             err_lat,
             err_lon,

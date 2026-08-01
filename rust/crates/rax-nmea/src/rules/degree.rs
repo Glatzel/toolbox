@@ -8,8 +8,9 @@ use rax::string::{IRule, IStrFlowRule};
 use super::UNTIL_COMMA_DISCARD;
 
 /// Rule to parse an NMEA coordinate in the format "DDDMM.MMM,sign,...".
+///
 /// Converts the coordinate to decimal degrees, applying the correct sign.
-/// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
+/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful, otherwise
 /// None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDegree;
@@ -43,13 +44,13 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
             (Ok(_), _sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{}'", _sign).into(),
+                    reason: format!("invalid sign string: '{_sign}'").into(),
                 })
             }
             (Err(_), _) => {
                 clerk::error!("{:?}: invalid coord string: '{}'", self, deg_str);
                 Err(RuleError {
-                    reason: format!("invalid coord string: '{}'", deg_str).into(),
+                    reason: format!("invalid coord string: '{deg_str}'").into(),
                 })
             }
         }

@@ -22,6 +22,7 @@ impl ResourceRequest {
     }
     pub fn iter(&self) -> impl Iterator<Item = &(ResourceKey, ResourceAmount)> { self.0.iter() }
 
+    #[must_use]
     pub fn as_slice(&self) -> &[(ResourceKey, ResourceAmount)] { &self.0 }
 }
 

@@ -32,7 +32,7 @@ pub struct OwnedRender<'a, I, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for OwnedRender<'a, I, T>
+impl<I, T> Display for OwnedRender<'_, I, T>
 where
     I: IIndent,
     T: IOwnedTree<Leaf = T>,
@@ -101,7 +101,7 @@ pub struct StyledOwnedRender<'a, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for StyledOwnedRender<'a, T>
+impl<I, T> Display for StyledOwnedRender<'_, T>
 where
     I: IIndent,
     T: IStyledOwnedTree<Indent = I, Leaf = T>,

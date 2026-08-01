@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaOperationMode {
     #[strum(serialize = "Manual", serialize = "M")]
@@ -21,7 +21,7 @@ pub enum GsaOperationMode {
     Automatic,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaNavigationMode {
     #[strum(serialize = "No Fix", serialize = "1")]
@@ -71,7 +71,7 @@ impl IDecode<RaxNmeaError> for Gsa {
         let mut svid = Vec::with_capacity(12);
         for _ in 0..12 {
             if let Some(id) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
-                svid.push(id)
+                svid.push(id);
             }
         }
         clerk::trace!("Gsa::new: satellite_ids={:?}", svid);
@@ -90,7 +90,7 @@ impl IDecode<RaxNmeaError> for Gsa {
         let system_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::trace!("Gsa::new: system_id={:?}", system_id);
 
-        Ok(Gsa {
+        Ok(Self {
             op_mode,
             nav_mode,
             svid,

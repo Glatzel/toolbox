@@ -5,7 +5,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
 /// Poll a standard message(Talker ID GB)"]
@@ -22,7 +22,7 @@ impl IDecode<RaxNmeaError> for Gbq {
             .take(&UNTIL_STAR_DISCARD)?
             .parse_option()?;
 
-        Ok(Gbq { msg_id })
+        Ok(Self { msg_id })
     }
 }
 

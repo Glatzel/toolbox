@@ -17,6 +17,7 @@ impl<const N: usize> CharSetFilter<N> {
     ///
     /// The caller must guarantee that `table` is sorted and contains unique
     /// characters.
+    #[must_use]
     pub const fn new(mut table: [char; N]) -> Self {
         let mut i = 1;
         while i < N {
@@ -48,9 +49,11 @@ impl<const N: usize> CharSetFilter<N> {
         Some(mask)
     }
 
+    #[must_use]
     pub const fn is_ascii(&self) -> bool { self.ascii_mask.is_some() }
 
     /// Cached bitmask — O(1) to read, computed once in `new`.
+    #[must_use]
     pub const fn ascii_mask(&self) -> Option<u128> { self.ascii_mask }
 }
 

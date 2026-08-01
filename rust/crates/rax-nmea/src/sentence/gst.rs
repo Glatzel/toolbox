@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 ///GNSS pseudorange error statistics
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -43,7 +43,7 @@ impl IDecode<RaxNmeaError> for Gst {
         let std_lon = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let std_alt = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Gst {
+        Ok(Self {
             time,
             rms,
             std_major,

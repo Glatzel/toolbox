@@ -32,7 +32,7 @@ pub struct UntilOneInCharSet<'a, const N: usize> {
     pub mode: UntilMode,
 }
 
-impl<'a, const N: usize> IRule for UntilOneInCharSet<'a, N> {}
+impl<const N: usize> IRule for UntilOneInCharSet<'_, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     type Output = &'a str;
@@ -43,7 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                 return match input
                     .as_bytes()
                     .iter()
-                    .position(|&b| mask & (1u128 << b as u32) != 0)
+                    .position(|&b| mask & (1u128 << u32::from(b)) != 0)
                 {
                     Some(i) => Ok(self.mode.split_str(input, i, 1)),
                     None => Err(RuleError {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub type ResourceKey = &'static str;
-#[derive(Debug, PartialEq, thiserror::Error)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum ResourceError {
     // Resource errors
     #[error("resource already registered: {0}")]
@@ -24,7 +24,7 @@ struct ResourceEntry {
 }
 
 impl ResourceEntry {
-    fn available(&self) -> usize { self.capacity.saturating_sub(self.used) }
+    const fn available(&self) -> usize { self.capacity.saturating_sub(self.used) }
 }
 
 #[derive(Debug, Default, PartialEq)]
@@ -33,6 +33,7 @@ pub struct ResourcePool {
 }
 
 impl ResourcePool {
+    #[must_use]
     pub fn new() -> Self { Self::default() }
 
     /// Register a new resource key with a given capacity.
@@ -57,7 +58,7 @@ impl ResourcePool {
     pub(crate) fn available(&self, key: ResourceKey) -> Result<usize, ResourceError> {
         self.resources
             .get(key)
-            .map(|r| r.available())
+            .map(ResourceEntry::available)
             .ok_or_else(|| {
                 clerk::warn!("available query failed: resource '{}' not found", key);
                 ResourceError::NotFound(key)

@@ -51,7 +51,7 @@ impl Parse for MischiefErrorInput {
                     "source" | "code" | "severity" | "help" | "url" => {
                         return Err(syn::Error::new(
                             key.span(),
-                            format!("duplicate field `{}`", key),
+                            format!("duplicate field `{key}`"),
                         ));
                     }
                     _ => {
@@ -73,7 +73,7 @@ impl Parse for MischiefErrorInput {
             }
         }
 
-        Ok(MischiefErrorInput {
+        Ok(Self {
             description_lit,
             description_args,
             code,

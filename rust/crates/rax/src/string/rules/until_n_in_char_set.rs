@@ -40,7 +40,7 @@ pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
     pub mode: UntilMode,
 }
 
-impl<'a, const N: usize, const M: usize> IRule for UntilNInCharSet<'a, N, M> {}
+impl<const N: usize, const M: usize> IRule for UntilNInCharSet<'_, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
     type Output = &'a str;
@@ -56,7 +56,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a
             if let Some(mask) = self.filter.ascii_mask() {
                 // Fast path: bitmask lookup, no per-char filter() call
                 for (idx, &b) in input.as_bytes().iter().enumerate() {
-                    if mask & (1u128 << b as u32) != 0 {
+                    if mask & (1u128 << u32::from(b)) != 0 {
                         remaining -= 1;
                         if remaining == 0 {
                             return Ok(self.mode.split_str(input, idx, 1));

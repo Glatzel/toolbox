@@ -5,7 +5,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
 ///Poll a standard message (Talker ID GL)"]
@@ -22,7 +22,7 @@ impl IDecode<RaxNmeaError> for Gnq {
             .take(&UNTIL_STAR_DISCARD)?
             .parse_option()?;
 
-        Ok(Gnq { msg_id })
+        Ok(Self { msg_id })
     }
 }
 

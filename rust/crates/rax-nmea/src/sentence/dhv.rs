@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 /// Dhv - Velocity in 3 dimensions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -35,7 +35,7 @@ impl IDecode<RaxNmeaError> for Dhv {
         let speed_z = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let gdspd = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Dhv {
+        Ok(Self {
             time,
             speed3d,
             speed_x,

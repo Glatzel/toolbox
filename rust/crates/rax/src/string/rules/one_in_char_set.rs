@@ -25,7 +25,7 @@ use crate::string::filters::{CharSetFilter, IFilter};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
 
-impl<'a, const N: usize> IRule for OneOfCharSet<'a, N> {}
+impl<const N: usize> IRule for OneOfCharSet<'_, N> {}
 
 impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
     type Output = char;

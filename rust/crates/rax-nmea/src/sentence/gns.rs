@@ -10,10 +10,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, NmeaCoord, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-#[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, PartialEq, Eq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GnsNavigationStatus {
     #[strum(serialize = "Safe", serialize = "S")]
@@ -122,7 +122,7 @@ impl IDecode<RaxNmeaError> for Gns {
         let nav_status = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::debug!("navigational_status: {:?}", nav_status);
 
-        Ok(Gns {
+        Ok(Self {
             time,
             lat,
             lon,

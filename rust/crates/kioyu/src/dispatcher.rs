@@ -76,12 +76,9 @@ where
         loop {
             tokio::select! {
                 event = self.rx.recv() => {
-                    match event {
-                        Some(event) => self.handle_event(event, &tx, &cancel),
-                        None => {
-                            clerk::debug!("dispatcher channel closed");
-                            break;
-                        }
+                    if let Some(event) = event { self.handle_event(event, &tx, &cancel) } else {
+                        clerk::debug!("dispatcher channel closed");
+                        break;
                     }
                 }
 
@@ -91,7 +88,7 @@ where
                     }
                 }
 
-                _ = cancel.cancelled() => {
+                () = cancel.cancelled() => {
                     clerk::debug!("dispatcher cancelled");
                     break;
                 }
@@ -227,6 +224,7 @@ where
     }
 }
 
+#[must_use]
 pub fn start_dispatcher<P>(pool: ResourcePool) -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,
@@ -234,6 +232,7 @@ where
     start_dispatcher_with_mode(ResourceMode::Pooled(pool))
 }
 
+#[must_use]
 pub fn start_dispatcher_unlimited<P>() -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,

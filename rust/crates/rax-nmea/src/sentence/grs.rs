@@ -7,10 +7,10 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GrsResidualMode {
     #[strum(serialize = "Used in GGA", serialize = "0")]
@@ -53,14 +53,14 @@ impl IDecode<RaxNmeaError> for Grs {
         let mut residual = Vec::with_capacity(12);
         for _ in 0..11 {
             if let Some(r) = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()? {
-                residual.push(r)
+                residual.push(r);
             }
         }
         if let Some(r) = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
             .parse_option()?
         {
-            residual.push(r)
+            residual.push(r);
         }
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
@@ -70,7 +70,7 @@ impl IDecode<RaxNmeaError> for Grs {
             .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
-        Ok(Grs {
+        Ok(Self {
             time,
             mode,
             residual,

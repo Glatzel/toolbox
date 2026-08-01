@@ -3,7 +3,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
 #[doc = "Poll a standard message (Talker ID GL)"]
@@ -24,7 +24,7 @@ impl IDecode<RaxNmeaError> for Ths {
             .parse_option()?;
         let mi = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Ths { headt, mi })
+        Ok(Self { headt, mi })
     }
 }
 

@@ -8,9 +8,9 @@ use rax::string::{Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaDegree};
 use crate::utils::ParseOptionPrimitive;
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
     #[strum(serialize = "W84")]
@@ -51,7 +51,7 @@ impl IDecode<RaxNmeaError> for Dtm {
         let lon = parser.take(&NmeaDegree)?;
         let alt = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
 
-        Ok(Dtm {
+        Ok(Self {
             datum,
             sub_datum,
             lat,

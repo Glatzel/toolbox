@@ -39,15 +39,16 @@ pub enum UntilMode {
     KeepInRest,
 }
 impl UntilMode {
+    #[must_use]
     pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, usize) {
         unsafe {
             match self {
-                UntilMode::Discard => (input.get_unchecked(..left), left + length),
-                UntilMode::KeepInOutput => {
+                Self::Discard => (input.get_unchecked(..left), left + length),
+                Self::KeepInOutput => {
                     let idx = left + length;
                     (input.get_unchecked(..idx), idx)
                 }
-                UntilMode::KeepInRest => (input.get_unchecked(..left), left),
+                Self::KeepInRest => (input.get_unchecked(..left), left),
             }
         }
     }
@@ -55,6 +56,7 @@ impl UntilMode {
 
 /// Base trait for all parser rules.
 pub trait IRule {
+    #[must_use]
     fn type_name() -> &'static str { core::any::type_name::<Self>() }
 }
 

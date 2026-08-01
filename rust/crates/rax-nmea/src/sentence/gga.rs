@@ -4,10 +4,10 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, NmeaCoord, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GgaQualityIndicator {
     #[strum(serialize = "Invalid", serialize = "0")]
@@ -123,7 +123,7 @@ impl IDecode<RaxNmeaError> for Gga {
         let diff_station = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
         clerk::debug!("differential_reference_station_id: {:?}", diff_station);
 
-        Ok(Gga {
+        Ok(Self {
             time,
             lat,
             lon,

@@ -1,5 +1,3 @@
-#![deny(clippy::unwrap_used)]
-
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 
 pub fn styles() -> Styles {

@@ -1,5 +1,3 @@
-#![deny(clippy::unwrap_used)]
-
 mod dispatcher;
 mod error;
 mod job;

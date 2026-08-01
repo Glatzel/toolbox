@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "defmt", no_std)]
 #![allow(unexpected_cfgs)]
-#![deny(clippy::unwrap_used)]
 
 #[cfg(feature = "defmt")]
 pub use defmt;

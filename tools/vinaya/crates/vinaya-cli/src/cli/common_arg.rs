@@ -35,6 +35,5 @@ pub struct ArgNoCheck {
     no_check: bool,
 }
 impl ArgNoCheck {
-    #[inline(always)]
     pub const fn value(&self) -> bool { self.no_check }
 }

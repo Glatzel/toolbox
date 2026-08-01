@@ -63,7 +63,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                 .interact_text()
                 .unwrap(),
         },
-        |value| value.to_string(),
+        std::clone::Clone::clone,
     );
     let client_secret = args.client_secret.as_ref().map_or_else(
         || match env::var("CLIENT_SECRET") {
@@ -73,7 +73,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                 .interact_text()
                 .unwrap(),
         },
-        |value| value.to_string(),
+        std::clone::Clone::clone,
     );
     let sidefx_web = SideFXWeb::new(
         client_id.as_str(),

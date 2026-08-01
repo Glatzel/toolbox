@@ -16,8 +16,8 @@ pub enum Commands {
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     match &args.command {
-        Commands::Hfs(cmd) => hfs::execute(&cmd),
-        Commands::Latest(cmd) => latest::execute(&cmd),
-        Commands::List(cmd) => list::execute(&cmd),
+        Commands::Hfs(cmd) => hfs::execute(cmd),
+        Commands::Latest(cmd) => latest::execute(cmd),
+        Commands::List(cmd) => list::execute(cmd),
     }
 }

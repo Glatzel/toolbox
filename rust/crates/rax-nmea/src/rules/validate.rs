@@ -79,8 +79,8 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
         // Parse the expected checksum from hex.
         let expected = match u8::from_str_radix(checksum_str, 16) {
             Ok(v) => v,
-            Err(_e) => {
-                clerk::error!("{:?}: Invalid hex checksum: {:?}", self, _e);
+            Err(e) => {
+                clerk::error!("{:?}: Invalid hex checksum: {:?}", self, e);
                 return Err(RuleError {
                     reason: "Invalid hex checksum".into(),
                 });

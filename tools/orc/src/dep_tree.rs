@@ -218,7 +218,7 @@ impl DepTree {
         }
     }
 
-    pub fn leaves_all(&self) -> Vec<DepTree> {
+    pub fn leaves_all(&self) -> Vec<Self> {
         if self.exceeds_limit(1) {
             return Vec::new();
         }
@@ -252,7 +252,7 @@ impl DepTree {
             .collect()
     }
 
-    pub fn leaves_missing(&self) -> Vec<DepTree> {
+    pub fn leaves_missing(&self) -> Vec<Self> {
         if self.exceeds_limit(1) {
             return Vec::new();
         }
@@ -292,12 +292,9 @@ impl DepTree {
                 continue;
             }
 
-            let dep_buf = match fs::read(dll_base.join(dll)) {
-                Ok(b) => b,
-                Err(_) => {
-                    leaves.push(Self::new(dll, None, self.depth + 1, target));
-                    continue;
-                }
+            let Ok(dep_buf) = fs::read(dll_base.join(dll)) else {
+                leaves.push(Self::new(dll, None, self.depth + 1, target));
+                continue;
             };
             let Some(dep_info) = parse_binary_buf(&dep_buf) else {
                 continue;
@@ -337,8 +334,8 @@ impl ITreeContent for DepTree {
 }
 
 impl ILazyTree for DepTree {
-    type Leaf = DepTree;
-    type Leaves = std::vec::IntoIter<DepTree>;
+    type Leaf = Self;
+    type Leaves = std::vec::IntoIter<Self>;
 
     fn leaves(&self) -> Self::Leaves {
         match SHOW_OPTION.get().unwrap() {

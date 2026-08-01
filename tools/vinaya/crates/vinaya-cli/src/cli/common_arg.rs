@@ -26,8 +26,7 @@ pub struct ArgPatch {
     patch: u16,
 }
 impl ArgPatch {
-    #[inline(always)]
-    pub const fn value(&self) -> u16 { self.patch }
+    pub const fn value(self) -> u16 { self.patch }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 pub struct ArgNoCheck {
@@ -35,5 +34,5 @@ pub struct ArgNoCheck {
     no_check: bool,
 }
 impl ArgNoCheck {
-    pub const fn value(&self) -> bool { self.no_check }
+    pub const fn value(self) -> bool { self.no_check }
 }

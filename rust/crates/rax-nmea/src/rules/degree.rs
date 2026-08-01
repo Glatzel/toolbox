@@ -44,7 +44,7 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
             (Ok(_), sign) => {
                 clerk::error!("{:?}: invalid sign string: '{}'", self, sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{_sign}'").into(),
+                    reason: format!("invalid sign string: '{sign}'").into(),
                 })
             }
             (Err(_), _) => {

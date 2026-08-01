@@ -148,7 +148,6 @@ impl HoudiniInstance {
 
     pub fn latest_installed_version() -> mischief::Result<Self> { Ok(Self::list_installed()?[0]) }
 
-    #[must_use]
     pub fn installed(&self) -> bool {
         let houdini_executable =
             cfg_select! {
@@ -159,7 +158,6 @@ impl HoudiniInstance {
         houdini_executable.exists()
     }
 
-    #[must_use]
     pub fn version_string(&self, patch: bool) -> String {
         if patch {
             format!("{}.{}.{}", self.major, self.minor, self.patch)
@@ -168,12 +166,10 @@ impl HoudiniInstance {
         }
     }
 
-    #[must_use]
     pub fn hfs(&self) -> PathBuf {
         Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch))
     }
 
-    #[must_use]
     pub fn cmake_prefix_path(&self) -> PathBuf {
         Path::new(Self::INSTALL_DIR)
             .join(Self::dir_name(self.major, self.minor, self.patch))

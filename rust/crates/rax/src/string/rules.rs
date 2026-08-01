@@ -39,7 +39,6 @@ pub enum UntilMode {
     KeepInRest,
 }
 impl UntilMode {
-    #[must_use]
     pub fn split_str(self, input: &str, left: usize, length: usize) -> (&str, usize) {
         unsafe {
             match self {
@@ -56,7 +55,6 @@ impl UntilMode {
 
 /// Base trait for all parser rules.
 pub trait IRule {
-    #[must_use]
     fn type_name() -> &'static str { core::any::type_name::<Self>() }
 }
 

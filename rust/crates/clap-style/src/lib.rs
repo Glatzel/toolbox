@@ -1,6 +1,5 @@
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 
-#[must_use]
 pub fn styles() -> Styles {
     Styles::styled()
         .header(AnsiColor::Yellow.on_default() | Effects::BOLD)

@@ -34,7 +34,6 @@ impl Report {
     ///
     /// This function wraps the provided diagnosis as the root error
     /// contained by the report.
-    #[must_use]
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "backtrace", debug_assertions))]
         let backtrace = backtrace::Backtrace::new();
@@ -51,7 +50,6 @@ impl Report {
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
-    #[must_use]
     pub fn error(&self) -> &MischiefError { &self.0.error }
 
     /// Renders the report using the configured rendering backend.

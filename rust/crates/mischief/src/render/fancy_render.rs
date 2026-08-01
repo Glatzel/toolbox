@@ -248,12 +248,12 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
 
         if let Some(s) = diagnosis.severity() {
             self.apply_style(&mut buffer, &(s).to_string(), &severity_color)
-                .unwrap()
+                .unwrap();
         }
 
         if let Some(s) = diagnosis.code() {
-            self.apply_style(&mut buffer, &format!("[{}]", s), &severity_color)
-                .unwrap()
+            self.apply_style(&mut buffer, &format!("[{s}]"), &severity_color)
+                .unwrap();
         }
 
         if let Some(s) = diagnosis.url() {
@@ -314,7 +314,7 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     ) -> core::fmt::Result {
         match style {
             (Some(s), HyperlinkFormat::Link) => buffer.write_str(
-                &format!("\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\", hyperlink, text)
+                &format!("\x1b]8;;{hyperlink}\x1b\\{text}\x1b]8;;\x1b\\")
                     .style(*s)
                     .to_string(),
             ),
@@ -322,10 +322,9 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
                 buffer.write_str(&format!("<{}>", hyperlink.style(*s)))
             }
             (None, HyperlinkFormat::Link) => buffer.write_str(&format!(
-                "\x1b]8;;{}\x1b\\{}\x1b]8;;\x1b\\",
-                hyperlink, text
+                "\x1b]8;;{hyperlink}\x1b\\{text}\x1b]8;;\x1b\\"
             )),
-            (None, HyperlinkFormat::Plain) => buffer.write_str(&format!("<{}>", hyperlink)),
+            (None, HyperlinkFormat::Plain) => buffer.write_str(&format!("<{hyperlink}>")),
         }
     }
 }
@@ -341,7 +340,7 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
         let mut source = self.diagnosis.source();
         while let Some(e) = source {
             tree.push(self.render(e, &self.theme));
-            source = e.source()
+            source = e.source();
         }
 
         let render = OwnedRender {
@@ -350,7 +349,7 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
             width: self.width,
         };
 
-        write!(f, "{}", render)
+        write!(f, "{render}")
     }
 }
 pub fn render_diagnosis<D: IDiagnosis>(
@@ -366,7 +365,7 @@ pub fn render_diagnosis<D: IDiagnosis>(
             None => 0,
         },
     };
-    writeln!(f, "{}", bundle)
+    writeln!(f, "{bundle}")
 }
 
 #[cfg(all(feature = "backtrace", debug_assertions))]

@@ -106,9 +106,9 @@ pub enum Severity {
 impl Display for Severity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Severity::Advice => write!(f, "Advice"),
-            Severity::Warning => write!(f, "Warning"),
-            Severity::Error => write!(f, "Error"),
+            Self::Advice => write!(f, "Advice"),
+            Self::Warning => write!(f, "Warning"),
+            Self::Error => write!(f, "Error"),
         }
     }
 }

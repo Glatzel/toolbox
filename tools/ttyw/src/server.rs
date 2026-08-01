@@ -33,8 +33,8 @@ fn app(shared_state: Arc<AppContext>) -> Router {
 pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()> {
     let app = app(shared_state.clone());
     let port = shared_state.args.port;
-    let addr = format!("0.0.0.0:{}", port);
-    let url = format!("http://localhost:{}", port);
+    let addr = format!("0.0.0.0:{port}");
+    let url = format!("http://localhost:{port}");
 
     clerk::info!(address = %addr, "Binding listener");
     let listener = tokio::net::TcpListener::bind(&addr)

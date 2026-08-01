@@ -36,8 +36,8 @@ fn parse_field(
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
 ///
 /// Converts the time to a `DateTime<Utc>` using today's date.
-/// Returns a tuple of (`DateTime<Utc>`, `rest_of_input`) if successful, otherwise
-/// None.
+/// Returns a tuple of (`DateTime<Utc>`, `rest_of_input`) if successful,
+/// otherwise None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
 
@@ -72,7 +72,9 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                     });
                 }
                 let digits = frac.len() as u32;
-                if let Ok(frac) = frac.parse::<u64>() { frac * (1_000_000_000 / 10_u64.pow(digits)) } else {
+                if let Ok(frac) = frac.parse::<u32>() {
+                    frac * (1_000_000_000 / 10_u32.pow(digits))
+                } else {
                     clerk::error!("Can not parse nano:{}", frac);
                     return Err(RuleError {
                         reason: "Failed to parse nano field.".into(),
@@ -95,7 +97,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             nanos
         );
 
-        if let Some(t) = NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
+        if let Some(t) = NaiveTime::from_hms_nano_opt(hour, min, sec, nanos) {
             clerk::debug!("{:?}: parsed time: {}", self, t);
             Ok((Some(t), advanced))
         } else {
@@ -108,10 +110,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                 nanos
             );
             Err(RuleError {
-                reason: format!(
-                    "invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}"
-                )
-                .into(),
+                reason: format!("invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}")
+                    .into(),
             })
         }
     }

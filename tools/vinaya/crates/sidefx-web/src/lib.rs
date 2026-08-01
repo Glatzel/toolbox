@@ -73,11 +73,11 @@ impl SideFXWeb {
             .await
             .into_mischief()?["access_token"]
             .to_string()
-            .replace("\"", "");
+            .replace('"', "");
 
-        let sidefx_web = SideFXWeb {
+        let sidefx_web = Self {
             client,
-            token: format!("Bearer {}", token),
+            token: format!("Bearer {token}"),
             api_url: api_url.to_string(),
         };
         Ok(sidefx_web)
@@ -109,7 +109,7 @@ impl SideFXWeb {
                 reqwest::header::CONTENT_TYPE,
                 reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
             )
-            .body(format!("json={}", data))
+            .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
                 reqwest::header::HeaderValue::from_str(&self.token).unwrap(),
@@ -147,7 +147,7 @@ impl SideFXWeb {
                 reqwest::header::CONTENT_TYPE,
                 reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
             )
-            .body(format!("json={}", data))
+            .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
                 reqwest::header::HeaderValue::from_str(&self.token).unwrap(),

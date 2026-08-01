@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use clap::{Parser, Subcommand};
-use comfy_table::*;
+use comfy_table::{Table, Cell, Attribute, Color};
 use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
@@ -39,7 +39,7 @@ pub fn execute(args: Args) -> mischief::Result<()> {
         Commands::Disable { names } => manager.switch_packages(&names, false)?,
         Commands::Enable { names } => manager.switch_packages(&names, true)?,
         Commands::List {} => print_packages(&manager),
-    };
+    }
     Ok(())
 }
 fn print_packages(manager: &HoudiniPackageManager) {
@@ -55,7 +55,7 @@ fn print_packages(manager: &HoudiniPackageManager) {
         Cell::new("Name").add_attribute(Attribute::Bold),
         Cell::new("Enable").add_attribute(Attribute::Bold),
     ]);
-    for p in manager.packages.iter() {
+    for p in &manager.packages {
         let enable_cell = if p.enable {
             Cell::new(p.enable).fg(Color::Green)
         } else {
@@ -63,5 +63,5 @@ fn print_packages(manager: &HoudiniPackageManager) {
         };
         table.add_row(vec![Cell::new(&p.name), enable_cell]);
     }
-    println!("{}", table)
+    println!("{table}");
 }

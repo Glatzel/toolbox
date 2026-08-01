@@ -31,7 +31,7 @@ impl HoudiniPackage {
     }
     fn read_json(json_file: &Path) -> mischief::Result<Self> {
         let json_content: Value = Self::json_object(json_file)?;
-        let pkg: HoudiniPackage = Self {
+        let pkg: Self = Self {
             enable: json_content["enable"].as_bool().unwrap(),
             name: json_file
                 .file_stem()
@@ -77,7 +77,7 @@ impl HoudiniPackageManager {
         .map(|f| HoudiniPackage::read_json(&f.unwrap()))
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
-        let manager: HoudiniPackageManager = Self {
+        let manager: Self = Self {
             major: houdini_preference.major,
             minor: houdini_preference.minor,
             package_dir,
@@ -100,7 +100,7 @@ impl HoudiniPackageManager {
         Ok(manager)
     }
     pub fn switch_packages(&mut self, names: &[String], enable: bool) -> mischief::Result<()> {
-        for p in self.packages.iter_mut() {
+        for p in &mut self.packages {
             clerk::debug!("Trying to switch `{}` enable to: {}", p.name, enable);
             if names.contains(&p.name) {
                 clerk::debug!("Found package: {}", p.name);

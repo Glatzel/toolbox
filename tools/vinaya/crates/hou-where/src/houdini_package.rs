@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use glob::glob;
-use mischief::IntoMischief;
+use mischief::{IntoMischief, WrapErr};
 use path_slash::PathExt;
 use serde_json::{Value, json};
 use validator::Validate;
@@ -73,7 +73,8 @@ impl HoudiniPackageManager {
                 .join("packages/*.json")
                 .to_string_lossy(),
         )
-        .expect("Failed to read glob pattern")
+        .into_mischief()
+        .wrap_err(mischief::mischief!("Failed to read glob pattern"))?
         .map(|f| HoudiniPackage::read_json(&f.unwrap()))
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 

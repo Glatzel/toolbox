@@ -371,8 +371,7 @@ pub fn render_backtrace(
 
     let title = " Backtrace ";
 
-    let width = terminal_size()
-        .map_or(80, |(terminal_size::Width(w), _)| w as usize);
+    let width = terminal_size().map_or(80, |(terminal_size::Width(w), _)| w as usize);
     let left = (width - title.len()) / 2;
     let right = width - title.len() - left;
 
@@ -388,7 +387,8 @@ pub fn render_backtrace(
     for (idx, frame) in backtrace.frames().iter().enumerate() {
         for symbol in frame.symbols() {
             let name = symbol
-                .name().map_or_else(|| "<unknown>".into(), |n| n.to_string());
+                .name()
+                .map_or_else(|| "<unknown>".into(), |n| n.to_string());
 
             writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
 

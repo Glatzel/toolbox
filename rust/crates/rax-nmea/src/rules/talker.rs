@@ -16,11 +16,13 @@ impl<'a> IGlobalRule<'a> for NmeaTalker {
         let s = input.get(1..3).ok_or_else(|| RuleError {
             reason: "missing talker".into(),
         })?;
-        match Talker::from_str(s) {
-            Ok(talker) => Ok(talker),
-            Err(_) => Err(RuleError {
-                reason: "unknown talker".into(),
-            }),
-        }
+        Talker::from_str(s).map_or_else(
+            |_| {
+                Err(RuleError {
+                    reason: "unknown talker".into(),
+                })
+            },
+            |talker| Ok(talker),
+        )
     }
 }

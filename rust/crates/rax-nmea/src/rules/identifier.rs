@@ -16,11 +16,13 @@ impl<'a> IGlobalRule<'a> for NmeaIdentifier {
         let s = input.get(3..6).ok_or_else(|| RuleError {
             reason: "missing identifier".into(),
         })?;
-        match Identifier::from_str(s) {
-            Ok(ident) => Ok(ident),
-            Err(_) => Err(RuleError {
-                reason: "unknown identifier".into(),
-            }),
-        }
+        Identifier::from_str(s).map_or_else(
+            |_| {
+                Err(RuleError {
+                    reason: "unknown identifier".into(),
+                })
+            },
+            |ident| Ok(ident),
+        )
     }
 }

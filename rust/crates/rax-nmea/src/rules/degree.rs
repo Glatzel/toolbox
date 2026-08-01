@@ -41,8 +41,8 @@ impl<'a> IStrFlowRule<'a> for NmeaDegree {
         match (deg_str.parse::<f64>(), sign_str) {
             (Ok(val), "E" | "N") => Ok((Some(val), advanced)),
             (Ok(val), "W" | "S") => Ok((Some(-val), advanced)),
-            (Ok(_), _sign) => {
-                clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
+            (Ok(_), sign) => {
+                clerk::error!("{:?}: invalid sign string: '{}'", self, sign);
                 Err(RuleError {
                     reason: format!("invalid sign string: '{_sign}'").into(),
                 })

@@ -52,13 +52,10 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let (res, advanced) = match UNTIL_COMMA_DISCARD.apply(input, is_ascii) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing time string.".into(),
-                });
-            }
+        let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input, is_ascii) else {
+            return Err(RuleError {
+                reason: "Missing time string.".into(),
+            });
         };
         if res.is_empty() {
             return Ok((None, advanced));

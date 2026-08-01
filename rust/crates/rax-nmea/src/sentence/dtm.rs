@@ -8,7 +8,7 @@ use rax::string::{Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaDegree};
+use crate::rules::{NmeaDegree, UNTIL_COMMA_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

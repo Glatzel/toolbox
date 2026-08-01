@@ -3,7 +3,7 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaCoord, NmeaTime, UNTIL_STAR_DISCARD};
+use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

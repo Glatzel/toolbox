@@ -10,8 +10,8 @@ use super::UNTIL_COMMA_DISCARD;
 /// Rule to parse an NMEA coordinate in the format "DDDMM.MMM,sign,...".
 ///
 /// Converts the coordinate to decimal degrees, applying the correct sign.
-/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful, otherwise
-/// None.
+/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful,
+/// otherwise None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDegree;
 

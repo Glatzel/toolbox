@@ -128,9 +128,7 @@ impl HoudiniInstance {
         Ok(hinstances)
     }
 
-    pub fn latest_installed_version() -> mischief::Result<Self> {
-        Ok(Self::list_installed()?[0])
-    }
+    pub fn latest_installed_version() -> mischief::Result<Self> { Ok(Self::list_installed()?[0]) }
 
     #[must_use]
     pub fn installed(&self) -> bool {

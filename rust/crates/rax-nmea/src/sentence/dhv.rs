@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_STAR_DISCARD};
+use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 /// Dhv - Velocity in 3 dimensions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

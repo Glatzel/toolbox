@@ -4,7 +4,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, NmeaCoord, UNTIL_STAR_DISCARD};
+use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]

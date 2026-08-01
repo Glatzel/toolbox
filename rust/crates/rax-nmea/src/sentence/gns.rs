@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, NmeaCoord, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
+use crate::rules::{
+    NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD,
+};
 use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, PartialEq, Eq, Clone, strum::EnumString, strum::AsRefStr)]

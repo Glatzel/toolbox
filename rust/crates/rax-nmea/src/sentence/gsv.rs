@@ -8,7 +8,9 @@ use rax::string::{Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_NEW_LINE_DISCARD, UNTIL_STAR_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT};
+use crate::rules::{
+    UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_NEW_LINE_DISCARD, UNTIL_STAR_DISCARD,
+};
 use crate::utils::ParseOptionPrimitive;
 
 /// Represents a single satellite's data in a GSV sentence.

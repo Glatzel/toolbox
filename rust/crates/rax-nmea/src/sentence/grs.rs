@@ -7,7 +7,9 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
-use crate::rules::{UNTIL_COMMA_DISCARD, NmeaTime, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
+use crate::rules::{
+    NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD,
+};
 use crate::utils::ParseOptionPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]

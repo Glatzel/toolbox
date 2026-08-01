@@ -118,7 +118,7 @@ impl SideFXWeb {
             .await?
             .error_for_status()
             .into_mischief()
-            .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
+            .wrap_err_with(|| mischief::mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
     pub async fn download_get_daily_build_download(
@@ -149,7 +149,7 @@ impl SideFXWeb {
             .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
-                reqwest::header::HeaderValue::from_str(&self.token).unwrap(),
+                reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
             )
             .send()
             .await

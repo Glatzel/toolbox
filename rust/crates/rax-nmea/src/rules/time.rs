@@ -71,7 +71,9 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                         reason: "Nano field has too many digits.".into(),
                     });
                 }
-                let digits = frac.len() as u32;
+                let digits = u32::try_from(frac.len()).map_err(|_| RuleError {
+                    reason: "Nano field has too many digits.".into(),
+                })?;
                 if let Ok(frac) = frac.parse::<u32>() {
                     frac * (1_000_000_000 / 10_u32.pow(digits))
                 } else {

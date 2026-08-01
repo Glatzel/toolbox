@@ -13,13 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        args: 
-          - -D warnings -D unwrap_used 
-        include:
-        - options: --workspace --all-features --exclude clerk --exclude mischief
-        - options: -p mischief --no-default-features --features macros,fancy
-        - options: -p mischief --no-default-features --features macros
-        - options: -p clerk --features tracing
+        options:
+          - --workspace --all-features --exclude clerk --exclude mischief
+          - -p mischief --no-default-features --features macros,fancy
+          - -p mischief --no-default-features --features macros
+          - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

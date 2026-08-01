@@ -6,7 +6,7 @@ pub struct ArgMajor {
     major: u16,
 }
 impl ArgMajor {
-    pub const fn value(&self) -> u16 { self.major }
+    pub const fn value(self) -> u16 { self.major }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]
@@ -15,7 +15,7 @@ pub struct ArgMinor {
     minor: u16,
 }
 impl ArgMinor {
-    pub const fn value(&self) -> u16 { self.minor }
+    pub const fn value(self) -> u16 { self.minor }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]

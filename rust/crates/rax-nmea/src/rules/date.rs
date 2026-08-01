@@ -31,19 +31,19 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             return Ok((None, advanced));
         }
 
-        let day = if let Some(d) = res.get(0..2).and_then(|s| s.parse::<u32>().ok()) { d } else {
+        let Some(day) = res.get(0..2).and_then(|s| s.parse::<u32>().ok()) else {
             clerk::error!("{:?}: failed to parse day from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse day.".into(),
             });
         };
-        let month = if let Some(m) = res.get(2..4).and_then(|s| s.parse::<u32>().ok()) { m } else {
+        let Some(month) = res.get(2..4).and_then(|s| s.parse::<u32>().ok()) else {
             clerk::error!("{:?}: failed to parse month from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse month.".into(),
             });
         };
-        let year = if let Some(y) = res.get(4..6).and_then(|s| s.parse::<i32>().ok()) { y } else {
+        let Some(year) = res.get(4..6).and_then(|s| s.parse::<i32>().ok()) else {
             clerk::error!("{:?}: failed to parse year from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse year.".into(),

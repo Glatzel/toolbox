@@ -22,7 +22,7 @@ impl<'a> IGlobalRule<'a> for NmeaTalker {
                     reason: "unknown talker".into(),
                 })
             },
-            |talker| Ok(talker),
+            Ok,
         )
     }
 }

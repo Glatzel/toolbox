@@ -22,7 +22,7 @@ impl<'a> IGlobalRule<'a> for NmeaIdentifier {
                     reason: "unknown identifier".into(),
                 })
             },
-            |ident| Ok(ident),
+            Ok,
         )
     }
 }

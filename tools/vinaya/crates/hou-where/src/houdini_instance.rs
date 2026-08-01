@@ -84,19 +84,19 @@ impl HoudiniInstance {
         let instance: Self = Self {
             major: caps
                 .get(1)
-                .unwrap()
+                .into_mischief()?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,
             minor: caps
                 .get(2)
-                .unwrap()
+                .into_mischief()?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,
             patch: caps
                 .get(3)
-                .unwrap()
+                .into_mischief()?
                 .as_str()
                 .parse::<u16>()
                 .into_mischief()?,

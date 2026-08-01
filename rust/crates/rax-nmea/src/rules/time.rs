@@ -10,11 +10,11 @@ fn parse_field(
     res: &str,
     range: core::ops::Range<usize>,
     label: &str,
-    _parser: &impl core::fmt::Debug,
-    _input: &str,
+    parser: &impl core::fmt::Debug,
+    input: &str,
 ) -> Result<u32, RuleError> {
     let s = res.get(range).ok_or_else(|| {
-        clerk::error!("{:?}: missing {}, input='{:?}'", _parser, label, _input);
+        clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
         RuleError {
             reason: format!("Missing {label} field.").into(),
         }
@@ -23,10 +23,10 @@ fn parse_field(
     s.parse::<u32>().map_err(|_| {
         clerk::error!(
             "{:?}: failed to parse {}, value='{}', input={:?}",
-            _parser,
+            parser,
             label,
             s,
-            _input
+            input
         );
         RuleError {
             reason: format!("Failed to parse {label} field.").into(),

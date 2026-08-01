@@ -206,11 +206,11 @@ impl DepTree {
 
     pub fn content_missing(&self) -> String {
         match (self.depth, &self.base, &self.target) {
-            (0, _, None) => self.name.clone(),
-            (_, Some(_), None) => self.name.clone(),
+            (0, _, None) | (_, Some(_), None) => self.name.clone(),
             (_, None, None) => self.name.red().to_string(),
-            (0, _, Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
-            (_, Some(_), Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
+            (0, _, Some(target)) | (_, Some(_), Some(target)) => {
+                format!("{} -> {}", self.name, target.to_slash_lossy())
+            }
             (_, None, Some(target)) => {
                 format!("{} -> {}", self.name, target.to_slash_lossy().red())
             }

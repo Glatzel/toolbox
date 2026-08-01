@@ -65,7 +65,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
         },
         |value| value,
     );
-    let client_secret = args.client_secret.map_or_else(
+    let client_secret = args.client_secret.as_ref().map_or_else(
         || match env::var("CLIENT_SECRET") {
             Ok(value) => value,
             Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())

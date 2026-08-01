@@ -112,11 +112,10 @@ impl SideFXWeb {
             .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
-                reqwest::header::HeaderValue::from_str(&self.token).unwrap(),
+                reqwest::header::HeaderValue::from_str(&self.token)?,
             )
             .send()
-            .await
-            .into_mischief()?
+            .await?
             .error_for_status()
             .into_mischief()
             .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
@@ -130,7 +129,7 @@ impl SideFXWeb {
         build: HoudiniBuildVersion,
         platform: &HoudiniPlatform,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().unwrap();
+        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
         let build = match build {
             HoudiniBuildVersion::Number(num) => num.to_string(),
             HoudiniBuildVersion::Production => "production".to_string(),

@@ -28,12 +28,8 @@ impl HoudiniPreference {
             .ok_or_else(|| mischief::mischief!("Could not determine home directory."))?;
 
         cfg_select! {
-            target_os = "macos" => {
-                Ok( home.join("Library").join("Preferences").join("houdini"))
-            }
-            _ => {
-                Ok(home.clone())
-            }
+            target_os = "macos" => Ok(home.join("Library").join("Preferences").join("houdini")),
+            _ => Ok(home.clone()),
         }
     }
     pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
@@ -81,8 +77,12 @@ mod tests {
         let pref = HoudiniPreference::from_version(20, 5).unwrap();
         let home = dirs::home_dir().unwrap();
         let expected = cfg_select! {
-            target_os = "macos" => { home.join("Library").join("Preferences").join("houdini").join("houdini20.5") }
-            _ =>                   { home.join("houdini20.5") }
+            target_os = "macos" => home
+                .join("Library")
+                .join("Preferences")
+                .join("houdini")
+                .join("houdini20.5"),
+            _ => home.join("houdini20.5"),
         };
         assert_eq!(pref.directory.to_slash_lossy(), expected.to_slash_lossy());
     }

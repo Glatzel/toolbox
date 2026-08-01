@@ -75,7 +75,7 @@ impl HoudiniPackageManager {
         )
         .into_mischief()
         .wrap_err(mischief::mischief!("Failed to read glob pattern"))?
-        .map(|f| HoudiniPackage::read_json(&f.unwrap()))
+        .map(|f| HoudiniPackage::read_json(&f.into_mischief()?))
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
         let manager: Self = Self {

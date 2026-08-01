@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 
 use crate::error::MischiefError;
-use crate::render::{ITheme, render_diagnosis};
+use crate::render::render_diagnosis;
 
 pub struct ReportInner {
     error: MischiefError,
@@ -62,7 +62,7 @@ impl Report {
         render_diagnosis(&self.0.error, f)?;
 
         #[cfg(all(feature = "backtrace", debug_assertions))]
-        render_backtrace(&self.0.backtrace, f)?;
+        crate::render_backtrace(&self.0.backtrace, f)?;
         Ok(())
     }
 }

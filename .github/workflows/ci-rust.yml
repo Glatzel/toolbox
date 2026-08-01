@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         args: 
-          - -D warning -D unwrap_used 
+          - -D warnings -D unwrap_used 
         include:
         - options: --workspace --all-features --exclude clerk --exclude mischief
         - options: -p mischief --no-default-features --features macros,fancy

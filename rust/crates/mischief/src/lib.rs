@@ -128,6 +128,7 @@
 //!     Ok(())
 //! }
 //! ```
+#![allow(clippy::unwrap_used)]
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]

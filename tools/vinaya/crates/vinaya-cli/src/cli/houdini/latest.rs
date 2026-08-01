@@ -20,7 +20,7 @@ pub enum Commands {
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     let hinstance = HoudiniInstance::latest_installed_version()?;
-    match args.command {
+    match &args.command {
         Commands::Cmake {} => {
             println!("{}", hinstance.cmake_prefix_path().to_slash_lossy());
         }

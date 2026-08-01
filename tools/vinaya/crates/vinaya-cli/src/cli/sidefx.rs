@@ -54,27 +54,27 @@ pub enum Commands {
     },
 }
 
-pub async fn execute(args: Args) -> mischief::Result<()> {
-    let client_id = match args.client_id {
-        Some(value) => value,
-        None => match env::var("CLIENT_ID") {
+pub async fn execute(args: &Args) -> mischief::Result<()> {
+    let client_id = args.client_id.map_or_else(
+        || match env::var("CLIENT_ID") {
             Ok(value) => value,
             Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
                 .with_prompt("Client ID")
                 .interact_text()
                 .unwrap(),
         },
-    };
-    let client_secret = match args.client_secret {
-        Some(value) => value,
-        None => match env::var("CLIENT_SECRET") {
+        |value| value,
+    );
+    let client_secret = args.client_secret.map_or_else(
+        || match env::var("CLIENT_SECRET") {
             Ok(value) => value,
             Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
                 .with_prompt("Client Secret")
                 .interact_text()
                 .unwrap(),
         },
-    };
+        |value| value,
+    );
     let sidefx_web = SideFXWeb::new(
         client_id.as_str(),
         client_secret.as_str(),

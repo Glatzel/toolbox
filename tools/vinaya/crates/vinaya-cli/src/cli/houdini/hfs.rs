@@ -29,7 +29,7 @@ pub enum Commands {
     },
     Latest {},
 }
-pub fn execute(args: Args) -> mischief::Result<()> {
+pub fn execute(args: &Args) -> mischief::Result<()> {
     match args.command {
         Commands::FromVersion {
             major,

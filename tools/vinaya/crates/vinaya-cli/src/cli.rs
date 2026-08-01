@@ -28,10 +28,10 @@ enum Commands {
 
 async fn execute(commands: Commands) -> mischief::Result<()> {
     match commands {
-        Commands::Houdini(cmd) => houdini::execute(cmd),
-        Commands::Package(cmd) => package::execute(cmd),
-        Commands::Preference(cmd) => preference::execute(cmd),
-        Commands::Sidefx(cmd) => sidefx::execute(cmd).await,
+        Commands::Houdini(cmd) => houdini::execute(&cmd),
+        Commands::Package(cmd) => package::execute(&cmd),
+        Commands::Preference(cmd) => preference::execute(&cmd),
+        Commands::Sidefx(cmd) => sidefx::execute(&cmd).await,
     }
 }
 pub async fn main() {

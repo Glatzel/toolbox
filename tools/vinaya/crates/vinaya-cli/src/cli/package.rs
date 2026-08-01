@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use clap::{Parser, Subcommand};
-use comfy_table::{Table, Cell, Attribute, Color};
+use comfy_table::{Attribute, Cell, Color, Table};
 use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
@@ -31,7 +31,7 @@ pub enum Commands {
 
     List {},
 }
-pub fn execute(args: Args) -> mischief::Result<()> {
+pub fn execute(args: &Args) -> mischief::Result<()> {
     let mut manager = HoudiniPackageManager::from_version(args.major.value(), args.minor.value())?;
     manager.check_is_existed()?;
     match args.command {

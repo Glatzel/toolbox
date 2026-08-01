@@ -18,7 +18,7 @@ pub enum Commands {
         no_patch: bool,
     },
 }
-pub fn execute(args: Args) -> mischief::Result<()> {
+pub fn execute(args: &Args) -> mischief::Result<()> {
     let hinstance = HoudiniInstance::latest_installed_version()?;
     match args.command {
         Commands::Cmake {} => {

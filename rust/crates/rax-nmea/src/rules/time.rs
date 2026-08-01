@@ -10,33 +10,34 @@ fn parse_field(
     res: &str,
     range: core::ops::Range<usize>,
     label: &str,
-    _parser: &impl core::fmt::Debug,
-    _input: &str,
+    parser: &impl core::fmt::Debug,
+    input: &str,
 ) -> Result<u32, RuleError> {
     let s = res.get(range).ok_or_else(|| {
-        clerk::error!("{:?}: missing {}, input='{:?}'", _parser, label, _input);
+        clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
         RuleError {
-            reason: format!("Missing {} field.", label).into(),
+            reason: format!("Missing {label} field.").into(),
         }
     })?;
 
     s.parse::<u32>().map_err(|_| {
         clerk::error!(
             "{:?}: failed to parse {}, value='{}', input={:?}",
-            _parser,
+            parser,
             label,
             s,
-            _input
+            input
         );
         RuleError {
-            reason: format!("Failed to parse {} field.", label).into(),
+            reason: format!("Failed to parse {label} field.").into(),
         }
     })
 }
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
+///
 /// Converts the time to a `DateTime<Utc>` using today's date.
-/// Returns a tuple of (`DateTime<Utc>`, rest_of_input) if successful, otherwise
-/// None.
+/// Returns a tuple of (`DateTime<Utc>`, `rest_of_input`) if successful,
+/// otherwise None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
 
@@ -44,20 +45,17 @@ impl IRule for NmeaTime {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
     type Output = Option<NaiveTime>;
-    /// Applies the NmeaUtc rule to the input string.
+    /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let (res, advanced) = match UNTIL_COMMA_DISCARD.apply(input, is_ascii) {
-            Ok(result) => result,
-            Err(_) => {
-                return Err(RuleError {
-                    reason: "Missing time string.".into(),
-                });
-            }
+        let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input, is_ascii) else {
+            return Err(RuleError {
+                reason: "Missing time string.".into(),
+            });
         };
         if res.is_empty() {
             return Ok((None, advanced));
@@ -70,15 +68,16 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                         reason: "Nano field has too many digits.".into(),
                     });
                 }
-                let digits = frac.len() as u32;
-                match frac.parse::<u64>() {
-                    Ok(frac) => frac * (1_000_000_000 / 10_u64.pow(digits)),
-                    Err(_) => {
-                        clerk::error!("Can not parse nano:{}", frac);
-                        return Err(RuleError {
-                            reason: "Failed to parse nano field.".into(),
-                        });
-                    }
+                let digits = u32::try_from(frac.len()).map_err(|_| RuleError {
+                    reason: "Nano field has too many digits.".into(),
+                })?;
+                if let Ok(frac) = frac.parse::<u32>() {
+                    frac * (1_000_000_000 / 10_u32.pow(digits))
+                } else {
+                    clerk::error!("Can not parse nano:{}", frac);
+                    return Err(RuleError {
+                        reason: "Failed to parse nano field.".into(),
+                    });
                 }
             }
             None => 0,
@@ -97,12 +96,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             nanos
         );
 
-        match NaiveTime::from_hms_nano_opt(hour, min, sec, nanos as u32) {
-            Some(t) => {
-                clerk::debug!("{:?}: parsed time: {}", self, t);
-                Ok((Some(t), advanced))
-            }
-            None => {
+        NaiveTime::from_hms_nano_opt(hour, min, sec, nanos).map_or_else(
+            || {
                 clerk::error!(
                     "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
                     self,
@@ -113,13 +108,16 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                 );
                 Err(RuleError {
                     reason: format!(
-                        "invalid time: hour={}, min={}, sec={}, nanos={}",
-                        hour, min, sec, nanos
+                        "invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}"
                     )
                     .into(),
                 })
-            }
-        }
+            },
+            |t| {
+                clerk::debug!("{:?}: parsed time: {}", self, t);
+                Ok((Some(t), advanced))
+            },
+        )
     }
 }
 

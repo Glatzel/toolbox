@@ -8,9 +8,9 @@ use rax::string::{Decoder, IDecode};
 use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_NEW_LINE_DISCARD, UNTIL_STAR_DISCARD};
 
-#[derive(Debug, Clone, Copy, PartialEq, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
     #[strum(serialize = "Error", serialize = "00")]

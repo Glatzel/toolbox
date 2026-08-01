@@ -25,7 +25,7 @@ use crate::string::filters::{CharSetFilter, IFilter};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
 
-impl<'a, const N: usize, const M: usize> IRule for NInCharSet<'a, N, M> {}
+impl<const N: usize, const M: usize> IRule for NInCharSet<'_, N, M> {}
 
 impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
     type Output = &'a str;
@@ -61,7 +61,7 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
             if let Some(mask) = self.0.ascii_mask() {
                 // Fast path: bitmask, no per-byte filter() dispatch
                 for (i, &b) in bytes.iter().enumerate().take(N) {
-                    if mask & (1u128 << b as u32) == 0 {
+                    if mask & (1u128 << u32::from(b)) == 0 {
                         clerk::debug!(
                             "{:?} did not match: char '{}' not in set at byte pos {}",
                             self,

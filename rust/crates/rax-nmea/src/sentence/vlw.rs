@@ -4,7 +4,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::UNTIL_COMMA_DISCARD;
 use crate::utils::ParseOptionPrimitive;
 
 ///Poll a standard message (Talker ID GL)
@@ -36,7 +36,7 @@ impl IDecode<RaxNmeaError> for Vlw {
         let tgd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         parser.skip(&UNTIL_COMMA_DISCARD)?;
         let gd = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        Ok(Vlw { twd, wd, tgd, gd })
+        Ok(Self { twd, wd, tgd, gd })
     }
 }
 

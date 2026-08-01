@@ -29,7 +29,7 @@ pub struct MischiefError {
     ///
     /// This enables hierarchical error chains where each layer
     /// adds contextual information to an underlying failure.
-    pub(crate) source: Option<Box<MischiefError>>,
+    pub(crate) source: Option<Box<Self>>,
 
     /// Optional stable identifier for the diagnosis.
     ///
@@ -63,7 +63,7 @@ impl MischiefError {
     /// All optional parameters may be omitted by passing `None`.
     pub fn new<D>(
         description: D,
-        source: Option<Box<MischiefError>>,
+        source: Option<Box<Self>>,
         code: Option<D>,
         severity: Option<crate::Severity>,
         help: Option<D>,

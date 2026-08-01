@@ -29,8 +29,8 @@ pub enum Commands {
     },
     Latest {},
 }
-pub fn execute(args: Args) -> mischief::Result<()> {
-    match args.command {
+pub fn execute(args: &Args) -> mischief::Result<()> {
+    match &args.command {
         Commands::FromVersion {
             major,
             minor,
@@ -47,7 +47,7 @@ pub fn execute(args: Args) -> mischief::Result<()> {
             no_check,
         } => command_from_version_string(version_string.as_str(), !no_check)?,
         Commands::Latest {} => command_latest()?,
-    };
+    }
     Ok(())
 }
 fn command_from_version(

@@ -36,7 +36,7 @@ impl SideFXWeb {
         let reqwest_client = reqwest::Client::builder()
             .timeout(Duration::from_secs_f32(timeout))
             .build()
-            .unwrap();
+            .into_mischief()?;
         let client = reqwest_middleware::ClientBuilder::new(reqwest_client)
             .with(reqwest_retry::RetryTransientMiddleware::new_with_policy(
                 retry_policy,
@@ -53,8 +53,8 @@ impl SideFXWeb {
         let response = client
             .post(token_url)
             .header(
-                reqwest::header::HeaderName::from_str("Authorization").unwrap(),
-                reqwest::header::HeaderValue::from_str(authorization.as_str()).unwrap(),
+                reqwest::header::HeaderName::from_str("Authorization").into_mischief()?,
+                reqwest::header::HeaderValue::from_str(authorization.as_str()).into_mischief()?,
             )
             .send()
             .await
@@ -73,11 +73,11 @@ impl SideFXWeb {
             .await
             .into_mischief()?["access_token"]
             .to_string()
-            .replace("\"", "");
+            .replace('"', "");
 
-        let sidefx_web = SideFXWeb {
+        let sidefx_web = Self {
             client,
-            token: format!("Bearer {}", token),
+            token: format!("Bearer {token}"),
             api_url: api_url.to_string(),
         };
         Ok(sidefx_web)
@@ -109,17 +109,16 @@ impl SideFXWeb {
                 reqwest::header::CONTENT_TYPE,
                 reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
             )
-            .body(format!("json={}", data))
+            .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
-                reqwest::header::HeaderValue::from_str(&self.token).unwrap(),
+                reqwest::header::HeaderValue::from_str(&self.token)?,
             )
             .send()
-            .await
-            .into_mischief()?
+            .await?
             .error_for_status()
             .into_mischief()
-            .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
+            .wrap_err_with(|| mischief::mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
     pub async fn download_get_daily_build_download(
@@ -130,7 +129,7 @@ impl SideFXWeb {
         build: HoudiniBuildVersion,
         platform: &HoudiniPlatform,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().unwrap();
+        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
         let build = match build {
             HoudiniBuildVersion::Number(num) => num.to_string(),
             HoudiniBuildVersion::Production => "production".to_string(),
@@ -147,10 +146,10 @@ impl SideFXWeb {
                 reqwest::header::CONTENT_TYPE,
                 reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
             )
-            .body(format!("json={}", data))
+            .body(format!("json={data}"))
             .header(
                 reqwest::header::HeaderName::from_static("Authorization"),
-                reqwest::header::HeaderValue::from_str(&self.token).unwrap(),
+                reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
             )
             .send()
             .await

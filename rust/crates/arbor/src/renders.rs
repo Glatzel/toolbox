@@ -32,7 +32,7 @@ pub struct OwnedRender<'a, I, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for OwnedRender<'a, I, T>
+impl<I, T> Display for OwnedRender<'_, I, T>
 where
     I: IIndent,
     T: IOwnedTree<Leaf = T>,
@@ -53,7 +53,7 @@ where
         enqueue(
             &mut queue,
             self.tree.leaves(),
-            Rc::new(String::new()),
+            &Rc::new(String::new()),
             &self.indent,
         );
 
@@ -75,7 +75,7 @@ where
                 enqueue(
                     &mut queue,
                     leaf.leaves(),
-                    Rc::new(leave_prefix),
+                    &Rc::new(leave_prefix),
                     &self.indent,
                 );
             }
@@ -101,7 +101,7 @@ pub struct StyledOwnedRender<'a, T> {
     pub width: usize,
 }
 
-impl<'a, I, T> Display for StyledOwnedRender<'a, T>
+impl<I, T> Display for StyledOwnedRender<'_, T>
 where
     I: IIndent,
     T: IStyledOwnedTree<Indent = I, Leaf = T>,
@@ -125,7 +125,7 @@ where
         enqueue(
             &mut queue,
             self.tree.leaves(),
-            Rc::new(String::new()),
+            &Rc::new(String::new()),
             indent,
         );
 
@@ -147,7 +147,7 @@ where
                 enqueue(
                     &mut queue,
                     leaf.leaves(),
-                    Rc::new(leave_spaces),
+                    &Rc::new(leave_spaces),
                     leaf_indent,
                 );
             }
@@ -198,7 +198,7 @@ where
         enqueue(
             &mut queue,
             self.tree.leaves(),
-            Rc::new(String::new()),
+            &Rc::new(String::new()),
             &self.indent,
         );
 
@@ -220,7 +220,7 @@ where
                 enqueue(
                     &mut queue,
                     leaf.leaves(),
-                    Rc::new(leave_prefix),
+                    &Rc::new(leave_prefix),
                     &self.indent,
                 );
             }
@@ -241,7 +241,7 @@ where
 fn enqueue<I, T, It>(
     queue: &mut VecDeque<(T, Layer, Rc<String>, I)>,
     leaves: It,
-    prefix: Rc<String>,
+    prefix: &Rc<String>,
     indent: I,
 ) where
     It: DoubleEndedIterator<Item = T>,

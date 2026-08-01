@@ -40,7 +40,7 @@ pub enum ShowOption {
 pub static LIMIT: OnceLock<usize> = OnceLock::new();
 pub static SHOW_OPTION: OnceLock<ShowOption> = OnceLock::new();
 
-fn execute(args: Args) -> mischief::Result<()> {
+fn execute(args: &Args) -> mischief::Result<()> {
     let abs_path = dunce::canonicalize(&args.input)?;
     clerk::info!(
         "Scanning executable: {}",
@@ -80,5 +80,5 @@ pub fn main() -> mischief::Result<()> {
             ),
         )
         .init();
-    execute(args)
+    execute(&args)
 }

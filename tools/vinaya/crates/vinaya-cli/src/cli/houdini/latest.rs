@@ -18,17 +18,17 @@ pub enum Commands {
         no_patch: bool,
     },
 }
-pub fn execute(args: Args) -> mischief::Result<()> {
+pub fn execute(args: &Args) -> mischief::Result<()> {
     let hinstance = HoudiniInstance::latest_installed_version()?;
-    match args.command {
+    match &args.command {
         Commands::Cmake {} => {
-            println!("{}", hinstance.cmake_prefix_path().to_slash_lossy())
+            println!("{}", hinstance.cmake_prefix_path().to_slash_lossy());
         }
         Commands::Hfs {} => println!("{}", hinstance.hfs().to_slash_lossy()),
         Commands::Major {} => println!("{}", hinstance.major),
         Commands::Minor {} => println!("{}", hinstance.minor),
         Commands::Patch {} => println!("{}", hinstance.patch),
         Commands::Version { no_patch } => println!("{}", hinstance.version_string(!no_patch)),
-    };
+    }
     Ok(())
 }

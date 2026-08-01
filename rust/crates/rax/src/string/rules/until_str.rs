@@ -41,9 +41,8 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
             self.mode
         );
 
-        match input.find(self.pattern) {
-            Some(idx) => Ok(self.mode.split_str(input, idx, self.pattern.len())),
-            None => {
+        input.find(self.pattern).map_or_else(
+            || {
                 clerk::debug!(
                     "{:?}: delimiter '{}' not found, returning None",
                     self,
@@ -52,8 +51,9 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
                 Err(RuleError {
                     reason: "no match found".into(),
                 })
-            }
-        }
+            },
+            |idx| Ok(self.mode.split_str(input, idx, self.pattern.len())),
+        )
     }
 }
 

@@ -99,12 +99,14 @@ impl VecCString {
     /// let v = VecCString::new();
     /// assert!(v.is_empty());
     /// ```
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             buffer: Vec::new(),
             ptr_buffer: None,
         }
     }
+    #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             buffer: Vec::with_capacity(capacity),
@@ -221,7 +223,7 @@ impl<T: ToCString> ToVecCString for [T] {
     fn to_vec_cstring(&self) -> Result<VecCString, EnvoyError> {
         let buffer = self
             .iter()
-            .map(|s| s.to_cstring())
+            .map(super::to_cstring::ToCString::to_cstring)
             .collect::<Result<Vec<CString>, EnvoyError>>()?;
 
         Ok(VecCString {

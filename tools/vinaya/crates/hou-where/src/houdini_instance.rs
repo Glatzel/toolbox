@@ -83,10 +83,25 @@ impl HoudiniInstance {
                 help = "Try a string like: 20.5.123",
             )
         })?;
-        let instance: HoudiniInstance = Self {
-            major: caps.get(1).unwrap().as_str().parse::<u16>().unwrap(),
-            minor: caps.get(2).unwrap().as_str().parse::<u16>().unwrap(),
-            patch: caps.get(3).unwrap().as_str().parse::<u16>().unwrap(),
+        let instance: Self = Self {
+            major: caps
+                .get(1)
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
+                .as_str()
+                .parse::<u16>()
+                .into_mischief()?,
+            minor: caps
+                .get(2)
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
+                .as_str()
+                .parse::<u16>()
+                .into_mischief()?,
+            patch: caps
+                .get(3)
+                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
+                .as_str()
+                .parse::<u16>()
+                .into_mischief()?,
         };
         Ok(instance)
     }
@@ -101,8 +116,11 @@ impl HoudiniInstance {
 
         let mut hinstances = glob_result
             .map(|f| {
-                let path = f.unwrap();
-                let name = path.file_name().unwrap().to_string_lossy();
+                let path = f.into_mischief()?;
+                let name = path
+                    .file_name()
+                    .ok_or_else(|| mischief::mischief!("fail to get file name"))?
+                    .to_string_lossy();
                 let (major, minor, patch) = Self::version_from_dir_name(&name)?;
                 Ok(Self {
                     major,
@@ -128,10 +146,9 @@ impl HoudiniInstance {
         Ok(hinstances)
     }
 
-    pub fn latest_installed_version() -> mischief::Result<HoudiniInstance> {
-        Ok(Self::list_installed()?[0])
-    }
+    pub fn latest_installed_version() -> mischief::Result<Self> { Ok(Self::list_installed()?[0]) }
 
+    #[must_use]
     pub fn installed(&self) -> bool {
         let houdini_executable =
             cfg_select! {
@@ -142,6 +159,7 @@ impl HoudiniInstance {
         houdini_executable.exists()
     }
 
+    #[must_use]
     pub fn version_string(&self, patch: bool) -> String {
         if patch {
             format!("{}.{}.{}", self.major, self.minor, self.patch)
@@ -150,10 +168,12 @@ impl HoudiniInstance {
         }
     }
 
+    #[must_use]
     pub fn hfs(&self) -> PathBuf {
         Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch))
     }
 
+    #[must_use]
     pub fn cmake_prefix_path(&self) -> PathBuf {
         Path::new(Self::INSTALL_DIR)
             .join(Self::dir_name(self.major, self.minor, self.patch))

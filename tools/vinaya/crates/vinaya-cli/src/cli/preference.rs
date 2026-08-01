@@ -14,7 +14,7 @@ pub struct Args {
     no_check: ArgNoCheck,
 }
 
-pub fn execute(args: Args) -> mischief::Result<()> {
+pub fn execute(args: &Args) -> mischief::Result<()> {
     let pref = HoudiniPreference::from_version(args.major.value(), args.minor.value())?;
     if !args.no_check.value() {
         pref.check_is_existed()?;

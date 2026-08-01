@@ -101,7 +101,7 @@ pub enum Talker {
     #[strum(serialize = "AP")]
     AP,
 
-    /// BeiDou (China)
+    /// `BeiDou` (China)
     #[strum(serialize = "BD")]
     BD,
 
@@ -117,11 +117,11 @@ pub enum Talker {
     #[strum(serialize = "GA")]
     GA,
 
-    /// BeiDou (China)
+    /// `BeiDou` (China)
     #[strum(serialize = "GB")]
     GB,
 
-    /// NavIC / IRNSS (India)
+    /// `NavIC` / IRNSS (India)
     #[strum(serialize = "GI")]
     GI,
 
@@ -232,11 +232,10 @@ impl TryFrom<&char> for FaaMode {
             'E' => Ok(Self::Estimated),
             'F' => Ok(Self::RtkFloat),
             'M' => Ok(Self::ManualInput),
-            'N' => Ok(Self::NotValid),
+            'N' | 'V' => Ok(Self::NotValid),
             'P' => Ok(Self::Precise),
             'R' => Ok(Self::RtkInteger),
             'S' => Ok(Self::Simulator),
-            'V' => Ok(Self::NotValid),
             'U' => Ok(Self::QuectelQuerk),
 
             _ => Err(RaxNmeaError::UnknownFaaMode(s.to_string())),

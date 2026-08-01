@@ -4,9 +4,12 @@ use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
-use crate::rules::*;
+use crate::rules::{
+    NmeaCoord, NmeaDate, NmeaDegree, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT,
+    UNTIL_STAR_DISCARD,
+};
 use crate::utils::ParseOptionPrimitive;
-#[derive(Debug, PartialEq, Clone, strum::EnumString, strum::AsRefStr)]
+#[derive(Debug, PartialEq, Eq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum RmcNavigationStatus {
     #[strum(serialize = "Autonomous", serialize = "A")]
@@ -75,7 +78,7 @@ impl IDecode<RaxNmeaError> for Rmc {
         let _ = parser.take(&UNTIL_COMMA_DISCARD);
         let nav_status = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Rmc {
+        Ok(Self {
             time,
             status,
             lat,

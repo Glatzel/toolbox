@@ -51,7 +51,7 @@ impl Parse for MischiefErrorInput {
                     "source" | "code" | "severity" | "help" | "url" => {
                         return Err(syn::Error::new(
                             key.span(),
-                            format!("duplicate field `{}`", key),
+                            format!("duplicate field `{key}`"),
                         ));
                     }
                     _ => {
@@ -73,7 +73,7 @@ impl Parse for MischiefErrorInput {
             }
         }
 
-        Ok(MischiefErrorInput {
+        Ok(Self {
             description_lit,
             description_args,
             code,
@@ -103,16 +103,16 @@ pub fn mischief(input: TokenStream) -> TokenStream {
 
     let code = parsed_input
         .code
-        .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
+        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
     let severity = parsed_input
         .severity
-        .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
+        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
     let help = parsed_input
         .help
-        .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
+        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
     let url = parsed_input
         .url
-        .map_or(quote! { None }, |e| quote! { Some(#e.into()) });
+        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
 
     let expanded = quote! {
         {

@@ -54,27 +54,29 @@ pub enum Commands {
     },
 }
 
-pub async fn execute(args: Args) -> mischief::Result<()> {
-    let client_id = match args.client_id {
-        Some(value) => value,
-        None => match env::var("CLIENT_ID") {
-            Ok(value) => value,
-            Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                .with_prompt("Client ID")
-                .interact_text()
-                .unwrap(),
+pub async fn execute(args: &Args) -> mischief::Result<()> {
+    let client_id = args.client_id.as_ref().map_or_else(
+        || {
+            env::var("CLIENT_ID").unwrap_or_else(|_| {
+                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                    .with_prompt("Client ID")
+                    .interact_text()
+                    .unwrap()
+            })
         },
-    };
-    let client_secret = match args.client_secret {
-        Some(value) => value,
-        None => match env::var("CLIENT_SECRET") {
-            Ok(value) => value,
-            Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                .with_prompt("Client Secret")
-                .interact_text()
-                .unwrap(),
+        std::clone::Clone::clone,
+    );
+    let client_secret = args.client_secret.as_ref().map_or_else(
+        || {
+            env::var("CLIENT_SECRET").unwrap_or_else(|_| {
+                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                    .with_prompt("Client Secret")
+                    .interact_text()
+                    .unwrap()
+            })
         },
-    };
+        std::clone::Clone::clone,
+    );
     let sidefx_web = SideFXWeb::new(
         client_id.as_str(),
         client_secret.as_str(),

@@ -30,7 +30,7 @@ use crate::protocol::{IIndent, IOwnedTree, IStyledOwnedTree, ITreeContent};
 #[derive(Debug, Clone)]
 pub struct OwnedTree<D: AsRef<str>> {
     content: D,
-    leaves: Vec<OwnedTree<D>>,
+    leaves: Vec<Self>,
 }
 
 impl<D: AsRef<str>> ITreeContent for OwnedTree<D> {
@@ -40,7 +40,7 @@ impl<D: AsRef<str>> ITreeContent for OwnedTree<D> {
 
 impl<D: AsRef<str>> IOwnedTree for OwnedTree<D> {
     /// Child node type.
-    type Leaf = OwnedTree<D>;
+    type Leaf = Self;
 
     /// Iterator over child nodes.
     type Leaves<'a>
@@ -54,7 +54,7 @@ impl<D: AsRef<str>> IOwnedTree for OwnedTree<D> {
 
 impl<D: AsRef<str>> OwnedTree<D> {
     /// Creates a new tree node with no children.
-    pub fn new(content: D) -> Self {
+    pub const fn new(content: D) -> Self {
         Self {
             content,
             leaves: Vec::new(),
@@ -66,10 +66,8 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Each element must be convertible into `OwnedTree<D>`.
     /// This method follows a builder-style pattern and returns
     /// the modified node.
-    pub fn with_leaves(
-        mut self,
-        leaves: impl IntoIterator<Item = impl Into<OwnedTree<D>>>,
-    ) -> Self {
+    #[must_use]
+    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -77,7 +75,7 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Appends a child node.
     ///
     /// Returns the node itself to support method chaining.
-    pub fn push(&mut self, leaf: impl Into<OwnedTree<D>>) -> &mut Self {
+    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
         self.leaves.push(leaf.into());
         self
     }
@@ -92,7 +90,7 @@ impl<D: AsRef<str>> OwnedTree<D> {
 /// let node: OwnedTree<&str> = "hello".into();
 /// ```
 impl<D: AsRef<str>> From<D> for OwnedTree<D> {
-    fn from(value: D) -> Self { OwnedTree::new(value) }
+    fn from(value: D) -> Self { Self::new(value) }
 }
 
 /// A tree node that supports optional indentation styling.
@@ -119,7 +117,7 @@ impl<D: AsRef<str>> From<D> for OwnedTree<D> {
 #[derive(Debug, Clone)]
 pub struct StyledOwnedTree<D: AsRef<str>, I: IIndent> {
     content: D,
-    leaves: Vec<StyledOwnedTree<D, I>>,
+    leaves: Vec<Self>,
     indent: Option<I>,
 }
 
@@ -130,7 +128,7 @@ impl<D: AsRef<str>, I: IIndent> ITreeContent for StyledOwnedTree<D, I> {
 
 impl<D: AsRef<str>, I: IIndent> IOwnedTree for StyledOwnedTree<D, I> {
     /// Child node type.
-    type Leaf = StyledOwnedTree<D, I>;
+    type Leaf = Self;
 
     /// Iterator over child nodes.
     type Leaves<'a>
@@ -154,7 +152,7 @@ impl<D: AsRef<str>, I: IIndent> IStyledOwnedTree for StyledOwnedTree<D, I> {
 
 impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Creates a new node without a custom indentation style.
-    pub fn new(content: D) -> Self {
+    pub const fn new(content: D) -> Self {
         Self {
             content,
             leaves: Vec::new(),
@@ -163,7 +161,7 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     }
 
     /// Creates a new node with a specific indentation style.
-    pub fn new_with_indent(content: D, indent: I) -> Self {
+    pub const fn new_with_indent(content: D, indent: I) -> Self {
         Self {
             content,
             leaves: Vec::new(),
@@ -174,10 +172,8 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Attaches a collection of child nodes.
     ///
     /// Each element must be convertible into `StyledOwnedTree<D, I>`.
-    pub fn with_leaves(
-        mut self,
-        leaves: impl IntoIterator<Item = impl Into<StyledOwnedTree<D, I>>>,
-    ) -> Self {
+    #[must_use]
+    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -185,13 +181,14 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Assigns a custom indentation style to the node.
     ///
     /// This overrides the indentation used when rendering the subtree.
+    #[must_use]
     pub fn with_indent(mut self, indent: I) -> Self {
         self.indent = Some(indent);
         self
     }
 
     /// Appends a child node.
-    pub fn push(&mut self, leaf: impl Into<StyledOwnedTree<D, I>>) -> &mut Self {
+    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
         self.leaves.push(leaf.into());
         self
     }
@@ -199,5 +196,5 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
 
 /// Allows creating a node directly from content.
 impl<D: AsRef<str>, I: IIndent + Clone> From<D> for StyledOwnedTree<D, I> {
-    fn from(value: D) -> Self { StyledOwnedTree::new(value) }
+    fn from(value: D) -> Self { Self::new(value) }
 }

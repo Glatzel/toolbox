@@ -6,8 +6,7 @@ pub struct ArgMajor {
     major: u16,
 }
 impl ArgMajor {
-    #[inline(always)]
-    pub fn value(&self) -> u16 { self.major }
+    pub const fn value(self) -> u16 { self.major }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]
@@ -16,8 +15,7 @@ pub struct ArgMinor {
     minor: u16,
 }
 impl ArgMinor {
-    #[inline(always)]
-    pub fn value(&self) -> u16 { self.minor }
+    pub const fn value(self) -> u16 { self.minor }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]
@@ -26,8 +24,7 @@ pub struct ArgPatch {
     patch: u16,
 }
 impl ArgPatch {
-    #[inline(always)]
-    pub fn value(&self) -> u16 { self.patch }
+    pub const fn value(self) -> u16 { self.patch }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 pub struct ArgNoCheck {
@@ -35,6 +32,5 @@ pub struct ArgNoCheck {
     no_check: bool,
 }
 impl ArgNoCheck {
-    #[inline(always)]
-    pub fn value(&self) -> bool { self.no_check }
+    pub const fn value(self) -> bool { self.no_check }
 }

@@ -29,33 +29,30 @@ impl HoudiniPreference {
 
         cfg_select! {
             target_os = "macos" => Ok(home.join("Library").join("Preferences").join("houdini")),
-            _ => Ok(home.clone()),
+            _ => Ok(home),
         }
     }
     pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
-        match env::var("HOUDINI_USER_PREF_DIR") {
-            Ok(val) => {
-                let pref_dir: PathBuf = Path::new(&val)
-                    .parent()
-                    .unwrap()
-                    .join(format!("houdini{major}.{minor}"));
-                let perf = Self {
-                    major,
-                    minor,
-                    directory: pref_dir,
-                };
-                Ok(perf)
-            }
-            Err(_) => {
-                let pref_dir: PathBuf =
-                    Self::preference_root()?.join(format!("houdini{major}.{minor}"));
-                let perf: HoudiniPreference = Self {
-                    major,
-                    minor,
-                    directory: pref_dir,
-                };
-                Ok(perf)
-            }
+        if let Ok(val) = env::var("HOUDINI_USER_PREF_DIR") {
+            let pref_dir: PathBuf = Path::new(&val)
+                .parent()
+                .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
+                .join(format!("houdini{major}.{minor}"));
+            let perf = Self {
+                major,
+                minor,
+                directory: pref_dir,
+            };
+            Ok(perf)
+        } else {
+            let pref_dir: PathBuf =
+                Self::preference_root()?.join(format!("houdini{major}.{minor}"));
+            let perf: Self = Self {
+                major,
+                minor,
+                directory: pref_dir,
+            };
+            Ok(perf)
         }
     }
     pub fn check_is_existed(&self) -> mischief::Result<&Self> {

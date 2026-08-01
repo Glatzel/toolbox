@@ -14,7 +14,7 @@ impl IRule for NmeaDate {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
     type Output = Option<NaiveDate>;
-    /// Applies the NmeaUtc rule to the input string.
+    /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
@@ -31,50 +31,38 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             return Ok((None, advanced));
         }
 
-        let day = match res.get(0..2).and_then(|s| s.parse::<u32>().ok()) {
-            Some(d) => d,
-            None => {
-                clerk::error!("{:?}: failed to parse day from '{}'", self, res);
-                return Err(RuleError {
-                    reason: "Failed to parse day.".into(),
-                });
-            }
+        let Some(day) = res.get(0..2).and_then(|s| s.parse::<u32>().ok()) else {
+            clerk::error!("{:?}: failed to parse day from '{}'", self, res);
+            return Err(RuleError {
+                reason: "Failed to parse day.".into(),
+            });
         };
-        let month = match res.get(2..4).and_then(|s| s.parse::<u32>().ok()) {
-            Some(m) => m,
-            None => {
-                clerk::error!("{:?}: failed to parse month from '{}'", self, res);
-                return Err(RuleError {
-                    reason: "Failed to parse month.".into(),
-                });
-            }
+        let Some(month) = res.get(2..4).and_then(|s| s.parse::<u32>().ok()) else {
+            clerk::error!("{:?}: failed to parse month from '{}'", self, res);
+            return Err(RuleError {
+                reason: "Failed to parse month.".into(),
+            });
         };
-        let year = match res.get(4..6).and_then(|s| s.parse::<i32>().ok()) {
-            Some(y) => y,
-            None => {
-                clerk::error!("{:?}: failed to parse year from '{}'", self, res);
-                return Err(RuleError {
-                    reason: "Failed to parse year.".into(),
-                });
-            }
+        let Some(year) = res.get(4..6).and_then(|s| s.parse::<i32>().ok()) else {
+            clerk::error!("{:?}: failed to parse year from '{}'", self, res);
+            return Err(RuleError {
+                reason: "Failed to parse year.".into(),
+            });
         };
-        let dt = match NaiveDate::from_ymd_opt(year + 2000, month, day) {
-            Some(date) => {
-                clerk::debug!("{:?}: parsed date: {}", self, date);
-                date
-            }
-            None => {
-                clerk::error!(
-                    "{:?}: invalid date: y={}, m={}, d={}",
-                    self,
-                    year + 2000,
-                    month,
-                    day
-                );
-                return Err(RuleError {
-                    reason: "Invalid date.".into(),
-                });
-            }
+        let dt = if let Some(date) = NaiveDate::from_ymd_opt(year + 2000, month, day) {
+            clerk::debug!("{:?}: parsed date: {}", self, date);
+            date
+        } else {
+            clerk::error!(
+                "{:?}: invalid date: y={}, m={}, d={}",
+                self,
+                year + 2000,
+                month,
+                day
+            );
+            return Err(RuleError {
+                reason: "Invalid date.".into(),
+            });
         };
         Ok((Some(dt), advanced))
     }

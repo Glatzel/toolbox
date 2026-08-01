@@ -37,17 +37,19 @@ impl<'a> Decoder<'a> {
     }
 
     /// Returns the full input string.
-    pub fn full_str(&self) -> &str { self.full }
+    #[must_use]
+    pub const fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
     ///
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
+    #[must_use]
     pub fn rest_str(&self) -> &str { unsafe { self.full.get_unchecked(self.cursor..) } }
 
     /// Resets the parser to the start of the input.
-    pub fn reset(&mut self) -> &mut Self {
+    pub const fn reset(&mut self) -> &mut Self {
         self.cursor = 0;
         self
     }
@@ -104,7 +106,7 @@ impl<'a> Decoder<'a> {
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
-impl<'a> Decoder<'a> {
+impl Decoder<'_> {
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
         D: IDecode<E>,

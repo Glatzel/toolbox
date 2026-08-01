@@ -73,7 +73,6 @@ impl DepTree {
     /// Locate `dll` and its symlink target relative to `base`, using `info`'s
     /// rpath/runpath data on Linux.
     fn resolve_import(
-        &self,
         dll: &str,
         base: &Path,
         #[cfg(target_os = "linux")] info: &BinaryInfo,
@@ -207,18 +206,18 @@ impl DepTree {
 
     pub fn content_missing(&self) -> String {
         match (self.depth, &self.base, &self.target) {
-            (0, _, None) => self.name.clone(),
-            (_, Some(_), None) => self.name.clone(),
+            (0, _, None) | (_, Some(_), None) => self.name.clone(),
             (_, None, None) => self.name.red().to_string(),
-            (0, _, Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
-            (_, Some(_), Some(target)) => format!("{} -> {}", self.name, target.to_slash_lossy()),
+            (0, _, Some(target)) | (_, Some(_), Some(target)) => {
+                format!("{} -> {}", self.name, target.to_slash_lossy())
+            }
             (_, None, Some(target)) => {
                 format!("{} -> {}", self.name, target.to_slash_lossy().red())
             }
         }
     }
 
-    pub fn leaves_all(&self) -> Vec<DepTree> {
+    pub fn leaves_all(&self) -> Vec<Self> {
         if self.exceeds_limit(1) {
             return Vec::new();
         }
@@ -241,7 +240,7 @@ impl DepTree {
         info.imports
             .iter()
             .map(|dll| {
-                let (dll_base, target) = self.resolve_import(
+                let (dll_base, target) = Self::resolve_import(
                     dll,
                     base,
                     #[cfg(target_os = "linux")]
@@ -252,7 +251,7 @@ impl DepTree {
             .collect()
     }
 
-    pub fn leaves_missing(&self) -> Vec<DepTree> {
+    pub fn leaves_missing(&self) -> Vec<Self> {
         if self.exceeds_limit(1) {
             return Vec::new();
         }
@@ -260,9 +259,8 @@ impl DepTree {
             return Vec::new();
         };
 
-        let buf = match fs::read(base.join(&self.name)) {
-            Ok(b) => b,
-            Err(_) => return Vec::new(),
+        let Ok(buf) = fs::read(base.join(&self.name)) else {
+            return Vec::new();
         };
         let Some(info) = parse_binary_buf(&buf) else {
             return Vec::new();
@@ -276,7 +274,7 @@ impl DepTree {
                 continue;
             }
 
-            let (dll_base, target) = self.resolve_import(
+            let (dll_base, target) = Self::resolve_import(
                 dll,
                 base,
                 #[cfg(target_os = "linux")]
@@ -292,12 +290,9 @@ impl DepTree {
                 continue;
             }
 
-            let dep_buf = match fs::read(dll_base.join(dll)) {
-                Ok(b) => b,
-                Err(_) => {
-                    leaves.push(Self::new(dll, None, self.depth + 1, target));
-                    continue;
-                }
+            let Ok(dep_buf) = fs::read(dll_base.join(dll)) else {
+                leaves.push(Self::new(dll, None, self.depth + 1, target));
+                continue;
             };
             let Some(dep_info) = parse_binary_buf(&dep_buf) else {
                 continue;
@@ -337,8 +332,8 @@ impl ITreeContent for DepTree {
 }
 
 impl ILazyTree for DepTree {
-    type Leaf = DepTree;
-    type Leaves = std::vec::IntoIter<DepTree>;
+    type Leaf = Self;
+    type Leaves = std::vec::IntoIter<Self>;
 
     fn leaves(&self) -> Self::Leaves {
         match SHOW_OPTION.get().unwrap() {

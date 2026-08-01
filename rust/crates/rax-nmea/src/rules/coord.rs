@@ -7,9 +7,10 @@ use rax::string::{IRule, IStrFlowRule};
 use super::UNTIL_COMMA_DISCARD;
 
 /// Rule to parse an NMEA coordinate in the format "DDDMM.MMM,sign,...".
+///
 /// Converts the coordinate to decimal degrees, applying the correct sign.
-/// Returns a tuple of (decimal_degrees, rest_of_input) if successful, otherwise
-/// None.
+/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful,
+/// otherwise None.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaCoord;
 
@@ -23,7 +24,7 @@ impl NmeaCoord {
 }
 impl<'a> IStrFlowRule<'a> for NmeaCoord {
     type Output = Option<f64>;
-    /// Applies the NmeaCoord rule to the input string.
+    /// Applies the `NmeaCoord` rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
@@ -71,16 +72,16 @@ impl<'a> IStrFlowRule<'a> for NmeaCoord {
                 );
                 Ok((Some(result), advanced))
             }
-            (Ok(_), _sign) => {
-                clerk::error!("{:?}: invalid sign string: '{}'", self, _sign);
+            (Ok(_), sign) => {
+                clerk::error!("{:?}: invalid sign string: '{}'", self, sign);
                 Err(RuleError {
-                    reason: format!("invalid sign string: '{}'", _sign).into(),
+                    reason: format!("invalid sign string: '{sign}'").into(),
                 })
             }
             (Err(_), _) => {
                 clerk::error!("{:?}: invalid coord string: '{}'", self, num_str);
                 Err(RuleError {
-                    reason: format!("invalid coord string: '{}'", num_str).into(),
+                    reason: format!("invalid coord string: '{num_str}'").into(),
                 })
             }
         }

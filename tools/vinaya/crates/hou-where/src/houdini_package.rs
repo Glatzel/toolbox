@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use glob::glob;
-use mischief::IntoMischief;
+use mischief::{IntoMischief, WrapErr};
 use path_slash::PathExt;
 use serde_json::{Value, json};
 use validator::Validate;
@@ -31,7 +31,7 @@ impl HoudiniPackage {
     }
     fn read_json(json_file: &Path) -> mischief::Result<Self> {
         let json_content: Value = Self::json_object(json_file)?;
-        let pkg: HoudiniPackage = Self {
+        let pkg: Self = Self {
             enable: json_content["enable"].as_bool().unwrap(),
             name: json_file
                 .file_stem()
@@ -63,7 +63,7 @@ pub struct HoudiniPackageManager {
 }
 impl HoudiniPackageManager {
     pub fn from_houdini_preference(
-        houdini_preference: HoudiniPreference,
+        houdini_preference: &HoudiniPreference,
     ) -> mischief::Result<Self> {
         let package_dir: PathBuf = houdini_preference.directory.join("packages");
 
@@ -73,11 +73,12 @@ impl HoudiniPackageManager {
                 .join("packages/*.json")
                 .to_string_lossy(),
         )
-        .expect("Failed to read glob pattern")
-        .map(|f| HoudiniPackage::read_json(&f.unwrap()))
+        .into_mischief()
+        .wrap_err(mischief::mischief!("Failed to read glob pattern"))?
+        .map(|f| HoudiniPackage::read_json(&f.into_mischief()?))
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
-        let manager: HoudiniPackageManager = Self {
+        let manager: Self = Self {
             major: houdini_preference.major,
             minor: houdini_preference.minor,
             package_dir,
@@ -96,11 +97,11 @@ impl HoudiniPackageManager {
     }
     pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
         let pref = HoudiniPreference::from_version(major, minor)?;
-        let manager = Self::from_houdini_preference(pref)?;
+        let manager = Self::from_houdini_preference(&pref)?;
         Ok(manager)
     }
     pub fn switch_packages(&mut self, names: &[String], enable: bool) -> mischief::Result<()> {
-        for p in self.packages.iter_mut() {
+        for p in &mut self.packages {
             clerk::debug!("Trying to switch `{}` enable to: {}", p.name, enable);
             if names.contains(&p.name) {
                 clerk::debug!("Found package: {}", p.name);
@@ -145,7 +146,7 @@ mod tests {
     fn test_from_houdini_preference() {
         let tmp = TempDir::new().unwrap();
         let pref = setup_fake_pref(&tmp);
-        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        let manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
 
         assert_eq!(manager.major, 20);
         assert_eq!(manager.minor, 5);
@@ -170,7 +171,7 @@ mod tests {
     fn test_check_is_existed() {
         let tmp = TempDir::new().unwrap();
         let pref = setup_fake_pref(&tmp);
-        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        let manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
         assert!(manager.check_is_existed().is_ok());
     }
 
@@ -178,7 +179,7 @@ mod tests {
     fn test_check_is_existed_missing() {
         let tmp = TempDir::new().unwrap();
         let pref = setup_fake_pref(&tmp);
-        let manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        let manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
         fs::remove_dir_all(&manager.package_dir).unwrap();
         assert!(manager.check_is_existed().is_err());
     }
@@ -187,7 +188,7 @@ mod tests {
     fn test_switch_packages() {
         let tmp = TempDir::new().unwrap();
         let pref = setup_fake_pref(&tmp);
-        let mut manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        let mut manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
 
         manager
             .switch_packages(&["mypackage".to_string()], false)
@@ -209,7 +210,7 @@ mod tests {
     fn test_switch_packages_unmatched() {
         let tmp = TempDir::new().unwrap();
         let pref = setup_fake_pref(&tmp);
-        let mut manager = HoudiniPackageManager::from_houdini_preference(pref).unwrap();
+        let mut manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
 
         manager
             .switch_packages(&["nonexistent".to_string()], true)

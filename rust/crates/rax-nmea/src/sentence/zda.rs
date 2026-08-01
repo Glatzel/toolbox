@@ -2,7 +2,7 @@ use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
-use crate::rules::*;
+use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 ///Time and date
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -36,7 +36,7 @@ impl IDecode<RaxNmeaError> for Zda {
         let ltzh = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let ltzn = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Zda {
+        Ok(Self {
             time,
             day,
             month,

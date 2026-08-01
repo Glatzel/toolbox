@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::ToString;
 
 use crate::error::MischiefError;
-use crate::render::*;
+use crate::render::render_diagnosis;
 
 pub struct ReportInner {
     error: MischiefError,
@@ -34,6 +34,7 @@ impl Report {
     ///
     /// This function wraps the provided diagnosis as the root error
     /// contained by the report.
+    #[must_use]
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "backtrace", debug_assertions))]
         let backtrace = backtrace::Backtrace::new();
@@ -50,6 +51,7 @@ impl Report {
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
+    #[must_use]
     pub fn error(&self) -> &MischiefError { &self.0.error }
 
     /// Renders the report using the configured rendering backend.
@@ -60,7 +62,7 @@ impl Report {
         render_diagnosis(&self.0.error, f)?;
 
         #[cfg(all(feature = "backtrace", debug_assertions))]
-        render_backtrace(&self.0.backtrace, f)?;
+        crate::render_backtrace(&self.0.backtrace, f)?;
         Ok(())
     }
 }
@@ -170,9 +172,9 @@ impl<D, T> WrapErr<D, T> for Result<T, Report>
 where
     D: Display + 'static,
 {
-    fn wrap_err(self, msg: D) -> Result<T, Report> { self.wrap_err_with(|| msg) }
+    fn wrap_err(self, msg: D) -> Self { self.wrap_err_with(|| msg) }
 
-    fn wrap_err_with<F>(self, msg: F) -> Result<T, Report>
+    fn wrap_err_with<F>(self, msg: F) -> Self
     where
         F: FnOnce() -> D,
     {

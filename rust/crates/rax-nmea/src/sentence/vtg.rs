@@ -4,7 +4,7 @@ extern crate alloc;
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
-use crate::rules::*;
+use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 ///Course over ground and ground speed
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -45,7 +45,7 @@ impl IDecode<RaxNmeaError> for Vtg {
 
         let pos_mode = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
-        Ok(Vtg {
+        Ok(Self {
             cogt,
             cogm,
             sogn,

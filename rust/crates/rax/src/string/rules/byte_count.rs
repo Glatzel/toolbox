@@ -33,12 +33,14 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
     fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
-        match input.get(..N) {
-            Some(out) => Ok((out, N)),
-            None => Err(RuleError {
-                reason: "input too short or invalid UTF-8 boundary.".into(),
-            }),
-        }
+        input.get(..N).map_or_else(
+            || {
+                Err(RuleError {
+                    reason: "input too short or invalid UTF-8 boundary.".into(),
+                })
+            },
+            |out| Ok((out, N)),
+        )
     }
 }
 

@@ -47,14 +47,12 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                     reason: "expected character not found".into(),
                 }),
             }
+        } else if input.starts_with(C) {
+            Ok((C, C.len_utf8()))
         } else {
-            if input.starts_with(C) {
-                Ok((C, C.len_utf8()))
-            } else {
-                Err(RuleError {
-                    reason: "expected character not found".into(),
-                })
-            }
+            Err(RuleError {
+                reason: "expected character not found".into(),
+            })
         }
     }
 }

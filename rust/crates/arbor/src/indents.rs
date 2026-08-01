@@ -71,8 +71,8 @@ impl Default for UniversalIndent {
     /// ```
     fn default() -> Self {
         Self {
-            root_first: String::from(""),
-            root_other: String::from(""),
+            root_first: String::new(),
+            root_other: String::new(),
             top_first: String::from("|-- "),
             top_other: String::from("|   "),
             mid_first: String::from("|-- "),

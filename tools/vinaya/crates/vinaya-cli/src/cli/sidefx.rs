@@ -58,22 +58,22 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
     let client_id = args.client_id.as_ref().map_or_else(
         || {
             env::var("CLIENT_ID").unwrap_or_else(|_| {
-                    dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                        .with_prompt("Client ID")
-                        .interact_text()
-                        .unwrap()
-                })
+                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                    .with_prompt("Client ID")
+                    .interact_text()
+                    .unwrap()
+            })
         },
         std::clone::Clone::clone,
     );
     let client_secret = args.client_secret.as_ref().map_or_else(
         || {
             env::var("CLIENT_SECRET").unwrap_or_else(|_| {
-                    dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                        .with_prompt("Client Secret")
-                        .interact_text()
-                        .unwrap()
-                })
+                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                    .with_prompt("Client Secret")
+                    .interact_text()
+                    .unwrap()
+            })
         },
         std::clone::Clone::clone,
     );

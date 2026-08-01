@@ -6,10 +6,10 @@ struct NoTheme;
 
 #[cfg(feature = "fancy")]
 impl ITheme for NoTheme {
-    fn default_style(&self) -> &Option<owo_colors::Style> { &None }
-    fn description_style(&self) -> &Option<owo_colors::Style> { &None }
-    fn severity_style(&self, _severity: Option<mischief::Severity>) -> &Option<owo_colors::Style> {
-        &None
+    fn default_style(&self) -> Option<&owo_colors::Style> { None }
+    fn description_style(&self) -> Option<&owo_colors::Style> { None }
+    fn severity_style(&self, _severity: Option<mischief::Severity>) -> Option<&owo_colors::Style> {
+        None
     }
     fn help_style(&self) -> &(Option<owo_colors::Style>, Option<owo_colors::Style>) {
         &(None, None)

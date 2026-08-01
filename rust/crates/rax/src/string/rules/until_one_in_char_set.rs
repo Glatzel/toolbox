@@ -40,16 +40,18 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         if is_ascii {
             if let Some(mask) = self.filter.ascii_mask() {
-                return match input
+                return input
                     .as_bytes()
                     .iter()
                     .position(|&b| mask & (1u128 << u32::from(b)) != 0)
-                {
-                    Some(i) => Ok(self.mode.split_str(input, i, 1)),
-                    None => Err(RuleError {
-                        reason: "no match found".into(),
-                    }),
-                };
+                    .map_or_else(
+                        || {
+                            Err(RuleError {
+                                reason: "no match found".into(),
+                            })
+                        },
+                        |i| Ok(self.mode.split_str(input, i, 1)),
+                    );
             }
             // Fallback: table has non-ASCII entries
             for (i, &b) in input.as_bytes().iter().enumerate() {

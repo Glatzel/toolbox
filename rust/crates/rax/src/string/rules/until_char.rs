@@ -30,12 +30,14 @@ impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
             C,
             self.mode
         );
-        match input.find(C) {
-            Some(idx) => Ok(self.mode.split_str(input, idx, Self::DELIM_LEN)),
-            None => Err(RuleError {
-                reason: "input is empty or does not contain the expected character.".into(),
-            }),
-        }
+        input.find(C).map_or_else(
+            || {
+                Err(RuleError {
+                    reason: "input is empty or does not contain the expected character.".into(),
+                })
+            },
+            |idx| Ok(self.mode.split_str(input, idx, Self::DELIM_LEN)),
+        )
     }
 }
 

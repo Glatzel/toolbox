@@ -53,8 +53,8 @@ impl SideFXWeb {
         let response = client
             .post(token_url)
             .header(
-                reqwest::header::HeaderName::from_str("Authorization").unwrap(),
-                reqwest::header::HeaderValue::from_str(authorization.as_str()).unwrap(),
+                reqwest::header::HeaderName::from_str("Authorization").into_mischief()?,
+                reqwest::header::HeaderValue::from_str(authorization.as_str()).into_mischief()?,
             )
             .send()
             .await

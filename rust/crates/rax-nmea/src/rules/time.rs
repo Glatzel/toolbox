@@ -97,23 +97,28 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             nanos
         );
 
-        if let Some(t) = NaiveTime::from_hms_nano_opt(hour, min, sec, nanos) {
-            clerk::debug!("{:?}: parsed time: {}", self, t);
-            Ok((Some(t), advanced))
-        } else {
-            clerk::error!(
-                "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
-                self,
-                hour,
-                min,
-                sec,
-                nanos
-            );
-            Err(RuleError {
-                reason: format!("invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}")
+        NaiveTime::from_hms_nano_opt(hour, min, sec, nanos).map_or_else(
+            || {
+                clerk::error!(
+                    "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
+                    self,
+                    hour,
+                    min,
+                    sec,
+                    nanos
+                );
+                Err(RuleError {
+                    reason: format!(
+                        "invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}"
+                    )
                     .into(),
-            })
-        }
+                })
+            },
+            |t| {
+                clerk::debug!("{:?}: parsed time: {}", self, t);
+                Ok((Some(t), advanced))
+            },
+        )
     }
 }
 

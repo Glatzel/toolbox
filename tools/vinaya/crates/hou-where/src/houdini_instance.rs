@@ -102,7 +102,7 @@ impl HoudiniInstance {
                 let path = f.into_mischief()?;
                 let name = path
                     .file_name()
-                    .ok_or(Err(mischief::mischief!("fail to get file name")))?
+                    .ok_or_else(|| mischief::mischief!("fail to get file name"))?
                     .to_string_lossy();
                 let (major, minor, patch) = Self::version_from_dir_name(&name)?;
                 Ok(Self {

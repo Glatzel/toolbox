@@ -21,38 +21,47 @@ pub struct HoudiniInstance {
 }
 
 impl HoudiniInstance {
-    pub const INSTALL_DIR: &str = cfg_select! {
-        target_os = "windows" => {
-            "C:/Program Files/Side Effects Software"
-        }
-        target_os = "macos" => {
-            "/Applications/Houdini"
-        }
-        target_os = "linux" => {
-            "/opt"
-        }
-    };
+    pub const INSTALL_DIR: &str =
+        cfg_select! {
+            target_os = "windows" => "C:/Program Files/Side Effects Software",
+            target_os = "macos" => "/Applications/Houdini",
+            target_os = "linux" => "/opt",
+        };
 
     fn dir_name(major: u16, minor: u16, patch: u16) -> String {
         cfg_select! {
-            target_os = "windows" => { format!("Houdini {major}.{minor}.{patch}") }
-            target_os = "macos"   => { format!("Houdini{major}.{minor}.{patch}") }
-            _ =>                     { format!("hfs{major}.{minor}.{patch}") }
+            target_os = "windows" => {
+                format!("Houdini {major}.{minor}.{patch}")
+            }
+            target_os = "macos" => {
+                format!("Houdini{major}.{minor}.{patch}")
+            }
+            _ => {
+                format!("hfs{major}.{minor}.{patch}")
+            }
         }
     }
 
     const DIR_GLOB_PATTERN: &'static str = cfg_select! {
-        target_os = "windows" => { "Houdini *.*.*" }
-        target_os = "macos"   => { "Houdini*.*.*" }
-        target_os = "linux" =>                     { "hfs*.*.*" }
+        target_os = "windows" => "Houdini *.*.*",
+        target_os = "macos" => "Houdini*.*.*",
+        target_os = "linux" => "hfs*.*.*",
     };
 
     fn version_from_dir_name(name: &str) -> mischief::Result<(u16, u16, u16)> {
-        let version_str = cfg_select! {
-            target_os = "windows" => { name.split(' ').nth(1).ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
-            target_os = "macos"   => { name.strip_prefix("Houdini").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
-            _ =>                     { name.strip_prefix("hfs").ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))? }
-        };
+        let version_str =
+            cfg_select! {
+                target_os = "windows" => name
+                    .split(' ')
+                    .nth(1)
+                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+                target_os = "macos" => name
+                    .strip_prefix("Houdini")
+                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+                _ => name
+                    .strip_prefix("hfs")
+                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+            };
         let parts: Vec<u16> = version_str
             .split('.')
             .map(|s| s.parse::<u16>().into_mischief())
@@ -124,10 +133,11 @@ impl HoudiniInstance {
     }
 
     pub fn installed(&self) -> bool {
-        let houdini_executable = cfg_select! {
-            target_os = "windows" => { self.hfs().join("bin").join("houdini.exe") }
-            _ => { self.hfs().join("bin").join("houdini.exe") }
-        };
+        let houdini_executable =
+            cfg_select! {
+                target_os = "windows" => self.hfs().join("bin").join("houdini.exe"),
+                _ => self.hfs().join("bin").join("houdini.exe"),
+            };
 
         houdini_executable.exists()
     }
@@ -168,9 +178,9 @@ mod tests {
     #[test]
     fn test_dir_name() {
         let expected = cfg_select! {
-            target_os = "windows" => { "Houdini 20.5.123" }
-            target_os = "macos"   => { "Houdini20.5.123" }
-            _ =>                     { "hfs20.5.123" }
+            target_os = "windows" => "Houdini 20.5.123",
+            target_os = "macos" => "Houdini20.5.123",
+            _ => "hfs20.5.123",
         };
         assert_eq!(HoudiniInstance::dir_name(20, 5, 123), expected);
     }
@@ -199,21 +209,25 @@ mod tests {
 
     #[test]
     fn test_hfs() {
-        let expected = cfg_select! {
-            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123" }
-            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123" }
-            _ =>                     { "/opt/hfs20.5.123" }
-        };
+        let expected =
+            cfg_select! {
+                target_os = "windows" => "C:/Program Files/Side Effects Software/Houdini 20.5.123",
+                target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
+                _ => "/opt/hfs20.5.123",
+            };
         assert_eq!(instance().hfs().to_slash_lossy(), expected);
     }
 
     #[test]
     fn test_cmake_prefix_path() {
-        let expected = cfg_select! {
-            target_os = "windows" => { "C:/Program Files/Side Effects Software/Houdini 20.5.123/toolkit/cmake" }
-            target_os = "macos"   => { "/Applications/Houdini/Houdini20.5.123/toolkit/cmake" }
-            _ =>                     { "/opt/hfs20.5.123/toolkit/cmake" }
-        };
+        let expected =
+            cfg_select! {
+                target_os = "windows" => {
+                    "C:/Program Files/Side Effects Software/Houdini 20.5.123/toolkit/cmake"
+                }
+                target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
+                _ => "/opt/hfs20.5.123/toolkit/cmake",
+            };
         assert_eq!(instance().cmake_prefix_path().to_slash_lossy(), expected);
     }
 

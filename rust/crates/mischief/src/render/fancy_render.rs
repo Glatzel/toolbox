@@ -106,13 +106,13 @@ pub enum HyperlinkFormat {
 /// logic itself is handled separately.
 pub trait ITheme {
     /// Returns the style applied to general text.
-    fn default_style(&self) -> &Option<Style>;
+    fn default_style(&self) -> Option<&Style>;
 
     /// Returns the style used for diagnostic descriptions.
-    fn description_style(&self) -> &Option<Style>;
+    fn description_style(&self) -> Option<&Style>;
 
     /// Returns the style applied to severity labels.
-    fn severity_style(&self, severity: Option<Severity>) -> &Option<Style>;
+    fn severity_style(&self, severity: Option<Severity>) -> Option<&Style>;
 
     /// Returns the styles used for help messages.
     ///
@@ -194,15 +194,15 @@ impl Default for MischiefTheme {
 }
 
 impl ITheme for MischiefTheme {
-    fn default_style(&self) -> &Option<Style> { &self.default_style }
-    fn description_style(&self) -> &Option<Style> { &self.description_style }
+    fn default_style(&self) -> Option<&Style> { self.default_style.as_ref() }
+    fn description_style(&self) -> Option<&Style> { self.description_style.as_ref() }
 
-    fn severity_style(&self, severity: Option<Severity>) -> &Option<Style> {
+    fn severity_style(&self, severity: Option<Severity>) -> Option<&Style> {
         match severity {
-            Some(Severity::Advice) => &self.severity_advice_style,
-            Some(Severity::Warning) => &self.severity_warning_style,
-            Some(Severity::Error) => &self.severity_error_style,
-            None => &None,
+            Some(Severity::Advice) => self.severity_advice_style.as_ref(),
+            Some(Severity::Warning) => self.severity_warning_style.as_ref(),
+            Some(Severity::Error) => self.severity_error_style.as_ref(),
+            None => None,
         }
     }
 
@@ -244,15 +244,15 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
         use core::fmt::Write;
 
         let mut buffer = String::new();
-        let severity_color = *theme.severity_style(diagnosis.severity());
+        let severity_color = theme.severity_style(diagnosis.severity());
 
         if let Some(s) = diagnosis.severity() {
-            self.apply_style(&mut buffer, &(s).to_string(), &severity_color)
+            self.apply_style(&mut buffer, &(s).to_string(), severity_color)
                 .unwrap();
         }
 
         if let Some(s) = diagnosis.code() {
-            self.apply_style(&mut buffer, &format!("[{s}]"), &severity_color)
+            self.apply_style(&mut buffer, &format!("[{s}]"), severity_color)
                 .unwrap();
         }
 
@@ -275,9 +275,9 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
 
         if let Some(s) = diagnosis.help() {
             writeln!(buffer).unwrap();
-            self.apply_style(&mut buffer, "help: ", &theme.help_style().0)
+            self.apply_style(&mut buffer, "help: ", theme.help_style().0.as_ref())
                 .unwrap();
-            self.apply_style(&mut buffer, s, &theme.help_style().1)
+            self.apply_style(&mut buffer, s, theme.help_style().1.as_ref())
                 .unwrap();
         }
 
@@ -289,7 +289,7 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
         &self,
         buffer: &mut String,
         text: &str,
-        style: &Option<owo_colors::Style>,
+        style: Option<&owo_colors::Style>,
     ) -> core::fmt::Result {
         use core::fmt::Write;
 
@@ -321,9 +321,9 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
             (Some(s), HyperlinkFormat::Plain) => {
                 buffer.write_str(&format!("<{}>", hyperlink.style(*s)))
             }
-            (None, HyperlinkFormat::Link) => buffer.write_str(&format!(
-                "\x1b]8;;{hyperlink}\x1b\\{text}\x1b]8;;\x1b\\"
-            )),
+            (None, HyperlinkFormat::Link) => {
+                buffer.write_str(&format!("\x1b]8;;{hyperlink}\x1b\\{text}\x1b]8;;\x1b\\"))
+            }
             (None, HyperlinkFormat::Plain) => buffer.write_str(&format!("<{hyperlink}>")),
         }
     }

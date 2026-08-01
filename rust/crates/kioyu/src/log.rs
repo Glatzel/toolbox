@@ -87,7 +87,11 @@ where
     #[allow(clippy::unwrap_used)]
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
-            std::iter::successors(Some(span), clerk::tracing_subscriber::registry::SpanRef::parent).find(|s| s.name() == KIOYU_JOB_SPAN)
+            std::iter::successors(
+                Some(span),
+                clerk::tracing_subscriber::registry::SpanRef::parent,
+            )
+            .find(|s| s.name() == KIOYU_JOB_SPAN)
         });
 
         let Some(job_span) = job_span else { return };

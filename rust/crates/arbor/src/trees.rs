@@ -66,10 +66,8 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Each element must be convertible into `OwnedTree<D>`.
     /// This method follows a builder-style pattern and returns
     /// the modified node.
-    pub fn with_leaves(
-        mut self,
-        leaves: impl IntoIterator<Item = impl Into<Self>>,
-    ) -> Self {
+    #[must_use]
+    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -174,10 +172,8 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Attaches a collection of child nodes.
     ///
     /// Each element must be convertible into `StyledOwnedTree<D, I>`.
-    pub fn with_leaves(
-        mut self,
-        leaves: impl IntoIterator<Item = impl Into<Self>>,
-    ) -> Self {
+    #[must_use]
+    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -185,6 +181,7 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Assigns a custom indentation style to the node.
     ///
     /// This overrides the indentation used when rendering the subtree.
+    #[must_use]
     pub fn with_indent(mut self, indent: I) -> Self {
         self.indent = Some(indent);
         self

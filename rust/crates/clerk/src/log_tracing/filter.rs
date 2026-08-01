@@ -10,9 +10,8 @@ where
 {
     fn enabled(&self, _meta: &Metadata<'_>, ctx: &Context<'_, S>) -> bool {
         !ctx.lookup_current()
-            .map(|span| {
-                std::iter::successors(Some(span), |s| s.parent()).any(|s| s.name() == self.0)
+            .is_some_and(|span| {
+                std::iter::successors(Some(span), tracing_subscriber::registry::SpanRef::parent).any(|s| s.name() == self.0)
             })
-            .unwrap_or(false)
     }
 }

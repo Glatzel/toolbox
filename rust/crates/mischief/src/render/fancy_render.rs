@@ -164,11 +164,11 @@ impl Default for MischiefTheme {
     fn default() -> Self {
         if supports_color::on(supports_color::Stream::Stdout).is_some() {
             Self {
-                default_style: Default::default(),
+                default_style: Option::default(),
                 description_style: Some(Style::default()),
                 severity_advice_style: Some(Style::new().green()),
                 severity_warning_style: Some(Style::new().yellow()),
-                severity_error_style: Default::default(),
+                severity_error_style: Option::default(),
                 help_style: Default::default(),
                 hyperlink_style: (
                     Some(Style::new().blue()),
@@ -372,8 +372,7 @@ pub fn render_backtrace(
     let title = " Backtrace ";
 
     let width = terminal_size()
-        .map(|(terminal_size::Width(w), _)| w as usize)
-        .unwrap_or(80);
+        .map_or(80, |(terminal_size::Width(w), _)| w as usize);
     let left = (width - title.len()) / 2;
     let right = width - title.len() - left;
 
@@ -389,9 +388,7 @@ pub fn render_backtrace(
     for (idx, frame) in backtrace.frames().iter().enumerate() {
         for symbol in frame.symbols() {
             let name = symbol
-                .name()
-                .map(|n| n.to_string())
-                .unwrap_or_else(|| "<unknown>".into());
+                .name().map_or_else(|| "<unknown>".into(), |n| n.to_string());
 
             writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
 
@@ -399,7 +396,7 @@ pub fn render_backtrace(
                 write!(f, "   {} {}", "╰─".color(CadetBlue), file.display())?;
 
                 if let Some(line) = symbol.lineno() {
-                    write!(f, ":{}", line)?;
+                    write!(f, ":{line}")?;
                 }
 
                 writeln!(f)?;

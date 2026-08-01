@@ -103,10 +103,10 @@ struct WriterFieldVisitor<'a, W: io::Write> {
     writer: &'a mut W,
 }
 
-impl<'a, W: io::Write> Visit for WriterFieldVisitor<'a, W> {
+impl<W: io::Write> Visit for WriterFieldVisitor<'_, W> {
     fn record_str(&mut self, field: &tracing_core::Field, value: &str) {
         if field.name() == "message" {
-            let _ = write!(self.writer, " {}", value);
+            let _ = write!(self.writer, " {value}");
         } else {
             let _ = write!(self.writer, " {}={}", field.name(), value);
         }
@@ -114,7 +114,7 @@ impl<'a, W: io::Write> Visit for WriterFieldVisitor<'a, W> {
 
     fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn std::fmt::Debug) {
         if field.name() == "message" {
-            let _ = write!(self.writer, " {:?}", value);
+            let _ = write!(self.writer, " {value:?}");
         } else {
             let _ = write!(self.writer, " {}={:?}", field.name(), value);
         }

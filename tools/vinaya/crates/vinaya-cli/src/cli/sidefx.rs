@@ -55,7 +55,7 @@ pub enum Commands {
 }
 
 pub async fn execute(args: &Args) -> mischief::Result<()> {
-    let client_id = args.client_id.map_or_else(
+    let client_id = args.client_id.as_ref().map_or_else(
         || match env::var("CLIENT_ID") {
             Ok(value) => value,
             Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
@@ -63,7 +63,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                 .interact_text()
                 .unwrap(),
         },
-        |value| value,
+        |value| value.to_string(),
     );
     let client_secret = args.client_secret.as_ref().map_or_else(
         || match env::var("CLIENT_SECRET") {
@@ -73,7 +73,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                 .interact_text()
                 .unwrap(),
         },
-        |value| value,
+        |value| value.to_string(),
     );
     let sidefx_web = SideFXWeb::new(
         client_id.as_str(),

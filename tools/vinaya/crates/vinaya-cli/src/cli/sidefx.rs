@@ -56,22 +56,30 @@ pub enum Commands {
 
 pub async fn execute(args: &Args) -> mischief::Result<()> {
     let client_id = args.client_id.as_ref().map_or_else(
-        || match env::var("CLIENT_ID") {
-            Ok(value) => value,
-            Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                .with_prompt("Client ID")
-                .interact_text()
-                .unwrap(),
+        || {
+            env::var("CLIENT_ID").map_or_else(
+                |_| {
+                    dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                        .with_prompt("Client ID")
+                        .interact_text()
+                        .unwrap()
+                },
+                |value| value,
+            )
         },
         std::clone::Clone::clone,
     );
     let client_secret = args.client_secret.as_ref().map_or_else(
-        || match env::var("CLIENT_SECRET") {
-            Ok(value) => value,
-            Err(_) => dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                .with_prompt("Client Secret")
-                .interact_text()
-                .unwrap(),
+        || {
+            env::var("CLIENT_SECRET").map_or_else(
+                |_| {
+                    dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                        .with_prompt("Client Secret")
+                        .interact_text()
+                        .unwrap()
+                },
+                |value| value,
+            )
         },
         std::clone::Clone::clone,
     );

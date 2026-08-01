@@ -37,7 +37,6 @@ impl<'a> Decoder<'a> {
     }
 
     /// Returns the full input string.
-    #[must_use]
     pub const fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
@@ -45,7 +44,6 @@ impl<'a> Decoder<'a> {
     /// # Safety
     ///
     /// Internally uses a raw pointer to the string slice.
-    #[must_use]
     pub fn rest_str(&self) -> &str { unsafe { self.full.get_unchecked(self.cursor..) } }
 
     /// Resets the parser to the start of the input.

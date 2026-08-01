@@ -39,7 +39,6 @@ pub struct DeviceInfo {
 
 impl DeviceInfo {
     /// Create a new `DeviceInfo` instance with the provided details.
-    #[must_use]
     pub const fn new(
         name: String,
         device_type: DeviceType,
@@ -61,31 +60,24 @@ impl DeviceInfo {
     }
 
     /// Returns the device name.
-    #[must_use]
     pub fn name(&self) -> &str { &self.name }
 
     /// Returns the device type.
-    #[must_use]
     pub const fn device_type(&self) -> &DeviceType { &self.device_type }
 
     /// Returns the USB vendor ID, if available.
-    #[must_use]
     pub const fn vendor_id(&self) -> Option<u16> { self.vendor_id }
 
     /// Returns the USB product ID, if available.
-    #[must_use]
     pub const fn product_id(&self) -> Option<u16> { self.product_id }
 
     /// Returns the device serial number, if available.
-    #[must_use]
     pub fn serial_number(&self) -> Option<&str> { self.serial_number.as_deref() }
 
     /// Returns the device manufacturer, if available.
-    #[must_use]
     pub fn manufacturer(&self) -> Option<&str> { self.manufacturer.as_deref() }
 
     /// Returns the device product name, if available.
-    #[must_use]
     pub fn product(&self) -> Option<&str> { self.product.as_deref() }
 }
 
@@ -174,11 +166,9 @@ pub struct DeviceFilter;
 
 impl DeviceFilter {
     /// Returns `true` for all devices.
-    #[must_use]
     pub const fn all(_: &SerialPortInfo) -> bool { true }
 
     /// Returns `true` only for USB devices.
-    #[must_use]
     pub const fn usb(info: &SerialPortInfo) -> bool {
         matches!(info.port_type, SerialPortType::UsbPort { .. })
     }

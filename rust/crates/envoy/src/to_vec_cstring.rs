@@ -99,14 +99,13 @@ impl VecCString {
     /// let v = VecCString::new();
     /// assert!(v.is_empty());
     /// ```
-    #[must_use]
     pub const fn new() -> Self {
         Self {
             buffer: Vec::new(),
             ptr_buffer: None,
         }
     }
-    #[must_use]
+
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             buffer: Vec::with_capacity(capacity),

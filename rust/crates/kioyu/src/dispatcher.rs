@@ -224,7 +224,6 @@ where
     }
 }
 
-#[must_use]
 pub fn start_dispatcher<P>(pool: ResourcePool) -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,
@@ -232,7 +231,6 @@ where
     start_dispatcher_with_mode(ResourceMode::Pooled(pool))
 }
 
-#[must_use]
 pub fn start_dispatcher_unlimited<P>() -> DispatcherHandle<P>
 where
     P: IPayload + Send + 'static,

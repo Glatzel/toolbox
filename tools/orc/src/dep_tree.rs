@@ -259,9 +259,8 @@ impl DepTree {
             return Vec::new();
         };
 
-        let buf = match fs::read(base.join(&self.name)) {
-            Ok(b) => b,
-            Err(_) => return Vec::new(),
+        let Ok(buf) = fs::read(base.join(&self.name)) else {
+            return Vec::new();
         };
         let Some(info) = parse_binary_buf(&buf) else {
             return Vec::new();

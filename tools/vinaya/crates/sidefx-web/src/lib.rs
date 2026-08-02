@@ -1,8 +1,8 @@
 mod model;
 
 use std::collections::HashMap;
-use std::str::FromStr;
-use std::time::Duration;
+use core::str::FromStr;
+use core::time::Duration;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;

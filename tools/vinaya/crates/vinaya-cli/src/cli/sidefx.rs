@@ -64,7 +64,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                     .unwrap()
             })
         },
-        std::clone::Clone::clone,
+        core::clone::Clone::clone,
     );
     let client_secret = args.client_secret.as_ref().map_or_else(
         || {
@@ -75,7 +75,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                     .unwrap()
             })
         },
-        std::clone::Clone::clone,
+        core::clone::Clone::clone,
     );
     let sidefx_web = SideFXWeb::new(
         client_id.as_str(),

@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use clap::{Parser, Subcommand};
 use comfy_table::{Attribute, Cell, Color, Table};

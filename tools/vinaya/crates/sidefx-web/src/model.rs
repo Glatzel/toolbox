@@ -45,7 +45,7 @@ pub enum HoudiniBuildVersion {
     Number(u16),
     Production,
 }
-impl std::str::FromStr for HoudiniBuildVersion {
+impl core::str::FromStr for HoudiniBuildVersion {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

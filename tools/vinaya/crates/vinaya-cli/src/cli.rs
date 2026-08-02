@@ -34,15 +34,10 @@ async fn execute(commands: Commands) -> mischief::Result<()> {
         Commands::Sidefx(cmd) => sidefx::execute(&cmd).await,
     }
 }
-pub async fn main() {
+pub async fn main() -> mischief::Result<()> {
     let args = VinayaArgs::parse();
     clerk::tracing_subscriber::registry()
         .with(clerk::terminal_layer(true).with_filter(args.verbose.tracing_level_filter()))
         .init();
-
-    // run
-    if let Err(err) = execute(args.command).await {
-        eprintln!("{err:?}");
-        std::process::exit(1);
-    }
+    execute(args.command).await
 }

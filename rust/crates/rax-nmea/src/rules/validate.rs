@@ -88,7 +88,7 @@ impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
         };
 
         // Calculate the checksum by XOR'ing all data bytes.
-        let calculated = data.bytes().fold(0u8, |acc, b| acc ^ b);
+        let calculated = data.bytes().fold(0_u8, |acc, b| acc ^ b);
         clerk::debug!(
             "NmeaValidate: calculated checksum={:02X}, expected={:02X}",
             calculated,

@@ -60,13 +60,13 @@ impl PolarsFmt {
     /// `UTF8_FULL_CONDENSED`).  These options are defined by comfy-table
     /// which provides examples for each at _<https://github.com/Nukesor/comfy-table/blob/main/src/style/presets.rs>
     pub fn table_formatting(self, value: TableFormatting) -> Self {
-        unsafe { env::set_var("POLARS_FMT_TABLE_FORMATTING", value.as_ref()) };
+        unsafe { env::set_var("POLARS_FMT_TABLE_FORMATTING", value.as_ref()); }
         self
     }
 
     ///Set table cell alignment.
     pub fn cell_alignment(self, value: CellAlignment) -> Self {
-        unsafe { env::set_var("POLARS_FMT_TABLE_CELL_ALIGNMENT", value.as_ref()) };
+        unsafe { env::set_var("POLARS_FMT_TABLE_CELL_ALIGNMENT", value.as_ref()); }
         self
     }
 
@@ -152,7 +152,7 @@ impl PolarsFmt {
     ///
     /// If value < 0 (eg: -1), display all columns.
     pub fn max_cols(self, value: i32) -> Self {
-        unsafe { env::set_var("POLARS_FMT_MAX_COLS", value.to_string()) };
+        unsafe { env::set_var("POLARS_FMT_MAX_COLS", value.to_string()); }
         self
     }
 
@@ -162,13 +162,13 @@ impl PolarsFmt {
     /// If value < 0 (eg: -1), display all rows (`DataFrame`) and all elements
     /// (Series).
     pub fn max_rows(self, value: i32) -> Self {
-        unsafe { env::set_var("POLARS_FMT_MAX_ROWS", value.to_string()) };
+        unsafe { env::set_var("POLARS_FMT_MAX_ROWS", value.to_string()); }
         self
     }
 
     ///Set the number of characters used to display string values.
     pub fn str_length(self, value: usize) -> Self {
-        unsafe { env::set_var("POLARS_FMT_STR_LEN", value.to_string()) };
+        unsafe { env::set_var("POLARS_FMT_STR_LEN", value.to_string()); }
         self
     }
     /// Set the number of elements to display for List values.
@@ -177,7 +177,7 @@ impl PolarsFmt {
     /// values being printed. A value of 0 will always "[...]" for lists with
     /// contents. A value of 1 will print only the final item in the list.
     pub fn table_cell_list_len(self, value: i32) -> Self {
-        unsafe { env::set_var("POLARS_FMT_TABLE_CELL_LIST_LEN", value.to_string()) };
+        unsafe { env::set_var("POLARS_FMT_TABLE_CELL_LIST_LEN", value.to_string()); }
         self
     }
 
@@ -185,7 +185,7 @@ impl PolarsFmt {
     ///
     /// if value < 0 (eg: -1), display full width..
     pub fn table_width(self, value: i32) -> Self {
-        unsafe { env::set_var("POLARS_TABLE_WIDTH", value.to_string()) };
+        unsafe { env::set_var("POLARS_TABLE_WIDTH", value.to_string()); }
         self
     }
 

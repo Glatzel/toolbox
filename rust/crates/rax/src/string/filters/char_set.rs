@@ -42,7 +42,7 @@ impl<const N: usize> CharSetFilter<N> {
             if !c.is_ascii() {
                 return None;
             }
-            mask |= 1u128 << (c as u32);
+            mask |= 1_u128 << (c as u32);
             i += 1;
         }
         Some(mask)

@@ -78,7 +78,7 @@ where
         ctx: &FmtContext<'_, S, N>,
         mut writer: Writer<'_>,
         event: &Event<'_>,
-    ) -> std::fmt::Result {
+    ) -> core::fmt::Result {
         write_header!(self, writer, event.metadata());
         ctx.field_format().format_fields(writer.by_ref(), event)?;
         writeln!(writer)
@@ -87,11 +87,16 @@ where
 
 /// Allows formatting a `tracing::Event` into any `io::Write`.
 pub trait FormatEventToWriter {
-    fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>);
+    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>)
+    where
+        W: io::Write;
 }
 
 impl FormatEventToWriter for ClerkFormatter {
-    fn format_to_writer<W: io::Write>(&self, writer: &mut W, event: &Event<'_>) {
+    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>)
+    where
+        W: io::Write,
+    {
         write_header!(self, writer, event.metadata());
         let mut visitor = WriterFieldVisitor { writer };
         event.record(&mut visitor);
@@ -112,7 +117,7 @@ impl<W: io::Write> Visit for WriterFieldVisitor<'_, W> {
         }
     }
 
-    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn std::fmt::Debug) {
+    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn core::fmt::Debug) {
         if field.name() == "message" {
             let _ = write!(self.writer, " {value:?}");
         } else {

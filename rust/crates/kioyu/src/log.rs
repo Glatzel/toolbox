@@ -38,7 +38,7 @@ impl tracing_core::field::Visit for JobIdVisitor {
         }
     }
 
-    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn std::fmt::Debug) {
+    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn core::fmt::Debug) {
         match field.name() {
             "job.id" => self.id = Some(format!("{value:?}")),
             "job.name" => self.name = Some(format!("{value:?}")),
@@ -87,7 +87,7 @@ where
     #[allow(clippy::unwrap_used)]
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
-            std::iter::successors(
+            core::iter::successors(
                 Some(span),
                 clerk::tracing_subscriber::registry::SpanRef::parent,
             )

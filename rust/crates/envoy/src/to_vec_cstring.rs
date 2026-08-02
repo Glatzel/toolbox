@@ -131,14 +131,20 @@ impl Deref for VecCString {
 // No DerefMut — would allow silent ptr_buffer invalidation via index writes.
 
 impl Extend<CString> for VecCString {
-    fn extend<I>(&mut self, iter: I) where I: IntoIterator<Item = CString> {
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = CString>,
+    {
         self.ptr_buffer = None;
         self.buffer.extend(iter);
     }
 }
 
 impl FromIterator<CString> for VecCString {
-    fn from_iter<I>(iter: I) -> Self where I: IntoIterator<Item = CString> {
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = CString>,
+    {
         Self {
             buffer: iter.into_iter().collect(),
             ptr_buffer: None,

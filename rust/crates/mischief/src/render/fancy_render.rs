@@ -345,10 +345,10 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
         write!(f, "{render}")
     }
 }
-pub fn render_diagnosis<D>(
-    diagnosis: &D,
-    f: &mut core::fmt::Formatter<'_>,
-) -> core::fmt::Result where D: IDiagnosis {
+pub fn render_diagnosis<D>(diagnosis: &D, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+where
+    D: IDiagnosis,
+{
     let bundle = RenderBundle {
         diagnosis,
         theme: MischiefTheme::default(),

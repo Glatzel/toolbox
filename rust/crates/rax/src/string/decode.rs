@@ -27,7 +27,10 @@ pub struct Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
-    pub fn new<S>(input: &'a S) -> Self where S: AsRef<str> + ?Sized {
+    pub fn new<S>(input: &'a S) -> Self
+    where
+        S: AsRef<str> + ?Sized,
+    {
         let s = input.as_ref();
         Self {
             full: s,

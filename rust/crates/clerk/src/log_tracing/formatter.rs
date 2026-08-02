@@ -87,11 +87,16 @@ where
 
 /// Allows formatting a `tracing::Event` into any `io::Write`.
 pub trait FormatEventToWriter {
-    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>) where W: io::Write;
+    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>)
+    where
+        W: io::Write;
 }
 
 impl FormatEventToWriter for ClerkFormatter {
-    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>) where W: io::Write {
+    fn format_to_writer<W>(&self, writer: &mut W, event: &Event<'_>)
+    where
+        W: io::Write,
+    {
         write_header!(self, writer, event.metadata());
         let mut visitor = WriterFieldVisitor { writer };
         event.record(&mut visitor);

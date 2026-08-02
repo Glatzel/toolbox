@@ -1,4 +1,4 @@
 mod cli;
 
 #[tokio::main]
-pub async fn main() { cli::main().await; }
+pub async fn main() -> mischief::Result<()> { cli::main().await }

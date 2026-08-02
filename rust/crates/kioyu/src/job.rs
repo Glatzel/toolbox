@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::Display;
 
 use async_trait::async_trait;
 use tokio_util::sync::CancellationToken;

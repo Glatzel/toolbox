@@ -43,7 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
             if let Some(mask) = self.filter.ascii_mask() {
                 // Fast path: bitmask, no per-byte filter() dispatch
                 for (i, &b) in input.as_bytes().iter().enumerate() {
-                    if mask & (1_u128 << u32::from(b)) == 0 {
+                    if mask & (1u128 << u32::from(b)) == 0 {
                         return Ok(self.mode.split_str(input, i, 1));
                     }
                 }

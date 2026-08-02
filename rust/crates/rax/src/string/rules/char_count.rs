@@ -60,7 +60,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
             .map(|(idx, _)| idx)
             .or_else(|| {
                 // exactly N chars: consume the whole string
-                (input.chars().count() == N).then(|| input.len())
+                (input.chars().count() == N).then_some(input.len())
             })
             .map(|idx| unsafe { (input.get_unchecked(..idx), idx) })
             .ok_or_else(|| RuleError {

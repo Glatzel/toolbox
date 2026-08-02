@@ -43,7 +43,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
                 return input
                     .as_bytes()
                     .iter()
-                    .position(|&b| mask & (1u128 << u32::from(b)) != 0)
+                    .position(|&b| mask & (1_u128 << u32::from(b)) != 0)
                     .map_or_else(
                         || {
                             Err(RuleError {

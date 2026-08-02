@@ -50,7 +50,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
         use std::io::Read;
-        let mut buf = [0u8; 1024];
+        let mut buf = [0_u8; 1024];
         clerk::debug!("PTY reader thread started");
 
         loop {

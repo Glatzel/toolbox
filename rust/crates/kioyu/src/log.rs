@@ -38,7 +38,7 @@ impl tracing_core::field::Visit for JobIdVisitor {
         }
     }
 
-    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn std::fmt::Debug) {
+    fn record_debug(&mut self, field: &tracing_core::Field, value: &dyn core::fmt::Debug) {
         match field.name() {
             "job.id" => self.id = Some(format!("{value:?}")),
             "job.name" => self.name = Some(format!("{value:?}")),

@@ -40,16 +40,16 @@ fn parse_binary_buf(buf: &[u8]) -> Option<BinaryInfo> {
     #[cfg(target_os = "windows")]
     let mut imports: Vec<String> = binary.imports.iter().map(|i| i.dll.to_string()).collect();
     #[cfg(target_os = "linux")]
-    let mut imports: Vec<String> = binary.libraries.iter().map(|s| s.to_string()).collect();
+    let mut imports: Vec<String> = binary.libraries.iter().map(ToString::to_string).collect();
     imports.sort();
     imports.dedup();
 
     Some(BinaryInfo {
         imports,
         #[cfg(target_os = "linux")]
-        rpaths: binary.rpaths.iter().map(|s| s.to_string()).collect(),
+        rpaths: binary.rpaths.iter().map(ToString::to_string).collect(),
         #[cfg(target_os = "linux")]
-        runpaths: binary.runpaths.iter().map(|s| s.to_string()).collect(),
+        runpaths: binary.runpaths.iter().map(ToString::to_string).collect(),
     })
 }
 
@@ -128,10 +128,10 @@ impl DepTree {
         }
 
         // runpaths take priority over rpaths when present
-        let rpath_list = if !runpaths.is_empty() {
-            runpaths
-        } else {
+        let rpath_list = if runpaths.is_empty() {
             rpaths
+        } else {
+            runpaths
         };
         for p in rpath_list {
             let path = Path::new(p);

@@ -9,23 +9,28 @@ use tokio::sync::Mutex;
 
 use crate::server::AppContext;
 use crate::server::message::ReceiveMsg;
-
 pub async fn xterm_handler(
     ws: WebSocketUpgrade,
     State(state): State<Arc<AppContext>>,
 ) -> impl axum::response::IntoResponse {
     clerk::debug!("WebSocket upgrade request received");
-    ws.on_upgrade(move |socket| handle_socket(socket, state))
+    ws.on_upgrade(move |socket| async move {
+        if let Err(e) = handle_socket(socket, state).await {
+            clerk::error!("{e}");
+        }
+    })
 }
 
-async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
+async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::Result<()> {
     let shell = state.args.cmd.clone();
     let cwd = state.args.working_directory.display();
     clerk::info!(shell = %shell, cwd = %cwd, "WebSocket connected, spawning PTY");
 
     // ===== PTY SETUP =====
     let pty_system = NativePtySystem::default();
-    let pair = pty_system.openpty(PtySize::default()).unwrap();
+    let pair = pty_system
+        .openpty(PtySize::default())
+        .map_err(|e| mischief::mischief!("Failed to open PTY: {e:?}"))?;
 
     let mut cmd = CommandBuilder::new(&state.args.cmd);
     cmd.cwd(&state.args.working_directory);
@@ -37,12 +42,16 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
         }
         Err(e) => {
             clerk::error!(shell = %shell, error = %e, "Failed to spawn shell process");
-            return;
+            mischief::bail!("Failed to spawn shell process: {}", e);
         }
     };
 
     let mut tty_reader = pair.master.try_clone_reader().unwrap();
-    let tty_writer = Arc::new(Mutex::new(pair.master.take_writer().unwrap()));
+    let tty_writer = Arc::new(Mutex::new(
+        pair.master
+            .take_writer()
+            .map_err(|e| mischief::mischief!("{:?}", e))?,
+    ));
     let (mut ws_sender, mut ws_receiver) = socket.split();
 
     // ===== PTY → WS =====
@@ -56,7 +65,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
         loop {
             match tty_reader.read(&mut buf) {
                 Ok(n) if n > 0 => {
-                    let data = Bytes::copy_from_slice(&buf[..n]);
+                    let data = Bytes::copy_from_slice(unsafe { buf.get_unchecked(..n) });
                     clerk::trace!(bytes = n, "PTY read.");
                     if tx.blocking_send(data).is_err() {
                         clerk::debug!("PTY reader: channel closed, exiting");
@@ -129,6 +138,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) {
     } else {
         clerk::debug!("Shell process killed");
     }
+    Ok(())
 }
 #[cfg(test)]
 mod tests {

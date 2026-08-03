@@ -146,7 +146,12 @@ impl HoudiniInstance {
         Ok(hinstances)
     }
 
-    pub fn latest_installed_version() -> mischief::Result<Self> { Ok(Self::list_installed()?[0]) }
+    pub fn latest_installed_version() -> mischief::Result<Self> {
+        Self::list_installed()?
+            .first()
+            .copied()
+            .ok_or_else(|| mischief::mischief!("No Houdini installed."))
+    }
 
     pub fn installed(&self) -> bool {
         let houdini_executable =

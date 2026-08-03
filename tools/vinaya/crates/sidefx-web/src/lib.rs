@@ -71,7 +71,9 @@ impl SideFXWeb {
         let token = response
             .json::<HashMap<String, serde_json::Value>>()
             .await
-            .into_mischief()?["access_token"]
+            .into_mischief()?
+            .get("access_token")
+            .ok_or_else(|| mischief::mischief!("No access token found."))?
             .to_string()
             .replace('"', "");
 

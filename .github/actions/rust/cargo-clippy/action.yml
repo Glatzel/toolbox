@@ -17,6 +17,7 @@ inputs:
     default: >
       -A clippy::too_many_arguments
       -D clippy::alloc_instead_of_core
+      -D clippy::allow_attributes_without_reason
       -D clippy::bool_to_int_with_if
       -D clippy::borrow_as_ptr
       -D clippy::branches_sharing_code
@@ -42,7 +43,6 @@ inputs:
       -D clippy::implicit_clone
       -D clippy::imprecise_flops
       -D clippy::inconsistent_struct_constructor
-      -D clippy::indexing_slicing
       -D clippy::inefficient_to_string
       -D clippy::inline_trait_bounds
       -D clippy::ip_constant

@@ -147,7 +147,7 @@ impl HoudiniInstance {
     pub fn latest_installed_version() -> mischief::Result<Self> {
         Self::list_installed()?
             .first()
-            .cloned()
+            .copied()
             .ok_or_else(|| mischief::mischief!("No Houdini installed."))
     }
 

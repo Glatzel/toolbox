@@ -8,7 +8,7 @@ pub enum ReceiveMsg {
 impl ReceiveMsg {
     pub fn parse(msg: &str) -> mischief::Result<Self> {
         match serde_json::Value::from_str(msg) {
-            Ok(msg) => match msg["kind"].as_str() {
+            Ok(msg) => match msg.get("kind").and_then(|v| v.as_str()) {
                 Some("resize") => Ok(Self::Resize(serde_json::from_value::<ResizeMsg>(msg)?)),
                 _ => Err(mischief::mischief!("Unknown message: {}", msg)),
             },

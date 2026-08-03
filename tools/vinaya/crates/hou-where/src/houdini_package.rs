@@ -32,7 +32,11 @@ impl HoudiniPackage {
     fn read_json(json_file: &Path) -> mischief::Result<Self> {
         let json_content: Value = Self::json_object(json_file)?;
         let pkg: Self = Self {
-            enable: json_content["enable"].as_bool().unwrap(),
+            enable: json_content
+                .get("enable")
+                .ok_or_else(|| mischief::mischief!("No `enable` field in JSON."))?
+                .as_bool()
+                .unwrap(),
             name: json_file
                 .file_stem()
                 .unwrap()
@@ -45,7 +49,11 @@ impl HoudiniPackage {
     fn switch_package(&mut self, enable: bool) -> mischief::Result<()> {
         self.enable = enable;
         let mut json_content: Value = Self::json_object(&self.json_file)?;
-        json_content["enable"] = json!(enable);
+        if let Some(enable_field) = json_content.get_mut("enable") {
+            *enable_field = json!(enable);
+        } else {
+            mischief::bail!("No `enable` field in JSON.");
+        }
         let mut file: File = File::create(&self.json_file).unwrap();
         serde_json::to_writer(&mut file, &json_content).unwrap();
         Ok(())

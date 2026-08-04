@@ -20,9 +20,15 @@ fancy = ["color", "hyperlink", "pretty"]
 macros = ["mischief-macros"]
 std = []
 
-color = ["arbor/textwrap", "owo-colors", "terminal_size"]
-hyperlink = ["arbor/textwrap", "owo-colors", "terminal_size"]
-pretty = ["arbor/textwrap", "owo-colors", "std", "terminal_size"]
+color = ["owo-colors", "terminal_size"]
+hyperlink = ["owo-colors", "terminal_size"]
+pretty = ["owo-colors", "std", "terminal_size"]
+textwrap = [
+  "textwrap-hyphenation",
+  "textwrap-smawk",
+  "textwrap-unicode-linebreak",
+  "textwrap-unicode-width"
+]
 textwrap-hyphenation = ["arbor/textwrap-hyphenation", "pretty", "std"]
 textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std"]
 textwrap-unicode-linebreak = [

@@ -256,6 +256,7 @@ pub struct RenderBundle<'a, D, I, T> {
     pub indent: I,
 
     /// Maximum line width used during rendering.
+    #[cfg(feature = "textwrap")]
     pub width: usize,
 }
 
@@ -378,6 +379,7 @@ where
         diagnosis,
         theme: MischiefTheme::default(),
         indent: MischiefIndent::default(),
+        #[cfg(feature = "textwrap")]
         width: match terminal_size::terminal_size() {
             Some((w, _)) => w.0 as usize,
             None => 0,

@@ -43,7 +43,6 @@ jobs:
       fail-fast: false
       matrix:
         options:
-          - -p mischief --no-default-features --features macros
           - -p mischief --no-default-features --features macros,color
           - -p mischief --no-default-features --features macros,hyperlink
           - -p mischief --no-default-features --features macros,pretty

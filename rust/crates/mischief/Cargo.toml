@@ -16,7 +16,7 @@ insta = { workspace = true, features = ["filters"] }
 [features]
 default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
 backtrace = ["dep:backtrace", "std", "terminal_size"]
-fancy = ["color", "hyperlink", "pretty","textwrap"]
+fancy = ["color", "hyperlink", "pretty", "textwrap"]
 macros = ["mischief-macros"]
 std = []
 

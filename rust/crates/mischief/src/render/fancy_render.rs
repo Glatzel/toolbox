@@ -6,6 +6,7 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
+#[cfg(feature = "color")]
 use owo_colors::{OwoColorize, Style};
 use terminal_size::terminal_size;
 
@@ -437,13 +438,7 @@ pub fn render_backtrace(
             }
         }
         _ => {
-            writeln!(
-                f,
-                "{}{}{}",
-                "═".repeat(left),
-                title.bold(),
-                "═".repeat(right),
-            )?;
+            writeln!(f, "{}{}{}", "═".repeat(left), title, "═".repeat(right),)?;
 
             // write frames
             for (idx, frame) in backtrace.frames().iter().enumerate() {

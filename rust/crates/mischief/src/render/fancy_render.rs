@@ -61,27 +61,40 @@ impl Default for MischiefIndent {
     /// when the terminal supports Unicode output. Otherwise, an ASCII
     /// fallback representation is used.
     fn default() -> Self {
-        {
-            if supports_unicode::on(supports_unicode::Stream::Stdout) {
-                Self {
-                    root_first: "x ".red().to_string(),
-                    root_other: "│ ".red().to_string(),
-                    top_middle_first: "├─▶ ".red().to_string(),
-                    bottom_first: "╰─▶ ".red().to_string(),
-                    bottom_other: "    ",
-                    other: "│   ".red().to_string(),
-                }
-            } else {
-                Self {
-                    root_first: "x".red().to_string(),
-                    root_other: "| ".red().to_string(),
-                    top_middle_first: "|-- ".red().to_string(),
-                    bottom_first: "`-- ".red().to_string(),
-                    bottom_other: "    ",
-                    other: "|   ".red().to_string(),
-                }
-            }
-        }
+        cfg_select!(
+            all(feature = "color", feature = "pretty") => Self {
+                root_first: "x ".red().to_string(),
+                root_other: "│ ".red().to_string(),
+                top_middle_first: "├─▶ ".red().to_string(),
+                bottom_first: "╰─▶ ".red().to_string(),
+                bottom_other: "    ",
+                other: "│   ".red().to_string(),
+            },
+            all(feature = "color", not(feature = "pretty")) => Self {
+                root_first: "x".red().to_string(),
+                root_other: "| ".red().to_string(),
+                top_middle_first: "|-- ".red().to_string(),
+                bottom_first: "`-- ".red().to_string(),
+                bottom_other: "    ",
+                other: "|   ".red().to_string(),
+            },
+            all(not(feature = "color"), feature = "pretty") => Self {
+                root_first: "x ".to_string(),
+                root_other: "│ ".to_string(),
+                top_middle_first: "├─▶ ".to_string(),
+                bottom_first: "╰─▶ ".to_string(),
+                bottom_other: "    ",
+                other: "│   ".to_string(),
+            },
+            all(not(feature = "color"), not(feature = "pretty")) => Self {
+                root_first: "x".to_string(),
+                root_other: "| ".to_string(),
+                top_middle_first: "|-- ".to_string(),
+                bottom_first: "`-- ".to_string(),
+                bottom_other: "    ",
+                other: "|   ".to_string(),
+            },
+        )
     }
 }
 
@@ -162,33 +175,46 @@ impl Default for MischiefTheme {
     /// Color and hyperlink support are enabled only when the terminal
     /// reports compatibility.
     fn default() -> Self {
-        if supports_color::on(supports_color::Stream::Stdout).is_some() {
-            Self {
-                default_style: Option::default(),
-                description_style: Some(Style::default()),
-                severity_advice_style: Some(Style::new().green()),
-                severity_warning_style: Some(Style::new().yellow()),
-                severity_error_style: Option::default(),
-                help_style: Default::default(),
-                hyperlink_style: (
-                    Some(Style::new().blue()),
-                    if supports_hyperlinks::on(supports_hyperlinks::Stream::Stdout) {
-                        HyperlinkFormat::Link
-                    } else {
-                        HyperlinkFormat::Plain
-                    },
-                ),
+        cfg_select!(
+            feature = "color" => {
+                let default_style = None;
+                let description_style = Some(Style::default());
+                let severity_advice_style = Some(Style::new().green());
+                let severity_warning_style = Some(Style::new().yellow());
+                let severity_error_style = Some(Style::new().red());
+                let help_style = Default::default();
             }
-        } else {
-            Self {
-                default_style: None,
-                description_style: None,
-                severity_advice_style: None,
-                severity_warning_style: None,
-                severity_error_style: None,
-                help_style: (None, None),
-                hyperlink_style: (None, HyperlinkFormat::Plain),
+            _ => {
+                let default_style = None;
+                let description_style = None;
+                let severity_advice_style = None;
+                let severity_warning_style = None;
+                let severity_error_style = None;
+                let help_style = (None, None);
             }
+        );
+        cfg_select!(
+            all(feature = "hyperlink", feature = "color") => {
+                let hyperlink_style = (Some(Style::new().blue()), HyperlinkFormat::Link);
+            }
+            all(feature = "hyperlink", not(feature = "color")) => {
+                let hyperlink_style = (None, HyperlinkFormat::Link);
+            }
+            all(not(feature = "hyperlink"), feature = "color") => {
+                let hyperlink_style = (Some(Style::new().blue()), HyperlinkFormat::Plain);
+            }
+            _ => {
+                let hyperlink_style = (None, HyperlinkFormat::Plain);
+            }
+        );
+        Self {
+            default_style,
+            description_style,
+            severity_advice_style,
+            severity_warning_style,
+            severity_error_style,
+            help_style,
+            hyperlink_style,
         }
     }
 }

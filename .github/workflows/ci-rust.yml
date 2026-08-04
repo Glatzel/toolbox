@@ -16,7 +16,7 @@ jobs:
         options:
           - --workspace --all-features --exclude clerk --exclude mischief
           - -p mischief --no-default-features --features macros
-          - -p mischief --no-default-features --features fancy
+          - -p mischief --no-default-features --features macros,fancy
           - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:

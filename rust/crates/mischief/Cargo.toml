@@ -14,15 +14,15 @@ terminal_size = { workspace = true, optional = true }
 insta = { workspace = true, features = ["filters"] }
 
 [features]
-default = ["arbor/default", "backtrace", "macros", "fancy", "std"]
+default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
 backtrace = ["dep:backtrace", "std"]
-fancy = ["color", "pretty", "hyperlink"]
+fancy = ["color", "hyperlink", "pretty"]
 macros = ["mischief-macros"]
 std = []
 
-color = ["owo-colors","terminal_size","arbor/textwrap"]
-hyperlink = ["owo-colors","terminal_size","arbor/textwrap"]
-pretty = ["owo-colors","arbor/textwrap", "std", "terminal_size"]
+color = ["arbor/textwrap", "owo-colors", "terminal_size"]
+hyperlink = ["arbor/textwrap", "owo-colors", "terminal_size"]
+pretty = ["arbor/textwrap", "owo-colors", "std", "terminal_size"]
 textwrap-hyphenation = ["arbor/textwrap-hyphenation", "pretty", "std"]
 textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std"]
 textwrap-unicode-linebreak = [

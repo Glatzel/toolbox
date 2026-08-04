@@ -62,46 +62,39 @@ impl Default for MischiefIndent {
     /// fallback representation is used.
     fn default() -> Self {
         cfg_select!(
-            all(feature = "color", feature = "pretty") => {
-                Self {
-                    root_first: "x ".red().to_string(),
-                    root_other: "│ ".red().to_string(),
-                    top_middle_first: "├─▶ ".red().to_string(),
-                    bottom_first: "╰─▶ ".red().to_string(),
-                    bottom_other: "    ",
-                    other: "│   ".red().to_string(),
-                }
-            }
-            all(feature = "color", not(feature = "pretty")) => {
-                Self {
-                    root_first: "x".red().to_string(),
-                    root_other: "| ".red().to_string(),
-                    top_middle_first: "|-- ".red().to_string(),
-                    bottom_first: "`-- ".red().to_string(),
-                    bottom_other: "    ",
-                    other: "|   ".red().to_string(),
-                }
-            }
-            all(not(feature = "color"),feature = "pretty") => {
-                Self {
-                    root_first: "x ".to_string(),
-                    root_other: "│ ".to_string(),
-                    top_middle_first: "├─▶ ".to_string(),
-                    bottom_first: "╰─▶ ".to_string(),
-                    bottom_other: "    ",
-                    other: "│   ".to_string(),
-                }
-            }
-            all(not(feature = "color"),not(feature = "pretty")) => {
-                Self {
-                    root_first: "x".to_string(),
-                    root_other: "| ".to_string(),
-                    top_middle_first: "|-- ".to_string(),
-                    bottom_first: "`-- ".to_string(),
-                    bottom_other: "    ",
-                    other: "|   ".to_string(),
-                }
-        })
+            all(feature = "color", feature = "pretty") => Self {
+                root_first: "x ".red().to_string(),
+                root_other: "│ ".red().to_string(),
+                top_middle_first: "├─▶ ".red().to_string(),
+                bottom_first: "╰─▶ ".red().to_string(),
+                bottom_other: "    ",
+                other: "│   ".red().to_string(),
+            },
+            all(feature = "color", not(feature = "pretty")) => Self {
+                root_first: "x".red().to_string(),
+                root_other: "| ".red().to_string(),
+                top_middle_first: "|-- ".red().to_string(),
+                bottom_first: "`-- ".red().to_string(),
+                bottom_other: "    ",
+                other: "|   ".red().to_string(),
+            },
+            all(not(feature = "color"), feature = "pretty") => Self {
+                root_first: "x ".to_string(),
+                root_other: "│ ".to_string(),
+                top_middle_first: "├─▶ ".to_string(),
+                bottom_first: "╰─▶ ".to_string(),
+                bottom_other: "    ",
+                other: "│   ".to_string(),
+            },
+            all(not(feature = "color"), not(feature = "pretty")) => Self {
+                root_first: "x".to_string(),
+                root_other: "| ".to_string(),
+                top_middle_first: "|-- ".to_string(),
+                bottom_first: "`-- ".to_string(),
+                bottom_other: "    ",
+                other: "|   ".to_string(),
+            },
+        )
     }
 }
 
@@ -184,35 +177,34 @@ impl Default for MischiefTheme {
     fn default() -> Self {
         cfg_select!(
             feature = "color" => {
-
-                   let  default_style= None;
-                   let  description_style= Some(Style::default());
-                   let  severity_advice_style= Some(Style::new().green());
-                   let  severity_warning_style= Some(Style::new().yellow());
-                   let  severity_error_style= Some(Style::new().red());
-                   let  help_style= Default::default();
+                let default_style = None;
+                let description_style = Some(Style::default());
+                let severity_advice_style = Some(Style::new().green());
+                let severity_warning_style = Some(Style::new().yellow());
+                let severity_error_style = Some(Style::new().red());
+                let help_style = Default::default();
             }
-            _=> {
-                  let  default_style= None;
-                  let  description_style= None;
-                  let  severity_advice_style= None;
-                  let  severity_warning_style= None;
-                  let  severity_error_style= None;
-                  let  help_style= (None, None);
+            _ => {
+                let default_style = None;
+                let description_style = None;
+                let severity_advice_style = None;
+                let severity_warning_style = None;
+                let severity_error_style = None;
+                let help_style = (None, None);
             }
         );
         cfg_select!(
             all(feature = "hyperlink", feature = "color") => {
-              let  hyperlink_style=  ( Some(Style::new().blue()),HyperlinkFormat::Link);
+                let hyperlink_style = (Some(Style::new().blue()), HyperlinkFormat::Link);
             }
             all(feature = "hyperlink", not(feature = "color")) => {
-               let  hyperlink_style=  ( None,HyperlinkFormat::Link);
+                let hyperlink_style = (None, HyperlinkFormat::Link);
             }
             all(not(feature = "hyperlink"), feature = "color") => {
-                let hyperlink_style=  ( Some(Style::new().blue()),HyperlinkFormat::Plain);
+                let hyperlink_style = (Some(Style::new().blue()), HyperlinkFormat::Plain);
             }
             _ => {
-                let hyperlink_style= (None,HyperlinkFormat::Plain);
+                let hyperlink_style = (None, HyperlinkFormat::Plain);
             }
         );
         Self {

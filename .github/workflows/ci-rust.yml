@@ -22,7 +22,7 @@ jobs:
           - -p mischief --no-default-features --features macros,color,hyperlink
           - -p mischief --no-default-features --features macros,color,pretty
           - -p mischief --no-default-features --features macros,hyperlink,pretty
-          - -p mischief --no-default-features --features macros,color,hyperlink,pretty 
+          - -p mischief --no-default-features --features macros,color,hyperlink,pretty
           - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:

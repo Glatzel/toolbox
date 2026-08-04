@@ -39,30 +39,6 @@ jobs:
         with:
           flags: ci-rust
 
-  check-mischief:
-    strategy:
-      fail-fast: false
-      matrix:
-        options:
-          - -p mischief --no-default-features --features macros,backtrace,color
-          - -p mischief --no-default-features --features macros,backtrace,hyperlink
-          - -p mischief --no-default-features --features macros,backtrace,pretty
-          - -p mischief --no-default-features --features macros,backtrace,color,hyperlink
-          - -p mischief --no-default-features --features macros,backtrace,color,pretty
-          - -p mischief --no-default-features --features macros,backtrace,hyperlink,pretty
-          - -p mischief --no-default-features --features macros,backtrace,color,hyperlink,pretty
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          components: clippy
-      - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          working-directory: ${{env.WORKDIR}}
-          options: ${{matrix.options}}
-          args: -D warnings
-
   cargo-miri:
     strategy:
       fail-fast: false

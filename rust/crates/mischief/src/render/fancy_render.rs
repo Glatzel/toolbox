@@ -7,7 +7,6 @@ use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
 use owo_colors::{OwoColorize, Style};
-use terminal_size::terminal_size;
 
 use crate::{IDiagnosis, Severity};
 
@@ -257,6 +256,7 @@ pub struct RenderBundle<'a, D, I, T> {
     pub indent: I,
 
     /// Maximum line width used during rendering.
+    #[cfg(feature = "textwrap")]
     pub width: usize,
 }
 
@@ -365,6 +365,7 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
         let render = OwnedRender {
             tree: &tree,
             indent: self.indent.clone(),
+            #[cfg(feature = "textwrap")]
             width: self.width,
         };
 
@@ -379,7 +380,8 @@ where
         diagnosis,
         theme: MischiefTheme::default(),
         indent: MischiefIndent::default(),
-        width: match terminal_size() {
+        #[cfg(feature = "textwrap")]
+        width: match terminal_size::terminal_size() {
             Some((w, _)) => w.0 as usize,
             None => 0,
         },
@@ -394,7 +396,8 @@ pub fn render_backtrace(
 ) -> fmt::Result {
     let title = " Backtrace ";
 
-    let width = terminal_size().map_or(80, |(terminal_size::Width(w), _)| w as usize);
+    let width =
+        terminal_size::terminal_size().map_or(80, |(terminal_size::Width(w), _)| w as usize);
     let left = (width - title.len()) / 2;
     let right = width - title.len() - left;
 

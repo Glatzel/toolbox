@@ -15,19 +15,37 @@ insta = { workspace = true, features = ["filters"] }
 
 [features]
 default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
-backtrace = ["dep:backtrace", "std"]
-fancy = ["color", "hyperlink", "pretty"]
+backtrace = ["dep:backtrace", "std", "terminal_size"]
+fancy = ["color", "hyperlink", "pretty", "textwrap"]
 macros = ["mischief-macros"]
 std = []
 
-color = ["arbor/textwrap", "owo-colors", "terminal_size"]
-hyperlink = ["arbor/textwrap", "owo-colors", "terminal_size"]
-pretty = ["arbor/textwrap", "owo-colors", "std", "terminal_size"]
-textwrap-hyphenation = ["arbor/textwrap-hyphenation", "pretty", "std"]
-textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std"]
+color = ["owo-colors", "std"]
+hyperlink = ["owo-colors", "std"]
+pretty = ["owo-colors", "std"]
+
+textwrap = [
+  "arbor/textwrap",
+  "std",
+  "terminal_size",
+]
+textwrap-full = ["arbor/textwrap-full", "std", "terminal_size"]
+textwrap-hyphenation = [
+  "arbor/textwrap-hyphenation",
+  "pretty",
+  "std",
+  "terminal_size"
+]
+textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std", "terminal_size"]
 textwrap-unicode-linebreak = [
   "arbor/textwrap-unicode-linebreak",
   "pretty",
-  "std"
+  "std",
+  "terminal_size"
 ]
-textwrap-unicode-width = ["arbor/textwrap-unicode-width", "pretty", "std"]
+textwrap-unicode-width = [
+  "arbor/textwrap-unicode-width",
+  "pretty",
+  "std",
+  "terminal_size"
+]

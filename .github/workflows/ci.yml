@@ -214,6 +214,7 @@ jobs:
         lefthook,
         python-ci,
         rust-ci,
+        check-mischief,
         tools-orc,
         tools-ttyw,
         tools-vinaya,

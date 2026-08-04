@@ -6,7 +6,6 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
-#[cfg(feature = "color")]
 use owo_colors::{OwoColorize, Style};
 use terminal_size::terminal_size;
 
@@ -147,7 +146,7 @@ pub trait ITheme {
 /// enabling color and hyperlink support only when supported by the output
 /// stream.
 #[derive(Debug, Clone)]
-pub struct MischiefTheme {
+struct MischiefTheme {
     /// Style applied to general text.
     pub default_style: Option<Style>,
 

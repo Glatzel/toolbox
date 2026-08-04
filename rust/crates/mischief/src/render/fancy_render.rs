@@ -146,7 +146,7 @@ pub trait ITheme {
 /// enabling color and hyperlink support only when supported by the output
 /// stream.
 #[derive(Debug, Clone)]
-pub struct MischiefTheme {
+struct MischiefTheme {
     /// Style applied to general text.
     pub default_style: Option<Style>,
 
@@ -437,13 +437,7 @@ pub fn render_backtrace(
             }
         }
         _ => {
-            writeln!(
-                f,
-                "{}{}{}",
-                "═".repeat(left),
-                title.bold(),
-                "═".repeat(right),
-            )?;
+            writeln!(f, "{}{}{}", "═".repeat(left), title, "═".repeat(right),)?;
 
             // write frames
             for (idx, frame) in backtrace.frames().iter().enumerate() {

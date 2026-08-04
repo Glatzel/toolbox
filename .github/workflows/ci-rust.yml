@@ -64,7 +64,12 @@ jobs:
           - -p mischief --no-default-features --features macros,backtrace,color,hyperlink,pretty,textwrap
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - parallel:
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        - name: Set up pixi
+          uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
+          with:
+            run-install: false
       - uses: ./.github/actions/rust/cargo-clippy
         with:
           working-directory: ${{env.WORKDIR}}
@@ -78,12 +83,7 @@ jobs:
         machine: [ubuntu-latest]
     runs-on: ${{matrix.machine}}
     steps:
-      - parallel:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - name: Set up pixi
-            uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
-            with:
-              run-install: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly

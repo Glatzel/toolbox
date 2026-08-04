@@ -392,43 +392,80 @@ pub fn render_backtrace(
     backtrace: &backtrace::Backtrace,
     f: &mut fmt::Formatter<'_>,
 ) -> fmt::Result {
-    use owo_colors::CssColors::CadetBlue;
-    // write title
-
     let title = " Backtrace ";
 
     let width = terminal_size().map_or(80, |(terminal_size::Width(w), _)| w as usize);
     let left = (width - title.len()) / 2;
     let right = width - title.len() - left;
 
-    writeln!(
-        f,
-        "{}{}{}",
-        "═".repeat(left).fg::<owo_colors::colors::BrightBlack>(),
-        title.bold(),
-        "═".repeat(right).fg::<owo_colors::colors::BrightBlack>(),
-    )?;
+    let indent = cfg_select!(
+        feature = "pretty" => "╰─",
+        _ => "`-".to_string(),
+    );
 
-    // write frames
-    for (idx, frame) in backtrace.frames().iter().enumerate() {
-        for symbol in frame.symbols() {
-            let name = symbol
-                .name()
-                .map_or_else(|| "<unknown>".into(), |n| n.to_string());
+    cfg_select!(
+        feature = "color" => {
+            use owo_colors::CssColors::CadetBlue;
 
-            writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
+            writeln!(
+                f,
+                "{}{}{}",
+                "═".repeat(left).fg::<owo_colors::colors::BrightBlack>(),
+                title.bold(),
+                "═".repeat(right).fg::<owo_colors::colors::BrightBlack>(),
+            )?;
 
-            if let Some(file) = symbol.filename() {
-                write!(f, "   {} {}", "╰─".color(CadetBlue), file.display())?;
+            // write frames
+            for (idx, frame) in backtrace.frames().iter().enumerate() {
+                for symbol in frame.symbols() {
+                    let name = symbol
+                        .name()
+                        .map_or_else(|| "<unknown>".into(), |n| n.to_string());
 
-                if let Some(line) = symbol.lineno() {
-                    write!(f, ":{line}")?;
+                    writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
+
+                    if let Some(file) = symbol.filename() {
+                        write!(f, "   {} {}", indent.color(CadetBlue), file.display())?;
+
+                        if let Some(line) = symbol.lineno() {
+                            write!(f, ":{line}")?;
+                        }
+
+                        writeln!(f)?;
+                    }
                 }
-
-                writeln!(f)?;
             }
         }
-    }
+        _ => {
+            writeln!(
+                f,
+                "{}{}{}",
+                "═".repeat(left),
+                title.bold(),
+                "═".repeat(right),
+            )?;
 
+            // write frames
+            for (idx, frame) in backtrace.frames().iter().enumerate() {
+                for symbol in frame.symbols() {
+                    let name = symbol
+                        .name()
+                        .map_or_else(|| "<unknown>".into(), |n| n.to_string());
+
+                    writeln!(f, "{:>4}: {}", idx, name)?;
+
+                    if let Some(file) = symbol.filename() {
+                        write!(f, "   {} {}", indent, file.display())?;
+
+                        if let Some(line) = symbol.lineno() {
+                            write!(f, ":{line}")?;
+                        }
+
+                        writeln!(f)?;
+                    }
+                }
+            }
+        }
+    );
     Ok(())
 }

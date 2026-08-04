@@ -16,13 +16,7 @@ jobs:
         options:
           - --workspace --all-features --exclude clerk --exclude mischief
           - -p mischief --no-default-features --features macros
-          - -p mischief --no-default-features --features macros,color
-          - -p mischief --no-default-features --features macros,hyperlink
-          - -p mischief --no-default-features --features macros,pretty
-          - -p mischief --no-default-features --features macros,color,hyperlink
-          - -p mischief --no-default-features --features macros,color,pretty
-          - -p mischief --no-default-features --features macros,hyperlink,pretty
-          - -p mischief --no-default-features --features macros,color,hyperlink,pretty
+          - -p mischief --no-default-features --features fancy
           - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:
@@ -44,6 +38,30 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-rust
+  check-mischief:
+    strategy:
+      fail-fast: false
+      matrix:
+        options:
+          - -p mischief --no-default-features --features macros
+          - -p mischief --no-default-features --features macros,color
+          - -p mischief --no-default-features --features macros,hyperlink
+          - -p mischief --no-default-features --features macros,pretty
+          - -p mischief --no-default-features --features macros,color,hyperlink
+          - -p mischief --no-default-features --features macros,color,pretty
+          - -p mischief --no-default-features --features macros,hyperlink,pretty
+          - -p mischief --no-default-features --features macros,color,hyperlink,pretty
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/rust/setup-rust
+        with:
+          components: clippy
+      - uses: ./.github/actions/rust/cargo-clippy
+        with:
+          working-directory: ${{env.WORKDIR}}
+          options: ${{matrix.options}}
+          args: -D warnings
 
   cargo-miri:
     strategy:

@@ -38,6 +38,7 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-rust
+
   check-mischief:
     strategy:
       fail-fast: false

@@ -108,7 +108,7 @@ jobs:
               run-install: false
       - uses: ./.github/actions/rust/cargo-clippy
         with:
-          working-directory: ${{env.WORKDIR}}
+          working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color
           args: -D warnings
 

@@ -28,6 +28,7 @@ jobs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
+      changed-mischief: ${{ steps.main.outputs.mischief_any_changed }}
 
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
       changed-tools-ttyw: ${{ steps.main.outputs.tools-ttyw_any_changed }}
@@ -77,7 +78,8 @@ jobs:
     uses: ./.github/workflows/ci-rust.yml
 
   check-mischief:
-    if: ${{ needs.changed.outputs.changed-mischief != 'false' }}
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-mischief != 'false' &&  github.event_name != 'push'}}
     strategy:
       fail-fast: false
       matrix:

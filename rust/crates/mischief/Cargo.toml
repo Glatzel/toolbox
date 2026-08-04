@@ -23,17 +23,29 @@ std = []
 color = ["owo-colors", "std"]
 hyperlink = ["owo-colors", "std"]
 pretty = ["owo-colors", "std"]
+
 textwrap = [
-  "textwrap-hyphenation",
-  "textwrap-smawk",
-  "textwrap-unicode-linebreak",
-  "textwrap-unicode-width"
+  "arbor/textwrap",
+  "std",
+  "terminal_size",
 ]
-textwrap-hyphenation = ["arbor/textwrap-hyphenation", "pretty", "std"]
-textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std"]
+textwrap-full = ["arbor/textwrap-full", "std", "terminal_size"]
+textwrap-hyphenation = [
+  "arbor/textwrap-hyphenation",
+  "pretty",
+  "std",
+  "terminal_size"
+]
+textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std", "terminal_size"]
 textwrap-unicode-linebreak = [
   "arbor/textwrap-unicode-linebreak",
   "pretty",
-  "std"
+  "std",
+  "terminal_size"
 ]
-textwrap-unicode-width = ["arbor/textwrap-unicode-width", "pretty", "std"]
+textwrap-unicode-width = [
+  "arbor/textwrap-unicode-width",
+  "pretty",
+  "std",
+  "terminal_size"
+]

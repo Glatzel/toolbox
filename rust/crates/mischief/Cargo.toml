@@ -15,14 +15,14 @@ insta = { workspace = true, features = ["filters"] }
 
 [features]
 default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
-backtrace = ["dep:backtrace", "std"]
-fancy = ["color", "hyperlink", "pretty"]
+backtrace = ["dep:backtrace", "std", "terminal_size"]
+fancy = ["color", "hyperlink", "pretty","textwrap"]
 macros = ["mischief-macros"]
 std = []
 
-color = ["owo-colors", "terminal_size"]
-hyperlink = ["owo-colors", "terminal_size"]
-pretty = ["owo-colors", "std", "terminal_size"]
+color = ["owo-colors", "std"]
+hyperlink = ["owo-colors", "std"]
+pretty = ["owo-colors", "std"]
 textwrap = [
   "textwrap-hyphenation",
   "textwrap-smawk",

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(clerk)** Simplify macro by @Glatzel in [#695](https://github.com/Glatzel/toolbox/pull/695)
 - **(mischief)** More feature control over mischief by @Glatzel in [#696](https://github.com/Glatzel/toolbox/pull/696)
 
+### Fixed
+
+- **(mischief)** Backtrace by @Glatzel in [#701](https://github.com/Glatzel/toolbox/pull/701)
+
 ## [2026.7.27] - 2026-07-29
 
 ### Performance

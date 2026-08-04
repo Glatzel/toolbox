@@ -365,6 +365,7 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
         let render = OwnedRender {
             tree: &tree,
             indent: self.indent.clone(),
+            #[cfg(feature = "textwrap")]
             width: self.width,
         };
 

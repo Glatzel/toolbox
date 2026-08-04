@@ -15,8 +15,14 @@ jobs:
       matrix:
         options:
           - --workspace --all-features --exclude clerk --exclude mischief
-          - -p mischief --no-default-features --features macros,fancy
           - -p mischief --no-default-features --features macros
+          - -p mischief --no-default-features --features macros,color
+          - -p mischief --no-default-features --features macros,hyperlink
+          - -p mischief --no-default-features --features macros,pretty
+          - -p mischief --no-default-features --features macros,color,hyperlink
+          - -p mischief --no-default-features --features macros,color,pretty
+          - -p mischief --no-default-features --features macros,hyperlink,pretty
+          - -p mischief --no-default-features --features macros,color,hyperlink,pretty 
           - -p clerk --features tracing
     runs-on: ubuntu-latest
     steps:

@@ -1,10 +1,10 @@
 use mischief::render::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 
-#[cfg(feature = "fancy")]
+#[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
 struct NoTheme;
 
-#[cfg(feature = "fancy")]
+#[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
 impl ITheme for NoTheme {
     fn default_style(&self) -> Option<&owo_colors::Style> { None }
     fn description_style(&self) -> Option<&owo_colors::Style> { None }
@@ -19,7 +19,7 @@ impl ITheme for NoTheme {
     }
 }
 
-#[cfg(not(feature = "fancy"))]
+#[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
 fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
     println!("{}", report);
     insta::assert_snapshot!(name, format!("{}", report));
@@ -43,7 +43,7 @@ fn report_error() {
     match result {
         Ok(_) => unreachable!(),
         Err(report) => {
-            #[cfg(feature = "fancy")]
+            #[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
             {
                 let bundle = RenderBundle {
                     diagnosis: report.error(),
@@ -53,7 +53,7 @@ fn report_error() {
                 };
                 insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
             {
                 println!("{}", report);
                 insta::assert_snapshot!(("report_error_no_fancy"), format!("{}", report))
@@ -85,7 +85,7 @@ fn report_error_long() {
     match result {
         Ok(_) => unreachable!(),
         Err(report) => {
-            #[cfg(feature = "fancy")]
+            #[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
             {
                 let bundle = RenderBundle {
                     diagnosis: report.error(),
@@ -95,7 +95,7 @@ fn report_error_long() {
                 };
                 insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
             {
                 println!("{}", report);
                 insta::assert_snapshot!(("report_error_long_no_fancy"), format!("{}", report))
@@ -131,7 +131,7 @@ fn report_from_error() -> mischief::Result<()> {
                 };
                 insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
             {
                 println!("{}", report);
                 insta::assert_snapshot!(("report_from_error_no_fancy"), format!("{}", report))

@@ -452,7 +452,7 @@ pub fn render_backtrace(
                         .name()
                         .map_or_else(|| "<unknown>".into(), |n| n.to_string());
 
-                    writeln!(f, "{:>4}: {}", idx.color(CadetBlue), name.color(CadetBlue))?;
+                    writeln!(f, "{:>4}: {}", idx, name)?;
 
                     if let Some(file) = symbol.filename() {
                         write!(f, "   {} {}", indent, file.display())?;

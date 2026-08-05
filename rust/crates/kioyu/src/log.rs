@@ -154,7 +154,7 @@ where
 /// let log_root = tempdir().unwrap();
 /// clerk::tracing_subscriber::registry()
 ///     .with(
-///         kioyu::kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+///         kioyu::kioyu_layers::<tracing_subscriber::Registry, _>(log_root.path())
 ///             .unwrap()
 ///             .with_filter(LevelFilter::TRACE),
 ///     )

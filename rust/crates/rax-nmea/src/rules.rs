@@ -37,11 +37,11 @@ pub const UNTIL_NEW_LINE_DISCARD: UntilChar<'\n'> = UntilChar {
     mode: UntilMode::Discard,
 };
 
-pub const UNTIL_COMMA_OR_STAR_DISCARD: UntilOneInCharSet<2> = UntilOneInCharSet {
+pub const UNTIL_COMMA_OR_STAR_DISCARD: UntilOneInCharSet<'_, 2> = UntilOneInCharSet {
     filter: &CharSetFilter::new([',', '*']),
     mode: UntilMode::Discard,
 };
-pub const UNTIL_COMMA_OR_STAR_KEEP_RIGHT: UntilOneInCharSet<2> = UntilOneInCharSet {
+pub const UNTIL_COMMA_OR_STAR_KEEP_RIGHT: UntilOneInCharSet<'_, 2> = UntilOneInCharSet {
     filter: &CharSetFilter::new([',', '*']),
     mode: UntilMode::KeepInRest,
 };

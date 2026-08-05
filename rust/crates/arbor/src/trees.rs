@@ -77,7 +77,10 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Appends a child node.
     ///
     /// Returns the node itself to support method chaining.
-    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
+    pub fn push<T>(&mut self, leaf: T) -> &mut Self
+    where
+        T: Into<Self>,
+    {
         self.leaves.push(leaf.into());
         self
     }

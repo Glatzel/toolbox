@@ -42,7 +42,7 @@ pub struct Grs {
     signal_id: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Grs {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

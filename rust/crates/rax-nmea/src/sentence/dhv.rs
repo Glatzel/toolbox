@@ -27,7 +27,7 @@ pub struct Dhv {
     gdspd: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Dhv {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let speed3d = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let speed_x = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

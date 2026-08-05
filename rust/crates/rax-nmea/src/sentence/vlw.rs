@@ -24,7 +24,7 @@ pub struct Vlw {
 }
 
 impl IDecode<RaxNmeaError> for Vlw {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let twd = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

@@ -1,5 +1,4 @@
 use std::sync::OnceLock;
-use std;
 
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;

@@ -41,7 +41,7 @@ pub struct Dtm {
     alt: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Dtm {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let datum = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

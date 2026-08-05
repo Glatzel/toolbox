@@ -17,7 +17,7 @@ pub struct Ths {
     mi: Option<FaaMode>,
 }
 impl IDecode<RaxNmeaError> for Ths {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let headt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

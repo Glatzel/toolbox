@@ -16,7 +16,7 @@ pub struct Glq {
     msg_id: Option<String>,
 }
 impl IDecode<RaxNmeaError> for Glq {
-    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(ctx: &mut Decoder<'_>v) -> Result<Self, RaxNmeaError> {
         let msg_id = ctx
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?

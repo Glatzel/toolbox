@@ -28,7 +28,7 @@ pub struct Zda {
 }
 
 impl IDecode<RaxNmeaError> for Zda {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let day = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let month = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

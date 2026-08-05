@@ -59,7 +59,7 @@ pub struct Gsa {
 }
 
 impl IDecode<RaxNmeaError> for Gsa {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

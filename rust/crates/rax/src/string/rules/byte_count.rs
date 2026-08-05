@@ -1,4 +1,3 @@
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::rules::IRule;

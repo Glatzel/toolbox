@@ -1,4 +1,3 @@
-
 use rax::error::RuleError;
 use rax::string::{IGlobalRule, IRule};
 

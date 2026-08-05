@@ -1,4 +1,3 @@
-
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 

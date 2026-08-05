@@ -1,4 +1,3 @@
-
 use core::fmt::{Debug, Display};
 
 /// Trait representing structured diagnosis information.

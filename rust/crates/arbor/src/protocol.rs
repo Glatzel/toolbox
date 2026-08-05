@@ -1,4 +1,3 @@
-
 /// Represents the vertical position of a node relative to its parent
 /// in a hierarchical tree layout.
 ///

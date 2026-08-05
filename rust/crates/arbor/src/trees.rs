@@ -188,7 +188,7 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     }
 
     /// Appends a child node.
-    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
+    pub fn push<T: Into<Self>>(&mut self, leaf: T) -> &mut Self {
         self.leaves.push(leaf.into());
         self
     }

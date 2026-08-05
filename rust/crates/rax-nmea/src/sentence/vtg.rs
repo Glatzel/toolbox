@@ -1,6 +1,5 @@
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
-extern crate alloc;
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;

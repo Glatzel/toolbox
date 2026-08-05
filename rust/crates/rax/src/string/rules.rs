@@ -1,4 +1,3 @@
-extern crate alloc;
 use core::fmt::Debug;
 
 mod byte_count;

@@ -1,4 +1,4 @@
-extern crate std;
+use std;
 
 use std::path::Path;
 

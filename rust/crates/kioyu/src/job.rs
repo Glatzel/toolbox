@@ -42,7 +42,7 @@ impl<P> Job<P> {
         resources: ResourceRequest,
         max_retries: usize,
     ) -> Self {
-        let name = name.into();
+        let name = name.as_ref().into();
         let id = Uuid::new_v4();
         clerk::debug!(
             "created job '{}' (id={}) with {} resource(s)",

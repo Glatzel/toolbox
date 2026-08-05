@@ -84,7 +84,7 @@ where
             span.extensions_mut().insert(JobId(job_id, job_name));
         }
     }
-    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::unwrap_used, reason = "Can't do error handling in a layer.")]
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
             core::iter::successors(

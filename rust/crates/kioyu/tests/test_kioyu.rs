@@ -128,7 +128,7 @@ async fn run_dispatcher_test(mode: DispatcherMode, snapshot_name: &str) -> misch
 
     clerk::tracing_subscriber::registry()
         .with(
-            kioyu_layers::<tracing_subscriber::Registry>(log_root.path())
+            kioyu_layers::<tracing_subscriber::Registry, _>(log_root.path())
                 .into_mischief()?
                 .with_filter(LevelFilter::TRACE),
         )

@@ -36,8 +36,8 @@ pub struct Job<P> {
 }
 
 impl<P> Job<P> {
-    pub fn new(
-        name: impl Into<String>,
+    pub fn new<N: AsRef<str>>(
+        name: N,
         payload: P,
         resources: ResourceRequest,
         max_retries: usize,

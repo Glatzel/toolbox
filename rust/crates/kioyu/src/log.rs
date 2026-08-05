@@ -54,7 +54,7 @@ struct JobFileLayer {
 }
 
 impl JobFileLayer {
-    pub fn new(jobs_dir: impl Into<PathBuf>) -> Self {
+    pub fn new<T: Into<PathBuf>>(jobs_dir: T) -> Self {
         Self {
             jobs_dir: jobs_dir.into(),
             handles: Mutex::new(HashMap::new()),

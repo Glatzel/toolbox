@@ -266,7 +266,7 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
     /// The output may include severity labels, error codes, hyperlinks,
     /// descriptions, and optional help messages depending on the
     /// metadata provided by the diagnosis.
-    pub fn render(&self, diagnosis: &dyn IDiagnosis, theme: &impl ITheme) -> String {
+    pub fn render(&self, diagnosis: &dyn IDiagnosis, theme: &T) -> String {
         use core::fmt::Write;
 
         let mut buffer = String::new();

@@ -174,7 +174,7 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Attaches a collection of child nodes.
     ///
     /// Each element must be convertible into `StyledOwnedTree<D, I>`.
-    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
+    pub fn with_leaves<T: Into<Self>>(mut self, leaves: impl IntoIterator<Item = T>) -> Self {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }

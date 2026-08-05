@@ -66,7 +66,11 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Each element must be convertible into `OwnedTree<D>`.
     /// This method follows a builder-style pattern and returns
     /// the modified node.
-    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
+    pub fn with_leaves<L, T>(mut self, leaves: L) -> Self
+    where
+        L: IntoIterator<Item = T>,
+        T: Into<Self>,
+    {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -74,7 +78,10 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Appends a child node.
     ///
     /// Returns the node itself to support method chaining.
-    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
+    pub fn push<T>(&mut self, leaf: T) -> &mut Self
+    where
+        T: Into<Self>,
+    {
         self.leaves.push(leaf.into());
         self
     }
@@ -171,7 +178,11 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     /// Attaches a collection of child nodes.
     ///
     /// Each element must be convertible into `StyledOwnedTree<D, I>`.
-    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
+    pub fn with_leaves<L, T>(mut self, leaves: L) -> Self
+    where
+        L: IntoIterator<Item = T>,
+        T: Into<Self>,
+    {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }
@@ -185,7 +196,10 @@ impl<D: AsRef<str>, I: IIndent + Clone> StyledOwnedTree<D, I> {
     }
 
     /// Appends a child node.
-    pub fn push(&mut self, leaf: impl Into<Self>) -> &mut Self {
+    pub fn push<T>(&mut self, leaf: T) -> &mut Self
+    where
+        T: Into<Self>,
+    {
         self.leaves.push(leaf.into());
         self
     }

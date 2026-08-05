@@ -1,5 +1,3 @@
-extern crate alloc;
-
 use super::IStrFlowRule;
 use crate::error::RuleError;
 use crate::string::IRule;

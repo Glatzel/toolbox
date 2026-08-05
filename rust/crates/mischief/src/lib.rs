@@ -128,7 +128,7 @@
 //!     Ok(())
 //! }
 //! ```
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, reason = "This crate is for error handling.")]
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]

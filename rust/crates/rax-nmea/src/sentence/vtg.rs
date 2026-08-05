@@ -1,6 +1,5 @@
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
-extern crate alloc;
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -27,7 +26,7 @@ pub struct Vtg {
 }
 
 impl IDecode<RaxNmeaError> for Vtg {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let cogt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

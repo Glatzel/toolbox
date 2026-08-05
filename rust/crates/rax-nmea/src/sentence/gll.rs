@@ -27,7 +27,7 @@ pub struct Gll {
     pos_mode: Option<FaaMode>,
 }
 impl IDecode<RaxNmeaError> for Gll {
-    fn decode(ctx: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(ctx: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");

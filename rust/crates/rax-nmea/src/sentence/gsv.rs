@@ -41,7 +41,7 @@ pub struct Gsv {
     signal_id: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Gsv {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
@@ -104,7 +104,7 @@ impl IDecode<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    fn parse_satellite(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -112,7 +112,7 @@ impl Gsv {
             cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
-    fn parse_satellite_last(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite_last(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,

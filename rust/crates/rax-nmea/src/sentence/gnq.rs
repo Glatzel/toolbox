@@ -16,7 +16,7 @@ pub struct Gnq {
     msg_id: Option<String>,
 }
 impl IDecode<RaxNmeaError> for Gnq {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?

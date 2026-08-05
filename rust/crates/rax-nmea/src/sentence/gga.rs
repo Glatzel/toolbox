@@ -1,5 +1,3 @@
-extern crate alloc;
-
 use derive_getters::Getters;
 use rax::string::{Decoder, IDecode};
 
@@ -74,7 +72,7 @@ pub struct Gga {
     diff_station: Option<u16>,
 }
 impl IDecode<RaxNmeaError> for Gga {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");

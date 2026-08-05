@@ -54,7 +54,10 @@ struct JobFileLayer {
 }
 
 impl JobFileLayer {
-    pub fn new(jobs_dir: impl Into<PathBuf>) -> Self {
+    pub fn new<T>(jobs_dir: T) -> Self
+    where
+        T: Into<PathBuf>,
+    {
         Self {
             jobs_dir: jobs_dir.into(),
             handles: Mutex::new(HashMap::new()),
@@ -84,7 +87,7 @@ where
             span.extensions_mut().insert(JobId(job_id, job_name));
         }
     }
-    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::unwrap_used, reason = "Can't do error handling in a layer.")]
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
         let job_span = ctx.lookup_current().and_then(|span| {
             core::iter::successors(
@@ -162,11 +165,10 @@ where
 ///     )
 ///     .init();
 /// ```
-pub fn kioyu_layers<S>(
-    log_root: impl AsRef<std::path::Path>,
-) -> Result<Vec<Box<dyn Layer<S> + Send + Sync>>, KioyuError>
+pub fn kioyu_layers<S, R>(log_root: R) -> Result<Vec<Box<dyn Layer<S> + Send + Sync>>, KioyuError>
 where
     S: Subscriber + for<'a> LookupSpan<'a> + Send + Sync,
+    R: AsRef<std::path::Path>,
 {
     let run_dir = log_root
         .as_ref()

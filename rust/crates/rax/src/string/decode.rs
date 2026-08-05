@@ -1,4 +1,3 @@
-extern crate alloc;
 use core::fmt::Debug;
 
 use crate::error::VerbError;
@@ -10,7 +9,7 @@ pub enum Verb {
     Global,
 }
 pub trait IDecode<E>: Sized {
-    fn decode(parser: &mut Decoder) -> Result<Self, E>;
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, E>;
 }
 /// Maintains parsing state for string-based parsers.
 ///

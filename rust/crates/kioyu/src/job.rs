@@ -36,13 +36,11 @@ pub struct Job<P> {
 }
 
 impl<P> Job<P> {
-    pub fn new(
-        name: impl Into<String>,
-        payload: P,
-        resources: ResourceRequest,
-        max_retries: usize,
-    ) -> Self {
-        let name = name.into();
+    pub fn new<N>(name: N, payload: P, resources: ResourceRequest, max_retries: usize) -> Self
+    where
+        N: AsRef<str>,
+    {
+        let name = name.as_ref().into();
         let id = Uuid::new_v4();
         clerk::debug!(
             "created job '{}' (id={}) with {} resource(s)",

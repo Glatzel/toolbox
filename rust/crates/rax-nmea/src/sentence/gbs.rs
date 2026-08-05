@@ -50,7 +50,7 @@ pub struct Gbs {
 }
 
 impl IDecode<RaxNmeaError> for Gbs {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let err_lat = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
         let _ = parser.skip(&UNTIL_M_DISCARD);

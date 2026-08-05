@@ -1,5 +1,4 @@
 use crate::string::filters::IFilter;
-extern crate alloc;
 
 /// A fixed, sorted set of characters for efficient membership testing.
 ///

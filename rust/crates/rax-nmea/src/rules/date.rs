@@ -1,5 +1,3 @@
-extern crate alloc;
-
 use core::fmt::Debug;
 
 use chrono::NaiveDate;

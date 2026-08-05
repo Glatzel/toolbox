@@ -33,7 +33,7 @@ pub struct Gst {
     std_alt: Option<f64>,
 }
 impl IDecode<RaxNmeaError> for Gst {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let std_major = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

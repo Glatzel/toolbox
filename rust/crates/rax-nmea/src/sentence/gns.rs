@@ -59,7 +59,7 @@ pub struct Gns {
 }
 
 impl IDecode<RaxNmeaError> for Gns {
-    fn decode(parser: &mut Decoder) -> Result<Self, RaxNmeaError> {
+    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");

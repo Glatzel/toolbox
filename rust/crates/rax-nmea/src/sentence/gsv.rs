@@ -104,7 +104,7 @@ impl IDecode<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    fn parse_satellite(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -112,7 +112,7 @@ impl Gsv {
             cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
-    fn parse_satellite_last(ctx: &mut Decoder) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite_last(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,

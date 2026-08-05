@@ -19,7 +19,7 @@ struct MischiefErrorInput {
 }
 
 impl Parse for MischiefErrorInput {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
         // The first argument must always be a string literal for the description.
         let description_lit = input.parse()?;
         let mut description_args = Punctuated::new();

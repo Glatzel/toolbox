@@ -66,7 +66,10 @@ impl<D: AsRef<str>> OwnedTree<D> {
     /// Each element must be convertible into `OwnedTree<D>`.
     /// This method follows a builder-style pattern and returns
     /// the modified node.
-    pub fn with_leaves(mut self, leaves: impl IntoIterator<Item = impl Into<Self>>) -> Self {
+    pub fn with_leaves<T>(mut self, leaves: impl IntoIterator<Item = T>) -> Self
+    where
+        T: Into<Self>,
+    {
         self.leaves = leaves.into_iter().map(Into::into).collect();
         self
     }

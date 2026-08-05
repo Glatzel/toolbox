@@ -162,8 +162,8 @@ where
 ///     )
 ///     .init();
 /// ```
-pub fn kioyu_layers<S>(
-    log_root: impl AsRef<std::path::Path>,
+pub fn kioyu_layers<S, R: AsRef<std::path::Path>>(
+    log_root: R
 ) -> Result<Vec<Box<dyn Layer<S> + Send + Sync>>, KioyuError>
 where
     S: Subscriber + for<'a> LookupSpan<'a> + Send + Sync,

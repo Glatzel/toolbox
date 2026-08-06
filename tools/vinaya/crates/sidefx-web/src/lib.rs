@@ -173,7 +173,7 @@ impl SideFXWeb {
             (Some(major), Some(minor)) => {
                 format!("{major}.{minor}")
             }
-            _ => "".to_string(),
+            _ => String::new(),
         };
         let data = json!([
             "license.get_non_commercial_license",

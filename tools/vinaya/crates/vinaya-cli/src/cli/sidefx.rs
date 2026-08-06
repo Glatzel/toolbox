@@ -146,8 +146,8 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                 .get_non_commercial_license(
                     &server_name,
                     &server_code,
-                    major.map(|v| v.value()),
-                    minor.map(|v| v.value()),
+                    major.map(super::common_arg::ArgMajor::value),
+                    minor.map(super::common_arg::ArgMinor::value),
                     &products,
                 )
                 .await?

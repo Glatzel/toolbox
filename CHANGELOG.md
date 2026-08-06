@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2026.8.4] - 2026-08-05
+## [2026.8.4] - 2026-08-06
 
 ### Changed
 
@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **(mischief)** Backtrace by @Glatzel in [#701](https://github.com/Glatzel/toolbox/pull/701)
 - **(mischief)** Color by @Glatzel in [#704](https://github.com/Glatzel/toolbox/pull/704)
+- Vinaya sidefx web api by @Glatzel in [#712](https://github.com/Glatzel/toolbox/pull/712)
 
 ## [2026.7.27] - 2026-07-29
 

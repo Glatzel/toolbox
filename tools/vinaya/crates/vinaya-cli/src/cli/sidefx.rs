@@ -24,7 +24,7 @@ pub struct Args {
     #[command(subcommand)]
     pub command: Commands,
 }
-#[derive(Debug, Subcommand)]
+#[derive(Debug, Subcommand, Clone)]
 pub enum Commands {
     #[command(name = "download.get-daily-builds-list")]
     DownloadGetDailyBuildsList {
@@ -51,6 +51,19 @@ pub enum Commands {
         build: HoudiniBuildVersion,
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         platform: HoudiniPlatform,
+    },
+    #[command(name = "license.get_non_commercial_license")]
+    GetNonCommercialLicense {
+        #[arg(long)]
+        server_name: String,
+        #[arg(long)]
+        server_code: String,
+        #[command(flatten)]
+        major: Option<ArgMajor>,
+        #[command(flatten)]
+        minor: Option<ArgMinor>,
+        #[arg(long)]
+        products: String,
     },
 }
 
@@ -87,7 +100,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
     )
     .await?;
 
-    match args.command {
+    let response = match args.command.clone() {
         Commands::DownloadGetDailyBuildsList {
             product,
             major,
@@ -95,15 +108,15 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
             platform,
             all_build,
         } => {
-            command_download_get_daily_builds_list(
-                &sidefx_web,
-                product,
-                major.value(),
-                minor.value(),
-                platform,
-                all_build,
-            )
-            .await
+            sidefx_web
+                .download_get_daily_builds_list(
+                    product,
+                    major.value(),
+                    minor.value(),
+                    platform,
+                    all_build,
+                )
+                .await?
         }
         Commands::DownloadGetDailyBuildDownload {
             product,
@@ -112,44 +125,34 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
             build,
             platform,
         } => {
-            command_download_get_daily_build_download(
-                &sidefx_web,
-                product,
-                major.value(),
-                minor.value(),
-                build,
-                &platform,
-            )
-            .await
+            sidefx_web
+                .download_get_daily_build_download(
+                    product,
+                    major.value(),
+                    minor.value(),
+                    build,
+                    &platform,
+                )
+                .await?
         }
-    }?;
-    Ok(())
-}
-async fn command_download_get_daily_builds_list(
-    sidefx_web: &SideFXWeb,
-    product: HoudiniProduct,
-    major: u16,
-    minor: u16,
-    platform: HoudiniPlatform,
-    all_build: bool,
-) -> mischief::Result<()> {
-    let response = sidefx_web
-        .download_get_daily_builds_list(product, major, minor, platform, !all_build)
-        .await?;
-    println!("{}", response.text().await?);
-    Ok(())
-}
-async fn command_download_get_daily_build_download(
-    sidefx_web: &SideFXWeb,
-    product: HoudiniProduct,
-    major: u16,
-    minor: u16,
-    build: HoudiniBuildVersion,
-    platform: &HoudiniPlatform,
-) -> mischief::Result<()> {
-    let response = sidefx_web
-        .download_get_daily_build_download(product, major, minor, build, platform)
-        .await?;
+        Commands::GetNonCommercialLicense {
+            server_name,
+            server_code,
+            major,
+            minor,
+            products,
+        } => {
+            sidefx_web
+                .get_non_commercial_license(
+                    &server_name,
+                    &server_code,
+                    major.map(|v| v.value()),
+                    minor.map(|v| v.value()),
+                    &products,
+                )
+                .await?
+        }
+    };
     println!("{}", response.text().await?);
     Ok(())
 }

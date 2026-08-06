@@ -10,7 +10,7 @@ edition = "2024"
 clap-style = { path = "../../rust/crates/clap-style" }
 clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 hou-where = { path = "./crates/hou-where" }
-mischief = { path = "../../rust/crates/mischief", features = ["fancy"] }
+mischief = { path = "../../rust/crates/mischief" }
 sidefx-web = { path = "./crates/sidefx-web" }
 
 base64 = "0.23.0"

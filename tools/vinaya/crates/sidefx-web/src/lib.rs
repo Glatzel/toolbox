@@ -150,7 +150,7 @@ impl SideFXWeb {
             )
             .body(format!("json={data}"))
             .header(
-                reqwest::header::HeaderName::from_static("Authorization"),
+                reqwest::header::AUTHORIZATION,
                 reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
             )
             .send()

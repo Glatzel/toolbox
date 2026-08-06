@@ -161,4 +161,47 @@ impl SideFXWeb {
             .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
+    pub async fn get_non_commercial_license(
+        &self,
+        server_name: &str,
+        server_code: &str,
+        major: Option<u16>,
+        minor: Option<u16>,
+        products: &str,
+    ) -> mischief::Result<reqwest::Response> {
+        let version = match (major, minor) {
+            (Some(major), Some(minor)) => {
+                format!("{major}.{minor}")
+            }
+            _ => String::new(),
+        };
+        let data = json!([
+            "license.get_non_commercial_license",
+            [
+                server_name,
+                server_code,
+                products
+            ],
+            {"version": version}
+        ]);
+        let response = self
+            .client
+            .post(self.api_url.as_str())
+            .header(
+                reqwest::header::CONTENT_TYPE,
+                reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
+            )
+            .body(format!("json={data}"))
+            .header(
+                reqwest::header::AUTHORIZATION,
+                reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
+            )
+            .send()
+            .await
+            .into_mischief()?
+            .error_for_status()
+            .into_mischief()
+            .wrap_err_with(|| mischief!("Fail to get non_commercial_license."))?;
+        Ok(response)
+    }
 }

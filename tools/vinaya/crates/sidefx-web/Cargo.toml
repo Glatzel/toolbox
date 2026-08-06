@@ -11,7 +11,6 @@ reqwest-middleware.workspace = true
 reqwest-retry.workspace = true
 serde_json.workspace = true
 strum.workspace = true
-clerk.workspace = true
 
 [dev-dependencies]
 rstest.workspace = true

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(clerk)** Simplify macro by @Glatzel in [#695](https://github.com/Glatzel/toolbox/pull/695)
 - **(mischief)** More feature control over mischief by @Glatzel in [#696](https://github.com/Glatzel/toolbox/pull/696)
 - **(mischief)** Split textwrap feature by @Glatzel in [#705](https://github.com/Glatzel/toolbox/pull/705)
+- Get license by @Glatzel in [#716](https://github.com/Glatzel/toolbox/pull/716)
 
 ### Fixed
 

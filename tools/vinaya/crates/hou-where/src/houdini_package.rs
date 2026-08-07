@@ -3,15 +3,13 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use glob::glob;
+use hou_variable::HoudiniVersion;
 use mischief::{IntoMischief, WrapErr};
 use path_slash::PathExt;
 use serde_json::{Value, json};
 use validator::Validate;
 
-use crate::{
-    HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
-    HoudiniPreference,
-};
+use crate::HoudiniPreference;
 
 #[derive(Debug, Clone)]
 pub struct HoudiniPackage {
@@ -62,10 +60,7 @@ impl HoudiniPackage {
 
 #[derive(Debug, Clone, Validate)]
 pub struct HoudiniPackageManager {
-    #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
-    pub major: u16,
-    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
-    pub minor: u16,
+    pub version: HoudiniVersion,
     pub package_dir: PathBuf,
     pub packages: Vec<HoudiniPackage>,
 }
@@ -87,8 +82,7 @@ impl HoudiniPackageManager {
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
         let manager: Self = Self {
-            major: houdini_preference.major,
-            minor: houdini_preference.minor,
+            version: houdini_preference.version,
             package_dir,
             packages,
         };
@@ -103,7 +97,7 @@ impl HoudiniPackageManager {
         }
         Ok(self)
     }
-    pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
+    pub fn from_version(major: u8, minor: u8) -> mischief::Result<Self> {
         let pref = HoudiniPreference::from_version(major, minor)?;
         let manager = Self::from_houdini_preference(&pref)?;
         Ok(manager)
@@ -144,8 +138,11 @@ mod tests {
         .unwrap();
 
         HoudiniPreference {
-            major: 20,
-            minor: 5,
+            version: HoudiniVersion {
+                major: 20,
+                minor: 5,
+                patch: None,
+            },
             directory: pref_dir,
         }
     }
@@ -156,8 +153,8 @@ mod tests {
         let pref = setup_fake_pref(&tmp);
         let manager = HoudiniPackageManager::from_houdini_preference(&pref).unwrap();
 
-        assert_eq!(manager.major, 20);
-        assert_eq!(manager.minor, 5);
+        assert_eq!(manager.version.major, 20);
+        assert_eq!(manager.version.minor, 5);
         assert_eq!(manager.packages.len(), 2);
 
         let mypackage = manager

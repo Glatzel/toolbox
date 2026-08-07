@@ -1,17 +1,13 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
+use hou_variable::HoudiniVersion;
 use path_slash::PathExt;
 use validator::Validate;
 
-use crate::{HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX};
-
 #[derive(Debug, Clone, Validate)]
 pub struct HoudiniPreference {
-    #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
-    pub major: u16,
-    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
-    pub minor: u16,
+    pub version: HoudiniVersion,
     pub directory: PathBuf,
 }
 impl HoudiniPreference {
@@ -32,15 +28,18 @@ impl HoudiniPreference {
             _ => Ok(home),
         }
     }
-    pub fn from_version(major: u16, minor: u16) -> mischief::Result<Self> {
+    pub fn from_version(major: u8, minor: u8) -> mischief::Result<Self> {
         if let Ok(val) = env::var("HOUDINI_USER_PREF_DIR") {
             let pref_dir: PathBuf = Path::new(&val)
                 .parent()
                 .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
                 .join(format!("houdini{major}.{minor}"));
             let perf = Self {
-                major,
-                minor,
+                version: HoudiniVersion {
+                    major,
+                    minor,
+                    patch: None,
+                },
                 directory: pref_dir,
             };
             Ok(perf)
@@ -48,8 +47,11 @@ impl HoudiniPreference {
             let pref_dir: PathBuf =
                 Self::preference_root()?.join(format!("houdini{major}.{minor}"));
             let perf: Self = Self {
-                major,
-                minor,
+                version: HoudiniVersion {
+                    major,
+                    minor,
+                    patch: None,
+                },
                 directory: pref_dir,
             };
             Ok(perf)

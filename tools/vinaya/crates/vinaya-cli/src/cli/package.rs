@@ -45,9 +45,12 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
 fn print_packages(manager: &HoudiniPackageManager) {
     println!(
         "{}",
-        format!("Houdini Packages {}.{}", manager.major, manager.minor)
-            .color(owo_colors::DynColors::Rgb(255, 102, 0))
-            .bold()
+        format!(
+            "Houdini Packages {}.{}",
+            manager.version.major, manager.version.minor
+        )
+        .color(owo_colors::DynColors::Rgb(255, 102, 0))
+        .bold()
     );
     //print table
     let mut table = Table::new();

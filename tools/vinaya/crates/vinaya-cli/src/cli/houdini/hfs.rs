@@ -1,10 +1,9 @@
 use clap::{Parser, Subcommand};
+use hou_variable::HoudiniVersion;
 use hou_where::HoudiniInstance;
-use mischief::IntoMischief;
 use path_slash::PathBufExt;
-use validator::Validate;
 
-use crate::cli::{ArgMajor, ArgMinor, ArgNoCheck, ArgPatch};
+use crate::cli::{ArgMajor, ArgMinor, ArgPatch};
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]
@@ -19,80 +18,26 @@ pub enum Commands {
         minor: ArgMinor,
         #[command(flatten)]
         patch: ArgPatch,
-        #[command(flatten)]
-        no_check: ArgNoCheck,
     },
     FromVersionString {
         version_string: String,
-        #[arg(long)]
-        no_check: bool,
     },
-    Latest {},
+    Latest,
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
-    match &args.command {
+    let instance = match &args.command {
         Commands::FromVersion {
             major,
             minor,
             patch,
-            no_check,
-        } => command_from_version(
-            major.value(),
-            minor.value(),
-            patch.value(),
-            !no_check.value(),
-        )?,
-        Commands::FromVersionString {
-            version_string,
-            no_check,
-        } => command_from_version_string(version_string.as_str(), !no_check)?,
-        Commands::Latest {} => command_latest()?,
-    }
-    Ok(())
-}
-fn command_from_version(
-    major: u16,
-    minor: u16,
-    patch: u16,
-    check_installed: bool,
-) -> mischief::Result<()> {
-    let instance = HoudiniInstance {
-        major,
-        minor,
-        patch,
+        } => HoudiniInstance {
+            version: HoudiniVersion::new(major.value(), minor.value(), Some(patch.value())),
+        },
+        Commands::FromVersionString { version_string } => {
+            HoudiniInstance::from_version_string(version_string)?
+        }
+        Commands::Latest => HoudiniInstance::latest_installed_version()?,
     };
-    instance.validate().into_mischief()?;
-    if check_installed && !instance.installed() {
-        mischief::bail!(
-            "Houdini {}.{}.{} is not installed.",
-            instance.major,
-            instance.minor,
-            instance.patch
-        )
-    }
-    println!("{}", instance.hfs().to_slash_lossy());
-    Ok(())
-}
-fn command_from_version_string(
-    version_string: &str,
-    check_installed: bool,
-) -> mischief::Result<()> {
-    let instance = HoudiniInstance::from_version_string(version_string)?;
-    instance.validate().into_mischief()?;
-    if check_installed && !instance.installed() {
-        mischief::bail!(
-            "Houdini {}.{}.{} is not installed.",
-            instance.major,
-            instance.minor,
-            instance.patch
-        )
-    }
-    println!("{}", instance.hfs().to_slash_lossy());
-    Ok(())
-}
-fn command_latest() -> mischief::Result<()> {
-    let instance = HoudiniInstance::latest_installed_version()?;
-
-    println!("{}", instance.hfs().to_slash_lossy());
+    println!("{}", instance.hfs()?.to_slash_lossy());
     Ok(())
 }

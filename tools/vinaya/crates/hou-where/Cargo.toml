@@ -7,9 +7,9 @@ edition.workspace = true
 clerk.workspace = true
 dirs.workspace = true
 glob.workspace = true
+hou-variable.workspace = true
 mischief.workspace = true
 path-slash.workspace = true
-regex.workspace = true
 serde_json.workspace = true
 validator.workspace = true
 

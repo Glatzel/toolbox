@@ -742,15 +742,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
+name = "hou-variable"
+version = "2026.8.4"
+dependencies = [
+ "mischief",
+ "rstest",
+ "strum",
+ "validator",
+]
+
+[[package]]
 name = "hou-where"
 version = "2026.8.4"
 dependencies = [
  "clerk",
  "dirs",
  "glob",
+ "hou-variable",
  "mischief",
  "path-slash",
- "regex",
  "serde_json",
  "tempfile",
  "validator",
@@ -1968,13 +1978,12 @@ name = "sidefx-web"
 version = "2026.8.4"
 dependencies = [
  "base64 0.23.1",
+ "hou-variable",
  "mischief",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
- "rstest",
  "serde_json",
- "strum",
 ]
 
 [[package]]
@@ -2503,13 +2512,13 @@ dependencies = [
  "clerk",
  "comfy-table",
  "dialoguer",
+ "hou-variable",
  "hou-where",
  "mischief",
  "owo-colors",
  "path-slash",
  "sidefx-web",
  "tokio",
- "validator",
 ]
 
 [[package]]

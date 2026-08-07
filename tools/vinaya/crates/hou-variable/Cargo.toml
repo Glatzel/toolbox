@@ -1,0 +1,12 @@
+[package]
+name = "hou-variable"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mischief.workspace = true
+strum.workspace = true
+validator.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true

@@ -1,23 +1,13 @@
 use std::path::{Path, PathBuf};
 
 use glob::glob;
+use hou_variable::HoudiniVersion;
 use mischief::{IntoMischief, mischief};
-use regex::Regex;
 use validator::Validate;
-
-use crate::{
-    HOUDINI_VERSION_MAJOR_MAX, HOUDINI_VERSION_MAJOR_MIN, HOUDINI_VERSION_MINOR_MAX,
-    HOUDINI_VERSION_PATCH_MAX,
-};
 
 #[derive(Debug, Clone, Copy, Validate)]
 pub struct HoudiniInstance {
-    #[validate(range(min=HOUDINI_VERSION_MAJOR_MIN,max=HOUDINI_VERSION_MAJOR_MAX))]
-    pub major: u16,
-    #[validate(range(max=HOUDINI_VERSION_MINOR_MAX))]
-    pub minor: u16,
-    #[validate(range(max=HOUDINI_VERSION_PATCH_MAX))]
-    pub patch: u16,
+    pub version: HoudiniVersion,
 }
 
 impl HoudiniInstance {
@@ -28,16 +18,21 @@ impl HoudiniInstance {
             target_os = "linux" => "/opt",
         };
 
-    fn dir_name(major: u16, minor: u16, patch: u16) -> String {
-        cfg_select! {
-            target_os = "windows" => {
-                format!("Houdini {major}.{minor}.{patch}")
-            }
-            target_os = "macos" => {
-                format!("Houdini{major}.{minor}.{patch}")
+    fn dir_name(version: &HoudiniVersion) -> mischief::Result<String> {
+        match *version {
+            HoudiniVersion {
+                major,
+                minor,
+                patch: Some(patch),
+            } => {
+                cfg_select! {
+                    target_os = "windows" => Ok(format!("Houdini {major}.{minor}.{patch}")),
+                    target_os = "macos" => Ok(format!("Houdini{major}.{minor}.{patch}")),
+                    _ => Ok(format!("hfs{major}.{minor}.{patch}")),
+                }
             }
             _ => {
-                format!("hfs{major}.{minor}.{patch}")
+                mischief::bail!("invalid version")
             }
         }
     }
@@ -48,7 +43,7 @@ impl HoudiniInstance {
         target_os = "linux" => "hfs*.*.*",
     };
 
-    fn version_from_dir_name(name: &str) -> mischief::Result<(u16, u16, u16)> {
+    fn version_from_dir_name(name: &str) -> mischief::Result<HoudiniVersion> {
         let version_str =
             cfg_select! {
                 target_os = "windows" => name
@@ -62,48 +57,14 @@ impl HoudiniInstance {
                     .strip_prefix("hfs")
                     .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
             };
-        let parts: Vec<u16> = version_str
-            .split('.')
-            .map(|s| s.parse::<u16>().into_mischief())
-            .collect::<mischief::Result<Vec<_>>>()?;
-        match parts.as_slice() {
-            &[major, minor, patch] => Ok((major, minor, patch)),
-            _ => mischief::bail!("Invalid Houdini directory name: {}", name),
-        }
+        let version = HoudiniVersion::from_str(version_str)?;
+        Ok(version)
     }
 
     pub fn from_version_string(version_string: &str) -> mischief::Result<Self> {
-        let pattern = r"^(\d+)\.(\d+)\.(\d+)$";
-        clerk::debug!("Houdini version string regex pattern: {}", pattern);
-        let re: Regex = Regex::new(pattern).into_mischief()?;
-        let caps = re.captures(version_string).ok_or_else(|| {
-            mischief!(
-                "Invalid version string: {}",
-                version_string,
-                help = "Try a string like: 20.5.123",
-            )
-        })?;
-        let instance: Self = Self {
-            major: caps
-                .get(1)
-                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
-                .as_str()
-                .parse::<u16>()
-                .into_mischief()?,
-            minor: caps
-                .get(2)
-                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
-                .as_str()
-                .parse::<u16>()
-                .into_mischief()?,
-            patch: caps
-                .get(3)
-                .ok_or_else(|| mischief::mischief!("fail to get capture"))?
-                .as_str()
-                .parse::<u16>()
-                .into_mischief()?,
-        };
-        Ok(instance)
+        Ok(Self {
+            version: HoudiniVersion::from_str(version_string)?,
+        })
     }
 
     pub fn list_installed() -> mischief::Result<Vec<Self>> {
@@ -121,19 +82,19 @@ impl HoudiniInstance {
                     .file_name()
                     .ok_or_else(|| mischief::mischief!("fail to get file name"))?
                     .to_string_lossy();
-                let (major, minor, patch) = Self::version_from_dir_name(&name)?;
                 Ok(Self {
-                    major,
-                    minor,
-                    patch,
+                    version: Self::version_from_dir_name(&name)?,
                 })
             })
             .collect::<mischief::Result<Vec<Self>>>()?;
 
         hinstances.sort_by(|a, b| {
-            b.major
-                .cmp(&a.major)
-                .then_with(|| b.minor.cmp(&a.minor).then_with(|| b.patch.cmp(&a.patch)))
+            b.version.major().cmp(&a.version.major()).then_with(|| {
+                b.version
+                    .minor()
+                    .cmp(&a.version.minor())
+                    .then_with(|| b.version.patch().cmp(&a.version.patch()))
+            })
         });
 
         if hinstances.is_empty() {
@@ -153,33 +114,25 @@ impl HoudiniInstance {
             .ok_or_else(|| mischief::mischief!("No Houdini installed."))
     }
 
-    pub fn installed(&self) -> bool {
+    pub fn installed(&self) -> mischief::Result<bool> {
         let houdini_executable =
             cfg_select! {
-                target_os = "windows" => self.hfs().join("bin").join("houdini.exe"),
-                _ => self.hfs().join("bin").join("houdini.exe"),
+                target_os = "windows" => self.hfs()?.join("bin").join("houdini.exe"),
+                _ => self.hfs()?.join("bin").join("houdini.exe"),
             };
 
-        houdini_executable.exists()
+        Ok(houdini_executable.exists())
     }
 
-    pub fn version_string(&self, patch: bool) -> String {
-        if patch {
-            format!("{}.{}.{}", self.major, self.minor, self.patch)
-        } else {
-            format!("{}.{}", self.major, self.minor)
-        }
+    pub fn hfs(&self) -> mischief::Result<PathBuf> {
+        Ok(Path::new(Self::INSTALL_DIR).join(Self::dir_name(&self.version)?))
     }
 
-    pub fn hfs(&self) -> PathBuf {
-        Path::new(Self::INSTALL_DIR).join(Self::dir_name(self.major, self.minor, self.patch))
-    }
-
-    pub fn cmake_prefix_path(&self) -> PathBuf {
-        Path::new(Self::INSTALL_DIR)
-            .join(Self::dir_name(self.major, self.minor, self.patch))
+    pub fn cmake_prefix_path(&self) -> mischief::Result<PathBuf> {
+        Ok(Path::new(Self::INSTALL_DIR)
+            .join(Self::dir_name(&self.version)?)
             .join("toolkit")
-            .join("cmake")
+            .join("cmake"))
     }
 }
 #[cfg(test)]
@@ -190,27 +143,32 @@ mod tests {
 
     fn instance() -> HoudiniInstance {
         HoudiniInstance {
-            major: 20,
-            minor: 5,
-            patch: 123,
+            version: HoudiniVersion::new(20, 5, Some(123)),
         }
     }
 
     #[test]
-    fn test_dir_name() {
+    fn test_dir_name() -> mischief::Result<()> {
         let expected = cfg_select! {
             target_os = "windows" => "Houdini 20.5.123",
             target_os = "macos" => "Houdini20.5.123",
             _ => "hfs20.5.123",
         };
-        assert_eq!(HoudiniInstance::dir_name(20, 5, 123), expected);
+        assert_eq!(
+            HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, Some(123)))?,
+            PathBuf::from(expected)
+        );
+        Ok(())
     }
 
     #[test]
-    fn test_version_from_dir_name_valid() {
-        let name = HoudiniInstance::dir_name(20, 5, 123);
-        let (major, minor, patch) = HoudiniInstance::version_from_dir_name(&name).unwrap();
-        assert_eq!((major, minor, patch), (20, 5, 123));
+    fn test_version_from_dir_name_valid() -> mischief::Result<()> {
+        let name = HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, Some(123)))?;
+        let version = HoudiniInstance::version_from_dir_name(&name).unwrap();
+        assert_eq!(version.major(), 20);
+        assert_eq!(version.minor(), 5);
+        assert_eq!(version.patch(), Some(123));
+        Ok(())
     }
 
     #[test]
@@ -220,27 +178,28 @@ mod tests {
 
     #[test]
     fn test_version_string_with_patch() {
-        assert_eq!(instance().version_string(true), "20.5.123");
+        assert_eq!(instance().version.to_string(), "20.5.123");
     }
 
     #[test]
     fn test_version_string_without_patch() {
-        assert_eq!(instance().version_string(false), "20.5");
+        assert_eq!(instance().version.to_string(), "20.5");
     }
 
     #[test]
-    fn test_hfs() {
+    fn test_hfs() -> mischief::Result<()> {
         let expected =
             cfg_select! {
                 target_os = "windows" => "C:/Program Files/Side Effects Software/Houdini 20.5.123",
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
                 _ => "/opt/hfs20.5.123",
             };
-        assert_eq!(instance().hfs().to_slash_lossy(), expected);
+        assert_eq!(instance().hfs()?.to_slash_lossy(), expected);
+        Ok(())
     }
 
     #[test]
-    fn test_cmake_prefix_path() {
+    fn test_cmake_prefix_path() -> mischief::Result<()> {
         let expected =
             cfg_select! {
                 target_os = "windows" => {
@@ -249,13 +208,16 @@ mod tests {
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
                 _ => "/opt/hfs20.5.123/toolkit/cmake",
             };
-        assert_eq!(instance().cmake_prefix_path().to_slash_lossy(), expected);
+        assert_eq!(instance().cmake_prefix_path()?.to_slash_lossy(), expected);
+        Ok(())
     }
 
     #[test]
     fn test_from_version_string_valid() {
         let inst = HoudiniInstance::from_version_string("20.5.123").unwrap();
-        assert_eq!((inst.major, inst.minor, inst.patch), (20, 5, 123));
+        assert_eq!(inst.version.major(), 20);
+        assert_eq!(inst.version.minor(), 5);
+        assert_eq!(inst.version.patch(), Some(123));
     }
 
     #[test]

@@ -3,19 +3,19 @@ pub const HOUDINI_OPTIONS: &str = "Houdini Options";
 #[command(about = None, long_about = None)]
 pub struct ArgMajor {
     #[arg(help_heading=HOUDINI_OPTIONS,long, help = "Houdini version major")]
-    major: u16,
+    major: u8,
 }
 impl ArgMajor {
-    pub const fn value(self) -> u16 { self.major }
+    pub const fn value(self) -> u8 { self.major }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]
 pub struct ArgMinor {
     #[arg(help_heading=HOUDINI_OPTIONS,long, help = "Houdini version minor")]
-    minor: u16,
+    minor: u8,
 }
 impl ArgMinor {
-    pub const fn value(self) -> u16 { self.minor }
+    pub const fn value(self) -> u8 { self.minor }
 }
 #[derive(clap::Args, Debug, Clone, Copy, Default)]
 #[command(about = None, long_about = None)]

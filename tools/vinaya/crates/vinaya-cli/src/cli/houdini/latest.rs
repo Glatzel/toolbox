@@ -8,27 +8,34 @@ pub struct Args {
 }
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    Cmake {},
-    Hfs {},
-    Major {},
-    Minor {},
-    Patch {},
-    Version {
-        #[arg(long)]
-        no_patch: bool,
-    },
+    Cmake,
+    Hfs,
+    Major,
+    Minor,
+    Patch,
+    Version,
+    VersionNoPatch,
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     let hinstance = HoudiniInstance::latest_installed_version()?;
     match &args.command {
-        Commands::Cmake {} => {
-            println!("{}", hinstance.cmake_prefix_path().to_slash_lossy());
+        Commands::Cmake => {
+            println!("{}", hinstance.cmake_prefix_path()?.to_slash_lossy());
         }
-        Commands::Hfs {} => println!("{}", hinstance.hfs().to_slash_lossy()),
-        Commands::Major {} => println!("{}", hinstance.major),
-        Commands::Minor {} => println!("{}", hinstance.minor),
-        Commands::Patch {} => println!("{}", hinstance.patch),
-        Commands::Version { no_patch } => println!("{}", hinstance.version_string(!no_patch)),
+        Commands::Hfs => println!("{}", hinstance.hfs()?.to_slash_lossy()),
+        Commands::Major => println!("{}", hinstance.version.major),
+        Commands::Minor => println!("{}", hinstance.version.minor),
+        Commands::Patch => println!(
+            "{}",
+            hinstance
+                .version
+                .patch
+                .ok_or_else(|| mischief::mischief!(""))?
+        ),
+        Commands::Version => println!("{}", hinstance.version.to_string()),
+        Commands::VersionNoPatch => {
+            println!("{}.{}", hinstance.version.major, hinstance.version.minor)
+        }
     }
     Ok(())
 }

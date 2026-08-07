@@ -1,13 +1,13 @@
-mod model;
-
 use core::str::FromStr;
 use core::time::Duration;
 use std::collections::HashMap;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
+use hou_variable::{
+    HoudiniDownloadBuildVersion, HoudiniDownloadProduct, HoudiniLicenseProducts, HoudiniPlatform,
+};
 use mischief::{IntoMischief, WrapErr, mischief};
-pub use model::*;
 use serde_json::json;
 
 pub struct SideFXWeb {
@@ -87,9 +87,9 @@ impl SideFXWeb {
 
     pub async fn download_get_daily_builds_list(
         &self,
-        product: HoudiniProduct,
-        major: u16,
-        minor: u16,
+        product: HoudiniDownloadProduct,
+        major: u8,
+        minor: u8,
         platform: HoudiniPlatform,
         only_production: bool,
     ) -> mischief::Result<reqwest::Response> {
@@ -125,16 +125,16 @@ impl SideFXWeb {
     }
     pub async fn download_get_daily_build_download(
         &self,
-        product: HoudiniProduct,
-        major: u16,
-        minor: u16,
-        build: HoudiniBuildVersion,
+        product: HoudiniDownloadProduct,
+        major: u8,
+        minor: u8,
+        build: HoudiniDownloadBuildVersion,
         platform: &HoudiniPlatform,
     ) -> mischief::Result<reqwest::Response> {
         let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
         let build = match build {
-            HoudiniBuildVersion::Number(num) => num.to_string(),
-            HoudiniBuildVersion::Production => "production".to_string(),
+            HoudiniDownloadBuildVersion::Number(num) => num.to_string(),
+            HoudiniDownloadBuildVersion::Production => "production".to_string(),
         };
         let data = json!([
             "download.get_daily_build_download",
@@ -161,13 +161,15 @@ impl SideFXWeb {
             .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
+
+    /// <https://www.sidefx.com/docs/api/license/index.html#api-methods>
     pub async fn get_non_commercial_license(
         &self,
         server_name: &str,
         server_code: &str,
-        major: Option<u16>,
-        minor: Option<u16>,
-        products: &str,
+        major: Option<u8>,
+        minor: Option<u8>,
+        products: HoudiniLicenseProducts,
     ) -> mischief::Result<reqwest::Response> {
         let version = match (major, minor) {
             (Some(major), Some(minor)) => {
@@ -180,7 +182,7 @@ impl SideFXWeb {
             [
                 server_name,
                 server_code,
-                products
+                products.as_ref()
             ],
             {"version": version}
         ]);

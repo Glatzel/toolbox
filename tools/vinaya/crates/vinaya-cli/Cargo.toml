@@ -21,3 +21,4 @@ path-slash.workspace = true
 sidefx-web.workspace = true
 tokio.workspace = true
 validator.workspace = true
+hou-variable.workspace = true

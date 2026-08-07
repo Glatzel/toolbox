@@ -1,7 +1,11 @@
 use std::env;
+use std::str::FromStr;
 
 use clap::{Parser, Subcommand};
-use sidefx_web::{HoudiniBuildVersion, HoudiniPlatform, HoudiniProduct, SideFXWeb};
+use hou_variable::{
+    HoudiniDownloadBuildVersion, HoudiniDownloadProduct, HoudiniLicenseProducts, HoudiniPlatform,
+};
+use sidefx_web::SideFXWeb;
 
 use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
 #[derive(Parser, Debug)]
@@ -29,7 +33,7 @@ pub enum Commands {
     #[command(name = "download.get-daily-builds-list")]
     DownloadGetDailyBuildsList {
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        product: HoudiniProduct,
+        product: HoudiniDownloadProduct,
         #[command(flatten)]
         major: ArgMajor,
         #[command(flatten)]
@@ -42,13 +46,13 @@ pub enum Commands {
     #[command(name = "download.get-daily-build-download")]
     DownloadGetDailyBuildDownload {
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        product: HoudiniProduct,
+        product: HoudiniDownloadProduct,
         #[command(flatten)]
         major: ArgMajor,
         #[command(flatten)]
         minor: ArgMinor,
         #[arg(help_heading=HOUDINI_OPTIONS,long, help = "Houdini version patch")]
-        build: HoudiniBuildVersion,
+        build: HoudiniDownloadBuildVersion,
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         platform: HoudiniPlatform,
     },
@@ -148,7 +152,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                     &server_code,
                     major.map(super::common_arg::ArgMajor::value),
                     minor.map(super::common_arg::ArgMinor::value),
-                    &products,
+                    HoudiniLicenseProducts::from_str(&products)?,
                 )
                 .await?
         }

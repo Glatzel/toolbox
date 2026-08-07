@@ -57,13 +57,13 @@ impl HoudiniInstance {
                     .strip_prefix("hfs")
                     .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
             };
-        let version = HoudiniVersion::from_str(version_str)?;
+        let version = HoudiniVersion::try_from(version_str)?;
         Ok(version)
     }
 
     pub fn from_version_string(version_string: &str) -> mischief::Result<Self> {
         Ok(Self {
-            version: HoudiniVersion::from_str(version_string)?,
+            version: HoudiniVersion::try_from(version_string)?,
         })
     }
 

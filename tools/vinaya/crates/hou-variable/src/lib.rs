@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use validator::Validate;
 pub const HOUDINI_VERSION_MAJOR_MIN: u8 = 15;
 pub const HOUDINI_VERSION_MAJOR_MAX: u8 = 99;
@@ -27,12 +29,6 @@ impl HoudiniVersion {
 
     pub const fn patch(&self) -> Option<u16> { self.patch }
 
-    pub fn to_string(&self) -> String {
-        match self.patch {
-            Some(patch) => format!("{}.{}.{}", self.major, self.minor, patch),
-            None => format!("{}.{}", self.major, self.minor),
-        }
-    }
     pub fn from_str(s: &str) -> mischief::Result<Self> {
         let parts: Vec<&str> = s.split('.').collect();
         match parts.len() {
@@ -43,6 +39,14 @@ impl HoudiniVersion {
                 Some(parts[2].parse()?),
             )),
             _ => mischief::bail!("invalid version string"),
+        }
+    }
+}
+impl Display for HoudiniVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.patch {
+            Some(patch) => write!(f, "{}.{}.{}", self.major, self.minor, patch),
+            None => write!(f, "{}.{}", self.major, self.minor),
         }
     }
 }

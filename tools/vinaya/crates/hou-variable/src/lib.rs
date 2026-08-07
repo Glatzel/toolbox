@@ -13,7 +13,7 @@ pub struct HoudiniVersion {
     pub patch: Option<u16>,
 }
 impl HoudiniVersion {
-    pub fn new(major: u8, minor: u8, patch: Option<u16>) -> Self {
+    pub const fn new(major: u8, minor: u8, patch: Option<u16>) -> Self {
         Self {
             major,
             minor,
@@ -21,11 +21,11 @@ impl HoudiniVersion {
         }
     }
 
-    pub fn major(&self) -> u8 { self.major }
+    pub const fn major(&self) -> u8 { self.major }
 
-    pub fn minor(&self) -> u8 { self.minor }
+    pub const fn minor(&self) -> u8 { self.minor }
 
-    pub fn patch(&self) -> Option<u16> { self.patch }
+    pub const fn patch(&self) -> Option<u16> { self.patch }
 
     pub fn to_string(&self) -> String {
         match self.patch {

@@ -1,5 +1,5 @@
 use std::env;
-use std::str::FromStr;
+use core::str::FromStr;
 
 use clap::{Parser, Subcommand};
 use hou_variable::{

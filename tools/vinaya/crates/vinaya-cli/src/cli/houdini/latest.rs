@@ -34,7 +34,7 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
         ),
         Commands::Version => println!("{}", hinstance.version.to_string()),
         Commands::VersionNoPatch => {
-            println!("{}.{}", hinstance.version.major, hinstance.version.minor)
+            println!("{}.{}", hinstance.version.major, hinstance.version.minor);
         }
     }
     Ok(())

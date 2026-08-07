@@ -62,9 +62,11 @@ impl HoudiniInstance {
     }
 
     pub fn from_version_string(version_string: &str) -> mischief::Result<Self> {
-        Ok(Self {
-            version: HoudiniVersion::try_from(version_string)?,
-        })
+        let version = HoudiniVersion::try_from(version_string)?;
+        if version.patch.is_none() {
+            mischief::bail!("version string must include patch number")
+        }
+        Ok(Self { version })
     }
 
     pub fn list_installed() -> mischief::Result<Vec<Self>> {
@@ -179,11 +181,6 @@ mod tests {
     #[test]
     fn test_version_string_with_patch() {
         assert_eq!(instance().version.to_string(), "20.5.123");
-    }
-
-    #[test]
-    fn test_version_string_without_patch() {
-        assert_eq!(instance().version.to_string(), "20.5");
     }
 
     #[test]

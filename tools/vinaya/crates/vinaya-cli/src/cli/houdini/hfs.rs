@@ -3,7 +3,6 @@ use hou_variable::HoudiniVersion;
 use hou_where::HoudiniInstance;
 use path_slash::PathBufExt;
 
-
 use crate::cli::{ArgMajor, ArgMinor, ArgPatch};
 #[derive(Parser, Debug)]
 pub struct Args {

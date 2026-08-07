@@ -1984,7 +1984,6 @@ dependencies = [
  "reqwest-middleware",
  "reqwest-retry",
  "serde_json",
- "strum",
 ]
 
 [[package]]
@@ -2520,7 +2519,6 @@ dependencies = [
  "path-slash",
  "sidefx-web",
  "tokio",
- "validator",
 ]
 
 [[package]]

@@ -32,7 +32,7 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
                 .patch
                 .ok_or_else(|| mischief::mischief!(""))?
         ),
-        Commands::Version => println!("{}", hinstance.version.to_string()),
+        Commands::Version => println!("{}", hinstance.version),
         Commands::VersionNoPatch => {
             println!("{}.{}", hinstance.version.major, hinstance.version.minor);
         }

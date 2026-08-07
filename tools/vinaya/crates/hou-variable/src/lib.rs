@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::Display;
 
 use validator::Validate;
 pub const HOUDINI_VERSION_MAJOR_MIN: u8 = 15;
@@ -28,8 +28,11 @@ impl HoudiniVersion {
     pub const fn minor(&self) -> u8 { self.minor }
 
     pub const fn patch(&self) -> Option<u16> { self.patch }
+}
+impl TryFrom<&str> for HoudiniVersion {
+    type Error = mischief::Report;
 
-    pub fn from_str(s: &str) -> mischief::Result<Self> {
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         let parts: Vec<&str> = s.split('.').collect();
         match parts.len() {
             2 => Ok(Self::new(parts[0].parse()?, parts[1].parse()?, None)),
@@ -43,7 +46,7 @@ impl HoudiniVersion {
     }
 }
 impl Display for HoudiniVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self.patch {
             Some(patch) => write!(f, "{}.{}.{}", self.major, self.minor, patch),
             None => write!(f, "{}.{}", self.major, self.minor),

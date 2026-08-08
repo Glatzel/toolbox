@@ -135,7 +135,7 @@ impl SideFXWeb {
         product: SidefxDownloadProduct,
         version: &str,
         build: SidefxDownloadBuildVersion,
-        platform: &SidefxPlatform,
+        platform: SidefxPlatform,
     ) -> mischief::Result<reqwest::Response> {
         let build = match build {
             SidefxDownloadBuildVersion::Number(num) => num.to_string(),

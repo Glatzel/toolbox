@@ -1,5 +1,3 @@
-use std::env;
-
 use clap::{Parser, Subcommand};
 use sidefx_web::{
     SideFXWeb, SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts,
@@ -9,25 +7,22 @@ use sidefx_web::{
 use super::HOUDINI_OPTIONS;
 #[derive(Parser, Debug)]
 pub struct Args {
-    #[arg(long)]
+    #[arg(env = "CLIENT_ID")]
     client_id: Option<String>,
 
-    #[arg(long)]
+    #[arg(env = "CLIENT_SECRET")]
     client_secret: Option<String>,
 
-    #[arg(
-        long,
-        default_value = "https://www.sidefx.com/oauth2/application_token"
-    )]
+    #[arg(default_value = "https://www.sidefx.com/oauth2/application_token")]
     token_url: String,
 
-    #[arg(long, default_value = "https://www.sidefx.com/api/")]
+    #[arg(default_value = "https://www.sidefx.com/api/")]
     api_url: String,
 
-    #[arg(long, default_value_t = 5.0)]
+    #[arg(default_value_t = 5.0)]
     timeout: f32,
 
-    #[arg(long, default_value_t = 3)]
+    #[arg(default_value_t = 3)]
     retries: u8,
 
     #[command(subcommand)]
@@ -38,11 +33,10 @@ pub enum Commands {
     /// Returns a JSON list of all available daily builds.
     #[command(name = "download.get-daily-builds-list")]
     DownloadGetDailyBuildsList {
-        #[arg(help_heading=HOUDINI_OPTIONS,value_enum)]
+        #[arg(value_enum)]
         product: SidefxDownloadProduct,
 
         ///The major version of Houdini. e.g. 19.5, 20.0.
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         version: Vec<String>,
 
         /// The operating system to install Houdini on.
@@ -65,23 +59,22 @@ pub enum Commands {
     /// requested build as well as other information about the build.
     #[command(name = "download.get-daily-build-download")]
     DownloadGetDailyBuildDownload {
-        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        #[arg(value_enum)]
         product: SidefxDownloadProduct,
 
         ///The major version of Houdini, e.g. 19.5, 20.0
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         version: String,
 
         ///Either a specific build number, e.g. 382, or the string 'production'
         /// to get the latest production build
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
+        #[arg(value_enum)]
         build: SidefxDownloadBuildVersion,
 
         /// The operating system to install Houdini on.
         ///
         /// Please note this parameter is ignored for Docker and SideFXLabs
         /// builds.
-        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        #[arg(value_enum)]
         platform: SidefxPlatform,
     },
 
@@ -89,11 +82,9 @@ pub enum Commands {
     #[command(name = "license.get_non_commercial_license")]
     GetNonCommercialLicense {
         /// Your server name.
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_name: String,
 
         /// Your server code.
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_code: String,
 
         ///The major version of Houdini, e.g. 19.5, 20.0.
@@ -106,37 +97,21 @@ pub enum Commands {
         version: Option<String>,
 
         ///A list of non-commercial products you want to generate licenses for.
-        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        #[arg(value_enum)]
         products: SidefxLicenseProducts,
     },
 }
 
 pub async fn execute(args: &Args) -> mischief::Result<()> {
-    let client_id = args.client_id.as_ref().map_or_else(
-        || {
-            env::var("SIDEFX_CLIENT_ID").unwrap_or_else(|_| {
-                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                    .with_prompt("Client ID")
-                    .interact_text()
-                    .unwrap()
-            })
-        },
-        core::clone::Clone::clone,
-    );
-    let client_secret = args.client_secret.as_ref().map_or_else(
-        || {
-            env::var("SIDEFX_CLIENT_SECRET").unwrap_or_else(|_| {
-                dialoguer::Input::with_theme(&dialoguer::theme::ColorfulTheme::default())
-                    .with_prompt("Client Secret")
-                    .interact_text()
-                    .unwrap()
-            })
-        },
-        core::clone::Clone::clone,
-    );
     let sidefx_web = SideFXWeb::new(
-        client_id.as_str(),
-        client_secret.as_str(),
+        args.client_id
+            .clone()
+            .ok_or_else(|| mischief::mischief!("CLIENT_ID not set"))?
+            .as_str(),
+        args.client_secret
+            .clone()
+            .ok_or_else(|| mischief::mischief!("CLIENT_SECRET not set"))?
+            .as_str(),
         Some(args.token_url.as_str()),
         Some(args.api_url.as_str()),
         Some(args.timeout),
@@ -162,7 +137,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
             platform,
         } => {
             sidefx_web
-                .download_get_daily_build_download(product, &version, build, &platform)
+                .download_get_daily_build_download(product, &version, build, platform)
                 .await?
         }
         Commands::GetNonCommercialLicense {

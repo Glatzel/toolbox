@@ -42,7 +42,7 @@ pub enum Commands {
         product: SidefxDownloadProduct,
 
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        version: Option<String>,
+        version: Vec<String>,
 
         /// The operating system to install Houdini on.
         ///
@@ -50,8 +50,8 @@ pub enum Commands {
         #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
         platform: Option<SidefxPlatform>,
 
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        only_production: Option<bool>,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,default_value_t = false)]
+        only_production: bool,
     },
 
     ///Returns a JSON object containing a valid temporary download link to the
@@ -139,12 +139,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
             only_production,
         } => {
             sidefx_web
-                .download_get_daily_builds_list(
-                    product,
-                    version.as_deref(),
-                    platform,
-                    only_production,
-                )
+                .download_get_daily_builds_list(product, version, platform, Some(only_production))
                 .await?
         }
         Commands::DownloadGetDailyBuildDownload {

@@ -91,14 +91,13 @@ impl SideFXWeb {
     pub async fn download_get_daily_builds_list(
         &self,
         product: SidefxDownloadProduct,
-        version: Option<&str>,
+        version: Vec<String>,
         platform: Option<SidefxPlatform>,
         only_production: Option<bool>,
     ) -> mischief::Result<reqwest::Response> {
         #[derive(Debug, serde::Serialize)]
-        struct RequestParams<'a> {
-            #[serde(skip_serializing_if = "Option::is_none")]
-            version: Option<&'a str>,
+        struct RequestParams {
+            version: Vec<String>,
             #[serde(skip_serializing_if = "Option::is_none")]
             platform: Option<SidefxPlatform>,
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -109,7 +108,7 @@ impl SideFXWeb {
             platform,
             only_production,
         };
-        let data = json!(["download.get_daily_builds_list", [product.as_ref()], params,]);
+        let data = json!(["download.get_daily_builds_list", [product.as_ref()], params]);
         let response = self
             .client
             .post(self.api_url.as_str())

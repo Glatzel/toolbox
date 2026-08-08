@@ -5,7 +5,6 @@ use clap::builder::PossibleValue;
     Debug, Clone, Copy, strum::EnumString, strum::IntoStaticStr, strum::AsRefStr, serde::Serialize,
 )]
 pub enum SidefxPlatform {
-    #[strum(serialize = "Win64")]
     #[strum(serialize = "win64")]
     Win64,
     #[strum(serialize = "macos")]

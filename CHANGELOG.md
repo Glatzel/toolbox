@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(mischief)** Color by @Glatzel in [#704](https://github.com/Glatzel/toolbox/pull/704)
 - Vinaya sidefx web api by @Glatzel in [#712](https://github.com/Glatzel/toolbox/pull/712)
 - Update sidefx.rs by @Glatzel in [#725](https://github.com/Glatzel/toolbox/pull/725)
+- **(vinaya)** Update options.rs by @Glatzel in [#727](https://github.com/Glatzel/toolbox/pull/727)
 
 ### Testing
 

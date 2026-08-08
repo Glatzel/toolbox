@@ -58,7 +58,7 @@ impl<P> Job<P> {
         }
     }
 }
-
+#[allow(clippy::double_must_use, reason = "macro expansion double_must_use.")]
 #[async_trait]
 pub trait IPayload: Send + Sync {
     type Error: Display + Send;

@@ -91,22 +91,25 @@ impl SideFXWeb {
     pub async fn download_get_daily_builds_list(
         &self,
         product: SidefxDownloadProduct,
-        major: u8,
-        minor: u8,
-        platform: SidefxPlatform,
-        only_production: bool,
+        version: Option<&str>,
+        platform: Option<SidefxPlatform>,
+        only_production: Option<bool>,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
-        let data = json!(
-                [
-                    "download.get_daily_builds_list",
-                    [product.as_ref()],
-                    {"version": version.to_string(),
-                     "platform": platform.as_ref(),
-                      "only_production": only_production
-                    },
-                ]
-        );
+        #[derive(Debug, serde::Serialize)]
+        struct RequestParams<'a> {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            version: Option<&'a str>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            platform: Option<SidefxPlatform>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            only_production: Option<bool>,
+        }
+        let params = RequestParams {
+            version,
+            platform,
+            only_production,
+        };
+        let data = json!(["download.get_daily_builds_list", [product.as_ref()], params,]);
         let response = self
             .client
             .post(self.api_url.as_str())
@@ -116,7 +119,7 @@ impl SideFXWeb {
             )
             .body(format!("json={data}"))
             .header(
-                reqwest::header::HeaderName::from_static("Authorization"),
+                reqwest::header::AUTHORIZATION,
                 reqwest::header::HeaderValue::from_str(&self.token)?,
             )
             .send()

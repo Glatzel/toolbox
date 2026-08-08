@@ -1,5 +1,5 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use hou_variable::HoudiniVersionShort;
 use path_slash::PathExt;
@@ -11,6 +11,7 @@ pub struct HoudiniPreference {
     pub directory: PathBuf,
 }
 impl HoudiniPreference {
+    ///<https://www.sidefx.com/docs/houdini/ref/env.html>
     pub fn preference_root() -> mischief::Result<PathBuf> {
         if let Ok(pref_dir) = env::var("HOUDINI_USER_PREF_DIR") {
             let path = PathBuf::from(pref_dir);
@@ -30,20 +31,18 @@ impl HoudiniPreference {
     }
     pub fn from_version(version: &HoudiniVersionShort) -> mischief::Result<Self> {
         if let Ok(val) = env::var("HOUDINI_USER_PREF_DIR") {
-            let pref_dir: PathBuf = Path::new(&val)
-                .parent()
-                .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
-                .join( cfg_select! {
-                    target_os = "macos" => format!("{version}"),
-                    _ =>format!("houdini{version}"),
-                });
+            let pref_dir: PathBuf = PathBuf::from(val.replace("__HVER__", &version.to_string()));
             let perf = Self {
                 version: version.clone(),
                 directory: pref_dir,
             };
             Ok(perf)
         } else {
-            let pref_dir: PathBuf = Self::preference_root()?.join(format!("houdini{version}"));
+            let pref_dir: PathBuf =
+                Self::preference_root()?.join(cfg_select! {
+                    target_os = "macos" => version.to_string(),
+                    _ => format!("houdini{version}"),
+                });
             let perf: Self = Self {
                 version: version.clone(),
                 directory: pref_dir,
@@ -78,7 +77,7 @@ mod tests {
                 .join("Library")
                 .join("Preferences")
                 .join("houdini")
-                .join("houdini20.5"),
+                .join("20.5"),
             _ => home.join("houdini20.5"),
         };
         assert_eq!(pref.directory.to_slash_lossy(), expected.to_slash_lossy());

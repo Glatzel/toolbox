@@ -19,17 +19,23 @@ pub struct Args {
 }
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    Dir {},
+    /// Houdini package directory
+    Dir,
+
+    /// Disable a package
     Disable {
         #[arg(help_heading=HOUDINI_OPTIONS,short, long)]
         names: Vec<String>,
     },
+
+    /// Enable a package
     Enable {
         #[arg(help_heading=HOUDINI_OPTIONS,short, long)]
         names: Vec<String>,
     },
 
-    List {},
+    /// List all packages
+    List,
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     let mut manager = HoudiniPackageManager::from_version(&args.version)?;
@@ -56,7 +62,7 @@ fn print_packages(manager: &HoudiniPackageManager) {
     let mut table = Table::new();
     table.set_header(vec![
         Cell::new("Name").add_attribute(Attribute::Bold),
-        Cell::new("Enable").add_attribute(Attribute::Bold),
+        Cell::new("Enabled").add_attribute(Attribute::Bold),
     ]);
     for p in &manager.packages {
         let enable_cell = if p.enable {

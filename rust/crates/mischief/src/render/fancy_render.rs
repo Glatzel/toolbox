@@ -60,7 +60,7 @@ impl Default for MischiefIndent {
     /// when the terminal supports Unicode output. Otherwise, an ASCII
     /// fallback representation is used.
     fn default() -> Self {
-        cfg_select!(
+        cfg_select!{
             all(feature = "color", feature = "pretty") => Self {
                 root_first: "x ".red().to_string(),
                 root_other: "│ ".red().to_string(),
@@ -93,7 +93,7 @@ impl Default for MischiefIndent {
                 bottom_other: "    ",
                 other: "|   ".to_string(),
             },
-        )
+        }
     }
 }
 
@@ -174,7 +174,7 @@ impl Default for MischiefTheme {
     /// Color and hyperlink support are enabled only when the terminal
     /// reports compatibility.
     fn default() -> Self {
-        cfg_select!(
+        cfg_select!{
             feature = "color" => {
                 let default_style = None;
                 let description_style = Some(Style::default());
@@ -191,8 +191,8 @@ impl Default for MischiefTheme {
                 let severity_error_style = None;
                 let help_style = (None, None);
             }
-        );
-        cfg_select!(
+        };
+        cfg_select!{
             all(feature = "hyperlink", feature = "color") => {
                 let hyperlink_style = (Some(Style::new().blue()), HyperlinkFormat::Link);
             }
@@ -205,7 +205,7 @@ impl Default for MischiefTheme {
             _ => {
                 let hyperlink_style = (None, HyperlinkFormat::Plain);
             }
-        );
+        };
         Self {
             default_style,
             description_style,
@@ -401,12 +401,12 @@ pub fn render_backtrace(
     let left = (width - title.len()) / 2;
     let right = width - title.len() - left;
 
-    let indent = cfg_select!(
+    let indent = cfg_select!{
         feature = "pretty" => "╰─",
         _ => "`-".to_string(),
-    );
+    };
 
-    cfg_select!(
+    cfg_select!{
         feature = "color" => {
             use owo_colors::CssColors::CadetBlue;
 
@@ -463,6 +463,6 @@ pub fn render_backtrace(
                 }
             }
         }
-    );
+    };
     Ok(())
 }

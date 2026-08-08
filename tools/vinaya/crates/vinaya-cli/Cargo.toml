@@ -23,6 +23,6 @@ tokio.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
-rstest.workspace = true
-insta.workspace = true
 dirs.workspace = true
+insta.workspace = true
+rstest.workspace = true

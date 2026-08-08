@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2026.8.4] - 2026-08-06
+## [2026.8.4] - 2026-08-08
+
+### Added
+
+- Add hou-variable by @Glatzel in [#719](https://github.com/Glatzel/toolbox/pull/719)
 
 ### Changed
 
@@ -13,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(mischief)** More feature control over mischief by @Glatzel in [#696](https://github.com/Glatzel/toolbox/pull/696)
 - **(mischief)** Split textwrap feature by @Glatzel in [#705](https://github.com/Glatzel/toolbox/pull/705)
 - Get license by @Glatzel in [#716](https://github.com/Glatzel/toolbox/pull/716)
+- **(vinaya)** Improve ergonomics by @Glatzel in [#720](https://github.com/Glatzel/toolbox/pull/720)
 
 ### Fixed
 

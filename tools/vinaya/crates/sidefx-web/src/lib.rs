@@ -133,12 +133,10 @@ impl SideFXWeb {
     pub async fn download_get_daily_build_download(
         &self,
         product: SidefxDownloadProduct,
-        major: u8,
-        minor: u8,
+        version: &str,
         build: SidefxDownloadBuildVersion,
         platform: &SidefxPlatform,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
         let build = match build {
             SidefxDownloadBuildVersion::Number(num) => num.to_string(),
             SidefxDownloadBuildVersion::Production => "production".to_string(),
@@ -174,16 +172,9 @@ impl SideFXWeb {
         &self,
         server_name: &str,
         server_code: &str,
-        major: Option<u8>,
-        minor: Option<u8>,
+        version: Option<&str>,
         products: SidefxLicenseProducts,
     ) -> mischief::Result<reqwest::Response> {
-        let version = match (major, minor) {
-            (Some(major), Some(minor)) => {
-                format!("{major}.{minor}")
-            }
-            _ => String::new(),
-        };
         let data = json!([
             "license.get_non_commercial_license",
             [
@@ -191,7 +182,7 @@ impl SideFXWeb {
                 server_code,
                 products.as_ref()
             ],
-            {"version": version}
+            {"version": version.unwrap_or_default()}
         ]);
         let response = self
             .client

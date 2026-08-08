@@ -6,7 +6,7 @@ use sidefx_web::{
     SidefxPlatform,
 };
 
-use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
+use super::HOUDINI_OPTIONS;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[arg(long)]
@@ -41,6 +41,7 @@ pub enum Commands {
         #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
         product: SidefxDownloadProduct,
 
+        ///The major version of Houdini. e.g. 19.5, 20.0.
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         version: Vec<String>,
 
@@ -50,6 +51,12 @@ pub enum Commands {
         #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
         platform: Option<SidefxPlatform>,
 
+        /// If Set, will only return the production builds, else
+        /// ignoring this parameter will return all builds (daily and
+        /// production).
+        ///
+        /// Does not effect Docker and
+        /// SideFXLabs builds.
         #[arg(help_heading=HOUDINI_OPTIONS,long,default_value_t = false)]
         only_production: bool,
     },
@@ -61,12 +68,12 @@ pub enum Commands {
         #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
         product: SidefxDownloadProduct,
 
-        #[command(flatten)]
-        major: ArgMajor,
+        ///The major version of Houdini, e.g. 19.5, 20.0
+        #[arg(help_heading=HOUDINI_OPTIONS,long)]
+        version: String,
 
-        #[command(flatten)]
-        minor: ArgMinor,
-
+        ///Either a specific build number, e.g. 382, or the string 'production'
+        /// to get the latest production build
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         build: SidefxDownloadBuildVersion,
 
@@ -81,18 +88,24 @@ pub enum Commands {
     ///Returns licenses and server keys for a non commercial product.
     #[command(name = "license.get_non_commercial_license")]
     GetNonCommercialLicense {
+        /// Your server name.
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_name: String,
 
+        /// Your server code.
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_code: String,
 
-        #[command(flatten)]
-        major: Option<ArgMajor>,
+        ///The major version of Houdini, e.g. 19.5, 20.0.
+        ///
+        /// If no version is
+        /// passed this function will use the latest version publicly available.
+        /// Please note that only the currently supported version of Houdini are
+        /// accepted.
+        #[arg(help_heading=HOUDINI_OPTIONS,long)]
+        version: Option<String>,
 
-        #[command(flatten)]
-        minor: Option<ArgMinor>,
-
+        ///A list of non-commercial products you want to generate licenses for.
         #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
         products: SidefxLicenseProducts,
     },
@@ -144,34 +157,25 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
         }
         Commands::DownloadGetDailyBuildDownload {
             product,
-            major,
-            minor,
+            version,
             build,
             platform,
         } => {
             sidefx_web
-                .download_get_daily_build_download(
-                    product,
-                    major.value(),
-                    minor.value(),
-                    build,
-                    &platform,
-                )
+                .download_get_daily_build_download(product, &version, build, &platform)
                 .await?
         }
         Commands::GetNonCommercialLicense {
             server_name,
             server_code,
-            major,
-            minor,
+            version,
             products,
         } => {
             sidefx_web
                 .get_non_commercial_license(
                     &server_name,
                     &server_code,
-                    major.map(super::common_arg::ArgMajor::value),
-                    minor.map(super::common_arg::ArgMinor::value),
+                    version.as_deref(),
                     products,
                 )
                 .await?

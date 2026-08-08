@@ -13,7 +13,6 @@ clap-style.workspace = true
 clap-verbosity-flag.workspace = true
 clerk.workspace = true
 comfy-table.workspace = true
-dialoguer.workspace = true
 hou-variable.workspace = true
 hou-where.workspace = true
 mischief.workspace = true

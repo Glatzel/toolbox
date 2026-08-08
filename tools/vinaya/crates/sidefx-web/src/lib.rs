@@ -1,13 +1,15 @@
+mod options;
+
 use core::str::FromStr;
 use core::time::Duration;
 use std::collections::HashMap;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
-use hou_variable::{
-    HoudiniDownloadBuildVersion, HoudiniDownloadProduct, HoudiniLicenseProducts, HoudiniPlatform,
-};
 use mischief::{IntoMischief, WrapErr, mischief};
+pub use options::{
+    SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts, SidefxPlatform,
+};
 use serde_json::json;
 
 pub struct SideFXWeb {
@@ -85,25 +87,28 @@ impl SideFXWeb {
         Ok(sidefx_web)
     }
 
+    ///<https://www.sidefx.com/docs/api/download/index.html#download.get_daily_builds_list>
     pub async fn download_get_daily_builds_list(
         &self,
-        product: HoudiniDownloadProduct,
-        major: u8,
-        minor: u8,
-        platform: HoudiniPlatform,
-        only_production: bool,
+        product: SidefxDownloadProduct,
+        version: Vec<String>,
+        platform: Option<SidefxPlatform>,
+        only_production: Option<bool>,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
-        let data = json!(
-                [
-                    "download.get_daily_builds_list",
-                    [product.as_ref()],
-                    {"version": version.to_string(),
-                     "platform": platform.as_ref(),
-                      "only_production": only_production
-                    },
-                ]
-        );
+        #[derive(Debug, serde::Serialize)]
+        struct RequestParams {
+            version: Vec<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            platform: Option<SidefxPlatform>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            only_production: Option<bool>,
+        }
+        let params = RequestParams {
+            version,
+            platform,
+            only_production,
+        };
+        let data = json!(["download.get_daily_builds_list", [product.as_ref()], params]);
         let response = self
             .client
             .post(self.api_url.as_str())
@@ -113,7 +118,7 @@ impl SideFXWeb {
             )
             .body(format!("json={data}"))
             .header(
-                reqwest::header::HeaderName::from_static("Authorization"),
+                reqwest::header::AUTHORIZATION,
                 reqwest::header::HeaderValue::from_str(&self.token)?,
             )
             .send()
@@ -123,18 +128,18 @@ impl SideFXWeb {
             .wrap_err_with(|| mischief::mischief!("Fail to get daily_builds_list."))?;
         Ok(response)
     }
+
+    ///<https://www.sidefx.com/docs/api/download/index.html#download.get_daily_build_download>
     pub async fn download_get_daily_build_download(
         &self,
-        product: HoudiniDownloadProduct,
-        major: u8,
-        minor: u8,
-        build: HoudiniDownloadBuildVersion,
-        platform: &HoudiniPlatform,
+        product: SidefxDownloadProduct,
+        version: &str,
+        build: SidefxDownloadBuildVersion,
+        platform: SidefxPlatform,
     ) -> mischief::Result<reqwest::Response> {
-        let version = format!("{major}.{minor}").parse::<f32>().into_mischief()?;
         let build = match build {
-            HoudiniDownloadBuildVersion::Number(num) => num.to_string(),
-            HoudiniDownloadBuildVersion::Production => "production".to_string(),
+            SidefxDownloadBuildVersion::Number(num) => num.to_string(),
+            SidefxDownloadBuildVersion::Production => "production".to_string(),
         };
         let data = json!([
             "download.get_daily_build_download",
@@ -167,16 +172,9 @@ impl SideFXWeb {
         &self,
         server_name: &str,
         server_code: &str,
-        major: Option<u8>,
-        minor: Option<u8>,
-        products: HoudiniLicenseProducts,
+        version: Option<&str>,
+        products: SidefxLicenseProducts,
     ) -> mischief::Result<reqwest::Response> {
-        let version = match (major, minor) {
-            (Some(major), Some(minor)) => {
-                format!("{major}.{minor}")
-            }
-            _ => String::new(),
-        };
         let data = json!([
             "license.get_non_commercial_license",
             [
@@ -184,7 +182,7 @@ impl SideFXWeb {
                 server_code,
                 products.as_ref()
             ],
-            {"version": version}
+            {"version": version.unwrap_or_default()}
         ]);
         let response = self
             .client
@@ -203,7 +201,7 @@ impl SideFXWeb {
             .into_mischief()?
             .error_for_status()
             .into_mischief()
-            .wrap_err_with(|| mischief!("Fail to get non_commercial_license."))?;
+            .wrap_err(mischief!("Fail to get non_commercial_license."))?;
         Ok(response)
     }
 }

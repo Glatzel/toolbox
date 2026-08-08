@@ -33,7 +33,10 @@ impl HoudiniPreference {
             let pref_dir: PathBuf = Path::new(&val)
                 .parent()
                 .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
-                .join(format!("houdini{version}"));
+                .join( cfg_select! {
+                    target_os = "macos" => format!("{version}"),
+                    _ =>format!("houdini{version}"),
+                });
             let perf = Self {
                 version: version.clone(),
                 directory: pref_dir,

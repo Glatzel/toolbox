@@ -2,4 +2,4 @@
 source: crates/vinaya-cli/tests/test.rs
 expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
 ---
-[HOME]/Library/Preferences/houdini/houdini20.5/packages
+[HOME]/Library/Preferences/houdini/20.5/packages

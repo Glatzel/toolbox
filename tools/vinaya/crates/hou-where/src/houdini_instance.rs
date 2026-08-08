@@ -11,6 +11,7 @@ pub struct HoudiniInstance {
 }
 
 impl HoudiniInstance {
+    ///<https://www.sidefx.com/docs/houdini/hqueue/gettingstarted.html>
     pub const INSTALL_DIR: &str =
         cfg_select! {
             target_os = "windows" => "C:/Program Files/Side Effects Software",

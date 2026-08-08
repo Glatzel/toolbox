@@ -2,37 +2,38 @@ use clap::ValueEnum;
 use clap::builder::PossibleValue;
 
 #[derive(
-    Debug, Clone, Copy, strum::EnumString, strum::IntoStaticStr, strum::AsRefStr, serde::Serialize,
+    Debug,
+    Clone,
+    Copy,
+    strum::EnumString,
+    strum::IntoStaticStr,
+    strum::AsRefStr,
+    serde::Serialize,
+    clap::ValueEnum,
 )]
 pub enum SidefxPlatform {
     #[strum(serialize = "win64")]
+    #[serde(rename = "win64")]
+    #[value(alias = "win64", alias = "win")]
     Win64,
     #[strum(serialize = "macos")]
+    #[serde(rename = "macos")]
+    #[value(alias = "macos")]
     MacOS,
     #[strum(serialize = "macosx_arm64")]
-    MacOsArm64,
-    #[strum(serialize = "linux")]
+    #[serde(rename = "macosx_arm64")]
+    #[value(alias = "macosx-arm64")]
+    MacosArm64,
+    #[strum(serialize = "linux_x86_64")]
+    #[serde(rename = "linux_x86_64")]
+    #[value(alias = "linux-64", alias = "linux")]
     Linux,
     #[strum(serialize = "linux_arm64")]
+    #[serde(rename = "linux_arm64")]
+    #[value(alias = "linux-arm64", alias = "linux-aarch64")]
     LinuxArm64,
 }
-impl ValueEnum for SidefxPlatform {
-    fn value_variants<'a>() -> &'a [Self] {
-        static VARIANTS: [SidefxPlatform; 5] = [
-            SidefxPlatform::Win64,
-            SidefxPlatform::MacOS,
-            SidefxPlatform::MacOsArm64,
-            SidefxPlatform::Linux,
-            SidefxPlatform::LinuxArm64,
-        ];
 
-        &VARIANTS
-    }
-
-    fn to_possible_value(&self) -> Option<PossibleValue> {
-        Some(PossibleValue::new(Into::<&str>::into(self)))
-    }
-}
 #[derive(Debug, Clone, Copy, strum::EnumString, strum::IntoStaticStr, strum::AsRefStr)]
 pub enum SidefxDownloadProduct {
     #[strum(serialize = "houdini")]

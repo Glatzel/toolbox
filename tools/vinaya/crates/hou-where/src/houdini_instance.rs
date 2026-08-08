@@ -20,7 +20,7 @@ impl HoudiniInstance {
 
     fn dir_name(version: &HoudiniVersion) -> mischief::Result<String> {
         cfg_select! {
-            target_os = "windows" => Ok(format!("Houdini {version}",)),
+            target_os = "windows" => Ok(format!("Houdini {version}")),
             target_os = "macos" => Ok(format!("Houdini{version}")),
             _ => Ok(format!("hfs{version}")),
         }

@@ -1,5 +1,5 @@
 use core::fmt::Display;
-use std::str::FromStr;
+use core::str::FromStr;
 
 use validator::Validate;
 pub const HOUDINI_VERSION_MAJOR_MIN: u8 = 15;

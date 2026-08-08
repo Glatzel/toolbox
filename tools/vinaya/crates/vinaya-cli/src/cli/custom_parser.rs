@@ -2,7 +2,7 @@ use clap::error::ErrorKind;
 
 pub fn parse_generic<T>(value: &str) -> Result<T, clap::Error>
 where
-    T: std::str::FromStr<Err = mischief::Report>,
+    T: core::str::FromStr<Err = mischief::Report>,
 {
     value
         .parse::<T>()

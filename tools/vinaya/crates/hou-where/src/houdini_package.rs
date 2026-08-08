@@ -82,7 +82,7 @@ impl HoudiniPackageManager {
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
         let manager: Self = Self {
-            version: houdini_preference.version.clone().into(),
+            version: houdini_preference.version.clone(),
             package_dir,
             packages,
         };

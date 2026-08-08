@@ -1,0 +1,5 @@
+---
+source: crates/vinaya-cli/tests/test.rs
+expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
+---
+/opt/hfs20.5.123

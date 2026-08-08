@@ -39,11 +39,17 @@ pub enum Commands {
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     let mut manager = HoudiniPackageManager::from_version(&args.version)?;
-    manager.check_is_existed()?;
+
     match &args.command {
         Commands::Dir => println!("{}", manager.package_dir.to_slash_lossy()),
-        Commands::Disable { names } => manager.switch_packages(names, false)?,
-        Commands::Enable { names } => manager.switch_packages(names, true)?,
+        Commands::Disable { names } => {
+            manager.check_is_existed()?;
+            manager.switch_packages(names, false)?;
+        }
+        Commands::Enable { names } => {
+            manager.check_is_existed()?;
+            manager.switch_packages(names, true)?;
+        }
         Commands::List => print_packages(&manager),
     }
     Ok(())

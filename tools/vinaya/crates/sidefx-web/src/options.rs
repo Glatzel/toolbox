@@ -126,8 +126,7 @@ impl ValueEnum for SidefxLicenseProducts {
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         match self {
-            Self::HoudiniNc => Some(PossibleValue::new(Into::<&str>::into(self))),
-            Self::RenderNc => Some(PossibleValue::new(Into::<&str>::into(self))),
+            Self::HoudiniNc | Self::RenderNc => Some(PossibleValue::new(Into::<&str>::into(self))),
             Self::All => {
                 Some(PossibleValue::new("HOUDINI-NC;RENDER-NC").alias("RENDER-NC;HOUDINI-NC"))
             }

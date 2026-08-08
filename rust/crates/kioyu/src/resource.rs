@@ -67,7 +67,6 @@ impl ResourcePool {
     /// Atomically allocates all requested resources.
     /// Returns `Ok(true)` on success, `Ok(false)` if any resource has
     /// insufficient capacity, or `Err` if any key is not registered.
-    #[must_use = "check whether allocation succeeded"]
     pub(crate) fn allocate(&mut self, req: &[(ResourceKey, usize)]) -> Result<bool, ResourceError> {
         // Validate everything before mutating — keeps the operation atomic.
         for &(k, v) in req {

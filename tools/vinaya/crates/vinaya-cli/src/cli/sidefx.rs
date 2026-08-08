@@ -38,7 +38,7 @@ pub enum Commands {
     /// Returns a JSON list of all available daily builds.
     #[command(name = "download.get-daily-builds-list")]
     DownloadGetDailyBuildsList {
-        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        #[arg(help_heading=HOUDINI_OPTIONS,value_enum)]
         product: SidefxDownloadProduct,
 
         ///The major version of Houdini. e.g. 19.5, 20.0.

@@ -33,4 +33,3 @@ strum = { version = "0.28", features = ["derive"] }
 tempfile = "3.27.0"
 tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
 validator = { version = "0.21.0", features = ["derive"] }
-serde = { version = "1.0.229", features = ["derive"] }

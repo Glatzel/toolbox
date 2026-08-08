@@ -1,4 +1,5 @@
-use clap::{ValueEnum, builder::PossibleValue};
+use clap::ValueEnum;
+use clap::builder::PossibleValue;
 
 #[derive(Debug, Clone, Copy, strum::EnumString, strum::IntoStaticStr, strum::AsRefStr)]
 pub enum SidefxPlatform {

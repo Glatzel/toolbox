@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use glob::glob;
-use hou_variable::HoudiniVersion;
+use hou_variable::HoudiniVersionShort;
 use mischief::{IntoMischief, WrapErr};
 use path_slash::PathExt;
 use serde_json::{Value, json};
@@ -60,7 +60,7 @@ impl HoudiniPackage {
 
 #[derive(Debug, Clone, Validate)]
 pub struct HoudiniPackageManager {
-    pub version: HoudiniVersion,
+    pub version: HoudiniVersionShort,
     pub package_dir: PathBuf,
     pub packages: Vec<HoudiniPackage>,
 }
@@ -82,7 +82,7 @@ impl HoudiniPackageManager {
         .collect::<mischief::Result<Vec<HoudiniPackage>>>()?;
 
         let manager: Self = Self {
-            version: houdini_preference.version,
+            version: houdini_preference.version.clone(),
             package_dir,
             packages,
         };
@@ -97,8 +97,8 @@ impl HoudiniPackageManager {
         }
         Ok(self)
     }
-    pub fn from_version(major: u8, minor: u8) -> mischief::Result<Self> {
-        let pref = HoudiniPreference::from_version(major, minor)?;
+    pub fn from_version(version: &HoudiniVersionShort) -> mischief::Result<Self> {
+        let pref = HoudiniPreference::from_version(version)?;
         let manager = Self::from_houdini_preference(&pref)?;
         Ok(manager)
     }
@@ -138,10 +138,9 @@ mod tests {
         .unwrap();
 
         HoudiniPreference {
-            version: HoudiniVersion {
+            version: HoudiniVersionShort {
                 major: 20,
                 minor: 5,
-                patch: None,
             },
             directory: pref_dir,
         }

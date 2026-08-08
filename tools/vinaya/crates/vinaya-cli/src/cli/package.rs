@@ -2,43 +2,49 @@ use core::fmt::Debug;
 
 use clap::{Parser, Subcommand};
 use comfy_table::{Attribute, Cell, Color, Table};
+use hou_variable::HoudiniVersionShort;
 use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
 
-use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
+use super::HOUDINI_OPTIONS;
+use crate::cli::custom_parser::parse_generic;
 #[derive(Parser, Debug)]
 pub struct Args {
-    #[command(flatten)]
-    major: ArgMajor,
-    #[command(flatten)]
-    minor: ArgMinor,
+    #[arg(value_parser = parse_generic::<HoudiniVersionShort>)]
+    version: HoudiniVersionShort,
 
     #[command(subcommand)]
     pub command: Commands,
 }
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    Dir {},
+    /// Houdini package directory
+    Dir,
+
+    /// Disable a package
     Disable {
         #[arg(help_heading=HOUDINI_OPTIONS,short, long)]
         names: Vec<String>,
     },
+
+    /// Enable a package
     Enable {
         #[arg(help_heading=HOUDINI_OPTIONS,short, long)]
         names: Vec<String>,
     },
 
-    List {},
+    /// List all packages
+    List,
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
-    let mut manager = HoudiniPackageManager::from_version(args.major.value(), args.minor.value())?;
+    let mut manager = HoudiniPackageManager::from_version(&args.version)?;
     manager.check_is_existed()?;
     match &args.command {
-        Commands::Dir {} => println!("{}", manager.package_dir.to_slash_lossy()),
+        Commands::Dir => println!("{}", manager.package_dir.to_slash_lossy()),
         Commands::Disable { names } => manager.switch_packages(names, false)?,
         Commands::Enable { names } => manager.switch_packages(names, true)?,
-        Commands::List {} => print_packages(&manager),
+        Commands::List => print_packages(&manager),
     }
     Ok(())
 }
@@ -56,7 +62,7 @@ fn print_packages(manager: &HoudiniPackageManager) {
     let mut table = Table::new();
     table.set_header(vec![
         Cell::new("Name").add_attribute(Attribute::Bold),
-        Cell::new("Enable").add_attribute(Attribute::Bold),
+        Cell::new("Enabled").add_attribute(Attribute::Bold),
     ]);
     for p in &manager.packages {
         let enable_cell = if p.enable {

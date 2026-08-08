@@ -1942,6 +1942,7 @@ version = "2026.8.4"
 dependencies = [
  "base64 0.23.1",
  "clap",
+ "hou-variable",
  "mischief",
  "reqwest",
  "reqwest-middleware",

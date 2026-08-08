@@ -5,7 +5,7 @@ use hou_variable::HoudiniVersion;
 use mischief::{IntoMischief, mischief};
 use validator::Validate;
 
-#[derive(Debug, Clone, Copy, Validate)]
+#[derive(Debug, Clone, Validate)]
 pub struct HoudiniInstance {
     pub version: HoudiniVersion,
 }
@@ -19,21 +19,10 @@ impl HoudiniInstance {
         };
 
     fn dir_name(version: &HoudiniVersion) -> mischief::Result<String> {
-        match *version {
-            HoudiniVersion {
-                major,
-                minor,
-                patch: Some(patch),
-            } => {
-                cfg_select! {
-                    target_os = "windows" => Ok(format!("Houdini {major}.{minor}.{patch}")),
-                    target_os = "macos" => Ok(format!("Houdini{major}.{minor}.{patch}")),
-                    _ => Ok(format!("hfs{major}.{minor}.{patch}")),
-                }
-            }
-            _ => {
-                mischief::bail!("invalid version")
-            }
+        cfg_select! {
+            target_os = "windows" => Ok(format!("Houdini {version}")),
+            target_os = "macos" => Ok(format!("Houdini{version}")),
+            _ => Ok(format!("hfs{version}")),
         }
     }
 
@@ -63,9 +52,6 @@ impl HoudiniInstance {
 
     pub fn from_version_string(version_string: &str) -> mischief::Result<Self> {
         let version = HoudiniVersion::try_from(version_string)?;
-        if version.patch.is_none() {
-            mischief::bail!("version string must include patch number")
-        }
         Ok(Self { version })
     }
 
@@ -112,7 +98,7 @@ impl HoudiniInstance {
     pub fn latest_installed_version() -> mischief::Result<Self> {
         Self::list_installed()?
             .first()
-            .copied()
+            .cloned()
             .ok_or_else(|| mischief::mischief!("No Houdini installed."))
     }
 
@@ -145,7 +131,7 @@ mod tests {
 
     fn instance() -> HoudiniInstance {
         HoudiniInstance {
-            version: HoudiniVersion::new(20, 5, Some(123)),
+            version: HoudiniVersion::new(20, 5, 123),
         }
     }
 
@@ -157,7 +143,7 @@ mod tests {
             _ => "hfs20.5.123",
         };
         assert_eq!(
-            HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, Some(123)))?,
+            HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, 123))?,
             PathBuf::from(expected)
         );
         Ok(())
@@ -165,11 +151,11 @@ mod tests {
 
     #[test]
     fn test_version_from_dir_name_valid() -> mischief::Result<()> {
-        let name = HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, Some(123)))?;
+        let name = HoudiniInstance::dir_name(&HoudiniVersion::new(20, 5, 123))?;
         let version = HoudiniInstance::version_from_dir_name(&name).unwrap();
         assert_eq!(version.major(), 20);
         assert_eq!(version.minor(), 5);
-        assert_eq!(version.patch(), Some(123));
+        assert_eq!(version.patch(), 123);
         Ok(())
     }
 
@@ -214,7 +200,7 @@ mod tests {
         let inst = HoudiniInstance::from_version_string("20.5.123").unwrap();
         assert_eq!(inst.version.major(), 20);
         assert_eq!(inst.version.minor(), 5);
-        assert_eq!(inst.version.patch(), Some(123));
+        assert_eq!(inst.version.patch(), 123);
     }
 
     #[test]

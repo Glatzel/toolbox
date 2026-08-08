@@ -1,10 +1,12 @@
 use clap::{Parser, Subcommand};
+use hou_variable::HoudiniVersionShort;
 use sidefx_web::{
     SideFXWeb, SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts,
     SidefxPlatform,
 };
 
 use super::HOUDINI_OPTIONS;
+use crate::cli::custom_parser::parse_generic;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[arg(env = "CLIENT_ID")]
@@ -36,8 +38,10 @@ pub enum Commands {
         #[arg(value_enum)]
         product: SidefxDownloadProduct,
 
-        ///The major version of Houdini. e.g. 19.5, 20.0.
-        version: Vec<String>,
+        ///The major version of Houdini. e.g. 19.5, 20.0. Supports multiple
+        /// values.
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_parser = parse_generic::<HoudiniVersionShort>)]
+        version: Vec<HoudiniVersionShort>,
 
         /// The operating system to install Houdini on.
         ///
@@ -63,7 +67,8 @@ pub enum Commands {
         product: SidefxDownloadProduct,
 
         ///The major version of Houdini, e.g. 19.5, 20.0
-        version: String,
+        #[arg(value_parser = parse_generic::<HoudiniVersionShort>)]
+        version: HoudiniVersionShort,
 
         ///Either a specific build number, e.g. 382, or the string 'production'
         /// to get the latest production build
@@ -93,8 +98,8 @@ pub enum Commands {
         /// passed this function will use the latest version publicly available.
         /// Please note that only the currently supported version of Houdini are
         /// accepted.
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        version: Option<String>,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_parser = parse_generic::<HoudiniVersionShort>)]
+        version: Option<HoudiniVersionShort>,
 
         ///A list of non-commercial products you want to generate licenses for.
         #[arg(value_enum)]
@@ -147,12 +152,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
             products,
         } => {
             sidefx_web
-                .get_non_commercial_license(
-                    &server_name,
-                    &server_code,
-                    version.as_deref(),
-                    products,
-                )
+                .get_non_commercial_license(&server_name, &server_code, version.as_ref(), products)
                 .await?
         }
     };

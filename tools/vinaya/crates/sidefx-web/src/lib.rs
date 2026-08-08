@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
+use hou_variable::HoudiniVersionShort;
 use mischief::{IntoMischief, WrapErr, mischief};
 pub use options::{
     SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts, SidefxPlatform,
@@ -91,7 +92,7 @@ impl SideFXWeb {
     pub async fn download_get_daily_builds_list(
         &self,
         product: SidefxDownloadProduct,
-        version: Vec<String>,
+        version: Vec<HoudiniVersionShort>,
         platform: Option<SidefxPlatform>,
         only_production: Option<bool>,
     ) -> mischief::Result<reqwest::Response> {
@@ -104,7 +105,7 @@ impl SideFXWeb {
             only_production: Option<bool>,
         }
         let params = RequestParams {
-            version,
+            version: version.into_iter().map(|v| v.to_string()).collect(),
             platform,
             only_production,
         };
@@ -133,7 +134,7 @@ impl SideFXWeb {
     pub async fn download_get_daily_build_download(
         &self,
         product: SidefxDownloadProduct,
-        version: &str,
+        version: &HoudiniVersionShort,
         build: SidefxDownloadBuildVersion,
         platform: SidefxPlatform,
     ) -> mischief::Result<reqwest::Response> {
@@ -143,7 +144,12 @@ impl SideFXWeb {
         };
         let data = json!([
             "download.get_daily_build_download",
-            [product.as_ref(), version, build, platform.as_ref()],
+            [
+                product.as_ref(),
+                version.to_string(),
+                build,
+                platform.as_ref()
+            ],
             {}
         ]);
         let response = self
@@ -172,7 +178,7 @@ impl SideFXWeb {
         &self,
         server_name: &str,
         server_code: &str,
-        version: Option<&str>,
+        version: Option<&HoudiniVersionShort>,
         products: SidefxLicenseProducts,
     ) -> mischief::Result<reqwest::Response> {
         let data = json!([
@@ -182,7 +188,7 @@ impl SideFXWeb {
                 server_code,
                 products.as_ref()
             ],
-            {"version": version.unwrap_or_default()}
+            {"version": version.map(std::string::ToString::to_string).unwrap_or_default()}
         ]);
         let response = self
             .client

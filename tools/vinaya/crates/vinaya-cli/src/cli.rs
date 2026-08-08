@@ -1,13 +1,15 @@
-mod common_arg;
+mod custom_parser;
 mod houdini;
 mod package;
 mod preference;
 mod sidefx;
+
 use clap::{Parser, Subcommand};
 use clerk::tracing_subscriber::Layer;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
-pub use common_arg::{ArgMajor, ArgMinor, ArgPatch, HOUDINI_OPTIONS};
+
+pub const HOUDINI_OPTIONS: &str = "Houdini Options";
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None, styles=clap_style::styles())]
 struct VinayaArgs {

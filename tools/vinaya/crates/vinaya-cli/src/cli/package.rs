@@ -44,11 +44,11 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
         Commands::Dir => println!("{}", manager.package_dir.to_slash_lossy()),
         Commands::Disable { names } => {
             manager.check_is_existed()?;
-            manager.switch_packages(names, false)?
+            manager.switch_packages(names, false)?;
         }
         Commands::Enable { names } => {
             manager.check_is_existed()?;
-            manager.switch_packages(names, true)?
+            manager.switch_packages(names, true)?;
         }
         Commands::List => print_packages(&manager),
     }

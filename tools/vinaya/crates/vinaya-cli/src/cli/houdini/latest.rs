@@ -25,13 +25,7 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
         Commands::Hfs => println!("{}", hinstance.hfs()?.to_slash_lossy()),
         Commands::Major => println!("{}", hinstance.version.major),
         Commands::Minor => println!("{}", hinstance.version.minor),
-        Commands::Patch => println!(
-            "{}",
-            hinstance
-                .version
-                .patch
-                .ok_or_else(|| mischief::mischief!(""))?
-        ),
+        Commands::Patch => println!("{}", hinstance.version.patch),
         Commands::Version => println!("{}", hinstance.version),
         Commands::VersionNoPatch => {
             println!("{}.{}", hinstance.version.major, hinstance.version.minor);

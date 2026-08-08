@@ -1,13 +1,13 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use hou_variable::HoudiniVersion;
+use hou_variable::HoudiniVersionShort;
 use path_slash::PathExt;
 use validator::Validate;
 
 #[derive(Debug, Clone, Validate)]
 pub struct HoudiniPreference {
-    pub version: HoudiniVersion,
+    pub version: HoudiniVersionShort,
     pub directory: PathBuf,
 }
 impl HoudiniPreference {
@@ -28,30 +28,21 @@ impl HoudiniPreference {
             _ => Ok(home),
         }
     }
-    pub fn from_version(major: u8, minor: u8) -> mischief::Result<Self> {
+    pub fn from_version(version: &HoudiniVersionShort) -> mischief::Result<Self> {
         if let Ok(val) = env::var("HOUDINI_USER_PREF_DIR") {
             let pref_dir: PathBuf = Path::new(&val)
                 .parent()
                 .ok_or_else(|| mischief::mischief!("HOUDINI_USER_PREF_DIR has no parent."))?
-                .join(format!("houdini{major}.{minor}"));
+                .join(format!("houdini{version}"));
             let perf = Self {
-                version: HoudiniVersion {
-                    major,
-                    minor,
-                    patch: None,
-                },
+                version: version.clone(),
                 directory: pref_dir,
             };
             Ok(perf)
         } else {
-            let pref_dir: PathBuf =
-                Self::preference_root()?.join(format!("houdini{major}.{minor}"));
+            let pref_dir: PathBuf = Self::preference_root()?.join(format!("houdini{version}"));
             let perf: Self = Self {
-                version: HoudiniVersion {
-                    major,
-                    minor,
-                    patch: None,
-                },
+                version: version.clone(),
                 directory: pref_dir,
             };
             Ok(perf)
@@ -73,7 +64,11 @@ mod tests {
     #[test]
     fn test_from_version_env_default() {
         unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };
-        let pref = HoudiniPreference::from_version(20, 5).unwrap();
+        let pref = HoudiniPreference::from_version(&HoudiniVersionShort {
+            major: 20,
+            minor: 5,
+        })
+        .unwrap();
         let home = dirs::home_dir().unwrap();
         let expected = cfg_select! {
             target_os = "macos" => home
@@ -88,7 +83,11 @@ mod tests {
     #[test]
     fn test_from_version_env_override() {
         unsafe { env::set_var("HOUDINI_USER_PREF_DIR", "/some/custom/path/houdini__HVER__") };
-        let pref = HoudiniPreference::from_version(20, 5).unwrap();
+        let pref = HoudiniPreference::from_version(&HoudiniVersionShort {
+            major: 20,
+            minor: 5,
+        })
+        .unwrap();
         assert_eq!(
             pref.directory.to_slash_lossy(),
             "/some/custom/path/houdini20.5"

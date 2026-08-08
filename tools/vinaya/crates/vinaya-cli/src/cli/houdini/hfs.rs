@@ -3,7 +3,8 @@ use hou_variable::HoudiniVersion;
 use hou_where::HoudiniInstance;
 use path_slash::PathBufExt;
 
-use crate::cli::{ArgMajor, ArgMinor, ArgPatch};
+use crate::cli::custom_parser::parse_generic;
+
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]
@@ -12,30 +13,17 @@ pub struct Args {
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     FromVersion {
-        #[command(flatten)]
-        major: ArgMajor,
-        #[command(flatten)]
-        minor: ArgMinor,
-        #[command(flatten)]
-        patch: ArgPatch,
-    },
-    FromVersionString {
-        version_string: String,
+        #[arg(value_parser = parse_generic::<HoudiniVersion>)]
+        version: HoudiniVersion,
     },
     Latest,
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
     let instance = match &args.command {
-        Commands::FromVersion {
-            major,
-            minor,
-            patch,
-        } => HoudiniInstance {
-            version: HoudiniVersion::new(major.value(), minor.value(), Some(patch.value())),
+        Commands::FromVersion { version } => HoudiniInstance {
+            version: version.clone(),
         },
-        Commands::FromVersionString { version_string } => {
-            HoudiniInstance::from_version_string(version_string)?
-        }
+
         Commands::Latest => HoudiniInstance::latest_installed_version()?,
     };
     println!("{}", instance.hfs()?.to_slash_lossy());

@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 base64.workspace = true
 clap.workspace = true
+hou-variable.workspace = true
 mischief.workspace = true
 reqwest.workspace = true
 reqwest-middleware.workspace = true

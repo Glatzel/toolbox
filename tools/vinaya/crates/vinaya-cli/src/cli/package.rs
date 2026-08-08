@@ -2,17 +2,17 @@ use core::fmt::Debug;
 
 use clap::{Parser, Subcommand};
 use comfy_table::{Attribute, Cell, Color, Table};
+use hou_variable::HoudiniVersionShort;
 use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
 use path_slash::PathExt;
 
-use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
+use super::HOUDINI_OPTIONS;
+use crate::cli::custom_parser::parse_generic;
 #[derive(Parser, Debug)]
 pub struct Args {
-    #[command(flatten)]
-    major: ArgMajor,
-    #[command(flatten)]
-    minor: ArgMinor,
+    #[arg(value_parser = parse_generic::<HoudiniVersionShort>)]
+    version: HoudiniVersionShort,
 
     #[command(subcommand)]
     pub command: Commands,
@@ -32,7 +32,7 @@ pub enum Commands {
     List {},
 }
 pub fn execute(args: &Args) -> mischief::Result<()> {
-    let mut manager = HoudiniPackageManager::from_version(args.major.value(), args.minor.value())?;
+    let mut manager = HoudiniPackageManager::from_version(&args.version)?;
     manager.check_is_existed()?;
     match &args.command {
         Commands::Dir {} => println!("{}", manager.package_dir.to_slash_lossy()),

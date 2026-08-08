@@ -746,8 +746,6 @@ name = "hou-variable"
 version = "2026.8.4"
 dependencies = [
  "mischief",
- "rstest",
- "strum",
  "validator",
 ]
 
@@ -1978,12 +1976,15 @@ name = "sidefx-web"
 version = "2026.8.4"
 dependencies = [
  "base64 0.23.1",
+ "clap",
  "hou-variable",
  "mischief",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
+ "rstest",
  "serde_json",
+ "strum",
 ]
 
 [[package]]

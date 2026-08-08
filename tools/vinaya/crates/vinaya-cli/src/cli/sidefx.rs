@@ -1,11 +1,10 @@
-use core::str::FromStr;
 use std::env;
 
 use clap::{Parser, Subcommand};
-use hou_variable::{
-    HoudiniDownloadBuildVersion, HoudiniDownloadProduct, HoudiniLicenseProducts, HoudiniPlatform,
+use sidefx_web::{
+    SideFXWeb, SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts,
+    SidefxPlatform,
 };
-use sidefx_web::SideFXWeb;
 
 use super::{ArgMajor, ArgMinor, HOUDINI_OPTIONS};
 #[derive(Parser, Debug)]
@@ -32,42 +31,42 @@ pub struct Args {
 pub enum Commands {
     #[command(name = "download.get-daily-builds-list")]
     DownloadGetDailyBuildsList {
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        product: HoudiniDownloadProduct,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        product: SidefxDownloadProduct,
         #[command(flatten)]
         major: ArgMajor,
         #[command(flatten)]
         minor: ArgMinor,
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        platform: HoudiniPlatform,
+        platform: SidefxPlatform,
         #[arg(help_heading=HOUDINI_OPTIONS,long)]
         all_build: bool,
     },
     #[command(name = "download.get-daily-build-download")]
     DownloadGetDailyBuildDownload {
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        product: HoudiniDownloadProduct,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        product: SidefxDownloadProduct,
         #[command(flatten)]
         major: ArgMajor,
         #[command(flatten)]
         minor: ArgMinor,
         #[arg(help_heading=HOUDINI_OPTIONS,long, help = "Houdini version patch")]
-        build: HoudiniDownloadBuildVersion,
-        #[arg(help_heading=HOUDINI_OPTIONS,long)]
-        platform: HoudiniPlatform,
+        build: SidefxDownloadBuildVersion,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        platform: SidefxPlatform,
     },
     #[command(name = "license.get_non_commercial_license")]
     GetNonCommercialLicense {
-        #[arg(long)]
+        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_name: String,
-        #[arg(long)]
+        #[arg(help_heading=HOUDINI_OPTIONS,long)]
         server_code: String,
         #[command(flatten)]
         major: Option<ArgMajor>,
         #[command(flatten)]
         minor: Option<ArgMinor>,
-        #[arg(long)]
-        products: String,
+        #[arg(help_heading=HOUDINI_OPTIONS,long,value_enum)]
+        products: SidefxLicenseProducts,
     },
 }
 
@@ -152,7 +151,7 @@ pub async fn execute(args: &Args) -> mischief::Result<()> {
                     &server_code,
                     major.map(super::common_arg::ArgMajor::value),
                     minor.map(super::common_arg::ArgMinor::value),
-                    HoudiniLicenseProducts::from_str(&products)?,
+                    products,
                 )
                 .await?
         }

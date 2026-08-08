@@ -26,11 +26,3 @@ pub struct ArgPatch {
 impl ArgPatch {
     pub const fn value(self) -> u16 { self.patch }
 }
-#[derive(clap::Args, Debug, Clone, Copy, Default)]
-pub struct ArgNoCheck {
-    #[arg(help_heading=HOUDINI_OPTIONS,long, help = "No check if path or file is existed")]
-    no_check: bool,
-}
-impl ArgNoCheck {
-    pub const fn value(self) -> bool { self.no_check }
-}

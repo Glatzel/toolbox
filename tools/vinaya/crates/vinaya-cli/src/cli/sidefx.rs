@@ -9,10 +9,10 @@ use super::HOUDINI_OPTIONS;
 use crate::cli::custom_parser::parse_generic;
 #[derive(Parser, Debug)]
 pub struct Args {
-    #[arg(env = "CLIENT_ID")]
+    #[arg(env = "SIDEFX_CLIENT_ID")]
     client_id: Option<String>,
 
-    #[arg(env = "CLIENT_SECRET")]
+    #[arg(env = "SIDEFX_CLIENT_SECRET")]
     client_secret: Option<String>,
 
     #[arg(default_value = "https://www.sidefx.com/oauth2/application_token")]

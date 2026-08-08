@@ -60,6 +60,7 @@ impl<P> Job<P> {
 }
 
 #[async_trait]
+#[must_use]
 pub trait IPayload: Send + Sync {
     type Error: Display + Send;
 

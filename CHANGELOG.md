@@ -18,12 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(mischief)** Split textwrap feature by @Glatzel in [#705](https://github.com/Glatzel/toolbox/pull/705)
 - Get license by @Glatzel in [#716](https://github.com/Glatzel/toolbox/pull/716)
 - **(vinaya)** Improve ergonomics by @Glatzel in [#720](https://github.com/Glatzel/toolbox/pull/720)
+- **(vinaya)** Improve ergonomics by @Glatzel in [#722](https://github.com/Glatzel/toolbox/pull/722)
 
 ### Fixed
 
 - **(mischief)** Backtrace by @Glatzel in [#701](https://github.com/Glatzel/toolbox/pull/701)
 - **(mischief)** Color by @Glatzel in [#704](https://github.com/Glatzel/toolbox/pull/704)
 - Vinaya sidefx web api by @Glatzel in [#712](https://github.com/Glatzel/toolbox/pull/712)
+
+### Testing
+
+- **(vinaya)** Add test by @Glatzel in [#723](https://github.com/Glatzel/toolbox/pull/723)
 
 ## [2026.7.27] - 2026-07-29
 

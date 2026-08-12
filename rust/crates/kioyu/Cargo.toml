@@ -17,10 +17,7 @@ arbor.workspace = true
 insta = { workspace = true, features = ["filters"] }
 mischief.workspace = true
 tempfile.workspace = true
-tokio = { workspace = true, features = [
-  "macros",
-  "rt",
-  "sync",
-  "test-util",
-  "time"
-] }
+tokio = {
+  workspace = true,
+  features = ["macros", "rt", "sync", "test-util", "time"]
+}

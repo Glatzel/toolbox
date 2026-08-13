@@ -117,14 +117,14 @@ impl IPayload for RunnerPayload {
     }
 
     async fn post_process(&self) -> mischief::Result<()> {
-        let name = self.sandbox_name;
+        let name = self.sandbox_name.as_ref();
 
-        if Sandbox::get(&name).await.is_err() {
+        if Sandbox::get(name).await.is_err() {
             clerk::debug!(sandbox = %name, "sandbox already removed");
             return Ok(());
         }
 
-        match Sandbox::remove(&name).await {
+        match Sandbox::remove(name).await {
             Ok(()) => clerk::debug!(sandbox = %name, "sandbox removed"),
             Err(e) => clerk::error!(sandbox = %name, error = %e, "sandbox removal failed"),
         }

@@ -13,12 +13,12 @@ jobs:
           uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
           with:
             run-install: false
-      - uses: ./.github/actions/python/pytest
+      - uses: Glatzel/template/python/pytest@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           working-directory: ./python
         env:
           PYTHONPATH: ./src
-      - uses: ./.github/actions/common/codecov
+      - uses: Glatzel/template/actions/common/codecov@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         if: ${{!cancelled()}}
         with:
           flags: ci-python

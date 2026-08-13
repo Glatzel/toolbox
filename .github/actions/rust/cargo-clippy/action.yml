@@ -118,7 +118,6 @@ inputs:
       -D clippy::single_match_else
       -D clippy::single_option_map
       -D clippy::stable_sort_primitive
-      -D clippy::std_instead_of_core
       -D clippy::str_split_at_newline
       -D clippy::string_lit_as_bytes
       -D clippy::suboptimal_flops

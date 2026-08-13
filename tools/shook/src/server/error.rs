@@ -20,23 +20,23 @@ pub enum ShookServerError {
 impl IntoResponse for ShookServerError {
     fn into_response(self) -> axum::response::Response {
         match self {
-            ShookServerError::Microsandbox(_) => {
+            Self::Microsandbox(_) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
             }
-            ShookServerError::SerdeJson(_) => {
+            Self::SerdeJson(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ShookServerError::Validator(_) => {
+            Self::Validator(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
 
-            ShookServerError::MissingHeader(_) => {
+            Self::MissingHeader(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ShookServerError::RequestSignaturesMismatch => {
+            Self::RequestSignaturesMismatch => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ShookServerError::Parse(_) => {
+            Self::Parse(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
         }

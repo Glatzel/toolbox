@@ -11,7 +11,7 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     let result = a
         .iter()
         .zip(b.iter())
-        .fold(0u8, |acc, (x, y)| acc | (x ^ y))
+        .fold(0_u8, |acc, (x, y)| acc | (x ^ y))
         == 0;
 
     clerk::debug!(equal = result, "constant_time_eq: comparison complete");

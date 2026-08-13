@@ -15,8 +15,7 @@ pub fn init_log(args: &Args) -> mischief::Result<()> {
             let log_dir = config
                 .parent()
                 .expect("Config not exist.")
-                .join("log")
-                .to_path_buf();
+                .join("log");
             clerk::tracing_subscriber::registry()
                 .with(
                     kioyu_layers(log_dir)
@@ -29,11 +28,11 @@ pub fn init_log(args: &Args) -> mischief::Result<()> {
                         .with_filter(NotInSpanFilter(KIOYU_JOB_SPAN))
                         .with_filter(level),
                 )
-                .init()
+                .init();
         }
         _ => clerk::tracing_subscriber::registry()
             .with(clerk::terminal_layer(true).with_filter(level))
             .init(),
-    };
+    }
     Ok(())
 }

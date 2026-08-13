@@ -25,7 +25,7 @@ pub(super) fn execute() -> mischief::Result<()> {
                 clerk::debug!("shook.toml already exists");
             }
             Err(e) => return Err(e.into()),
-        };
+        }
     }
     {
         let schema_file = env::current_dir()?.join("shook.schema.json");
@@ -35,6 +35,6 @@ pub(super) fn execute() -> mischief::Result<()> {
         std::fs::write(&schema_file, schema)
             .into_mischief()
             .wrap_err("Failed to write to shook.schema.json")?;
-    }
+    };
     Ok(())
 }

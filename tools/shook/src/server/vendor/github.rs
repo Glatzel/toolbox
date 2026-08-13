@@ -66,7 +66,7 @@ impl IRunnerPayload for WebhookPayload {
         verify_signature(body, &config.devop.webhook_secret, headers)?;
 
         clerk::debug!("Parsing webhook JSON payload");
-        let webhook_payload: WebhookPayload = serde_json::from_str(body).map_err(|e| {
+        let webhook_payload: Self = serde_json::from_str(body).map_err(|e| {
             clerk::warn!(error = %e, "Failed to parse webhook JSON payload");
             ShookServerError::SerdeJson(e)
         })?;
@@ -99,8 +99,7 @@ impl IRunnerPayload for WebhookPayload {
             Some(r) => r.clone(),
             None => {
                 return Err(ShookServerError::Parse(format!(
-                    "Runner not found: {}",
-                    runner_name
+                    "Runner not found: {runner_name}"
                 )));
             }
         };

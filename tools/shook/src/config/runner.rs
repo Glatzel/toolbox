@@ -119,7 +119,7 @@ impl IResolve<HashMap<String, ConfigRunner>> for RawConfigRunner {
 }
 impl RawConfigRunner {
     fn validate_raw_config_runner(config: &Self) -> Result<(), ValidationError> {
-        for (name, runner) in config.runners.iter() {
+        for (name, runner) in &config.runners {
             match (
                 runner.count > 1,
                 &config.ports,
@@ -162,7 +162,7 @@ fn resolve_map<K, V>(
     strategy: RunnerResolveMode,
 ) -> HashMap<K, V>
 where
-    K: Eq + std::hash::Hash,
+    K: Eq + core::hash::Hash,
 {
     match strategy {
         RunnerResolveMode::Replace => local.unwrap_or_default(),
@@ -181,7 +181,7 @@ fn validate_ports(ports: &HashMap<u16, u16>) -> Result<(), ValidationError> {
     for (local, remote) in ports {
         if local == &0 || remote == &0 {
             let mut err = ValidationError::new("invalid_port");
-            err.message = Some(format!("invalid port mapping: {}:{}", local, remote).into());
+            err.message = Some(format!("invalid port mapping: {local}:{remote}").into());
             return Err(err);
         }
     }
@@ -198,7 +198,7 @@ fn validate_runners(
     for (name, runner) in runners {
         runner.validate().map_err(|e| {
             let mut err = ValidationError::new("invalid_runner");
-            err.message = Some(format!("runner '{}': {}", name, e).into());
+            err.message = Some(format!("runner '{name}': {e}").into());
             err
         })?;
     }

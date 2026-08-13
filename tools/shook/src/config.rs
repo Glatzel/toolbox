@@ -53,7 +53,7 @@ impl IResolve<Config> for RawConfig {
             kioyu: self.kioyu.resolve(),
             runners: self.runners.resolve(),
         };
-        for (name, runner) in config.runners.iter() {
+        for (name, runner) in &config.runners {
             if config.kioyu.memory <= runner.memory {
                 clerk::info!(
                     "Runner {} has memory {} which is less than or equal to Kioyu memory {}, updating Kioyu memory to {}.",

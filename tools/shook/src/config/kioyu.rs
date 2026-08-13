@@ -11,12 +11,12 @@ pub struct ConfigKioyu {
     pub memory: u32,
     pub max_retries: usize,
 }
-pub(super) fn default_config_kioyu() -> ConfigKioyu {
+pub(super) const fn default_config_kioyu() -> ConfigKioyu {
     ConfigKioyu {
         memory: 1024,
         max_retries: 1,
     }
 }
-impl IResolve<ConfigKioyu> for RawConfigKioyu {
-    fn resolve(self) -> ConfigKioyu { self }
+impl IResolve<Self> for RawConfigKioyu {
+    fn resolve(self) -> Self { self }
 }

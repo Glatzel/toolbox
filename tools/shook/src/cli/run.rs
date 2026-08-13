@@ -10,7 +10,7 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
 
     let dispatcher = start_dispatcher_unlimited::<RunnerPayload>();
 
-    for (name, runner) in config.runners.into_iter() {
+    for (name, runner) in config.runners {
         for i in 0..runner.count {
             let job = Job::new(
                 format!("{name}-{i}"),

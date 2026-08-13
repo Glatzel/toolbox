@@ -34,6 +34,6 @@ pub struct ConfigDevOp {
     #[validate(length(min = 1))]
     pub allowed_users: Vec<String>,
 }
-impl IResolve<ConfigDevOp> for RawConfigDevOp {
-    fn resolve(self) -> ConfigDevOp { self }
+impl IResolve<Self> for RawConfigDevOp {
+    fn resolve(self) -> Self { self }
 }

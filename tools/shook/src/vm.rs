@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
+use core::fmt::{Debug, Formatter};
 use std::path::PathBuf;
 
 use async_trait::async_trait;
@@ -28,7 +28,7 @@ pub struct RunnerPayload {
 
 impl RunnerPayload {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
+    pub const fn new(
         sandbox_name: String,
         image: String,
         cpus: u8,
@@ -68,7 +68,7 @@ impl RunnerPayload {
 }
 
 impl Debug for RunnerPayload {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("RunnerPayload")
             .field("sandbox_name", &self.sandbox_name)
             .field("image", &self.image)
@@ -206,7 +206,7 @@ async fn start_runner(
 async fn drain_sandbox_handle(mut handle: ExecHandle, cancel: &CancellationToken) {
     loop {
         tokio::select! {
-            _ = cancel.cancelled() => {
+            () = cancel.cancelled() => {
                 clerk::debug!("sandbox cancellation received");
                 handle.kill().await.ok();
                 break;

@@ -12,7 +12,7 @@ use error::ShookServerError;
 pub use job::IRunnerPayload;
 use kioyu::{DispatcherHandle, Job, ResourceRequest};
 use validator::ValidateArgs;
-use vendor::*;
+use vendor::github;
 
 use crate::config::{Config, Vendor};
 use crate::vm::RunnerPayload;
@@ -67,7 +67,7 @@ async fn webhook(
     };
     clerk::debug!("{:?}", runner_payload);
     match runner_payload.validate_with_args(&state.config) {
-        Ok(_) => {
+        Ok(()) => {
             clerk::debug!("Validated runner spec");
             let resource_request =
                 ResourceRequest::new(vec![("memory", runner_payload.memory as usize)]);
@@ -81,7 +81,7 @@ async fn webhook(
                 ))
                 .await
             {
-                Ok(_) => (StatusCode::OK, "OK".to_string()).into_response(),
+                Ok(()) => (StatusCode::OK, "OK".to_string()).into_response(),
                 Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
             }
         }

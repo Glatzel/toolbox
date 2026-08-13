@@ -17,12 +17,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lefthook:
-    if: ${{ github.event_name != 'schedule' }}
-    uses: ./.github/workflows/ci-lefthook.yml
-    permissions:
-      contents: write
-      pull-requests: write
   changed:
     outputs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
@@ -244,7 +238,6 @@ jobs:
         fuzz,
         benchmark,
         changed,
-        lefthook,
         python-ci,
         rust-ci,
         check-mischief,

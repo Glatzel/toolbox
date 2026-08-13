@@ -199,7 +199,7 @@ jobs:
           working-directory: ./tools/ttyw
           doc: false
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
-      - uses: Glatzel/template/actions/common/codecov
+      - uses: Glatzel/template/actions/common/codecov@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-ttyw

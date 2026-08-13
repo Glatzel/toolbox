@@ -12,10 +12,7 @@ pub fn init_log(args: &Args) -> mischief::Result<()> {
     match &args.commands {
         super::Commands::Serve(CommonArgs { config })
         | super::Commands::Run(CommonArgs { config }) => {
-            let log_dir = config
-                .parent()
-                .expect("Config not exist.")
-                .join("log");
+            let log_dir = config.parent().expect("Config not exist.").join("log");
             clerk::tracing_subscriber::registry()
                 .with(
                     kioyu_layers(log_dir)

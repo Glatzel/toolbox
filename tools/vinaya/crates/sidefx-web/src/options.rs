@@ -14,7 +14,7 @@ use clap::builder::PossibleValue;
 pub enum SidefxPlatform {
     #[strum(serialize = "win64")]
     #[serde(rename = "win64")]
-    #[value(alias = "win64", alias = "win",alias="win-64" )]
+    #[value(alias = "win64", alias = "win", alias = "win-64")]
     Win64,
     #[strum(serialize = "macos")]
     #[serde(rename = "macos")]

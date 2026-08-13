@@ -17,6 +17,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lefthook:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/ci-lefthook.yml
+    permissions:
+      contents: write
+      pull-requests: write
   changed:
     outputs:
       changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
@@ -235,6 +241,7 @@ jobs:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:
       [
+        lefthook,
         fuzz,
         benchmark,
         changed,

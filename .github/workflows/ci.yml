@@ -106,7 +106,7 @@ jobs:
             uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
             with:
               run-install: false
-      - uses: Glatzel/template/.github/rust/cargo-clippy@e99cfd79d24aeb304968de9978752503b6ef1a2d # v2026.8.16
+      - uses: Glatzel/template/.github/rust/cargo-clippy@2dd28d89802ee2c23ca12877c7b6d6270d31d029 # v2026.8.26
         with:
           working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color

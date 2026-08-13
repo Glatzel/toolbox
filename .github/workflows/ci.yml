@@ -238,7 +238,6 @@ jobs:
         fuzz,
         benchmark,
         changed,
-        lefthook,
         python-ci,
         rust-ci,
         check-mischief,

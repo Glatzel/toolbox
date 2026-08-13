@@ -23,22 +23,11 @@ impl IntoResponse for ShookServerError {
             Self::Microsandbox(_) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
             }
-            Self::SerdeJson(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::Validator(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-
-            Self::MissingHeader(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::RequestSignaturesMismatch => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::Parse(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
+            Self::SerdeJson(_)
+            | Self::Validator(_)
+            | Self::MissingHeader(_)
+            | Self::RequestSignaturesMismatch
+            | Self::Parse(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
         }
     }
 }

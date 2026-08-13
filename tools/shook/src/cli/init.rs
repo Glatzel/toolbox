@@ -1,6 +1,7 @@
+use core::io::ErrorKind;
 use std::env;
 use std::fs::OpenOptions;
-use std::io::{ErrorKind, Write};
+use std::io::Write;
 
 use mischief::{IntoMischief, WrapErr};
 

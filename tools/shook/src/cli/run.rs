@@ -20,7 +20,7 @@ pub(super) async fn execute(args: CommonArgs) -> mischief::Result<()> {
                     runner.cpus,
                     runner.memory,
                     runner.volumes.clone(),
-                    Default::default(),
+                    HashMap::default(),
                     runner.envs.clone(),
                     runner.secrets.clone(),
                     config.devop.allowed_users[0].clone(),

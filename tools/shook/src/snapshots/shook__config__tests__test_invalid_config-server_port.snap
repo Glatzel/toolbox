@@ -1,0 +1,9 @@
+---
+source: src/config.rs
+expression: err.description()
+---
+TOML parse error at line 2, column 8
+  |
+2 | port = 100000
+  |        ^^^^^^
+invalid value: integer `100000`, expected u16

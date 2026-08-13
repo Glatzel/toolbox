@@ -13,7 +13,7 @@ jobs:
           uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
           with:
             run-install: false
-      - uses: Glatzel/template/python/pytest@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
+      - uses: Glatzel/template/actions/python/pytest@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           working-directory: ./python
         env:

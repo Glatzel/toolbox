@@ -9,22 +9,22 @@ clerk = { path = "../../rust/crates/clerk", features = ["tracing"] }
 kioyu = { path = "../../rust/crates/kioyu" }
 mischief = { path = "../../rust/crates/mischief" }
 
-async-trait = "0.1.89"
+async-trait = "0.1.92"
 axum = "0.8.9"
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { version = "4.6.6", features = ["derive"] }
 clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
 hex = "0.4.3"
 hmac = "0.13.0"
-microsandbox = "0.6.0"
-schemars = "1.2.1"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.150"
-serde_with = { version = "3.21.0", features = ["hashbrown_0_16", "schemars_1"] }
+microsandbox = "0.6.8"
+schemars = "1.2.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_with = { version = "3.22.0", features = ["hashbrown_0_16", "schemars_1"] }
 sha2 = "0.11.0"
-thiserror = "2.0.18"
-tokio = { version = "1.52.3", features = ["rt-multi-thread"] }
-toml = "1.1.2"
-validator = { version = "0.20.0", features = ["derive"] }
+thiserror = "2.0.20"
+tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+toml = "1.1.4"
+validator = { version = "0.21.0", features = ["derive"] }
 
 [dev-dependencies]
 assert_cmd = "2.2.2"

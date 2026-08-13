@@ -16,16 +16,17 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/rust/setup-rust
-        with:
-          toolchain: nightly
-          components: llvm-tools-preview
-      - uses: ./.github/actions/rust/cargo-fuzz
+      - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: Glatzel/template/actions/rust/setup-rust@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
+            with:
+              toolchain: nightly
+              components: llvm-tools-preview
+      - uses: Glatzel/template/actions/rust/cargo-fuzz@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           working-directory: ${{matrix.pwd}}
           target: ${{matrix.target}}
-      - uses: ./.github/actions/common/codecov
+      - uses: Glatzel/template/actions/common/codecov@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         if: ${{!cancelled()}}
         with:
           flags: ${{matrix.target}}

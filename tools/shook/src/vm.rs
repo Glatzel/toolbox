@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use async_trait::async_trait;
 use kioyu::{CancellationToken, IPayload};
-use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
+use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox, SandboxListBuilder};
 use validator::{Validate, ValidationError};
 
 use crate::config::Config;
@@ -117,14 +117,14 @@ impl IPayload for RunnerPayload {
     }
 
     async fn post_process(&self) -> mischief::Result<()> {
-        let name = &self.sandbox_name;
+        let name = self.sandbox_name;
 
-        if Sandbox::list().await?.iter().all(|s| s.name() != name) {
+        if Sandbox::get(&name).await.is_err() {
             clerk::debug!(sandbox = %name, "sandbox already removed");
             return Ok(());
         }
 
-        match Sandbox::remove(name).await {
+        match Sandbox::remove(&name).await {
             Ok(()) => clerk::debug!(sandbox = %name, "sandbox removed"),
             Err(e) => clerk::error!(sandbox = %name, error = %e, "sandbox removal failed"),
         }

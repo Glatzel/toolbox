@@ -42,7 +42,7 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ./lefthook/.pixi
-          key: lefthook-${{ hashFiles('./lefthook/lefthook.yaml','./lefthook/pixi*')}}
+          key: lefthook-${{ hashFiles('./lefthook.yaml','./lefthook/pixi*')}}
           restore-keys: |
             lefthook
       # pre-commit
@@ -50,6 +50,8 @@ jobs:
         run: pixi run --manifest-path ./lefthook/pixi.toml lefthook-run
       - if: ${{!cancelled()}}
         run: |
+          rm ./lefthook.yaml
+          rm -rf ./lefthook
           if ! git diff --quiet || ! git diff --cached --quiet; then
             echo "❌ Lefthook modified files. Please run lefthook locally and commit the fixes."
             git --no-pager diff

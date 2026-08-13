@@ -167,9 +167,12 @@ jobs:
         if: ${{matrix.machine == 'ubuntu-latest'}}
         with:
           working-directory: ./tools/shook
+          nextest-options: --all-features --dep-coverage clap-style,clerk,mischief,kioyu
           doc: false
       - uses: ./.github/actions/common/codecov
         if: ${{!cancelled() && matrix.machine == 'ubuntu-latest'}}
+        with:
+          flags: ci-tools-shook
 
   tools-ttyw:
     needs: changed

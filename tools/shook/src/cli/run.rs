@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use kioyu::{Job, ResourceRequest, start_dispatcher_unlimited};
 use mischief::{IntoMischief, WrapErr};
 

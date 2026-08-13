@@ -3,4 +3,4 @@ channels = ["conda-forge"]
 platforms = [{ platform = "linux-64", glibc = "2.34" }]
 
 [dependencies]
-libudev = "==261.1"
+libudev = "==261.2"

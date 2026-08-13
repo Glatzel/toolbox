@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use async_trait::async_trait;
 use kioyu::{CancellationToken, IPayload};
-use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox, SandboxListBuilder};
+use microsandbox::{ExecEvent, ExecHandle, MicrosandboxError, Sandbox};
 use validator::{Validate, ValidationError};
 
 use crate::config::Config;

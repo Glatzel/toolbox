@@ -86,14 +86,11 @@ impl IRunnerPayload for WebhookPayload {
             sender = %webhook_payload.sender.login,
             "Webhook payload accepted, returning runner spec"
         );
-        let runner_name = match webhook_payload.workflow_job.labels.get(1) {
-            Some(name) => name,
-            None => {
-                return Err(ShookServerError::Parse(format!(
-                    "Runner label not found: {:?}",
-                    webhook_payload.workflow_job.labels
-                )));
-            }
+        let Some(runner_name) = webhook_payload.workflow_job.labels.get(1) else {
+            return Err(ShookServerError::Parse(format!(
+                "Runner label not found: {:?}",
+                webhook_payload.workflow_job.labels
+            )));
         };
         let runner: ConfigRunner = match config.runners.get(runner_name) {
             Some(r) => r.clone(),

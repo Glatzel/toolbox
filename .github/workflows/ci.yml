@@ -150,7 +150,7 @@ jobs:
     runs-on: ${{ matrix.machine }}
     steps:
       - parallel:
-          - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - uses: Glatzel/template/actions/rust/setup-rust@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
             with:
               toolchain: nightly

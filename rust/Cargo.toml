@@ -30,10 +30,7 @@ strum = { version = "0.28.0", features = ["derive"] }
 syn = "3.0.3"
 tempfile = "3.27.0"
 terminal_size = "0.4.4"
-textwrap = {
-  git = "https://github.com/Glatzel/textwrap.git",
-  default-features = false
-}                                                                                # if official no_std released, change to official crate
+textwrap = { git = "https://github.com/Glatzel/textwrap.git", default-features = false }  # if official no_std released, change to official crate
 thiserror = { version = "2.0.20", default-features = false }
 tokio = { version = "1.53.1", default-features = false }
 tokio-util = "0.7.19"

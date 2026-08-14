@@ -92,6 +92,8 @@ mod tests {
     #[case("ascii_keep_right_not_first_char", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInRest)]
     #[case("ascii_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS , UntilMode::Discard)]
     #[case("ascii_empty_input", "", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_fallback_match", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CharSetFilter::new(['0', '1', '你']), UntilMode::Discard)]
+    #[case("ascii_fallback_no_match", "abcdef", PhantomData::<UntilOneInCharSet<_>>, &CharSetFilter::new(['0', '1', '你']), UntilMode::Discard)]
     fn test_until_one_in_char_set<const N: usize>(
         #[case] name: &str,
         #[case] input: &str,

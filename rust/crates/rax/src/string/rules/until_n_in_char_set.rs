@@ -156,6 +156,20 @@ mod tests {
 
     )]
     #[case(
+        "ascii_fallback_match",
+        "a1b2c3",
+        PhantomData::<UntilNInCharSet<2, _>>,
+        &CharSetFilter::new(['0', '1', '2', '你']),
+        UntilMode::KeepInOutput,
+    )]
+    #[case(
+        "ascii_fallback_not_enough_matches",
+        "abc",
+        PhantomData::<UntilNInCharSet<1, _>>,
+        &CharSetFilter::new(['1', '2', '你']),
+        UntilMode::KeepInOutput,
+    )]
+    #[case(
         "utf8_unicode_keep_left",
         "你好世界",
         PhantomData::<UntilNInCharSet<2, 3>>,

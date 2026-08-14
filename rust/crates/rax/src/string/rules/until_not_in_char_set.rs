@@ -86,6 +86,8 @@ mod tests {
     #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
+    #[case("ascii_fallback_not_in_set", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['0', '1', '2', '3', '你']), UntilMode::Discard)]
+    #[case("ascii_fallback_all_in_set", "123", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['0', '1', '2', '3', '你']), UntilMode::Discard)]
     #[case("utf8_discard", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
     #[case("utf8_all_in_set", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['你', '好','世','界']), UntilMode::Discard)]
     fn test_until_not_in_char_set<const N: usize>(

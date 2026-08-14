@@ -16,6 +16,7 @@ use kioyu::{
 };
 use mischief::IntoMischief;
 use tempfile::tempdir;
+use tokio::sync::mpsc;
 use tokio::time::{Duration, sleep};
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -71,25 +72,42 @@ impl IPayload for TestPayload {
 }
 
 /// Fails for the first `fails_first` calls to `execute`, then succeeds.
-/// Tracks both execute and post_process invocations independently.
+/// Signals on `attempt_tx` after every execute() attempt, and on
+/// `post_process_tx` after every post_process() call.
 struct FailingPayload {
     fails_first: usize,
     execute_count: Arc<AtomicUsize>,
     post_process_count: Arc<AtomicUsize>,
+    attempt_tx: mpsc::UnboundedSender<()>,
+    post_process_tx: mpsc::UnboundedSender<()>,
 }
 
 impl FailingPayload {
-    fn new(fails_first: usize) -> (Self, Arc<AtomicUsize>, Arc<AtomicUsize>) {
+    fn new(
+        fails_first: usize,
+    ) -> (
+        Self,
+        Arc<AtomicUsize>,
+        Arc<AtomicUsize>,
+        mpsc::UnboundedReceiver<()>,
+        mpsc::UnboundedReceiver<()>,
+    ) {
         let execute_count = Arc::new(AtomicUsize::new(0));
         let post_process_count = Arc::new(AtomicUsize::new(0));
+        let (attempt_tx, attempt_rx) = mpsc::unbounded_channel();
+        let (post_process_tx, post_process_rx) = mpsc::unbounded_channel();
         (
             Self {
                 fails_first,
                 execute_count: execute_count.clone(),
                 post_process_count: post_process_count.clone(),
+                attempt_tx,
+                post_process_tx,
             },
             execute_count,
             post_process_count,
+            attempt_rx,
+            post_process_rx,
         )
     }
 }
@@ -100,22 +118,36 @@ impl IPayload for FailingPayload {
 
     async fn execute(&self, _cancel: CancellationToken) -> Result<(), Self::Error> {
         let attempt = self.execute_count.fetch_add(1, Ordering::SeqCst) + 1;
-        sleep(Duration::from_millis(50)).await;
-        if attempt <= self.fails_first {
+        let result = if attempt <= self.fails_first {
             Err(mischief::mischief!(
                 "intentional failure on attempt {attempt}"
             ))
         } else {
             Ok(())
-        }
+        };
+        // Fire after the attempt is fully recorded, regardless of outcome.
+        let _ = self.attempt_tx.send(());
+        result
     }
 
     async fn post_process(&self) -> Result<(), Self::Error> {
         self.post_process_count.fetch_add(1, Ordering::SeqCst);
+        let _ = self.post_process_tx.send(());
         Ok(())
     }
 }
 
+/// Waits for `n` signals on the channel, with a timeout as a safety net
+/// (not the actual sync mechanism — just prevents a hang from becoming
+/// a silent CI timeout with no useful message).
+async fn wait_for_n(rx: &mut mpsc::UnboundedReceiver<()>, n: usize, what: &str) {
+    for i in 0..n {
+        tokio::time::timeout(Duration::from_secs(5), rx.recv())
+            .await
+            .unwrap_or_else(|_| panic!("timed out waiting for {what} (got {i}/{n})"))
+            .unwrap_or_else(|| panic!("channel closed while waiting for {what} (got {i}/{n})"));
+    }
+}
 // ── dispatcher smoke tests (unchanged) ───────────────────────────────────────
 
 enum DispatcherMode {
@@ -211,32 +243,23 @@ async fn test_retry_succeeds() {
     clerk::init_log_with_level(LevelFilter::TRACE);
     let handle = start_dispatcher_unlimited::<FailingPayload>();
 
-    let (payload, execute_count, post_process_count) = FailingPayload::new(1);
+    let (payload, execute_count, post_process_count, mut attempt_rx, mut post_process_rx) =
+        FailingPayload::new(1);
 
     handle
-        .submit(Job::new(
-            "retry-job",
-            payload,
-            ResourceRequest::none(),
-            1, // max_retries = 1: one retry allowed after the first failure
-        ))
+        .submit(Job::new("retry-job", payload, ResourceRequest::none(), 1))
         .await
         .unwrap();
 
-    // Two attempts × 50 ms + scheduling slack.
-    sleep(Duration::from_millis(300)).await;
+    // Wait for exactly the two attempts we expect (1 failure + 1 success),
+    // then the one post_process call — no matter how long each takes.
+    wait_for_n(&mut attempt_rx, 2, "execute attempts").await;
+    wait_for_n(&mut post_process_rx, 1, "post_process call").await;
+
     handle.shutdown().await;
 
-    assert_eq!(
-        execute_count.load(Ordering::SeqCst),
-        2,
-        "execute should have been called twice (1 failure + 1 success)"
-    );
-    assert_eq!(
-        post_process_count.load(Ordering::SeqCst),
-        1,
-        "post_process should be called exactly once, on the successful attempt"
-    );
+    assert_eq!(execute_count.load(Ordering::SeqCst), 2);
+    assert_eq!(post_process_count.load(Ordering::SeqCst), 1);
 }
 
 /// A job whose payload always fails should be attempted `max_retries + 1`
@@ -246,33 +269,27 @@ async fn test_retry_exhausted() {
     clerk::init_log_with_level(LevelFilter::TRACE);
     let handle = start_dispatcher_unlimited::<FailingPayload>();
 
-    // fails_first=99 ensures the payload never succeeds.
-    let (payload, execute_count, post_process_count) = FailingPayload::new(99);
+    let (payload, execute_count, post_process_count, mut attempt_rx, _post_process_rx) =
+        FailingPayload::new(99);
 
     handle
         .submit(Job::new(
             "exhausted-job",
             payload,
             ResourceRequest::none(),
-            2, // max_retries = 2: up to 3 total attempts (1 + 2 retries)
+            2,
         ))
         .await
         .unwrap();
 
-    // Three attempts × 50 ms + scheduling slack.
-    sleep(Duration::from_millis(500)).await;
+    // Wait for all 3 attempts (1 + 2 retries) regardless of how long
+    // backtrace capture etc. makes each one take.
+    wait_for_n(&mut attempt_rx, 3, "execute attempts").await;
+
     handle.shutdown().await;
 
-    assert_eq!(
-        execute_count.load(Ordering::SeqCst),
-        3,
-        "execute should be called exactly max_retries + 1 times (3)"
-    );
-    assert_eq!(
-        post_process_count.load(Ordering::SeqCst),
-        0,
-        "post_process must not be called when all attempts fail"
-    );
+    assert_eq!(execute_count.load(Ordering::SeqCst), 3);
+    assert_eq!(post_process_count.load(Ordering::SeqCst), 0);
 }
 
 /// Resources should be freed after retry exhaustion so that other queued
@@ -281,19 +298,10 @@ async fn test_retry_exhausted() {
 #[tokio::test]
 async fn test_retry_exhaustion_frees_resources() {
     clerk::init_log_with_level(LevelFilter::TRACE);
-    let mut pool = ResourcePool::new();
-    pool.register(ResourceKey::from("cpu"), 1).unwrap();
-    let _resource = ResourceRequest::new(vec![(ResourceKey::from("cpu"), 1)]);
-
-    // Use a two-element dispatcher that can hold both payload types by making
-    // the channel accept a common wrapper. Here we just run them sequentially
-    // in separate dispatchers sharing a logical resource count via an atomic.
-    //
-    // Simpler approach: use Unlimited mode and verify ordering via counters.
     let handle = start_dispatcher_unlimited::<FailingPayload>();
 
-    let (exhausted_payload, exhausted_exec, _) = FailingPayload::new(99);
-    let (succeeding_payload, succeeding_exec, _) = FailingPayload::new(0);
+    let (exhausted_payload, exhausted_exec, _, mut exhausted_rx, _) = FailingPayload::new(99);
+    let (succeeding_payload, succeeding_exec, _, mut succeeding_rx, _) = FailingPayload::new(0);
 
     handle
         .submit(Job::new(
@@ -304,7 +312,6 @@ async fn test_retry_exhaustion_frees_resources() {
         ))
         .await
         .unwrap();
-
     handle
         .submit(Job::new(
             "succeeding",
@@ -315,7 +322,9 @@ async fn test_retry_exhaustion_frees_resources() {
         .await
         .unwrap();
 
-    sleep(Duration::from_millis(500)).await;
+    wait_for_n(&mut exhausted_rx, 2, "exhausted job attempts").await;
+    wait_for_n(&mut succeeding_rx, 1, "succeeding job attempt").await;
+
     handle.shutdown().await;
 
     assert_eq!(exhausted_exec.load(Ordering::SeqCst), 2);

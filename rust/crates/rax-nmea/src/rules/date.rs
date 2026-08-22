@@ -1,6 +1,7 @@
+extern crate alloc;
 use core::fmt::Debug;
 
-use jiff::civil::{Date, date};
+use jiff::civil::Date;
 use rax::error::RuleError;
 use rax::string::IRule;
 
@@ -47,7 +48,15 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
                 reason: "Failed to parse year.".into(),
             });
         };
-        let dt = date(year + 2000, month, day);
+        let dt = match Date::new(year + 2000, month, day) {
+            Ok(dt) => dt,
+            Err(e) => {
+                clerk::error!("{:?}: failed to parse date from '{}'", self, res);
+                return Err(RuleError {
+                    reason: alloc::format!("{:?}", e).into(),
+                });
+            }
+        };
         Ok((Some(dt), advanced))
     }
 }

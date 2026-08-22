@@ -1,7 +1,7 @@
 extern crate alloc;
 use alloc::format;
 
-use jiff::civil::{Time, time};
+use jiff::civil::Time;
 use rax::error::RuleError;
 use rax::string::IRule;
 
@@ -95,7 +95,15 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             sec,
             nanos
         );
-        let t = time(hour, min, sec, nanos);
+        let t = match Time::new(hour, min, sec, nanos) {
+            Ok(t) => t,
+            Err(e) => {
+                clerk::error!("{:?}: failed to parse time from '{}'", self, res);
+                return Err(RuleError {
+                    reason: format!("Failed to parse time field: {}", e).into(),
+                });
+            }
+        };
         Ok((Some(t), advanced))
     }
 }

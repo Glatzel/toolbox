@@ -12,7 +12,7 @@ harness = false
 name = "rules"
 
 [dependencies]
-jiff.workspace = true
+jiff={workspace = true,features=["alloc"]}
 clerk.workspace = true
 derive-getters.workspace = true
 rax.workspace = true

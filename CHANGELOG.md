@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.8.22] - 2026-08-22
+
+### Changed
+
+- Migrate chrono to jiff by @Glatzel in [#765](https://github.com/Glatzel/toolbox/pull/765)
+
+### Fixed
+
+- **(kioyu)** Test by @Glatzel in [#762](https://github.com/Glatzel/toolbox/pull/762)
+
+### Revert
+
+- Revert "feat: Delete tools/shook directory" by @Glatzel in [#742](https://github.com/Glatzel/toolbox/pull/742)
+
+### Testing
+
+- **(rax)** Add some test cases by @Glatzel in [#760](https://github.com/Glatzel/toolbox/pull/760)
+
 ## [2026.8.4] - 2026-08-08
 
 ### Added
@@ -586,6 +604,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.8.22]: https://github.com/Glatzel/toolbox/compare/v2026.8.4..v2026.8.22
 [2026.8.4]: https://github.com/Glatzel/toolbox/compare/v2026.7.27..v2026.8.4
 [2026.7.27]: https://github.com/Glatzel/toolbox/compare/v2026.7.19..v2026.7.27
 [2026.7.19]: https://github.com/Glatzel/toolbox/compare/v2026.7.6..v2026.7.19

@@ -8,7 +8,6 @@ use crate::rules::{
     NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_COMMA_KEEP_RIGHT, UNTIL_COMMA_OR_STAR_KEEP_RIGHT,
     UNTIL_M_DISCARD, UNTIL_STAR_DISCARD,
 };
-
 use crate::utils::ParseOptionPrimitive;
 
 /// GNSS satellite fault detection

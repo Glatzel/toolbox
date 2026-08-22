@@ -4,10 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-# std logging (host side)
-jiff = { workspace = true, optional = true,features=["tz-system"] }
 # embedded logging (firmware side)
 defmt = { workspace = true, optional = true }
+# std logging (host side)
+jiff = { workspace = true, features = ["tz-system"], optional = true }
 owo-colors = { workspace = true, optional = true }
 thiserror.workspace = true
 tracing = { workspace = true, optional = true }

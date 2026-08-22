@@ -5,8 +5,8 @@ edition.workspace = true
 
 [dependencies]
 async-trait = { workspace = true }
-jiff = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
+jiff = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
 tokio-util.workspace = true

@@ -6,12 +6,12 @@ use std::sync::Mutex;
 use clerk::tracing_subscriber::layer::Context;
 use clerk::tracing_subscriber::registry::LookupSpan;
 use clerk::tracing_subscriber::{self, Layer};
-use clerk::{ClerkFormatter, FormatEventToWriter, TIME_FORMAT, file_layer, tracing_core};
+use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
 use tracing_core::{Event, Subscriber};
 
 use crate::error::KioyuError;
 pub const KIOYU_JOB_SPAN: &str = "kioyu-job";
-
+pub const TIME_FORMAT: &str = "%Y-%m-%dT%H-%M-%S-%6fZ";
 struct JobId(String, String);
 
 struct JobIdVisitor {

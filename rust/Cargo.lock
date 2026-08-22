@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "insta",
  "rstest",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "clap",
  "insta",
@@ -263,7 +263,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "defmt",
  "jiff",
@@ -492,7 +492,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "envoy"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "mischief",
  "thiserror",
@@ -846,7 +846,7 @@ dependencies = [
 
 [[package]]
 name = "kioyu"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "arbor",
  "async-trait",
@@ -952,7 +952,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "arbor",
  "backtrace",
@@ -964,7 +964,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "quote",
  "syn 3.0.3",
@@ -1092,7 +1092,7 @@ checksum = "c135f38778ad324d9e9ee68690bac2c1a51f340fdf96ca13e2ab3914eb2e51d8"
 
 [[package]]
 name = "polars-fmt"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "strum",
 ]
@@ -1147,7 +1147,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rax"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
@@ -1159,7 +1159,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
@@ -1377,7 +1377,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "2026.8.4"
+version = "2026.8.22"
 dependencies = [
  "clerk",
  "mischief",

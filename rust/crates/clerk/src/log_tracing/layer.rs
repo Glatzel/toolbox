@@ -61,7 +61,7 @@ where
 ///
 /// let f = format!(
 ///     "./temp/{}.log",
-///     chrono::Local::now().format("%Y-%m-%d-%H-%M-%S")
+///     jiff::Zoned::now().strftime("%Y-%m-%d-%H-%M-%S")
 /// );
 /// let f = PathBuf::from(f);
 ///

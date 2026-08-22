@@ -1,7 +1,7 @@
 extern crate alloc;
 use alloc::format;
 
-use chrono::NaiveTime;
+use jiff::civil::{Time, time};
 use rax::error::RuleError;
 use rax::string::IRule;
 
@@ -12,7 +12,7 @@ fn parse_field(
     label: &str,
     parser: &impl core::fmt::Debug,
     input: &str,
-) -> Result<u32, RuleError> {
+) -> Result<i8, RuleError> {
     let s = res.get(range).ok_or_else(|| {
         clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
         RuleError {
@@ -20,7 +20,7 @@ fn parse_field(
         }
     })?;
 
-    s.parse::<u32>().map_err(|_| {
+    s.parse::<i8>().map_err(|_| {
         clerk::error!(
             "{:?}: failed to parse {}, value='{}', input={:?}",
             parser,
@@ -44,7 +44,7 @@ pub struct NmeaTime;
 impl IRule for NmeaTime {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
-    type Output = Option<NaiveTime>;
+    type Output = Option<Time>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
@@ -71,8 +71,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
                 let digits = u32::try_from(frac.len()).map_err(|_| RuleError {
                     reason: "Nano field has too many digits.".into(),
                 })?;
-                if let Ok(frac) = frac.parse::<u32>() {
-                    frac * (1_000_000_000 / 10_u32.pow(digits))
+                if let Ok(frac) = frac.parse::<i32>() {
+                    frac * (1_000_000_000 / 10_i32.pow(digits))
                 } else {
                     clerk::error!("Can not parse nano:{}", frac);
                     return Err(RuleError {
@@ -95,29 +95,8 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
             sec,
             nanos
         );
-
-        NaiveTime::from_hms_nano_opt(hour, min, sec, nanos).map_or_else(
-            || {
-                clerk::error!(
-                    "{:?}: invalid time: hour={}, min={}, sec={}, nanos={}",
-                    self,
-                    hour,
-                    min,
-                    sec,
-                    nanos
-                );
-                Err(RuleError {
-                    reason: format!(
-                        "invalid time: hour={hour}, min={min}, sec={sec}, nanos={nanos}"
-                    )
-                    .into(),
-                })
-            },
-            |t| {
-                clerk::debug!("{:?}: parsed time: {}", self, t);
-                Ok((Some(t), advanced))
-            },
-        )
+        let t = time(hour, min, sec, nanos);
+        Ok((Some(t), advanced))
     }
 }
 

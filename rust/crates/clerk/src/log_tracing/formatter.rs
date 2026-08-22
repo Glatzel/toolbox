@@ -8,7 +8,7 @@ use tracing_subscriber::fmt::FmtContext;
 use tracing_subscriber::fmt::format::{FormatEvent, FormatFields, Writer};
 use tracing_subscriber::registry::LookupSpan;
 
-const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.6fZ";
+pub const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.6fZ";
 
 /// Formatter for `tracing` events used by `tracing_subscriber::fmt`.
 ///
@@ -51,7 +51,7 @@ macro_rules! write_header {
         let _ = write!(
             $writer,
             "[{}][{}][{}]",
-            chrono::Local::now().format(TIME_FORMAT),
+            jiff::Zoned::now().strftime(TIME_FORMAT),
             $self.color_level(*$meta.level()),
             $meta.target(),
         );
@@ -60,7 +60,7 @@ macro_rules! write_header {
         let _ = write!(
             $writer,
             "[{}][{}][{}][{}:{}] ",
-            chrono::Local::now().format(TIME_FORMAT),
+            jiff::Zoned::now().strftime(TIME_FORMAT),
             $self.color_level(*$meta.level()),
             $meta.target(),
             $meta.file().unwrap_or("<file>"),

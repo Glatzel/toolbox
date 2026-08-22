@@ -3,11 +3,10 @@ use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use chrono::Local;
 use clerk::tracing_subscriber::layer::Context;
 use clerk::tracing_subscriber::registry::LookupSpan;
 use clerk::tracing_subscriber::{self, Layer};
-use clerk::{ClerkFormatter, FormatEventToWriter, file_layer, tracing_core};
+use clerk::{ClerkFormatter, FormatEventToWriter, TIME_FORMAT, file_layer, tracing_core};
 use tracing_core::{Event, Subscriber};
 
 use crate::error::KioyuError;
@@ -108,7 +107,7 @@ where
         let file = handles.entry(job_id.0.clone()).or_insert_with(|| {
             let filename = format!(
                 "{}.{}.{}.log",
-                Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ"),
+                jiff::Zoned::now().strftime(TIME_FORMAT),
                 job_id.1, // job name
                 job_id.0, // job id
             );
@@ -173,7 +172,7 @@ where
     let run_dir = log_root
         .as_ref()
         .join("kioyu")
-        .join(Local::now().format("%Y-%m-%dT%H-%M-%S-%6fZ").to_string());
+        .join(jiff::Zoned::now().strftime(TIME_FORMAT).to_string());
 
     let jobs_dir = run_dir.join("jobs");
     std::fs::create_dir_all(&jobs_dir)?;

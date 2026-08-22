@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -7,6 +8,7 @@ use crate::rules::{
     NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_COMMA_KEEP_RIGHT, UNTIL_COMMA_OR_STAR_KEEP_RIGHT,
     UNTIL_M_DISCARD, UNTIL_STAR_DISCARD,
 };
+
 use crate::utils::ParseOptionPrimitive;
 
 /// GNSS satellite fault detection
@@ -19,7 +21,7 @@ use crate::utils::ParseOptionPrimitive;
 pub struct Gbs {
     /// UTC time to which this RAIM sentence belongs. See section UTC
     /// representation in the integration manual for details.
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// Expected 1-sigma error in latitude (meters)
     err_lat: Option<f64>,

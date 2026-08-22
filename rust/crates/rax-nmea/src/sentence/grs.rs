@@ -3,6 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -27,7 +28,7 @@ pub enum GrsResidualMode {
 #[derive(Debug, Clone, Getters)]
 pub struct Grs {
     /// UTC time of the position fix
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// GRS residual mode
     mode: Option<GrsResidualMode>,

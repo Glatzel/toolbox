@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -39,7 +40,7 @@ pub enum GgaQualityIndicator {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Gga {
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// Latitude, dd is degrees, mm.mm is minutes
     lat: Option<f64>,

@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use chrono::NaiveDate;
+use jiff::civil::{Date, date};
 use rax::error::RuleError;
 use rax::string::IRule;
 
@@ -11,7 +11,7 @@ pub struct NmeaDate;
 impl IRule for NmeaDate {}
 
 impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
-    type Output = Option<NaiveDate>;
+    type Output = Option<Date>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
@@ -29,39 +29,25 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
             return Ok((None, advanced));
         }
 
-        let Some(day) = res.get(0..2).and_then(|s| s.parse::<u32>().ok()) else {
+        let Some(day) = res.get(0..2).and_then(|s| s.parse::<i8>().ok()) else {
             clerk::error!("{:?}: failed to parse day from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse day.".into(),
             });
         };
-        let Some(month) = res.get(2..4).and_then(|s| s.parse::<u32>().ok()) else {
+        let Some(month) = res.get(2..4).and_then(|s| s.parse::<i8>().ok()) else {
             clerk::error!("{:?}: failed to parse month from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse month.".into(),
             });
         };
-        let Some(year) = res.get(4..6).and_then(|s| s.parse::<i32>().ok()) else {
+        let Some(year) = res.get(4..6).and_then(|s| s.parse::<i16>().ok()) else {
             clerk::error!("{:?}: failed to parse year from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse year.".into(),
             });
         };
-        let dt = if let Some(date) = NaiveDate::from_ymd_opt(year + 2000, month, day) {
-            clerk::debug!("{:?}: parsed date: {}", self, date);
-            date
-        } else {
-            clerk::error!(
-                "{:?}: invalid date: y={}, m={}, d={}",
-                self,
-                year + 2000,
-                month,
-                day
-            );
-            return Err(RuleError {
-                reason: "Invalid date.".into(),
-            });
-        };
+        let dt = date(year + 2000, month, day);
         Ok((Some(dt), advanced))
     }
 }

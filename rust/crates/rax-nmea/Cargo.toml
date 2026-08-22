@@ -12,7 +12,7 @@ harness = false
 name = "rules"
 
 [dependencies]
-chrono.workspace = true
+jiff.workspace = true
 clerk.workspace = true
 derive-getters.workspace = true
 rax.workspace = true
@@ -28,4 +28,4 @@ mischief.workspace = true
 rstest.workspace = true
 
 [features]
-serde = ["chrono/serde", "dep:serde"]
+serde = ["jiff/serde", "dep:serde"]

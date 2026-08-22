@@ -1,5 +1,5 @@
-use chrono::NaiveDate;
 use derive_getters::Getters;
+use jiff::civil::{Date, Time};
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -32,7 +32,7 @@ pub enum RmcNavigationStatus {
 #[derive(Debug, Clone, Getters)]
 pub struct Rmc {
     /// UTC time of the position fix
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// Status
     status: Option<Status>,
@@ -50,7 +50,7 @@ pub struct Rmc {
     cog: Option<f64>,
 
     /// Date
-    date: Option<NaiveDate>,
+    date: Option<Date>,
 
     /// Magnetic variation
     mv: Option<f64>,

@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -9,7 +10,7 @@ use crate::utils::ParseOptionPrimitive;
 #[derive(Debug, Clone, Getters)]
 pub struct Gst {
     /// UTC time of the position fix
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// Root mean square
     rms: Option<f64>,

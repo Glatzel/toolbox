@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@12f2e09e2f6e0eb8a65962709e52ab596e672732 # v2026.8.28
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@12f2e09e2f6e0eb8a65962709e52ab596e672732 # v2026.8.28
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@ea63917412b3b2fa561a8575834475f2be73353b # v2026.8.29
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@ea63917412b3b2fa561a8575834475f2be73353b # v2026.8.29
         with:
           working-directory: ./rust
           options: -p rax -p rax-nmea --all-features

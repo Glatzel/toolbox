@@ -1,6 +1,11 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 environments:
   default:
     channels:
@@ -11,8 +16,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-15.2.0-he0feb66_19.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-15.2.0-he0feb66_19.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.5-h476cb7c_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.5-h476cb7c_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -49,26 +54,26 @@ packages:
   license_family: GPL
   size: 603817
   timestamp: 1778268942614
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.3-hb0f4dca_0.conda
-  sha256: 17f974a1a73a1682774bae57bc93d8aa9b3be685c785db689758518c9f941f55
-  md5: bb93acdb9b3e459f4a7be3a5f65e5bba
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.5-h476cb7c_0.conda
+  sha256: c1daf7f2d108027eabf5eb607a8ff7933527056ec9df55d9c59228cdb3c99048
+  md5: 562bf543e774756c19a261927c97088e
   depends:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
-  - libcap-ng-rt >=0.9.3,<0.10.0a0
+  - libcap-ng-rt >=0.9.5,<0.10.0a0
   run_exports:
     weak:
-    - libcap-ng-rt >=0.9.3,<0.10.0a0
-  size: 18164
-  timestamp: 1775754874420
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.3-hb0f4dca_0.conda
-  sha256: d74226e14d7afbbc445a5fb39f7658d37910de57e6a023382565525b0e8be8c1
-  md5: a75d5ea469360d3238b3746967a6a58f
+    - libcap-ng-rt >=0.9.5,<0.10.0a0
+  size: 22635
+  timestamp: 1787289192739
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.5-h476cb7c_0.conda
+  sha256: eea9681a86a51f8ffad00b83a58bad9c47410cff30d7813caa71dc2cde5ac676
+  md5: 591b8d0c6324f4edf83d5b107c6fccda
   depends:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
   run_exports:
     weak:
-    - libcap-ng-rt >=0.9.3,<0.10.0a0
-  size: 24451
-  timestamp: 1775754874420
+    - libcap-ng-rt >=0.9.5,<0.10.0a0
+  size: 24349
+  timestamp: 1787289192739

@@ -87,7 +87,7 @@ impl Debug for RunnerPayload {
 impl IPayload for RunnerPayload {
     type Error = mischief::Report;
 
-    async fn execute(&self, cancel: CancellationToken) -> mischief::Result<()> {
+    async fn execute<'a>(&'a self, cancel: CancellationToken) -> mischief::Result<()> {
         clerk::debug!(
             sandbox = %self.sandbox_name,
             image = %self.image,

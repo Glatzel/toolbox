@@ -43,7 +43,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.3-h35e630c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_6.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.0-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/c-ares-1.34.8-he30d5cf_0.conda
@@ -65,10 +65,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.6.3-h546c87b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/zstd-1.5.7-h85ac4a6_6.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.0-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-26.6.0-h80d1838_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.0-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -628,9 +628,9 @@ packages:
     - nodejs >=26.6.0,<27.0a0
   size: 34057372
   timestamp: 1785852767251
-- conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.0-h4616a5c_0.conda
-  sha256: c0974c9a1a47bbdd80e2a18b0a4b1df2fbc0fa451ad1f442a98eb47c74b1423e
-  md5: e49db946f01b9de00cc2bef226166dfb
+- conda: https://prefix.dev/glatzel/noarch/fonts-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
+  sha256: aafb9e1a93d99758e126762b03e3901ef479105f36182efde251313d52b0b2ef
+  md5: 9c40a53043766a19c5c7bc88aa226306
   run_exports: {}
-  size: 38282074
-  timestamp: 1785720178996
+  size: 39161458
+  timestamp: 1787352009184

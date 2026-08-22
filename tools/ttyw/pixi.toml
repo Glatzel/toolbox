@@ -10,4 +10,4 @@ fix = { cmd = "npx eslint . --fix ; npx prettier --write .", cwd = "./frontend" 
 
 [dependencies]
 nodejs = "==26.6.0"
-fonts-cascadia-mono-woff2 = "==3.5.0"
+fonts-cascadia-mono-woff2 = "==3.5.1"

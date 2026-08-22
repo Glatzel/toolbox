@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use core::fmt::Debug;
 
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -33,7 +34,7 @@ pub enum GnsNavigationStatus {
 #[derive(Debug, Clone, Getters)]
 pub struct Gns {
     /// UTC time of the position fix
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,

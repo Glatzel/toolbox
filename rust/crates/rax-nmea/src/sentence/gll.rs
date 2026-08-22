@@ -1,10 +1,12 @@
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
 use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
+
 /// Latitude and longitude, with time of position fix and status
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
@@ -18,7 +20,7 @@ pub struct Gll {
     lon: Option<f64>,
 
     /// UTC time of the position fix
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// Status of the data
     status: Option<Status>,

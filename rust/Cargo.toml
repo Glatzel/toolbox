@@ -3,7 +3,7 @@ resolver = "3"
 members = ["./crates/*"]
 
 [workspace.package]
-version = "2026.8.4"
+version = "2026.8.22"
 edition = "2024"
 
 [workspace.dependencies]
@@ -15,12 +15,12 @@ rax = { path = "./crates/rax/", default-features = false }
 
 async-trait = "0.1.92"
 backtrace = "0.3.76"
-chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 clap = "4.6.6"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.1" }
 defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"
+jiff = { version = "0.2.35", default-features = false, features = ["perf-inline"] }
 owo-colors = "4.3.0"
 quote = "1.0.47"
 rstest = "0.26.1"

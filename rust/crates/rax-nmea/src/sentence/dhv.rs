@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use jiff::civil::Time;
 use rax::string::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
@@ -9,7 +10,7 @@ use crate::utils::ParseOptionPrimitive;
 #[derive(Debug, Clone, Getters)]
 pub struct Dhv {
     /// UTC time of the DHV fix associated with this sentence.
-    time: Option<chrono::NaiveTime>,
+    time: Option<Time>,
 
     /// 3D speed (meters/second)
     speed3d: Option<f64>,

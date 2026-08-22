@@ -7,7 +7,7 @@ mod layer;
 pub use error::ClerkError;
 pub use fast_setup::init_log_with_level;
 pub use filter::NotInSpanFilter;
-pub use formatter::{ClerkFormatter, FormatEventToWriter};
+pub use formatter::{ClerkFormatter, FormatEventToWriter, TIME_FORMAT};
 pub use layer::{file_layer, terminal_layer};
 // re-export tracing
 pub use tracing;

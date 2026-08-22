@@ -4,6 +4,6 @@ expression: result
 ---
 Err(
     RuleError {
-        reason: "Invalid date.",
+        reason: "parameter 'day' for `2024-02` is invalid, must be in range `1..=29`",
     },
 )

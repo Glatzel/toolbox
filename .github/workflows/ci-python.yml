@@ -10,15 +10,15 @@ jobs:
       - parallel:
         - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         - name: Set up pixi
-          uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
+          uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
           with:
             run-install: false
-      - uses: Glatzel/template/.github/actions/python/pytest@ea63917412b3b2fa561a8575834475f2be73353b # v2026.8.29
+      - uses: Glatzel/template/.github/actions/python/pytest@b6b99ea17e01b640542095b6232d3ee5e3e7d4fd # v2026.8.30
         with:
           working-directory: ./python
         env:
           PYTHONPATH: ./src
-      - uses: Glatzel/template/.github/actions/common/codecov@ea63917412b3b2fa561a8575834475f2be73353b # v2026.8.29
+      - uses: Glatzel/template/.github/actions/common/codecov@b6b99ea17e01b640542095b6232d3ee5e3e7d4fd # v2026.8.30
         if: ${{!cancelled()}}
         with:
           flags: ci-python

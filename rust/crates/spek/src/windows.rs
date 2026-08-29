@@ -69,12 +69,10 @@ where
             window.push(value);
         }
 
-        if symmetric {
-            window
-        } else {
+        if !symmetric {
             window.pop();
-            window
         }
+        window
     }
 }
 
@@ -558,7 +556,7 @@ where
         });
 
         // SciPy requires tau > 0.
-        let tau = self.tau.unwrap_or_else(||T::one());
+        let tau = self.tau.unwrap_or_else(|| T::one());
 
         assert!(tau > T::zero(), "tau must be positive");
 
@@ -735,7 +733,10 @@ where
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         /// Modified Bessel function of the first kind, order 0, via its power
         /// series. Used by the Kaiser / Kaiser-Bessel-derived windows.
-        fn bessel_i0<T>(x: T) -> T where T: Float {
+        fn bessel_i0<T>(x: T) -> T
+        where
+            T: Float,
+        {
             let mut sum = T::one();
             let mut term = T::one();
             let x2 = (x * x) / num!(4.0);
@@ -794,9 +795,15 @@ where
             return Vec::new();
         }
 
-        assert!(symmetric, "Kaiser-Bessel Derived windows are only defined for symmetric shapes");
+        assert!(
+            symmetric,
+            "Kaiser-Bessel Derived windows are only defined for symmetric shapes"
+        );
 
-        assert!(size.is_multiple_of(2), "Kaiser-Bessel Derived windows are only defined for even number of points");
+        assert!(
+            size.is_multiple_of(2),
+            "Kaiser-Bessel Derived windows are only defined for even number of points"
+        );
 
         // SciPy:
         // kaiser(M // 2 + 1, beta)

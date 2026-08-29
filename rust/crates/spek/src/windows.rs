@@ -265,8 +265,8 @@ where
             for i in (1..half).rev() {
                 window.push(w[i]);
             }
-            for i in 1..half {
-                window.push(w[i]);
+            for i in w.iter().take(half).skip(1) {
+                window.push(*i);
             }
             window
         };

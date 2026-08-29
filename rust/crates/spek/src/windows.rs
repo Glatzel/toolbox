@@ -344,8 +344,8 @@ where
 
             // Eigenvector matrix.
             let mut q = vec![vec![T::zero(); n]; n];
-            for i in 0..n {
-                q[i][i] = T::one();
+            for (i, item) in q.iter_mut().enumerate().take(n) {
+                item[i] = T::one();
             }
 
             let eps = T::epsilon().sqrt();

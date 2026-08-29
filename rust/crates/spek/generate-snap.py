@@ -50,8 +50,8 @@ for f in snap_path.glob("*.snap"):
             window = fn(10, sym=sym)
         case "kaiser":
             window = fn(10, 0.5, sym=sym)
-        # case "kaiser_bessel_derived":
-        #     window = fn(10, 0.5, sym=sym)
+        case "kaiser_bessel_derived":
+            window = fn(10, 0.5, sym=True)
         case "lanczos":
             window = fn(10, sym=sym)
         case "nuttall":

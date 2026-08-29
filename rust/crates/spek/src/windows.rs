@@ -795,42 +795,48 @@ where
         if size == 0 {
             return Vec::new();
         }
-        if size == 1 {
-            return vec![T::one()];
+
+        if !symmetric {
+            panic!("Kaiser-Bessel Derived windows are only defined for symmetric shapes");
         }
 
-        let n = if symmetric { size } else { size + 1 };
-        // The construction requires an even length.
-        let n_even = n - (n % 2);
-        let half_len = n_even / 2;
+        if size % 2 != 0 {
+            panic!("Kaiser-Bessel Derived windows are only defined for even number of points");
+        }
 
-        let kaiser_half: Vec<T> = Kaiser { beta: self.beta }.window(half_len + 1, true);
+        // SciPy:
+        // kaiser(M // 2 + 1, beta)
+        let half = size / 2;
 
-        let mut csum = Vec::with_capacity(kaiser_half.len());
+        let kaiser_window = Kaiser { beta: self.beta }.window(half + 1, true);
+
+        // SciPy:
+        // csum = cumulative_sum(kaiser_window)
+        let mut csum = Vec::with_capacity(half + 1);
         let mut acc = T::zero();
-        for &v in &kaiser_half {
-            acc = acc + v;
+
+        for &x in &kaiser_window {
+            acc = acc + x;
             csum.push(acc);
         }
-        let total = csum[csum.len() - 1];
 
-        let mut half_window = Vec::with_capacity(half_len);
-        for i in 0..half_len {
+        // SciPy:
+        // half_window = sqrt(csum[:-1] / csum[-1])
+        let total = csum[half];
+
+        let mut half_window = Vec::with_capacity(half);
+
+        for i in 0..half {
             half_window.push((csum[i] / total).sqrt());
         }
 
-        let mut window = half_window.clone();
-        window.extend(half_window.iter().rev().cloned());
+        // SciPy:
+        // concat((half_window, flip(half_window)))
+        let mut window = Vec::with_capacity(size);
 
-        // Pad by repeating the midpoint if an odd length was requested.
-        while window.len() < n {
-            let mid = window[window.len() / 2];
-            window.insert(window.len() / 2, mid);
-        }
+        window.extend_from_slice(&half_window);
+        window.extend(half_window.iter().rev().copied());
 
-        if !symmetric {
-            window.pop();
-        }
         window
     }
 }
@@ -1221,6 +1227,9 @@ mod tests {
     ) where
         T: Windows<f64>,
     {
+        if name == "kaiser_bessel_derived" && !symmetric {
+            return;
+        }
         let window: Vec<f64> = window.window(10, symmetric);
         insta::assert_debug_snapshot!(
             format!(

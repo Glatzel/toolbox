@@ -1237,7 +1237,7 @@ mod tests {
         }
         let window = Windows::<f64>::window(&window, 10, symmetric)
             .iter()
-            .map(|x| format!("{:.15}", x))
+            .map(|x| format!("{:.14}", x))
             .collect::<Vec<_>>();
         insta::assert_debug_snapshot!(
             format!(

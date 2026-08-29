@@ -227,7 +227,7 @@ where
         // Synthesize the window via a direct (naive) inverse DFT rather than
         // an FFT, since only a real-valued summation is needed here.
         let w_full = if n % 2 == 1 {
-            let half = (n + 1) / 2;
+            let half = n.div_ceil(2);
             let mut w = Vec::with_capacity(half);
             for k in 0..half {
                 let mut sum = T::zero();
@@ -241,7 +241,7 @@ where
             for i in (1..half).rev() {
                 window.push(w[i]);
             }
-            window.extend(w.iter().cloned());
+            window.extend(w.iter().copied());
             window
         } else {
             let mut pre = Vec::with_capacity(n);
@@ -560,9 +560,7 @@ where
         // SciPy requires tau > 0.
         let tau = self.tau.unwrap_or(T::one());
 
-        if tau <= T::zero() {
-            panic!("tau must be positive");
-        }
+        assert!(tau > T::zero(), "tau must be positive");
 
         let mut window = Vec::with_capacity(size);
 
@@ -737,7 +735,7 @@ where
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         /// Modified Bessel function of the first kind, order 0, via its power
         /// series. Used by the Kaiser / Kaiser-Bessel-derived windows.
-        fn bessel_i0<T: Float>(x: T) -> T {
+        fn bessel_i0<T>(x: T) -> T where T: Float {
             let mut sum = T::one();
             let mut term = T::one();
             let x2 = (x * x) / num!(4.0);
@@ -796,13 +794,9 @@ where
             return Vec::new();
         }
 
-        if !symmetric {
-            panic!("Kaiser-Bessel Derived windows are only defined for symmetric shapes");
-        }
+        assert!(symmetric, "Kaiser-Bessel Derived windows are only defined for symmetric shapes");
 
-        if size % 2 != 0 {
-            panic!("Kaiser-Bessel Derived windows are only defined for even number of points");
-        }
+        assert!(size.is_multiple_of(2), "Kaiser-Bessel Derived windows are only defined for even number of points");
 
         // SciPy:
         // kaiser(M // 2 + 1, beta)
@@ -1086,7 +1080,7 @@ where
         }
 
         let n = if symmetric { size } else { size + 1 };
-        let half = (n + 1) / 2;
+        let half = n.div_ceil(2);
 
         let mut first_half = Vec::with_capacity(half);
         let mut window = if n % 2 == 0 {
@@ -1094,14 +1088,14 @@ where
                 first_half.push(num!(2 * k - 1) / num!(n));
             }
             let mut w = first_half.clone();
-            w.extend(first_half.iter().rev().cloned());
+            w.extend(first_half.iter().rev().copied());
             w
         } else {
             for k in 1..=half {
                 first_half.push(num!(2 * k) / num!(n + 1));
             }
             let mut w = first_half.clone();
-            w.extend(first_half[..first_half.len() - 1].iter().rev().cloned());
+            w.extend(first_half[..first_half.len() - 1].iter().rev().copied());
             w
         };
 

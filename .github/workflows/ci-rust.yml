@@ -14,12 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         options:
-          - -p arbor -p clap-style -p envoy -p generic-num -p polars-fmt -p rax -p rax-nmea -p serialport-ext --all-features
-          - -p spek
-          - -p kioyu  --all-features
+          - -p arbor -p clap-style -p envoy -p polars-fmt -p rax -p rax-nmea -p serialport-ext --all-features
+          - -p kioyu --all-features
           - -p mischief --no-default-features --features macros
           - -p mischief --no-default-features --features macros,fancy
           - -p clerk --features tracing
+          - -p spek --all-features
     runs-on: ubuntu-latest
     steps:
       - parallel:

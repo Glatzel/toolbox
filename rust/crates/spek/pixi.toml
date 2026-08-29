@@ -3,6 +3,7 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [tasks]
-snap='python  "generate-snap.py"'
+snap = 'python  "generate-snap.py"'
+
 [dependencies]
 scipy = "==1.18.0"

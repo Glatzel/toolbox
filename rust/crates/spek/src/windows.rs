@@ -409,12 +409,12 @@ where
                 a[r][p] = T::zero();
 
                 // Rotate eigenvectors.
-                for k in 0..n {
-                    let qkp = q[k][p];
-                    let qkr = q[k][r];
+                for k in q.iter_mut().take(n) {
+                    let qkp = k[p];
+                    let qkr = k[r];
 
-                    q[k][p] = c * qkp - s * qkr;
-                    q[k][r] = s * qkp + c * qkr;
+                    k[p] = c * qkp - s * qkr;
+                    k[r] = s * qkp + c * qkr;
                 }
             }
 
@@ -820,8 +820,8 @@ where
 
         let mut half_window = Vec::with_capacity(half);
 
-        for i in 0..half {
-            half_window.push((csum[i] / total).sqrt());
+        for i in csum.iter().take(half) {
+            half_window.push((*i / total).sqrt());
         }
 
         // SciPy:

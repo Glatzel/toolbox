@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
+eval("import scipy")
 snap_path = Path(__file__).parent.absolute() / "src" / "snapshots"
 print(snap_path)
 

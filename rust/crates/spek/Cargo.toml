@@ -1,0 +1,15 @@
+[package]
+name = "spek"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clerk.workspace = true
+thiserror.workspace = true
+num-traits.workspace=true
+generic-num.workspace = true
+
+[dev-dependencies]
+clerk = { workspace = true, features = ["tracing"] }
+insta.workspace = true
+rstest.workspace = true

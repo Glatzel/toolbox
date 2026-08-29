@@ -9,6 +9,7 @@ edition = "2024"
 [workspace.dependencies]
 arbor = { path = "./crates/arbor/", default-features = false }
 clerk = { path = "./crates/clerk/", default-features = false }
+generic-num = { path = "./crates/generic-num/" }
 mischief = { path = "./crates/mischief/" }
 mischief-macros = { path = "./crates/mischief-macros/" }
 rax = { path = "./crates/rax/", default-features = false }
@@ -21,6 +22,7 @@ defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"
 jiff = { version = "0.2.35", default-features = false, features = ["perf-inline"] }
+num-traits = "0.2.19"
 owo-colors = "4.3.0"
 quote = "1.0.47"
 rstest = "0.26.1"

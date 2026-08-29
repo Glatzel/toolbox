@@ -244,10 +244,10 @@ where
         } else {
             let mut pre = Vec::with_capacity(n);
             let mut pim = Vec::with_capacity(n);
-            for j in 0..n {
+            for (j, item) in p.iter().enumerate().take(n) {
                 let phase = T::PI() * num!(j) / n_f;
-                pre.push(p[j] * phase.cos());
-                pim.push(p[j] * phase.sin());
+                pre.push(*item * phase.cos());
+                pim.push(*item * phase.sin());
             }
 
             let half = n / 2 + 1;

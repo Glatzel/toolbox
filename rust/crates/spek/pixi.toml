@@ -1,0 +1,6 @@
+[workspace]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64"]
+
+[dependencies]
+scipy = "==1.18.0"

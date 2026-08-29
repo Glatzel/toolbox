@@ -32,16 +32,16 @@ for f in snap_path.glob("*.snap"):
             window = fn(10, sym=sym)
         case "dpss":
             window = fn(10, 3.0, sym=sym)
-        # case "exponential":
-        #     window = fn(10, sym=sym)
+        case "exponential":
+            window = fn(10, sym=sym)
         case "flattop":
             window = fn(10, sym=sym)
         case "gaussian":
             window = fn(10, 0.5, sym=sym)
         case "general_cosine":
-            window = fn(10,[1.0, 1.942604, 1.340318, 0.440811, 0.043097], sym=sym)
-        # case "general_gaussian":
-        #     window = fn(10, sym=sym)
+            window = fn(10, [1.0, 1.942604, 1.340318, 0.440811, 0.043097], sym=sym)
+        case "general_gaussian":
+            window = fn(10, 0.6, 0.5, sym=sym)
         case "general_hamming":
             window = fn(10, 0.5, sym=sym)
         case "hamming":
@@ -59,11 +59,11 @@ for f in snap_path.glob("*.snap"):
         case "parzen":
             window = fn(10, sym=sym)
         case "taylor":
-            window = fn(10, nbar=4, sll=100,norm=True, sym=sym)
+            window = fn(10, nbar=4, sll=100, norm=True, sym=sym)
         case "triang":
             window = fn(10, sym=sym)
         case "tukey":
-            window = fn(10,alpha=1, sym=sym)
+            window = fn(10, alpha=1, sym=sym)
     if window is not None:
         print(f"{method}-{s}")
         np.testing.assert_allclose(

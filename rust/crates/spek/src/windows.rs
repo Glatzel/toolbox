@@ -537,28 +537,40 @@ where
         if size == 0 {
             return Vec::new();
         }
+
         if size == 1 {
             return vec![T::one()];
         }
 
-        let n = if symmetric { size } else { size + 1 };
-        let denom = num!(n - 1);
-        let center = self.center.unwrap_or(denom / num!(2.0));
-        // Default time constant: decay to 1/e by the edges of the window.
-        let tau: T = match (self.tau, center) {
-            (Some(tau), _) => tau,
-            (None, center) => center,
-        };
+        // SciPy:
+        // center = (M if not sym and M > 1 else M - 1) / 2
+        //
+        // Note that this is the ORIGINAL M, not the internally
+        // extended M = M + 1 used by many other windows.
+        let size_f = num!(size);
 
-        let mut window = Vec::with_capacity(n);
-        for i in 0..n {
+        let center = self.center.unwrap_or_else(|| {
+            if symmetric {
+                (size_f - T::one()) / num!(2.0)
+            } else {
+                size_f / num!(2.0)
+            }
+        });
+
+        // SciPy requires tau > 0.
+        let tau = self.tau.unwrap_or(T::one());
+
+        if tau <= T::zero() {
+            panic!("tau must be positive");
+        }
+
+        let mut window = Vec::with_capacity(size);
+
+        for i in 0..size {
             let d = num!(i) - center;
             window.push((-d.abs() / tau).exp());
         }
 
-        if !symmetric {
-            window.pop();
-        }
         window
     }
 }
@@ -1189,7 +1201,7 @@ mod tests {
     #[case(PhantomData::<FlatTop>, FlatTop, "flattop")]
     #[case(PhantomData::<Gaussian<f64>>, Gaussian{ standard_deviation:0.5}, "gaussian")]
     #[case(PhantomData::<GeneralCosine<f64>>, GeneralCosine{ coefficients: vec![1.0f64, 1.942604, 1.340318, 0.440811, 0.043097] }, "general_cosine")]
-    #[case(PhantomData::<GeneralGaussian<f64>>, GeneralGaussian{ shape: 1.0, standard_deviation: 0.5 }, "general_gaussian")]
+    #[case(PhantomData::<GeneralGaussian<f64>>, GeneralGaussian{ shape:0.6, standard_deviation: 0.5 }, "general_gaussian")]
     #[case(PhantomData::<GeneralHamming<f64>>, GeneralHamming{alpha:0.5}, "general_hamming")]
     #[case(PhantomData::<Hamming>, Hamming, "hamming")]
     #[case(PhantomData::<Hann>, Hann, "hann")]

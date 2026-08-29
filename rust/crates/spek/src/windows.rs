@@ -387,6 +387,10 @@ where
                 let s = t * c;
 
                 // Rotate A.
+                #[allow(
+                    clippy::needless_range_loop,
+                    reason = "indexed access is required to update the p/r columns and preserve matrix symmetry"
+                )]
                 for k in 0..n {
                     if k != p && k != r {
                         let akp = a[k][p];

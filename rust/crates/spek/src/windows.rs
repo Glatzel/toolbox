@@ -229,9 +229,9 @@ where
             let mut w = Vec::with_capacity(half);
             for k in 0..half {
                 let mut sum = T::zero();
-                for j in 0..n {
+                for (j, item) in p.iter().enumerate().take(n) {
                     let angle = num!(2.0) * T::PI() * num!(j) * num!(k) / n_f;
-                    sum = sum + p[j] * angle.cos();
+                    sum = sum + *item * angle.cos();
                 }
                 w.push(sum);
             }
@@ -357,7 +357,7 @@ where
                 let mut max = T::zero();
 
                 for i in 0..n {
-                    for j in (i + 1)..n {
+                    for (j, _item) in a.iter().enumerate().take(n).skip(i + 1) {
                         let x = a[i][j].abs();
                         if x > max {
                             max = x;

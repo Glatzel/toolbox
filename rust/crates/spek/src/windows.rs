@@ -25,28 +25,23 @@ where
         if size == 1 {
             return vec![T::one()];
         }
-
         let n = if symmetric { size } else { size + 1 };
         let denom = num!(n - 1);
-
         let mut window = Vec::with_capacity(size);
-
         for i in 0..n {
             let x = num!(i) / denom;
-
-            let value = num!(0.62) - num!(0.48) * (x - num!(0.5)).abs()
-                + num!(0.38) * (num!(2.0) * T::PI() * x).cos();
-
+            let value = num!(0.62)
+                - num!(0.48) * (x - num!(0.5)).abs()
+                - num!(0.38) * (num!(2.0) * T::PI() * x).cos();
             window.push(value);
         }
-
         if !symmetric {
             window.pop();
         }
-
         window
     }
 }
+
 pub struct Bartlett;
 impl<T> Windows<T> for Bartlett
 where
@@ -119,26 +114,6 @@ where
         window.pop();
     }
     window
-}
-
-/// Modified Bessel function of the first kind, order 0, via its power series.
-/// Used by the Kaiser / Kaiser-Bessel-derived windows.
-fn bessel_i0<T: Float>(x: T) -> T {
-    let mut sum = T::one();
-    let mut term = T::one();
-    let x2 = (x * x) / num!(4.0);
-    let mut k = T::one();
-
-    for _ in 0..200 {
-        term = term * x2 / (k * k);
-        sum = sum + term;
-        if term < T::epsilon() * sum {
-            break;
-        }
-        k = k + T::one();
-    }
-
-    sum
 }
 
 pub struct Blackman;
@@ -345,10 +320,7 @@ where
     }
 }
 
-pub struct Dpss<T>
-where
-    T: Float + FloatConst,
-{
+pub struct Dpss<T> {
     pub nw: T,
 }
 impl<T> Windows<T> for Dpss<T>
@@ -356,77 +328,196 @@ where
     T: Float + FloatConst,
 {
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
+        fn largest_eigenvector<T>(diag: &[T], offdiag: &[T]) -> Vec<T>
+        where
+            T: Float,
+        {
+            let n = diag.len();
+
+            let mut a = vec![vec![T::zero(); n]; n];
+            for i in 0..n {
+                a[i][i] = diag[i];
+
+                if i + 1 < n {
+                    a[i][i + 1] = offdiag[i];
+                    a[i + 1][i] = offdiag[i];
+                }
+            }
+
+            // Eigenvector matrix.
+            let mut q = vec![vec![T::zero(); n]; n];
+            for i in 0..n {
+                q[i][i] = T::one();
+            }
+
+            let eps = T::epsilon().sqrt();
+
+            for _ in 0..1000 {
+                // Find largest off-diagonal element.
+                let mut p = 0;
+                let mut r = 1;
+                let mut max = T::zero();
+
+                for i in 0..n {
+                    for j in (i + 1)..n {
+                        let x = a[i][j].abs();
+                        if x > max {
+                            max = x;
+                            p = i;
+                            r = j;
+                        }
+                    }
+                }
+
+                if max <= eps {
+                    break;
+                }
+
+                let app = a[p][p];
+                let arr = a[r][r];
+                let apr = a[p][r];
+
+                let tau = (arr - app) / (num!(2.0) * apr);
+
+                let t = if tau >= T::zero() {
+                    T::one() / (tau + (T::one() + tau * tau).sqrt())
+                } else {
+                    -T::one() / (-tau + (T::one() + tau * tau).sqrt())
+                };
+
+                let c = T::one() / (T::one() + t * t).sqrt();
+                let s = t * c;
+
+                // Rotate A.
+                for k in 0..n {
+                    if k != p && k != r {
+                        let akp = a[k][p];
+                        let akr = a[k][r];
+
+                        a[k][p] = c * akp - s * akr;
+                        a[p][k] = a[k][p];
+
+                        a[k][r] = s * akp + c * akr;
+                        a[r][k] = a[k][r];
+                    }
+                }
+
+                a[p][p] = c * c * app - num!(2.0) * s * c * apr + s * s * arr;
+                a[r][r] = s * s * app + num!(2.0) * s * c * apr + c * c * arr;
+
+                a[p][r] = T::zero();
+                a[r][p] = T::zero();
+
+                // Rotate eigenvectors.
+                for k in 0..n {
+                    let qkp = q[k][p];
+                    let qkr = q[k][r];
+
+                    q[k][p] = c * qkp - s * qkr;
+                    q[k][r] = s * qkp + c * qkr;
+                }
+            }
+
+            // Find largest algebraic eigenvalue.
+            let mut max_index = 0;
+            for i in 1..n {
+                if a[i][i] > a[max_index][max_index] {
+                    max_index = i;
+                }
+            }
+
+            let mut v = vec![T::zero(); n];
+            for i in 0..n {
+                v[i] = q[i][max_index];
+            }
+
+            v
+        }
+
         if size == 0 {
             return Vec::new();
         }
+
         if size == 1 {
             return vec![T::one()];
         }
 
+        // SciPy _extend()
         let n = if symmetric { size } else { size + 1 };
-        let n_f = num!(n);
 
-        // Default time-half-bandwidth product.
+        let n_f = num!(n);
         let nw = self.nw;
+
+        // W = NW / M
         let w = nw / n_f;
-        let cos_2piw = (num!(2.0) * T::PI() * w).cos();
+
+        let two_pi_w = num!(2.0) * T::PI() * w;
+        let cos_2piw = two_pi_w.cos();
+
+        // Tridiagonal DPSS matrix
         let center = (n_f - T::one()) / num!(2.0);
 
-        // Symmetric tridiagonal matrix (Slepian/Grunbaum construction) that
-        // commutes with the time-limited sinc kernel; its top eigenvector is
-        // the order-0 DPSS. Found here via power iteration.
         let mut diag = Vec::with_capacity(n);
+
         for i in 0..n {
-            let d = center - num!(i);
-            diag.push(d * d * cos_2piw);
+            let x = center - num!(i);
+            diag.push(x * x * cos_2piw);
         }
+
         let mut offdiag = Vec::with_capacity(n - 1);
+
         for i in 1..n {
-            let ii = num!(i);
-            offdiag.push(ii * (n_f - ii) / num!(2.0));
+            let i_f = num!(i);
+            offdiag.push(i_f * (n_f - i_f) / num!(2.0));
         }
 
-        let mut v = vec![T::one(); n];
-        for _ in 0..200 {
-            let mut nv = vec![T::zero(); n];
-            for i in 0..n {
-                let mut val = diag[i] * v[i];
-                if i > 0 {
-                    val = val + offdiag[i - 1] * v[i - 1];
-                }
-                if i < n - 1 {
-                    val = val + offdiag[i] * v[i + 1];
-                }
-                nv[i] = val;
-            }
-            let norm = nv.iter().fold(T::zero(), |acc, &x| acc + x * x).sqrt();
-            if norm > T::zero() {
-                for x in nv.iter_mut() {
-                    *x = *x / norm;
-                }
-            }
-            v = nv;
-        }
+        // IMPORTANT:
+        // solve the largest eigenvalue/eigenvector of this
+        // symmetric tridiagonal matrix.
+        let mut window = largest_eigenvector(&diag, &offdiag);
 
-        let max_abs = v.iter().fold(
-            T::zero(),
-            |acc, &x| if x.abs() > acc { x.abs() } else { acc },
-        );
-        let mut window: Vec<T> = if max_abs > T::zero() {
-            v.iter().map(|&x| x / max_abs).collect()
-        } else {
-            v
-        };
-        // Eigenvector sign is arbitrary; make the window positive.
-        if window.iter().fold(T::zero(), |acc, &x| acc + x) < T::zero() {
-            for x in window.iter_mut() {
+        // SciPy:
+        //
+        // fix_even = windows[::2, ...].sum(axis=1) < 0
+        //
+        // For Kmax=1 this is simply:
+        // if sum(window) < 0 => negate.
+        let sum = window.iter().fold(T::zero(), |acc, &x| acc + x);
+
+        if sum < T::zero() {
+            for x in &mut window {
                 *x = -*x;
             }
         }
 
+        // norm != 2
+        //
+        // SciPy:
+        //     windows /= windows.max()
+        let max = window.iter().fold(T::neg_infinity(), |acc, &x| acc.max(x));
+
+        for x in &mut window {
+            *x = *x / max;
+        }
+
+        // "approximate" correction.
+        //
+        // SciPy applies this when the INTERNAL M is even,
+        // before truncation.
+        if n % 2 == 0 {
+            let n2 = n_f * n_f;
+            let correction = n2 / (n2 + nw);
+
+            for x in &mut window {
+                *x = *x * correction;
+            }
+        }
+
+        // SciPy _truncate()
         if !symmetric {
             window.pop();
         }
+
         window
     }
 }
@@ -529,24 +620,16 @@ where
     }
 }
 
-pub struct GeneralCosine;
-impl<T> Windows<T> for GeneralCosine
+pub struct GeneralCosine<T> {
+    pub coefficients: Vec<T>,
+}
+
+impl<T> Windows<T> for GeneralCosine<T>
 where
     T: Float + FloatConst,
 {
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
-        // No coefficient list can be passed through this trait, so this
-        // defaults to the "HFT90D"-style coefficients used in SciPy's own
-        // `general_cosine` example. Adjust this array for other windows in
-        // this family.
-        let coeffs = [
-            num!(1.0),
-            num!(1.942604),
-            num!(1.340318),
-            num!(0.440811),
-            num!(0.043097),
-        ];
-        general_cosine(size, symmetric, &coeffs)
+        general_cosine(size, symmetric, &self.coefficients)
     }
 }
 
@@ -640,6 +723,25 @@ where
     T: Float,
 {
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
+        /// Modified Bessel function of the first kind, order 0, via its power
+        /// series. Used by the Kaiser / Kaiser-Bessel-derived windows.
+        fn bessel_i0<T: Float>(x: T) -> T {
+            let mut sum = T::one();
+            let mut term = T::one();
+            let x2 = (x * x) / num!(4.0);
+            let mut k = T::one();
+
+            for _ in 0..200 {
+                term = term * x2 / (k * k);
+                sum = sum + term;
+                if term < T::epsilon() * sum {
+                    break;
+                }
+                k = k + T::one();
+            }
+
+            sum
+        }
         if size == 0 {
             return Vec::new();
         }
@@ -816,6 +918,7 @@ where
 pub struct Taylor<T> {
     pub nbar: usize,
     pub sll: T,
+    pub norm: bool,
 }
 impl<T> Windows<T> for Taylor<T>
 where
@@ -825,73 +928,128 @@ where
         if size == 0 {
             return Vec::new();
         }
+
         if size == 1 {
             return vec![T::one()];
         }
 
+        // Same as SciPy _extend(M, sym).
         let n = if symmetric { size } else { size + 1 };
         let n_f = num!(n);
 
-        // Defaults matching SciPy: 4 nearly-constant-level sidelobes, 30 dB down.
         let nbar = self.nbar;
         let sll = self.sll;
 
+        // SciPy:
+        // B = 10**(sll / 20)
+        // A = acosh(B) / pi
+        // s2 = nbar**2 / (A**2 + (nbar - 0.5)**2)
         let b = num!(10.0).powf(sll / num!(20.0));
         let a = b.acosh() / T::PI();
         let nbar_t = num!(nbar);
-        let s2 = nbar_t * nbar_t / (a * a + (nbar_t - num!(0.5)) * (nbar_t - num!(0.5)));
 
+        let half = num!(0.5);
+        let s2 = nbar_t * nbar_t / (a * a + (nbar_t - half) * (nbar_t - half));
+
+        // ma = [1, 2, ..., nbar - 1]
         let ma: Vec<usize> = (1..nbar).collect();
 
-        let calc_fm = |m_idx: usize| -> T {
-            let m_val = num!(m_idx);
+        // SciPy Fm calculation.
+        let mut fm = Vec::with_capacity(ma.len());
+
+        for (mi, &m) in ma.iter().enumerate() {
+            let m_t = num!(m);
+            let m2 = m_t * m_t;
+
             let mut numer = T::one();
+
             for &j in &ma {
                 let j_t = num!(j);
-                numer = numer
-                    * (T::one()
-                        - m_val * m_val / s2 / (a * a + (j_t - num!(0.5)) * (j_t - num!(0.5))));
+                let j_minus_half = j_t - half;
+
+                numer = numer * (T::one() - m2 / s2 / (a * a + j_minus_half * j_minus_half));
             }
-            let sign = if (m_idx + 1) % 2 == 0 {
-                T::one()
+
+            // SciPy:
+            //
+            // signs[::2] = 1
+            // signs[1::2] = -1
+            //
+            // Therefore mi = 0, 2, 4 ... => +1
+            //             mi = 1, 3, 5 ... => -1
+            if mi % 2 == 0 {
             } else {
-                -T::one()
-            };
-            numer = numer * sign;
+                numer = -numer;
+            }
 
             let mut denom = num!(2.0);
-            for &j in &ma {
-                if j != m_idx {
-                    let j_t = num!(j);
-                    denom = denom * (T::one() - m_val * m_val / (j_t * j_t));
-                }
+
+            // prod(1 - m2 / m2[:mi])
+            for &j in &ma[..mi] {
+                let j_t = num!(j);
+                denom = denom * (T::one() - m2 / (j_t * j_t));
             }
-            numer / denom
-        };
 
-        let fm: Vec<T> = ma.iter().map(|&m_idx| calc_fm(m_idx)).collect();
+            // prod(1 - m2 / m2[mi+1:])
+            for &j in &ma[mi + 1..] {
+                let j_t = num!(j);
+                denom = denom * (T::one() - m2 / (j_t * j_t));
+            }
 
-        let w_fn = |x: T| -> T {
+            fm.push(numer / denom);
+        }
+
+        // SciPy:
+        //
+        // W(n) = 1 + 2 * sum(
+        //     Fm * cos(2*pi*ma*(n-M/2+0.5)/M)
+        // )
+        let w_fn = |i: T| -> T {
+            let x = i - n_f / num!(2.0) + num!(0.5);
+
             let mut sum = T::zero();
-            for (idx, &m_idx) in ma.iter().enumerate() {
-                let m_t = num!(m_idx);
+
+            for (idx, &m) in ma.iter().enumerate() {
+                let m_t = num!(m);
+
                 sum = sum + fm[idx] * (num!(2.0) * T::PI() * m_t * x / n_f).cos();
             }
+
             T::one() + num!(2.0) * sum
         };
 
-        let center = (n_f - T::one()) / num!(2.0);
-        let scale = T::one() / w_fn(center);
-
         let mut window = Vec::with_capacity(n);
+
         for i in 0..n {
-            let x = num!(i) - center;
-            window.push(w_fn(x) * scale);
+            window.push(w_fn(num!(i)));
         }
 
+        // SciPy:
+        //
+        // if norm:
+        //     scale = 1.0 / W((M - 1) / 2)
+        //     w *= scale
+        //
+        // Notice that this is NOT simply:
+        //
+        //     w /= w.max()
+        //
+        // for even M. W((M - 1)/2) evaluates the continuous formula
+        // at the midpoint between the two central samples.
+        if self.norm {
+            let center = (n_f - T::one()) / num!(2.0);
+            let scale = T::one() / w_fn(center);
+
+            for x in &mut window {
+                *x = *x * scale;
+            }
+        }
+
+        // Same as SciPy _truncate().
         if !symmetric {
             window.pop();
         }
+
         window
     }
 }
@@ -947,40 +1105,64 @@ where
         if size == 0 {
             return Vec::new();
         }
+
         if size == 1 {
             return vec![T::one()];
         }
 
-        let n = if symmetric { size } else { size + 1 };
-
-        // Default taper fraction.
         let alpha = self.alpha;
-        let denom = num!(n - 1);
-        let width = ((0.5_f64 * (n as f64 - 1.0)) / 2.0).floor() as usize;
+
+        // SciPy:
+        // if alpha <= 0:
+        //     return ones
+        if alpha <= T::zero() {
+            return vec![T::one(); size];
+        }
+
+        // SciPy:
+        // elif alpha >= 1:
+        //     return hann(M, sym=sym)
+        if alpha >= T::one() {
+            return Hann.window(size, symmetric);
+        }
+
+        // SciPy _extend(M, sym)
+        let n = if symmetric { size } else { size + 1 };
+        let n_f = num!(n);
+
+        // width = floor(alpha * (M - 1) / 2)
+        let width = (alpha * (n_f - T::one()) / num!(2.0))
+            .floor()
+            .to_usize()
+            .unwrap();
+
+        let denom = alpha * (n_f - T::one());
 
         let mut window = Vec::with_capacity(n);
+
         for i in 0..n {
             let value = if i <= width {
+                let i_f = num!(i);
+
+                num!(0.5) * (T::one() + (T::PI() * (-T::one() + num!(2.0) * i_f / denom)).cos())
+            } else if i >= n - width - 1 {
+                let i_f = num!(i);
+
                 num!(0.5)
                     * (T::one()
-                        + (T::PI() * (num!(-1.0) + num!(2.0) * num!(i) / (alpha * denom))).cos())
-            } else if i >= n.saturating_sub(width + 1) {
-                num!(0.5)
-                    * (T::one()
-                        + (T::PI()
-                            * (num!(-2.0) / alpha
-                                + T::one()
-                                + num!(2.0) * num!(i) / (alpha * denom)))
+                        + (T::PI() * (-num!(2.0) / alpha + T::one() + num!(2.0) * i_f / denom))
                             .cos())
             } else {
                 T::one()
             };
+
             window.push(value);
         }
 
         if !symmetric {
             window.pop();
         }
+
         window
     }
 }
@@ -1006,7 +1188,7 @@ mod tests {
     #[case(PhantomData::<Exponential<f64>>, Exponential{ center: None, tau: None }, "exponential")]
     #[case(PhantomData::<FlatTop>, FlatTop, "flattop")]
     #[case(PhantomData::<Gaussian<f64>>, Gaussian{ standard_deviation:0.5}, "gaussian")]
-    #[case(PhantomData::<GeneralCosine>, GeneralCosine, "general_cosine")]
+    #[case(PhantomData::<GeneralCosine<f64>>, GeneralCosine{ coefficients: vec![1.0f64, 1.942604, 1.340318, 0.440811, 0.043097] }, "general_cosine")]
     #[case(PhantomData::<GeneralGaussian<f64>>, GeneralGaussian{ shape: 1.0, standard_deviation: 0.5 }, "general_gaussian")]
     #[case(PhantomData::<GeneralHamming<f64>>, GeneralHamming{alpha:0.5}, "general_hamming")]
     #[case(PhantomData::<Hamming>, Hamming, "hamming")]
@@ -1016,9 +1198,9 @@ mod tests {
     #[case(PhantomData::<Lanczos>, Lanczos, "lanczos")]
     #[case(PhantomData::<Nuttall>, Nuttall, "nuttall")]
     #[case(PhantomData::<Parzen>, Parzen, "parzen")]
-    #[case(PhantomData::<Taylor<f64>>, Taylor{nbar:4,sll:100.0}, "taylor")]
+    #[case(PhantomData::<Taylor<f64>>, Taylor{nbar:4,sll:100.0,norm:true}, "taylor")]
     #[case(PhantomData::<Triang>, Triang, "triang")]
-    #[case(PhantomData::<Tukey<f64>>, Tukey{alpha: 0.5}, "tukey")]
+    #[case(PhantomData::<Tukey<f64>>, Tukey{alpha: 1.0}, "tukey")]
     fn test<T>(
         #[case] _window: PhantomData<T>,
         #[case] window: T,

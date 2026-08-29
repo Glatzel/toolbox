@@ -63,11 +63,11 @@ for f in snap_path.glob("*.snap"):
             window = fn(10, sym=sym)
         case "tukey":
             window = fn(10, alpha=1, sym=sym)
-    if window is not None:
-        print(f"{method}-{s}")
-        np.testing.assert_allclose(
-            window,
-            expected,
-            rtol=1e-10,
-            atol=1e-8,
-        )
+
+    print(f"{method}-{s}")
+    np.testing.assert_allclose(
+        window,
+        expected,
+        rtol=1e-10,
+        atol=1e-8,
+    )

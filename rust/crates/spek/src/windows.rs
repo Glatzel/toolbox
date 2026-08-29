@@ -558,7 +558,7 @@ where
         });
 
         // SciPy requires tau > 0.
-        let tau = self.tau.unwrap_or(T::one());
+        let tau = self.tau.unwrap_or_else(||T::one());
 
         assert!(tau > T::zero(), "tau must be positive");
 

@@ -207,13 +207,16 @@ where
     }
 }
 
-pub struct Chebwin<AT>(AT)
-where
-    AT: Float + FloatConst;
-impl<T, AT> Windows<T> for Chebwin<AT>
+pub struct Chebwin<T>
 where
     T: Float + FloatConst,
-    AT: Float + FloatConst,
+{
+    pub attenuation: T,
+}
+
+impl<T> Windows<T> for Chebwin<T>
+where
+    T: Float + FloatConst,
 {
     fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
@@ -228,7 +231,7 @@ where
         let order = n_f - T::one();
 
         // Default sidelobe attenuation, in dB.
-        let at: T = num!(100.0);
+        let at: T = self.attenuation;
         let beta = ((T::one() / order) * (num!(10.0).powf(at / num!(20.0))).acosh()).cosh();
 
         // Chebyshev-polynomial samples: these are the window's DFT coefficients.
@@ -342,8 +345,13 @@ where
     }
 }
 
-pub struct Dpss;
-impl<T> Windows<T> for Dpss
+pub struct Dpss<T>
+where
+    T: Float + FloatConst,
+{
+    pub nw: T,
+}
+impl<T> Windows<T> for Dpss<T>
 where
     T: Float + FloatConst,
 {
@@ -359,7 +367,7 @@ where
         let n_f = num!(n);
 
         // Default time-half-bandwidth product.
-        let nw: T = num!(4.0);
+        let nw = self.nw;
         let w = nw / n_f;
         let cos_2piw = (num!(2.0) * T::PI() * w).cos();
         let center = (n_f - T::one()) / num!(2.0);
@@ -423,12 +431,18 @@ where
     }
 }
 
-pub struct Exponential;
-impl<T> Windows<T> for Exponential
+pub struct Exponential<T>
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    pub center: Option<T>,
+    pub tau: Option<T>,
+}
+impl<T> Windows<T> for Exponential<T>
+where
+    T: Float,
+{
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -438,9 +452,12 @@ where
 
         let n = if symmetric { size } else { size + 1 };
         let denom = num!(n - 1);
-        let center = denom / num!(2.0);
+        let center = self.center.unwrap_or(denom / num!(2.0));
         // Default time constant: decay to 1/e by the edges of the window.
-        let tau: T = center;
+        let tau: T = match (self.tau, center) {
+            (Some(tau), _) => tau,
+            (None, center) => center,
+        };
 
         let mut window = Vec::with_capacity(n);
         for i in 0..n {
@@ -460,7 +477,7 @@ impl<T> Windows<T> for FlatTop
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         general_cosine(
             size,
             symmetric,
@@ -475,12 +492,17 @@ where
     }
 }
 
-pub struct Gaussian;
-impl<T> Windows<T> for Gaussian
+pub struct Gaussian<T>
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    standard_deviation: T,
+}
+impl<T> Windows<T> for Gaussian<T>
+where
+    T: Float,
+{
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -490,8 +512,7 @@ where
 
         let n = if symmetric { size } else { size + 1 };
         let denom = num!(n - 1);
-        // Default standard deviation: window spans roughly +/-3 sigma.
-        let std: T = denom / num!(6.0);
+        let std: T = self.standard_deviation;
         let center = denom / num!(2.0);
 
         let mut window = Vec::with_capacity(n);
@@ -513,7 +534,7 @@ impl<T> Windows<T> for GeneralCosine
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         // No coefficient list can be passed through this trait, so this
         // defaults to the "HFT90D"-style coefficients used in SciPy's own
         // `general_cosine` example. Adjust this array for other windows in
@@ -529,12 +550,18 @@ where
     }
 }
 
-pub struct GeneralGaussian;
-impl<T> Windows<T> for GeneralGaussian
+pub struct GeneralGaussian<T>
+where
+    T: Float,
+{
+    pub shape: T,
+    pub standard_deviation: T,
+}
+impl<T> Windows<T> for GeneralGaussian<T>
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -549,8 +576,8 @@ where
         // Defaults: p = 1 reduces this to the plain Gaussian window, so pick
         // p > 1 to give it a flatter top with steeper skirts than `Gaussian`;
         // sigma chosen the same way as `Gaussian` (window spans ~+/-3 sigma).
-        let p: T = num!(1.5);
-        let sigma: T = denom / num!(6.0);
+        let p = self.shape;
+        let sigma = self.standard_deviation;
 
         let mut window = Vec::with_capacity(n);
         for i in 0..n {
@@ -566,14 +593,18 @@ where
         window
     }
 }
-pub struct GeneralHamming;
-impl<T> Windows<T> for GeneralHamming
+pub struct GeneralHamming<T>
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
-        // Default alpha reproduces the standard Hamming window.
-        let alpha: T = num!(0.54);
+    pub alpha: T,
+}
+impl<T> Windows<T> for GeneralHamming<T>
+where
+    T: Float + FloatConst,
+{
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
+        let alpha = self.alpha;
         general_cosine(size, symmetric, &[alpha, T::one() - alpha])
     }
 }
@@ -583,7 +614,7 @@ impl<T> Windows<T> for Hamming
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         general_cosine(size, symmetric, &[num!(0.54), num!(0.46)])
     }
 }
@@ -593,17 +624,22 @@ impl<T> Windows<T> for Hann
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         general_cosine(size, symmetric, &[num!(0.5), num!(0.5)])
     }
 }
 
-pub struct Kaiser;
-impl<T> Windows<T> for Kaiser
+pub struct Kaiser<T>
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    beta: T,
+}
+impl<T> Windows<T> for Kaiser<T>
+where
+    T: Float,
+{
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -611,8 +647,7 @@ where
             return vec![T::one()];
         }
 
-        // Default shape parameter (roughly approximates a Blackman window).
-        let beta: T = num!(8.6);
+        let beta = self.beta;
         let n = if symmetric { size } else { size + 1 };
         let denom = num!(n - 1);
         let i0_beta = bessel_i0(beta);
@@ -632,12 +667,17 @@ where
     }
 }
 
-pub struct KaiserBesselDerived;
-impl<T> Windows<T> for KaiserBesselDerived
+pub struct KaiserBesselDerived<T>
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    beta: T,
+}
+impl<T> Windows<T> for KaiserBesselDerived<T>
+where
+    T: Float,
+{
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -650,7 +690,7 @@ where
         let n_even = n - (n % 2);
         let half_len = n_even / 2;
 
-        let kaiser_half: Vec<T> = <Kaiser as Windows<T>>::window(half_len + 1, true);
+        let kaiser_half: Vec<T> = Kaiser { beta: self.beta }.window(half_len + 1, true);
 
         let mut csum = Vec::with_capacity(kaiser_half.len());
         let mut acc = T::zero();
@@ -686,7 +726,7 @@ impl<T> Windows<T> for Lanczos
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -721,7 +761,7 @@ impl<T> Windows<T> for Nuttall
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         general_cosine(
             size,
             symmetric,
@@ -740,7 +780,7 @@ impl<T> Windows<T> for Parzen
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -773,12 +813,15 @@ where
     }
 }
 
-pub struct Taylor;
-impl<T> Windows<T> for Taylor
+pub struct Taylor<T> {
+    pub nbar: usize,
+    pub sll: T,
+}
+impl<T> Windows<T> for Taylor<T>
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -790,8 +833,8 @@ where
         let n_f = num!(n);
 
         // Defaults matching SciPy: 4 nearly-constant-level sidelobes, 30 dB down.
-        let nbar: usize = 4;
-        let sll: T = num!(30.0);
+        let nbar = self.nbar;
+        let sll = self.sll;
 
         let b = num!(10.0).powf(sll / num!(20.0));
         let a = b.acosh() / T::PI();
@@ -858,7 +901,7 @@ impl<T> Windows<T> for Triang
 where
     T: Float,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -893,12 +936,14 @@ where
     }
 }
 
-pub struct Tukey;
-impl<T> Windows<T> for Tukey
+pub struct Tukey<T> {
+    pub alpha: T,
+}
+impl<T> Windows<T> for Tukey<T>
 where
     T: Float + FloatConst,
 {
-    fn window(&self,size: usize, symmetric: bool) -> Vec<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Vec<T> {
         if size == 0 {
             return Vec::new();
         }
@@ -909,7 +954,7 @@ where
         let n = if symmetric { size } else { size + 1 };
 
         // Default taper fraction.
-        let alpha: T = num!(0.5);
+        let alpha = self.alpha;
         let denom = num!(n - 1);
         let width = ((0.5_f64 * (n as f64 - 1.0)) / 2.0).floor() as usize;
 
@@ -949,39 +994,40 @@ mod tests {
 
     use super::*;
     #[rstest]
-    #[case(PhantomData::<Barthnn>,"barthann")]
-    #[case(PhantomData::<Bartlett>, "bartlett")]
-    #[case(PhantomData::<Blackman>, "blackman")]
-    #[case(PhantomData::<BlackmanHarris>, "blackmanharris")]
-    #[case(PhantomData::<Bohman>, "bohman")]
-    #[case(PhantomData::<Boxcar>, "boxcar")]
-    #[case(PhantomData::<Chebwin>, "chebwin")]
-    #[case(PhantomData::<Cosine>, "cosine")]
-    #[case(PhantomData::<Dpss>, "dpss")]
-    #[case(PhantomData::<Exponential>, "exponential")]
-    #[case(PhantomData::<FlatTop>, "flattop")]
-    #[case(PhantomData::<Gaussian>, "gaussian")]
-    #[case(PhantomData::<GeneralCosine>, "general_cosine")]
-    #[case(PhantomData::<GeneralGaussian>, "general_gaussian")]
-    #[case(PhantomData::<GeneralHamming>, "general_hamming")]
-    #[case(PhantomData::<Hamming>, "hamming")]
-    #[case(PhantomData::<Hann>, "hann")]
-    #[case(PhantomData::<Kaiser>, "kaiser")]
-    #[case(PhantomData::<KaiserBesselDerived>, "kaiser_bessel_derived")]
-    #[case(PhantomData::<Lanczos>, "lanczos")]
-    #[case(PhantomData::<Nuttall>, "nuttall")]
-    #[case(PhantomData::<Parzen>, "parzen")]
-    #[case(PhantomData::<Taylor>, "taylor")]
-    #[case(PhantomData::<Triang>, "triang")]
-    #[case(PhantomData::<Tukey>, "tukey")]
+    #[case(PhantomData::<Barthnn>, Barthnn, "barthann")]
+    #[case(PhantomData::<Bartlett>, Bartlett, "bartlett")]
+    #[case(PhantomData::<Blackman>, Blackman, "blackman")]
+    #[case(PhantomData::<BlackmanHarris>, BlackmanHarris, "blackmanharris")]
+    #[case(PhantomData::<Bohman>, Bohman, "bohman")]
+    #[case(PhantomData::<Boxcar>, Boxcar, "boxcar")]
+    #[case(PhantomData::<Chebwin<f64>>, Chebwin{ attenuation: 100.0 }, "chebwin")]
+    #[case(PhantomData::<Cosine>, Cosine, "cosine")]
+    #[case(PhantomData::<Dpss<f64>>, Dpss{ nw: 3.0 }, "dpss")]
+    #[case(PhantomData::<Exponential<f64>>, Exponential{ center: None, tau: None }, "exponential")]
+    #[case(PhantomData::<FlatTop>, FlatTop, "flattop")]
+    #[case(PhantomData::<Gaussian<f64>>, Gaussian{ standard_deviation:0.5}, "gaussian")]
+    #[case(PhantomData::<GeneralCosine>, GeneralCosine, "general_cosine")]
+    #[case(PhantomData::<GeneralGaussian<f64>>, GeneralGaussian{ shape: 1.0, standard_deviation: 0.5 }, "general_gaussian")]
+    #[case(PhantomData::<GeneralHamming<f64>>, GeneralHamming{alpha:0.5}, "general_hamming")]
+    #[case(PhantomData::<Hamming>, Hamming, "hamming")]
+    #[case(PhantomData::<Hann>, Hann, "hann")]
+    #[case(PhantomData::<Kaiser<f64>>, Kaiser{ beta: 0.5 }, "kaiser")]
+    #[case(PhantomData::<KaiserBesselDerived<f64>>, KaiserBesselDerived{ beta: 0.5 }, "kaiser_bessel_derived")]
+    #[case(PhantomData::<Lanczos>, Lanczos, "lanczos")]
+    #[case(PhantomData::<Nuttall>, Nuttall, "nuttall")]
+    #[case(PhantomData::<Parzen>, Parzen, "parzen")]
+    #[case(PhantomData::<Taylor<f64>>, Taylor{nbar:4,sll:100.0}, "taylor")]
+    #[case(PhantomData::<Triang>, Triang, "triang")]
+    #[case(PhantomData::<Tukey<f64>>, Tukey{alpha: 0.5}, "tukey")]
     fn test<T>(
         #[case] _window: PhantomData<T>,
+        #[case] window: T,
         #[case] name: &str,
         #[values(true, false)] symmetric: bool,
     ) where
         T: Windows<f64>,
     {
-        let window: Vec<f64> = T::window(10, symmetric);
+        let window: Vec<f64> = window.window(10, symmetric);
         insta::assert_debug_snapshot!(
             format!(
                 "{}-{}",

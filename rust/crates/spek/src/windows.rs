@@ -1235,7 +1235,10 @@ mod tests {
         if name == "kaiser_bessel_derived" && !symmetric {
             return;
         }
-        let window: Vec<f64> = window.window(10, symmetric);
+        let window = Windows::<f64>::window(&window, 10, symmetric)
+            .iter()
+            .map(|x| format!("{:.15}", x))
+            .collect::<Vec<_>>();
         insta::assert_debug_snapshot!(
             format!(
                 "{}-{}",

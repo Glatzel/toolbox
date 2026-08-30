@@ -767,7 +767,7 @@ where
     if !symmetric {
         return Err(WindowError::KaiserBesselDerivedAsymmetric);
     }
-    if size % 2 != 0 {
+    if !size.is_multiple_of(2) {
         return Err(WindowError::KaiserBesselDerivedSize);
     }
 

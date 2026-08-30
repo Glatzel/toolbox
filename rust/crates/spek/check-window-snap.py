@@ -65,7 +65,7 @@ for f in snap_path.glob("*.snap"):
         case "triang":
             window = fn(10, sym=sym)
         case "tukey":
-            window = fn(10, alpha=1, sym=sym)
+            window = fn(10, alpha=0.6, sym=sym)
 
     print(f"{method}-{s}")
     np.testing.assert_allclose(

@@ -1369,7 +1369,7 @@ mod tests {
     #[case(Window::Parzen, "parzen")]
     #[case(Window::Taylor{ nbar: 4, sll: 100.0, norm: true }, "taylor")]
     #[case(Window::Triang, "triang")]
-    #[case(Window::Tukey{ alpha: 1.0 }, "tukey")]
+    #[case(Window::Tukey{ alpha: 0.6 }, "tukey")]
     fn test(
         #[case] window: Window<f64>,
         #[case] name: &str,

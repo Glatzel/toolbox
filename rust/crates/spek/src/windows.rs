@@ -38,6 +38,7 @@ pub enum WindowError {
     #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
     KaiserBesselDerivedSize,
 }
+
 /// A parameterized window function.
 ///
 /// The variants correspond to the window functions listed by
@@ -57,56 +58,80 @@ where
 {
     /// Modified Bartlett-Hann window.
     Barthnn,
+
     /// Bartlett (triangular) window.
     Bartlett,
+
     /// Blackman window.
     Blackman,
+
     /// Minimum 4-term Blackman-Harris window.
     BlackmanHarris,
+
     /// Bohman window.
     Bohman,
+
     /// Boxcar, or rectangular, window.
     Boxcar,
+
     /// Dolph-Chebyshev window with the requested sidelobe attenuation in dB.
     Chebwin { attenuation: T },
+
     /// Window with a simple cosine shape.
     Cosine,
+
     /// Discrete Prolate Spheroidal Sequence (DPSS) window with time-bandwidth
     /// product `nw`.
     Dpss { nw: T },
+
     /// Exponential (Poisson) window, optionally specifying its center and decay
     /// `tau`.
     Exponential { center: Option<T>, tau: Option<T> },
+
     /// Flat-top window, designed for accurate amplitude measurements.
     FlatTop,
+
     /// Gaussian window with the given standard deviation.
     Gaussian { standard_deviation: T },
+
     /// Generic weighted sum of cosine terms.
     GeneralCosine { coeffs: Vec<T> },
+
     /// Generalized Gaussian window with shape and standard-deviation
     /// parameters.
     GeneralGaussian { shape: T, standard_deviation: T },
+
     /// Generalized Hamming window parameterized by `alpha`.
     GeneralHamming { alpha: T },
+
     /// Hamming window.
     Hamming,
+
     /// Hann window.
     Hann,
+
     /// Kaiser window with shape parameter `beta`.
     Kaiser { beta: T },
+
     /// Kaiser-Bessel derived window with shape parameter `beta`.
     KaiserBesselDerived { beta: T },
+
     /// Lanczos (sinc) window.
     Lanczos,
+
     /// Minimum 4-term Blackman-Harris window according to Nuttall.
     Nuttall,
+
     /// Parzen window.
     Parzen,
+
     /// Taylor window with `nbar` near-invariant sidelobes, sidelobe level `sll`
     /// in dB, and optional normalization.
     Taylor { nbar: usize, sll: T, norm: bool },
+
     /// Triangular window.
     Triang,
+
     /// Tukey (tapered cosine) window with taper fraction `alpha`.
     Tukey { alpha: T },
 }

@@ -1,3 +1,22 @@
+//! Window functions for spectral analysis and filtering.
+//!
+//! This module provides the window family exposed by SciPy's
+//! `scipy.signal.windows` namespace, with a Rust API based on [`Window`] and
+//! individual window constructors.
+//!
+//! Windowing reduces the discontinuities introduced when a finite segment of a
+//! signal is treated as periodic. In spectral analysis this controls spectral
+//! leakage; different windows trade main-lobe width, sidelobe attenuation, and
+//! amplitude accuracy differently.
+//!
+//! The [`Window::window`] `symmetric` argument follows SciPy's `sym`
+//! convention: `true` produces a symmetric window, typically useful for filter
+//! design, while `false` produces a periodic/DFT-even window, useful when the
+//! window is multiplied with a signal before an FFT.
+//!
+//! Reference: <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>
+//! and the corresponding individual SciPy window documentation.
+
 extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -6,49 +25,109 @@ use generic_num::num;
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
+/// Errors that can occur while constructing a window.
 #[derive(Error, Debug)]
 pub enum WindowError {
+    /// The exponential window requires a strictly positive `tau`.
     #[error("Tau must be positive")]
     ExponentialTau,
+    /// Kaiser-Bessel derived windows are only supported in symmetric mode.
     #[error("Kaiser-Bessel derived asymmetric window must be symmetric")]
     KaiserBesselDerivedAsymmetric,
+    /// Kaiser-Bessel derived windows require an even number of samples.
     #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
     KaiserBesselDerivedSize,
 }
+/// A parameterized window function.
+///
+/// The variants correspond to the window functions listed by
+/// [`scipy.signal.windows`](https://docs.scipy.org/doc/scipy/reference/signal.windows.html).
+/// Use [`Window::window`] to generate `size` samples.
+///
+/// # Choosing a window
+///
+/// There is no universally best window. A boxcar preserves the narrowest
+/// main lobe but has high sidelobes; tapered windows generally reduce leakage
+/// at the cost of a wider main lobe. Windows such as `FlatTop` prioritize
+/// amplitude accuracy, while `Dpss` is designed for concentration of energy
+/// within a chosen bandwidth.
 pub enum Window<T>
 where
     T: Float + FloatConst,
 {
+    /// Modified Bartlett-Hann window.
     Barthnn,
+    /// Bartlett (triangular) window.
     Bartlett,
+    /// Blackman window.
     Blackman,
+    /// Minimum 4-term Blackman-Harris window.
     BlackmanHarris,
+    /// Bohman window.
     Bohman,
+    /// Boxcar, or rectangular, window.
     Boxcar,
+    /// Dolph-Chebyshev window with the requested sidelobe attenuation in dB.
     Chebwin { attenuation: T },
+    /// Window with a simple cosine shape.
     Cosine,
+    /// Discrete Prolate Spheroidal Sequence (DPSS) window with time-bandwidth
+    /// product `nw`.
     Dpss { nw: T },
+    /// Exponential (Poisson) window, optionally specifying its center and decay
+    /// `tau`.
     Exponential { center: Option<T>, tau: Option<T> },
+    /// Flat-top window, designed for accurate amplitude measurements.
     FlatTop,
+    /// Gaussian window with the given standard deviation.
     Gaussian { standard_deviation: T },
+    /// Generic weighted sum of cosine terms.
     GeneralCosine { coeffs: Vec<T> },
+    /// Generalized Gaussian window with shape and standard-deviation
+    /// parameters.
     GeneralGaussian { shape: T, standard_deviation: T },
+    /// Generalized Hamming window parameterized by `alpha`.
     GeneralHamming { alpha: T },
+    /// Hamming window.
     Hamming,
+    /// Hann window.
     Hann,
+    /// Kaiser window with shape parameter `beta`.
     Kaiser { beta: T },
+    /// Kaiser-Bessel derived window with shape parameter `beta`.
     KaiserBesselDerived { beta: T },
+    /// Lanczos (sinc) window.
     Lanczos,
+    /// Minimum 4-term Blackman-Harris window according to Nuttall.
     Nuttall,
+    /// Parzen window.
     Parzen,
+    /// Taylor window with `nbar` near-invariant sidelobes, sidelobe level `sll`
+    /// in dB, and optional normalization.
     Taylor { nbar: usize, sll: T, norm: bool },
+    /// Triangular window.
     Triang,
+    /// Tukey (tapered cosine) window with taper fraction `alpha`.
     Tukey { alpha: T },
 }
 impl<T> Window<T>
 where
     T: Float + FloatConst,
 {
+    /// Generate the requested window.
+    ///
+    /// `size` is the number of returned samples. When `symmetric` is `true`,
+    /// the generated window is symmetric. When it is `false`, the internally
+    /// extended symmetric window is truncated by one sample to produce the
+    /// periodic/DFT-even form used for spectral analysis.
+    ///
+    /// This convention mirrors SciPy's `sym` parameter.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the selected window has parameter or size
+    /// restrictions, such as a non-positive exponential `tau` or an
+    /// asymmetric/odd-sized Kaiser-Bessel derived window.
     pub fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError> {
         let result = match self {
             Self::Barthnn => barthnn(size, symmetric),
@@ -84,6 +163,13 @@ where
     }
 }
 
+/// Return a modified Bartlett-Hann window.
+///
+/// The window combines a linear term with a cosine term and is also known as
+/// the modified Bartlett-Hann window in SciPy.
+///
+/// `size` is the number of samples and `symmetric` selects symmetric versus
+/// periodic/DFT-even construction.
 pub fn barthnn<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -110,6 +196,10 @@ where
     window
 }
 
+/// Return a Bartlett window.
+///
+/// The Bartlett window is triangular and tapers to zero at both ends of the
+/// symmetric form.
 pub fn bartlett<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float,
@@ -141,6 +231,10 @@ where
     window
 }
 
+/// Return a Blackman window.
+///
+/// This is a 3-term cosine window with coefficients `0.42`, `0.50`, and
+/// `0.08`.
 pub fn blackman<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -148,6 +242,10 @@ where
     general_cosine(size, symmetric, &[num!(0.42), num!(0.5), num!(0.08)])
 }
 
+/// Return a minimum 4-term Blackman-Harris window.
+///
+/// The coefficients are the standard minimum 4-term Blackman-Harris values
+/// used by SciPy.
 pub fn blackman_harris<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -159,6 +257,10 @@ where
     )
 }
 
+/// Return a Bohman window.
+///
+/// The Bohman window is a smoothly tapered window with zero-valued endpoints
+/// in its symmetric form.
 pub fn bohman<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -187,6 +289,10 @@ where
     window
 }
 
+/// Return a boxcar (rectangular) window.
+///
+/// Every sample is one. The symmetric/periodic distinction has no effect on
+/// the result.
 pub fn boxcar<T>(size: usize, _symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -196,6 +302,11 @@ where
     vec![T::one(); size]
 }
 
+/// Return a Dolph-Chebyshev window.
+///
+/// `attenuation` specifies the desired sidelobe attenuation in decibels.
+/// Dolph-Chebyshev windows are constructed to provide equal-height sidelobes
+/// in the frequency domain for the requested attenuation.
 pub fn chebwin<T>(size: usize, symmetric: bool, attenuation: T) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -296,6 +407,10 @@ where
     window
 }
 
+/// Return a window with a simple cosine shape.
+///
+/// The window uses a half-cycle sine/cosine construction and does not reach
+/// zero at the center.
 pub fn cosine<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -322,6 +437,12 @@ where
     window
 }
 
+/// Compute the first DPSS (Slepian) window.
+///
+/// `nw` is the time-bandwidth product (`NW` in SciPy). DPSS windows maximize
+/// spectral energy concentration within a specified bandwidth. This function
+/// returns the principal (`Kmax = 1`) sequence normalized to a peak value of
+/// one.
 pub fn dpss<T>(size: usize, symmetric: bool, nw: T) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -389,8 +510,7 @@ where
             // Rotate A.
             #[allow(
                 clippy::needless_range_loop,
-                reason = "indexed access is required to update the p/r
-columns and preserve matrix symmetry"
+                reason = "indexed access is required to update the p/r columns and preserve matrix symmetry"
             )]
             for k in 0..n {
                 if k != p && k != r {
@@ -523,6 +643,11 @@ columns and preserve matrix symmetry"
     window
 }
 
+/// Return an exponential (Poisson) window.
+///
+/// `center` controls the location of the peak. If omitted, the center follows
+/// SciPy's symmetric/periodic convention. `tau` controls exponential decay and
+/// must be strictly positive.
 pub fn exponential<T>(
     size: usize,
     symmetric: bool,
@@ -571,6 +696,10 @@ where
     Ok(window)
 }
 
+/// Return a flat-top window.
+///
+/// The flat-top design has a broad, nearly constant peak and is intended to
+/// reduce amplitude-measurement error in spectral analysis.
 pub fn flat_top<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -588,6 +717,9 @@ where
     )
 }
 
+/// Return a Gaussian window.
+///
+/// `standard_deviation` is the Gaussian standard deviation in samples.
 pub fn gaussian<T>(size: usize, symmetric: bool, standard_deviation: T) -> Vec<T>
 where
     T: Float,
@@ -617,6 +749,12 @@ where
     window
 }
 
+/// Return a generic weighted sum of cosine terms.
+///
+/// `coeffs` contains the cosine coefficients. The implementation uses the
+/// alternating-sign form
+/// `a[0] - a[1] cos(...) + a[2] cos(...) - ...`, matching SciPy's
+/// `general_cosine` convention.
 pub fn general_cosine<T>(size: usize, symmetric: bool, coeffs: &[T]) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -649,6 +787,10 @@ where
     window
 }
 
+/// Return a generalized Gaussian window.
+///
+/// `shape` controls the exponent of the generalized Gaussian and
+/// `standard_deviation` controls its width. The exponent is `2 * shape`.
 pub fn general_gaussian<T>(size: usize, symmetric: bool, shape: T, standard_deviation: T) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -680,6 +822,10 @@ where
     window
 }
 
+/// Return a generalized Hamming window.
+///
+/// `alpha` is the leading cosine-series coefficient. `alpha = 0.54` gives
+/// the standard Hamming window.
 pub fn general_hamming<T>(size: usize, symmetric: bool, alpha: T) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -687,6 +833,10 @@ where
     general_cosine(size, symmetric, &[alpha, T::one() - alpha])
 }
 
+/// Return a Hamming window.
+///
+/// This is the standard two-term cosine window with coefficients `0.54` and
+/// `0.46`.
 pub fn hamming<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -694,6 +844,10 @@ where
     general_cosine(size, symmetric, &[num!(0.54), num!(0.46)])
 }
 
+/// Return a Hann window.
+///
+/// This is the standard raised-cosine Hann window with equal coefficients
+/// `0.5` and `0.5`.
 pub fn hann<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -701,6 +855,10 @@ where
     general_cosine(size, symmetric, &[num!(0.5), num!(0.5)])
 }
 
+/// Return a Kaiser window.
+///
+/// `beta` controls the trade-off between main-lobe width and sidelobe
+/// attenuation. Larger values produce stronger tapering and lower sidelobes.
 pub fn kaiser<T>(size: usize, symmetric: bool, beta: T) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -752,6 +910,11 @@ where
     window
 }
 
+/// Return a Kaiser-Bessel derived window.
+///
+/// The construction is based on a cumulative sum of a Kaiser window followed
+/// by square-root normalization. As in SciPy, this window is only defined here
+/// for an even `size` and `symmetric = true`.
 pub fn kaiser_bessel_derived<T>(
     size: usize,
     symmetric: bool,
@@ -807,6 +970,10 @@ where
     Ok(window)
 }
 
+/// Return a Lanczos (sinc) window.
+///
+/// The window is the normalized sinc function sampled over `[-1, 1]`, with
+/// the value at zero defined by continuity as one.
 pub fn lanczos<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -839,6 +1006,9 @@ where
     window
 }
 
+/// Return a minimum 4-term Blackman-Harris window according to Nuttall.
+///
+/// This is a 4-term cosine-series window with Nuttall's coefficients.
 pub fn nuttall<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -855,6 +1025,10 @@ where
     )
 }
 
+/// Return a Parzen window.
+///
+/// The Parzen window is a piecewise cubic window with a smooth taper toward
+/// both ends.
 pub fn parzen<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -890,6 +1064,13 @@ where
     window
 }
 
+/// Return a Taylor window.
+///
+/// `nbar` controls the number of nearly constant sidelobes, `sll` specifies
+/// the desired sidelobe level in decibels, and `norm` controls normalization.
+/// With `norm = true`, the continuous Taylor formula is normalized at its
+/// midpoint, matching SciPy rather than simply dividing by the largest
+/// discrete sample.
 pub fn taylor<T>(size: usize, symmetric: bool, nbar: usize, sll: T, norm: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -1019,6 +1200,10 @@ where
     window
 }
 
+/// Return a triangular window.
+///
+/// The triangular window has a linear rise and fall. Its exact central value
+/// depends on whether the requested length is odd or even.
 pub fn triang<T>(size: usize, symmetric: bool) -> Vec<T>
 where
     T: Float + FloatConst,
@@ -1056,6 +1241,10 @@ where
     window
 }
 
+/// Return a Tukey (tapered cosine) window.
+///
+/// `alpha` controls the fraction of the window occupied by cosine tapers:
+/// `alpha <= 0` gives a boxcar window, while `alpha >= 1` gives a Hann window.
 pub fn tukey<T>(size: usize, symmetric: bool, alpha: T) -> Vec<T>
 where
     T: Float + FloatConst,

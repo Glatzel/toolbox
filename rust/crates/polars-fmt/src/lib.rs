@@ -70,7 +70,8 @@ impl PolarsFmt {
         self
     }
 
-    ////Print the DataFrame shape information below the data when displaying tables.
+    ////Print the DataFrame shape information below the data when displaying
+    ////Print tables.
     pub fn dataframe_shape_below(self, enabled: bool) -> Self {
         unsafe {
             env::set_var(

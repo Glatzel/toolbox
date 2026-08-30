@@ -48,7 +48,8 @@ impl IDecode<RaxNmeaError> for Gsv {
         let line_count = parser.full_str().lines().count();
         clerk::trace!("Gsv::new: line_count={}", line_count);
 
-        // The first line contains the talker, number of lines, and number of satellites
+        // The first line contains the talker, number of lines, and number of
+        // satellites
         let satellite_count: usize = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .skip(&UNTIL_COMMA_DISCARD)?
@@ -62,8 +63,9 @@ impl IDecode<RaxNmeaError> for Gsv {
             ));
         }
 
-        // The last line may have fewer than 4 satellites, so we calculate how many
-        // satellites are in the last line based on the total count.
+        // The last line may have fewer than 4 satellites, so we calculate how
+        // many satellites are in the last line based on the total
+        // count.
         let last_line_satellite_count = satellite_count - 4 * (line_count - 1);
         clerk::trace!(
             "Gsv::new: last_line_satellite_count={}",

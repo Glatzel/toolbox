@@ -1433,8 +1433,10 @@ version = "2026.8.22"
 dependencies = [
  "generic-num",
  "insta",
+ "mischief",
  "num-traits",
  "rstest",
+ "thiserror",
 ]
 
 [[package]]

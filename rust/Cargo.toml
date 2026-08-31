@@ -23,11 +23,11 @@ derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"
 jiff = { version = "0.2.35", default-features = false, features = ["perf-inline"] }
 num-traits = "0.2.19"
-owo-colors = "4.3.0"
+owo-colors = "4.4.0"
 quote = "1.0.47"
 rstest = "0.26.1"
 serde = "1.0.229"
-serialport = "4.9.0"
+serialport = "4.10.0"
 strum = { version = "0.28.0", features = ["derive"] }
 syn = "3.0.4"
 tempfile = "3.27.0"
@@ -39,7 +39,7 @@ tokio-util = "0.7.19"
 tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
-uuid = "1.25.0"
+uuid = "1.26.0"
 
 [profile.dev.package]
 insta.opt-level = 3

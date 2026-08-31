@@ -37,8 +37,8 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if is_ascii && C.is_ascii() {
-            // C is a const generic, so `C.is_ascii()` and `C as u8` are compile-time
-            // constants
+            // C is a const generic, so `C.is_ascii()` and `C as u8` are
+            // compile-time constants
             match input.as_bytes().first() {
                 Some(&b) if b == C as u8 => Ok((C, 1)),
                 _ => Err(RuleError {

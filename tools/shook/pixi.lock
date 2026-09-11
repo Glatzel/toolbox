@@ -16,8 +16,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.1.0-ha9f2e26_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.1.0-he0feb66_3.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.5-h476cb7c_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.5-h476cb7c_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.6-h476cb7c_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.6-h476cb7c_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -61,26 +61,26 @@ packages:
     - _openmp_mutex >=4.5
   size: 641537
   timestamp: 1787329444295
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.5-h476cb7c_0.conda
-  sha256: c1daf7f2d108027eabf5eb607a8ff7933527056ec9df55d9c59228cdb3c99048
-  md5: 562bf543e774756c19a261927c97088e
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-dev-0.9.6-h476cb7c_0.conda
+  sha256: bf5b5b291abb33f130dd00ba9254199b27fff260345154a9070f77cad31632bf
+  md5: a4f86f6e70a68b90f60d34d151830ed3
   depends:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
-  - libcap-ng-rt >=0.9.5,<0.10.0a0
+  - libcap-ng-rt >=0.9.6,<0.10.0a0
   run_exports:
     weak:
-    - libcap-ng-rt >=0.9.5,<0.10.0a0
-  size: 22635
-  timestamp: 1787289192739
-- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.5-h476cb7c_0.conda
-  sha256: eea9681a86a51f8ffad00b83a58bad9c47410cff30d7813caa71dc2cde5ac676
-  md5: 591b8d0c6324f4edf83d5b107c6fccda
+    - libcap-ng-rt >=0.9.6,<0.10.0a0
+  size: 22810
+  timestamp: 1788993883162
+- conda: https://prefix.dev/glatzel/linux-64/libcap-ng-rt-0.9.6-h476cb7c_0.conda
+  sha256: 2a93d56e538399be24c74c6307e6abc98348f869ca641295b91ea8912304b642
+  md5: 5571b55e64602f80b0ac7cabdf5947e5
   depends:
   - __glibc >=2.28,<3.0.a0
   - libgcc >=14
   run_exports:
     weak:
-    - libcap-ng-rt >=0.9.5,<0.10.0a0
-  size: 24349
-  timestamp: 1787289192739
+    - libcap-ng-rt >=0.9.6,<0.10.0a0
+  size: 24602
+  timestamp: 1788993883162

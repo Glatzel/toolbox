@@ -191,12 +191,22 @@ export class TerminalClient {
       return;
     }
     this.fitAddon.fit();
-    console.log(`Resizing: cols=${this.term.cols}, rows=${this.term.rows}`);
+    const screenEl = this.term.element?.querySelector(
+      ".xterm-screen",
+    ) as HTMLElement | null;
+    const rect = screenEl?.getBoundingClientRect();
+    const pixelWidth = rect ? Math.round(rect.width * devicePixelRatio) : 0;
+    const pixelHeight = rect ? Math.round(rect.height * devicePixelRatio) : 0;
+    console.log(
+      `Resizing: cols=${this.term.cols}, rows=${this.term.rows}, px=${pixelWidth}x${pixelHeight}`,
+    );
     this.ws.send(
       JSON.stringify({
         kind: "resize",
         cols: this.term.cols,
         rows: this.term.rows,
+        pixelWidth,
+        pixelHeight,
       }),
     );
   }

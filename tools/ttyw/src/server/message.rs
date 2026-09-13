@@ -1,12 +1,17 @@
-
-
 use serde::Deserialize;
 
 #[derive(Deserialize)]
 #[serde(tag = "kind")]
 pub enum ReceiveMsg {
     #[serde(rename = "resize")]
-    Resize { cols: u16, rows: u16 },
+    Resize {
+        cols: u16,
+        rows: u16,
+        #[serde(rename = "pixelWidth")]
+        pixel_width: u16,
+        #[serde(rename = "pixelHeight")]
+        pixel_height: u16,
+    },
     #[serde(rename = "input")]
     Input { data: String },
 }
@@ -23,22 +28,32 @@ mod tests {
 
     #[test]
     fn parse_resize() {
-        let msg = r#"{"kind":"resize","cols":120,"rows":40}"#;
+        let msg = r#"{"kind":"resize","cols":120,"rows":40,"pixelWidth":100,"pixelHeight":50}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         assert!(matches!(
             parsed,
             ReceiveMsg::Resize {
                 cols: 120,
-                rows: 40
+                rows: 40,
+                pixel_width: 100,
+                pixel_height: 50,
             }
         ));
     }
 
     #[test]
     fn parse_resize_zero_dimensions() {
-        let msg = r#"{"kind":"resize","cols":0,"rows":0}"#;
+        let msg = r#"{"kind":"resize","cols":0,"rows":0,"pixelWidth":0,"pixelHeight":0}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
-        assert!(matches!(parsed, ReceiveMsg::Resize { cols: 0, rows: 0 }));
+        assert!(matches!(
+            parsed,
+            ReceiveMsg::Resize {
+                cols: 0,
+                rows: 0,
+                pixel_width: 0,
+                pixel_height: 0
+            }
+        ));
     }
 
     #[test]

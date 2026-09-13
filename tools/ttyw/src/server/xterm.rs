@@ -107,13 +107,18 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
         if let Message::Text(text) = msg {
             clerk::trace!("WS -> PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
-                Ok(ReceiveMsg::Resize { cols, rows }) => {
-                    clerk::debug!(cols, rows, "Terminal resize:");
+                Ok(ReceiveMsg::Resize {
+                    cols,
+                    rows,
+                    pixel_width,
+                    pixel_height,
+                }) => {
+                    clerk::debug!(cols, rows, pixel_width, pixel_height, "Terminal resize:");
                     if let Err(e) = pair.master.resize(PtySize {
-                        rows: rows,
-                        cols: cols,
-                        pixel_width: 0,
-                        pixel_height: 0,
+                        rows,
+                        cols,
+                        pixel_width,
+                        pixel_height,
                     }) {
                         clerk::warn!(error = %e, "Failed to resize PTY");
                     }

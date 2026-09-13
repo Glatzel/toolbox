@@ -157,8 +157,8 @@ mod tests {
     use futures::{SinkExt, StreamExt};
     use rstest::*;
     use tokio::time::timeout;
-    use tokio_tungstenite::connect_async;
     use tokio_tungstenite::tungstenite::Message;
+    use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
     use crate::cli::Args;
     use crate::server::AppContext;
@@ -167,7 +167,7 @@ mod tests {
 
     #[fixture]
     fn state() -> Arc<AppContext> {
-        tracing_subscriber::registry()
+        let _ = tracing_subscriber::registry()
             .with(
                 clerk::terminal_layer(true).with_filter(
                     EnvFilter::builder()
@@ -179,7 +179,8 @@ mod tests {
                         .from_env_lossy(),
                 ),
             )
-            .init();
+            .try_init();
+
         Arc::new(AppContext {
             args: Args {
                 port: 0,
@@ -191,6 +192,37 @@ mod tests {
                 verbose: Verbosity::new(1, 1),
             },
         })
+    }
+
+    /// Watches the WebSocket for ConPTY's initial cursor-position query
+    /// (\x1b[6n) and answers it with a synthetic CPR reply. A real
+    /// terminal emulator (xterm.js) does this automatically; our raw test
+    /// client has to do it manually or `cmd` will stall forever waiting
+    /// for a reply that never comes. On Unix this simply times out
+    /// quickly since `/bin/sh` never sends the query.
+    async fn answer_dsr_if_present(
+        ws: &mut WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
+    ) {
+        let saw_dsr = timeout(Duration::from_millis(500), async {
+            while let Some(Ok(msg)) = ws.next().await {
+                if let Message::Binary(b) = msg {
+                    if b.windows(4).any(|w| w == b"\x1b[6n") {
+                        return true;
+                    }
+                }
+            }
+            false
+        })
+        .await
+        .unwrap_or(false);
+
+        if saw_dsr {
+            ws.send(Message::Text(
+                r#"{"kind":"input","data":"\u001b[1;1R"}"#.into(),
+            ))
+            .await
+            .unwrap();
+        }
     }
 
     /// Spin up the axum server on a random port, return the bound address.
@@ -215,6 +247,9 @@ mod tests {
         let (addr, _handle) = spawn_server(state).await;
         clerk::debug!("server started on {addr}");
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
+
+        answer_dsr_if_present(&mut ws).await;
+
         ws.send(Message::Text(
             r#"{"kind":"input","data":"echo hello_from_test\r\n"}"#.into(),
         ))
@@ -246,6 +281,8 @@ mod tests {
     async fn resize_message_accepted(state: Arc<AppContext>) {
         let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
+
+        answer_dsr_if_present(&mut ws).await;
 
         ws.send(Message::Text(
             r#"{"kind":"resize","cols":220,"rows":50,"pixelWidth": 800,"pixelHeight": 600}"#.into(),
@@ -286,6 +323,9 @@ mod tests {
 
         let (mut ws1, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
         let (mut ws2, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
+
+        answer_dsr_if_present(&mut ws1).await;
+        answer_dsr_if_present(&mut ws2).await;
 
         ws1.send(Message::Text(
             r#"{"kind":"input","data":"echo tab1_marker\n"}"#.into(),
@@ -334,6 +374,8 @@ mod tests {
     async fn child_killed_on_disconnect(state: Arc<AppContext>) {
         let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
+
+        answer_dsr_if_present(&mut ws).await;
 
         // Get a shell prompt so we know the process is running
         ws.send(Message::Text(

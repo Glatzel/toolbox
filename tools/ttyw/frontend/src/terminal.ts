@@ -50,10 +50,9 @@ export class TerminalClient {
     this.term.loadAddon(this.fitAddon);
     this._reconnectOverlay = new ReconnectOverlayAddon();
     this.term.loadAddon(this._reconnectOverlay);
-
+    this.term.open(el);
     this.fitAddon.fit();
     window.addEventListener("resize", this._resizeHandler);
-    this.term.open(el);
     this._loadHeavyAddons();
     this.connect();
   }

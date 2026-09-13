@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::sync::Arc;
 
 use axum::body::Bytes;
@@ -58,7 +59,6 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
     let (tx, mut rx) = tokio::sync::mpsc::channel::<Bytes>(32);
     // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
-        use std::io::Read;
         let mut buf = [0_u8; 1024];
         clerk::debug!("PTY reader thread started");
 
@@ -90,9 +90,9 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
     tokio::spawn(async move {
         while let Some(data) = rx.recv().await {
             clerk::trace!(
-                bytes = data.len(),
-                "PTY -> WS: {}",
-                String::from_utf8_lossy(&data)
+                len = data.len(),
+                bytes = ?data,
+                "PTY -> WS"
             );
             if let Err(e) = ws_sender.send(Message::Binary(data)).await {
                 clerk::warn!(error = %e, "Failed to forward PTY output to WebSocket");
@@ -107,21 +107,26 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
         if let Message::Text(text) = msg {
             clerk::trace!("WS -> PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
-                Ok(ReceiveMsg::Resize(msg)) => {
-                    clerk::debug!(cols = msg.cols, rows = msg.rows, "Terminal resize:");
+                Ok(ReceiveMsg::Resize {
+                    cols,
+                    rows,
+                    pixel_width,
+                    pixel_height,
+                }) => {
+                    clerk::debug!(cols, rows, pixel_width, pixel_height, "Terminal resize:");
                     if let Err(e) = pair.master.resize(PtySize {
-                        rows: msg.rows,
-                        cols: msg.cols,
-                        pixel_width: 0,
-                        pixel_height: 0,
+                        rows,
+                        cols,
+                        pixel_width,
+                        pixel_height,
                     }) {
                         clerk::warn!(error = %e, "Failed to resize PTY");
                     }
                 }
-                Ok(ReceiveMsg::Input(msg)) => {
-                    clerk::trace!("Input: {}", msg.data);
+                Ok(ReceiveMsg::Input { data }) => {
+                    clerk::trace!("Input: {}", data);
                     let mut w = tty_writer.lock().await;
-                    if let Err(e) = w.write_all(msg.data.as_bytes()) {
+                    if let Err(e) = w.write_all(data.as_bytes()) {
                         clerk::warn!(error = %e, "Failed to write input to PTY");
                     }
                 }
@@ -152,8 +157,8 @@ mod tests {
     use futures::{SinkExt, StreamExt};
     use rstest::*;
     use tokio::time::timeout;
-    use tokio_tungstenite::connect_async;
     use tokio_tungstenite::tungstenite::Message;
+    use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
     use crate::cli::Args;
     use crate::server::AppContext;
@@ -162,7 +167,7 @@ mod tests {
 
     #[fixture]
     fn state() -> Arc<AppContext> {
-        tracing_subscriber::registry()
+        let _ = tracing_subscriber::registry()
             .with(
                 clerk::terminal_layer(true).with_filter(
                     EnvFilter::builder()
@@ -174,7 +179,8 @@ mod tests {
                         .from_env_lossy(),
                 ),
             )
-            .init();
+            .try_init();
+
         Arc::new(AppContext {
             args: Args {
                 port: 0,
@@ -186,6 +192,37 @@ mod tests {
                 verbose: Verbosity::new(1, 1),
             },
         })
+    }
+
+    /// Watches the WebSocket for ConPTY's initial cursor-position query
+    /// (\x1b[6n) and answers it with a synthetic CPR reply. A real
+    /// terminal emulator (xterm.js) does this automatically; our raw test
+    /// client has to do it manually or `cmd` will stall forever waiting
+    /// for a reply that never comes. On Unix this simply times out
+    /// quickly since `/bin/sh` never sends the query.
+    async fn answer_dsr_if_present(
+        ws: &mut WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
+    ) {
+        let saw_dsr = timeout(Duration::from_millis(500), async {
+            while let Some(Ok(msg)) = ws.next().await {
+                if let Message::Binary(b) = msg {
+                    if b.windows(4).any(|w| w == b"\x1b[6n") {
+                        return true;
+                    }
+                }
+            }
+            false
+        })
+        .await
+        .unwrap_or(false);
+
+        if saw_dsr {
+            ws.send(Message::Text(
+                r#"{"kind":"input","data":"\u001b[1;1R"}"#.into(),
+            ))
+            .await
+            .unwrap();
+        }
     }
 
     /// Spin up the axum server on a random port, return the bound address.
@@ -210,9 +247,14 @@ mod tests {
         let (addr, _handle) = spawn_server(state).await;
         clerk::debug!("server started on {addr}");
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
-        ws.send(Message::Text("echo hello_from_test\r\n".into()))
-            .await
-            .unwrap();
+
+        answer_dsr_if_present(&mut ws).await;
+
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo hello_from_test\r\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         // Collect output until we see our marker or timeout
         let output = timeout(Duration::from_secs(3), async {
@@ -240,16 +282,20 @@ mod tests {
         let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
+        answer_dsr_if_present(&mut ws).await;
+
         ws.send(Message::Text(
-            r#"{"kind":"resize","cols":220,"rows":50}"#.into(),
+            r#"{"kind":"resize","cols":220,"rows":50,"pixelWidth": 800,"pixelHeight": 600}"#.into(),
         ))
         .await
         .unwrap();
 
         // Server should not close the connection after a resize
-        ws.send(Message::Text("echo still_alive\n".into()))
-            .await
-            .unwrap();
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo still_alive\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         let output = timeout(Duration::from_secs(2), async {
             let mut buf = String::new();
@@ -278,12 +324,19 @@ mod tests {
         let (mut ws1, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
         let (mut ws2, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
-        ws1.send(Message::Text("echo tab1_marker\n".into()))
-            .await
-            .unwrap();
-        ws2.send(Message::Text("echo tab2_marker\n".into()))
-            .await
-            .unwrap();
+        answer_dsr_if_present(&mut ws1).await;
+        answer_dsr_if_present(&mut ws2).await;
+
+        ws1.send(Message::Text(
+            r#"{"kind":"input","data":"echo tab1_marker\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
+        ws2.send(Message::Text(
+            r#"{"kind":"input","data":"echo tab2_marker\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         async fn collect(
             ws: &mut tokio_tungstenite::WebSocketStream<
@@ -322,8 +375,14 @@ mod tests {
         let (addr, _handle) = spawn_server(state).await;
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
+        answer_dsr_if_present(&mut ws).await;
+
         // Get a shell prompt so we know the process is running
-        ws.send(Message::Text("echo ready\n".into())).await.unwrap();
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo ready\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
         timeout(Duration::from_secs(2), async {
             while let Some(Ok(Message::Binary(b))) = ws.next().await {
                 if String::from_utf8_lossy(&b).contains("ready") {

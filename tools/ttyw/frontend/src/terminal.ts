@@ -68,7 +68,6 @@ export class TerminalClient {
       import("@xterm/addon-search"),
       import("@xterm/addon-clipboard"),
     ]);
-
     const webgl = new WebglAddon();
     // WebGL can throw if context creation fails — fall back to canvas
     webgl.onContextLoss(() => webgl.dispose());
@@ -82,7 +81,7 @@ export class TerminalClient {
         pixelLimit: 16777216,
         sixelSupport: true,
         sixelScrolling: true,
-        sixelPaletteLimit: 1024,
+        sixelPaletteLimit: 4096,
         sixelSizeLimit: 25000000,
         storageLimit: 128,
         showPlaceholder: true,
@@ -109,7 +108,12 @@ export class TerminalClient {
       this._dataListenerDispose?.dispose();
       this._dataListenerDispose = this.term.onData((data) => {
         if (this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(data);
+          this.ws.send(
+            JSON.stringify({
+              kind: "input",
+              data,
+            }),
+          );
         } else {
           console.warn("WS not open, dropping message");
         }
@@ -187,12 +191,22 @@ export class TerminalClient {
       return;
     }
     this.fitAddon.fit();
-    console.log(`Resizing: cols=${this.term.cols}, rows=${this.term.rows}`);
+    const screenEl = this.term.element?.querySelector(
+      ".xterm-screen",
+    ) as HTMLElement | null;
+    const rect = screenEl?.getBoundingClientRect();
+    const pixelWidth = rect ? Math.round(rect.width * devicePixelRatio) : 0;
+    const pixelHeight = rect ? Math.round(rect.height * devicePixelRatio) : 0;
+    console.log(
+      `Resizing: cols=${this.term.cols}, rows=${this.term.rows}, px=${pixelWidth}x${pixelHeight}`,
+    );
     this.ws.send(
       JSON.stringify({
         kind: "resize",
         cols: this.term.cols,
         rows: this.term.rows,
+        pixelWidth,
+        pixelHeight,
       }),
     );
   }

@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::sync::Arc;
 
 use axum::body::Bytes;
@@ -58,7 +59,6 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
     let (tx, mut rx) = tokio::sync::mpsc::channel::<Bytes>(32);
     // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
-        use std::io::Read;
         let mut buf = [0_u8; 1024];
         clerk::debug!("PTY reader thread started");
 

@@ -1,31 +1,23 @@
-use core::str::FromStr;
-
 use serde::Deserialize;
+
+#[derive(Deserialize)]
+#[serde(tag = "kind")]
 pub enum ReceiveMsg {
-    Resize(ResizeMsg),
-    Input(InputMsg),
+    #[serde(rename = "resize")]
+    Resize {
+        cols: u16,
+        rows: u16,
+        #[serde(rename = "pixelWidth")]
+        pixel_width: u16,
+        #[serde(rename = "pixelHeight")]
+        pixel_height: u16,
+    },
+    #[serde(rename = "input")]
+    Input { data: String },
 }
+
 impl ReceiveMsg {
-    pub fn parse(msg: &str) -> mischief::Result<Self> {
-        match serde_json::Value::from_str(msg) {
-            Ok(msg) => match msg.get("kind").and_then(|v| v.as_str()) {
-                Some("resize") => Ok(Self::Resize(serde_json::from_value::<ResizeMsg>(msg)?)),
-                _ => Err(mischief::mischief!("Unknown message: {}", msg)),
-            },
-            Err(_) => Ok(Self::Input(InputMsg {
-                data: msg.to_string(),
-            })),
-        }
-    }
-}
-#[derive(Deserialize)]
-pub struct ResizeMsg {
-    pub cols: u16,
-    pub rows: u16,
-}
-#[derive(Deserialize)]
-pub struct InputMsg {
-    pub data: String,
+    pub fn parse(msg: &str) -> serde_json::Result<Self> { serde_json::from_str(msg) }
 }
 
 #[cfg(test)]
@@ -36,24 +28,31 @@ mod tests {
 
     #[test]
     fn parse_resize() {
-        let msg = r#"{"kind":"resize","cols":120,"rows":40}"#;
+        let msg = r#"{"kind":"resize","cols":120,"rows":40,"pixelWidth":100,"pixelHeight":50}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         assert!(matches!(
             parsed,
-            ReceiveMsg::Resize(ResizeMsg {
+            ReceiveMsg::Resize {
                 cols: 120,
-                rows: 40
-            })
+                rows: 40,
+                pixel_width: 100,
+                pixel_height: 50,
+            }
         ));
     }
 
     #[test]
     fn parse_resize_zero_dimensions() {
-        let msg = r#"{"kind":"resize","cols":0,"rows":0}"#;
+        let msg = r#"{"kind":"resize","cols":0,"rows":0,"pixelWidth":0,"pixelHeight":0}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         assert!(matches!(
             parsed,
-            ReceiveMsg::Resize(ResizeMsg { cols: 0, rows: 0 })
+            ReceiveMsg::Resize {
+                cols: 0,
+                rows: 0,
+                pixel_width: 0,
+                pixel_height: 0
+            }
         ));
     }
 
@@ -75,40 +74,40 @@ mod tests {
     fn parse_plain_text_as_input() {
         let msg = "hello";
         let parsed = ReceiveMsg::parse(msg).unwrap();
-        let ReceiveMsg::Input(input) = parsed else {
+        let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
         };
-        assert_eq!(input.data, "hello");
+        assert_eq!(data, "hello");
     }
 
     #[test]
     fn parse_input_preserves_data() {
         let msg = "ls -la\n";
         let parsed = ReceiveMsg::parse(msg).unwrap();
-        let ReceiveMsg::Input(input) = parsed else {
+        let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
         };
-        assert_eq!(input.data, "ls -la\n");
+        assert_eq!(data, "ls -la\n");
     }
 
     #[test]
     fn parse_input_special_chars() {
         let msg = "\x03"; // Ctrl+C
         let parsed = ReceiveMsg::parse(msg).unwrap();
-        let ReceiveMsg::Input(input) = parsed else {
+        let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
         };
-        assert_eq!(input.data, "\x03");
+        assert_eq!(data, "\x03");
     }
 
     #[test]
     fn parse_input_empty_string() {
         let msg = "";
         let parsed = ReceiveMsg::parse(msg).unwrap();
-        let ReceiveMsg::Input(input) = parsed else {
+        let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
         };
-        assert_eq!(input.data, "");
+        assert_eq!(data, "");
     }
 
     // ===== Unknown JSON kind =====

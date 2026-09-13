@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::sync::Arc;
 
 use axum::body::Bytes;
@@ -58,7 +59,6 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
     let (tx, mut rx) = tokio::sync::mpsc::channel::<Bytes>(32);
     // Blocking thread: just reads and sends into the channel
     tokio::task::spawn_blocking(move || {
-        use std::io::Read;
         let mut buf = [0_u8; 1024];
         clerk::debug!("PTY reader thread started");
 
@@ -107,21 +107,26 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
         if let Message::Text(text) = msg {
             clerk::trace!("WS -> PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
-                Ok(ReceiveMsg::Resize(msg)) => {
-                    clerk::debug!(cols = msg.cols, rows = msg.rows, "Terminal resize:");
+                Ok(ReceiveMsg::Resize {
+                    cols,
+                    rows,
+                    pixel_width,
+                    pixel_height,
+                }) => {
+                    clerk::debug!(cols, rows, pixel_width, pixel_height, "Terminal resize:");
                     if let Err(e) = pair.master.resize(PtySize {
-                        rows: msg.rows,
-                        cols: msg.cols,
-                        pixel_width: 0,
-                        pixel_height: 0,
+                        rows,
+                        cols,
+                        pixel_width,
+                        pixel_height,
                     }) {
                         clerk::warn!(error = %e, "Failed to resize PTY");
                     }
                 }
-                Ok(ReceiveMsg::Input(msg)) => {
-                    clerk::trace!("Input: {}", msg.data);
+                Ok(ReceiveMsg::Input { data }) => {
+                    clerk::trace!("Input: {}", data);
                     let mut w = tty_writer.lock().await;
-                    if let Err(e) = w.write_all(msg.data.as_bytes()) {
+                    if let Err(e) = w.write_all(data.as_bytes()) {
                         clerk::warn!(error = %e, "Failed to write input to PTY");
                     }
                 }

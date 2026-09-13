@@ -53,8 +53,7 @@ export class TerminalClient {
     this.term.open(el);
     this.fitAddon.fit();
     window.addEventListener("resize", this._resizeHandler);
-    this._loadHeavyAddons();
-    this.connect();
+    this._loadHeavyAddons().then(() => this.connect());
   }
   private async _loadHeavyAddons() {
     const [
@@ -109,10 +108,12 @@ export class TerminalClient {
       this._dataListenerDispose?.dispose();
       this._dataListenerDispose = this.term.onData((data) => {
         if (this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({
-                      kind: "input",
-                      data,
-                  }));
+          this.ws.send(
+            JSON.stringify({
+              kind: "input",
+              data,
+            }),
+          );
         } else {
           console.warn("WS not open, dropping message");
         }

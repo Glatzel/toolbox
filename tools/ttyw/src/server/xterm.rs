@@ -90,9 +90,9 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
     tokio::spawn(async move {
         while let Some(data) = rx.recv().await {
             clerk::trace!(
-                bytes = data.len(),
-                "PTY -> WS: {}",
-                String::from_utf8_lossy(&data)
+                len = data.len(),
+                bytes = ?data,
+                "PTY -> WS"
             );
             if let Err(e) = ws_sender.send(Message::Binary(data)).await {
                 clerk::warn!(error = %e, "Failed to forward PTY output to WebSocket");

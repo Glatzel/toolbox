@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn parse_plain_text_as_input() {
-        let msg = "hello";
+        let msg = r#"{"kind":"input","data":"hello"}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn parse_input_preserves_data() {
-        let msg = "ls -la\n";
+        let msg = r#"{"kind":"input","data":"ls -la\n"}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
@@ -92,17 +92,17 @@ mod tests {
 
     #[test]
     fn parse_input_special_chars() {
-        let msg = "\x03"; // Ctrl+C
+        let msg = r#"{"kind":"input","data":"\\x03"}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")
         };
-        assert_eq!(data, "\x03");
+        assert_eq!(data, r#"\x03"#);
     }
 
     #[test]
     fn parse_input_empty_string() {
-        let msg = "";
+        let msg = r#"{"kind":"input","data":""}"#;
         let parsed = ReceiveMsg::parse(msg).unwrap();
         let ReceiveMsg::Input { data } = parsed else {
             panic!("expected Input")

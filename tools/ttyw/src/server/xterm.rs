@@ -215,9 +215,11 @@ mod tests {
         let (addr, _handle) = spawn_server(state).await;
         clerk::debug!("server started on {addr}");
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
-        ws.send(Message::Text("echo hello_from_test\r\n".into()))
-            .await
-            .unwrap();
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo hello_from_test\r\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         // Collect output until we see our marker or timeout
         let output = timeout(Duration::from_secs(3), async {
@@ -246,15 +248,17 @@ mod tests {
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
         ws.send(Message::Text(
-            r#"{"kind":"resize","cols":220,"rows":50}"#.into(),
+            r#"{"kind":"resize","cols":220,"rows":50,"pixelWidth": 800,"pixelHeight": 600}"#.into(),
         ))
         .await
         .unwrap();
 
         // Server should not close the connection after a resize
-        ws.send(Message::Text("echo still_alive\n".into()))
-            .await
-            .unwrap();
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo still_alive\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         let output = timeout(Duration::from_secs(2), async {
             let mut buf = String::new();
@@ -283,12 +287,16 @@ mod tests {
         let (mut ws1, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
         let (mut ws2, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
-        ws1.send(Message::Text("echo tab1_marker\n".into()))
-            .await
-            .unwrap();
-        ws2.send(Message::Text("echo tab2_marker\n".into()))
-            .await
-            .unwrap();
+        ws1.send(Message::Text(
+            r#"{"kind":"input","data":"echo tab1_marker\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
+        ws2.send(Message::Text(
+            r#"{"kind":"input","data":"echo tab2_marker\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
 
         async fn collect(
             ws: &mut tokio_tungstenite::WebSocketStream<
@@ -328,7 +336,11 @@ mod tests {
         let (mut ws, _) = connect_async(format!("ws://{addr}/ws")).await.unwrap();
 
         // Get a shell prompt so we know the process is running
-        ws.send(Message::Text("echo ready\n".into())).await.unwrap();
+        ws.send(Message::Text(
+            r#"{"kind":"input","data":"echo ready\n"}"#.into(),
+        ))
+        .await
+        .unwrap();
         timeout(Duration::from_secs(2), async {
             while let Some(Ok(Message::Binary(b))) = ws.next().await {
                 if String::from_utf8_lossy(&b).contains("ready") {

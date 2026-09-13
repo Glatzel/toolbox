@@ -82,7 +82,7 @@ export class TerminalClient {
         pixelLimit: 16777216,
         sixelSupport: true,
         sixelScrolling: true,
-        sixelPaletteLimit: 1024,
+        sixelPaletteLimit: 4096,
         sixelSizeLimit: 25000000,
         storageLimit: 128,
         showPlaceholder: true,

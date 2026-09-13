@@ -109,7 +109,10 @@ export class TerminalClient {
       this._dataListenerDispose?.dispose();
       this._dataListenerDispose = this.term.onData((data) => {
         if (this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(data);
+          this.ws.send(JSON.stringify({
+                      kind: "input",
+                      data,
+                  }));
         } else {
           console.warn("WS not open, dropping message");
         }

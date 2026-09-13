@@ -107,21 +107,21 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppContext>) -> mischief::R
         if let Message::Text(text) = msg {
             clerk::trace!("WS -> PTY: {text}");
             match ReceiveMsg::parse(text.as_str()) {
-                Ok(ReceiveMsg::Resize(msg)) => {
-                    clerk::debug!(cols = msg.cols, rows = msg.rows, "Terminal resize:");
+                Ok(ReceiveMsg::Resize { cols, rows }) => {
+                    clerk::debug!(cols, rows, "Terminal resize:");
                     if let Err(e) = pair.master.resize(PtySize {
-                        rows: msg.rows,
-                        cols: msg.cols,
+                        rows: rows,
+                        cols: cols,
                         pixel_width: 0,
                         pixel_height: 0,
                     }) {
                         clerk::warn!(error = %e, "Failed to resize PTY");
                     }
                 }
-                Ok(ReceiveMsg::Input(msg)) => {
-                    clerk::trace!("Input: {}", msg.data);
+                Ok(ReceiveMsg::Input { data }) => {
+                    clerk::trace!("Input: {}", data);
                     let mut w = tty_writer.lock().await;
-                    if let Err(e) = w.write_all(msg.data.as_bytes()) {
+                    if let Err(e) = w.write_all(data.as_bytes()) {
                         clerk::warn!(error = %e, "Failed to write input to PTY");
                     }
                 }

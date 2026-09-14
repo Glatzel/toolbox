@@ -1,7 +1,7 @@
 use core::str::FromStr;
 
 use rax::error::RuleError;
-use rax::string::{IGlobalRule, IRule};
+use rax::text::{IGlobalRule, IRule};
 
 use crate::common::Identifier;
 

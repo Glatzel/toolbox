@@ -1,9 +1,0 @@
----
-source: crates/rax/src/string/rules/until_str.rs
-expression: result
----
-Err(
-    RuleError {
-        reason: "no match found",
-    },
-)

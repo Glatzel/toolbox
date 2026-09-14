@@ -3,7 +3,7 @@ use alloc::format;
 
 use jiff::civil::Time;
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::text::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 fn parse_field(
@@ -43,7 +43,7 @@ pub struct NmeaTime;
 
 impl IRule for NmeaTime {}
 
-impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
+impl<'a> rax::text::IStrFlowRule<'a> for NmeaTime {
     type Output = Option<Time>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
@@ -111,7 +111,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaTime {
 #[cfg(test)]
 mod tests {
     use clerk::{LevelFilter, init_log_with_level};
-    use rax::string::IStrFlowRule;
+    use rax::text::IStrFlowRule;
 
     use super::*;
     #[rstest::rstest]

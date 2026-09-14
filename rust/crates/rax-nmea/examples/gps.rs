@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use clerk::LevelFilter;
-use rax::string::Decoder;
+use rax::text::Decoder;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
 use rax_nmea::sentence::*;

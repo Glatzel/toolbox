@@ -1,0 +1,22 @@
+# fuzz
+fuzz/corpus
+fuzz/artifacts
+fuzz/coverage
+
+# python
+__pycache__
+.coverage
+build
+output
+*.egg-info
+
+# rust
+target
+.pixi
+
+# js
+node_modules
+dist
+
+# misc
+temp

@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/Glatzel/toolbox/actions/workflows/ci.yml/badge.svg)](https://github.com/Glatzel/toolbox/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Glatzel/toolbox/graph/badge.svg?token=biKBmTxt99)](https://codecov.io/gh/Glatzel/toolbox)
+[![CodSpeed Badge](https://img.shields.io/endpoint?url=https://app.codspeed.io//badge.json)](https://app.codspeed.io//Glatzel/toolbox?utm_source=badge)
 
 A collection of low-level tools and foundational libraries.
 

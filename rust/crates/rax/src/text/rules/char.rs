@@ -2,7 +2,7 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::rules::IRule;
+use crate::text::rules::IRule;
 
 /// Rule that matches a specific character at the start of the input string.
 ///

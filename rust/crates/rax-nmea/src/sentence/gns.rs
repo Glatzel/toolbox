@@ -5,7 +5,7 @@ use core::fmt::Debug;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::string::{Decoder, IDecode};
+use rax::text::{Decoder, IDecode};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

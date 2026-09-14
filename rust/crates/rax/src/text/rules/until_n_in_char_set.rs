@@ -1,8 +1,8 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::filters::{CharSetFilter, IFilter};
-use crate::string::rules::UntilMode;
+use crate::text::IRule;
+use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::rules::UntilMode;
 /// Rule that extracts a prefix from the input string until the N-th character
 /// matching a given character set is reached.
 ///
@@ -106,7 +106,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::CHAR_SET_DIGITS;
+    use crate::text::filters::CHAR_SET_DIGITS;
     #[rstest::rstest]
     #[case(
         "zero_n",

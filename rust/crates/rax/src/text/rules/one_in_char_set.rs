@@ -2,8 +2,8 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::filters::{CharSetFilter, IFilter};
+use crate::text::IRule;
+use crate::text::filters::{CharSetFilter, IFilter};
 
 /// Rule that matches the first character of the input string if it belongs to
 /// a specified character set.
@@ -61,7 +61,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
+    use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
     #[rstest::rstest]
     #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
     #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]

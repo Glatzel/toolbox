@@ -1,8 +1,8 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::filters::{CharSetFilter, IFilter};
-use crate::string::rules::UntilMode;
+use crate::text::IRule;
+use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::rules::UntilMode;
 /// Rule that extracts a prefix from the input string consisting of consecutive
 /// characters that are in the provided character set, stopping at the first
 /// character not in the set.
@@ -78,7 +78,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::CHAR_SET_DIGITS;
+    use crate::text::filters::CHAR_SET_DIGITS;
     #[rstest::rstest]
     #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInOutput)]

@@ -1,6 +1,6 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
+use crate::text::IRule;
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -48,7 +48,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
     extern crate std;
     use super::*;
-    use crate::string::UntilMode;
+    use crate::text::UntilMode;
 
     #[rstest::rstest]
     #[case("ascii_discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]

@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::string::{IRule, IStrFlowRule};
+use rax::text::{IRule, IStrFlowRule};
 
 use super::UNTIL_COMMA_DISCARD;
 

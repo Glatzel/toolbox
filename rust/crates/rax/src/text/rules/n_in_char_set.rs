@@ -1,7 +1,7 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::filters::{CharSetFilter, IFilter};
+use crate::text::IRule;
+use crate::text::filters::{CharSetFilter, IFilter};
 
 /// Rule that matches if the first `N` characters of the input are all in a
 /// specified character set.
@@ -133,7 +133,7 @@ mod tests {
     use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
-    use crate::string::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
+    use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
     #[rstest::rstest]
     #[case("ascii_match","abc123", PhantomData::<NInCharSet<4,_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
     #[case("ascii_no_match","12abc", PhantomData::<NInCharSet<3,_>>,&CHAR_SET_DIGITS)]

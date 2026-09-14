@@ -1,8 +1,8 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::filters::{CharSetFilter, IFilter};
-use crate::string::rules::UntilMode;
+use crate::text::IRule;
+use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::rules::UntilMode;
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of any character in the provided character set.
 ///
@@ -84,7 +84,7 @@ mod tests {
     use std::format;
 
     use super::*;
-    use crate::string::filters::{CHAR_SET_ASCII_LETTERS, CHAR_SET_DIGITS};
+    use crate::text::filters::{CHAR_SET_ASCII_LETTERS, CHAR_SET_DIGITS};
     #[rstest::rstest]
     #[case("ascii_discard", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
     #[case("ascii_keep_left", "abc1def", PhantomData::<UntilOneInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInOutput)]

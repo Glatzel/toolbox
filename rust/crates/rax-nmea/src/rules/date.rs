@@ -3,7 +3,7 @@ use core::fmt::Debug;
 
 use jiff::civil::Date;
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::text::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -11,7 +11,7 @@ pub struct NmeaDate;
 
 impl IRule for NmeaDate {}
 
-impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
+impl<'a> rax::text::IStrFlowRule<'a> for NmeaDate {
     type Output = Option<Date>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
@@ -63,7 +63,7 @@ impl<'a> rax::string::IStrFlowRule<'a> for NmeaDate {
 
 #[cfg(test)]
 mod tests {
-    use rax::string::IStrFlowRule;
+    use rax::text::IStrFlowRule;
 
     use super::*;
 

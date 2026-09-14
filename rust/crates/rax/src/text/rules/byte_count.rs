@@ -1,6 +1,6 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::rules::IRule;
+use crate::text::rules::IRule;
 
 /// Rule that extracts a fixed number of bytes from the input string.
 ///

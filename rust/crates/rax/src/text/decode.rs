@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use crate::error::VerbError;
-use crate::string::{IGlobalRule, IStrFlowRule};
+use crate::text::{IGlobalRule, IStrFlowRule};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
     Take,
@@ -16,7 +16,7 @@ pub trait IDecode<E>: Sized {
 /// [`Decoder`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Decoder<'a> {
     /// The full input string.
     full: &'a str,
@@ -38,6 +38,13 @@ impl<'a> Decoder<'a> {
         }
     }
 
+    pub fn set_str(&mut self, input: &'a str) -> &mut Self {
+        self.full = input;
+        self.cursor = 0;
+        self.is_ascii = input.is_ascii();
+        self
+    }
+
     /// Returns the full input string.
     pub const fn full_str(&self) -> &str { self.full }
 
@@ -53,6 +60,9 @@ impl<'a> Decoder<'a> {
         self.cursor = 0;
         self
     }
+}
+impl Default for Decoder<'_> {
+    fn default() -> Self { Self::new("") }
 }
 
 impl<'a> Decoder<'a> {

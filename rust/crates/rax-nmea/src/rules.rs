@@ -8,8 +8,8 @@ mod time;
 mod txt_line_count;
 mod validate;
 
-use rax::string::filters::CharSetFilter;
-use rax::string::rules::{UntilChar, UntilMode, UntilOneInCharSet};
+use rax::text::filters::CharSetFilter;
+use rax::text::rules::{UntilChar, UntilMode, UntilOneInCharSet};
 
 pub use crate::rules::coord::NmeaCoord;
 pub use crate::rules::date::NmeaDate;

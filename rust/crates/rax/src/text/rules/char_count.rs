@@ -2,8 +2,8 @@ use core::fmt::Debug;
 
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::ByteCount;
-use crate::string::rules::IRule;
+use crate::text::ByteCount;
+use crate::text::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
 ///

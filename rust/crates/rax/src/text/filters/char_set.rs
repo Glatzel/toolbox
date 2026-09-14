@@ -1,4 +1,4 @@
-use crate::string::filters::IFilter;
+use crate::text::filters::IFilter;
 
 /// A fixed, sorted set of characters for efficient membership testing.
 ///

@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::{Date, Time};
-use rax::string::{Decoder, IDecode};
+use rax::text::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};

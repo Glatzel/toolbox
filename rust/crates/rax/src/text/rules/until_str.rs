@@ -1,7 +1,7 @@
 use super::IStrFlowRule;
 use crate::error::RuleError;
-use crate::string::IRule;
-use crate::string::rules::UntilMode;
+use crate::text::IRule;
+use crate::text::rules::UntilMode;
 
 /// Rule that extracts a prefix from the input string up to the first occurrence
 /// of a specified substring delimiter.

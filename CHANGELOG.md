@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.9.14] - 2026-09-14
+
+### Changed
+
+- **(ttyw)** Change default shell by @Glatzel in [#805](https://github.com/Glatzel/toolbox/pull/805)
+
+### Fixed
+
+- **(ttyw)** Input number key by @Glatzel in [#804](https://github.com/Glatzel/toolbox/pull/804)
+
 ## [2026.9.10] - 2026-09-09
 
 ### Testing
@@ -610,6 +620,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.9.14]: https://github.com/Glatzel/toolbox/compare/v2026.9.10..v2026.9.14
 [2026.9.10]: https://github.com/Glatzel/toolbox/compare/v2026.8.22..v2026.9.10
 [2026.8.22]: https://github.com/Glatzel/toolbox/compare/v2026.8.4..v2026.8.22
 [2026.8.4]: https://github.com/Glatzel/toolbox/compare/v2026.7.27..v2026.8.4

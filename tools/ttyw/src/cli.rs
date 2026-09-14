@@ -13,10 +13,10 @@ use mischief::WrapErr;
 pub struct Args {
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
-    
+
     #[arg(long, short, default_value_t = 7681)]
     pub port: u16,
-    
+
     #[arg(long, short,default_value_os_t=home_dir().unwrap_or_default())]
     pub working_directory: PathBuf,
 

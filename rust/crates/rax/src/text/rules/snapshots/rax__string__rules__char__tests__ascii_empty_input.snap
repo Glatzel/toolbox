@@ -1,9 +1,0 @@
----
-source: crates/rax/src/string/rules/char.rs
-expression: result
----
-Err(
-    RuleError {
-        reason: "expected character not found",
-    },
-)

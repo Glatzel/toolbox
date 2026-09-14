@@ -1,0 +1,10 @@
+---
+source: crates/rax/src/text/rules/char_count.rs
+expression: result
+---
+Ok(
+    (
+        "he",
+        "llo",
+    ),
+)

@@ -1,9 +1,0 @@
----
-source: crates/rax/src/string/rules/byte_count.rs
-expression: result
----
-Err(
-    RuleError {
-        reason: "input too short or invalid UTF-8 boundary.",
-    },
-)

@@ -1,0 +1,10 @@
+---
+source: crates/rax/src/text/rules/until_char.rs
+expression: result
+---
+Ok(
+    (
+        "abc",
+        "-def",
+    ),
+)

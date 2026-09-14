@@ -1,6 +1,0 @@
-target
-temp
-# pixi environments
-.pixi/*
-!.pixi/config.toml
-external

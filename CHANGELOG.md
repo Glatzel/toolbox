@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **(ttyw)** Change default shell by @Glatzel in [#805](https://github.com/Glatzel/toolbox/pull/805)
+- **(rax)** Change api name by @Glatzel in [#812](https://github.com/Glatzel/toolbox/pull/812)
 
 ### Fixed
 

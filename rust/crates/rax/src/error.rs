@@ -4,7 +4,7 @@ use alloc::borrow::Cow;
 use alloc::string::String;
 use core::fmt::Debug;
 
-use crate::string::{IRule, Verb};
+use crate::text::{IRule, Verb};
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
 #[error("Rule Error: {reason}")]
 pub struct RuleError {

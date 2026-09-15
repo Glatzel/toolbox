@@ -4,7 +4,7 @@ use alloc::format;
 use core::fmt::Debug;
 
 use rax::error::RuleError;
-use rax::string::IRule;
+use rax::text::IRule;
 
 /// Rule to validate an NMEA sentence for correct start character and checksum.
 /// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
@@ -13,7 +13,7 @@ pub struct NmeaValidate;
 
 impl IRule for NmeaValidate {}
 
-impl<'a> rax::string::IGlobalRule<'a> for NmeaValidate {
+impl<'a> rax::text::IGlobalRule<'a> for NmeaValidate {
     type Output = ();
 
     /// Applies the `NmeaValidate` rule to the input string.
@@ -119,7 +119,7 @@ pub struct NmeaValidateMultiLine;
 
 impl IRule for NmeaValidateMultiLine {}
 
-impl<'a> rax::string::IGlobalRule<'a> for NmeaValidateMultiLine {
+impl<'a> rax::text::IGlobalRule<'a> for NmeaValidateMultiLine {
     type Output = ();
 
     /// Applies the `NmeaValidate` rule to the input string.
@@ -140,7 +140,7 @@ mod tests {
     extern crate std;
 
     use clerk::{LevelFilter, init_log_with_level};
-    use rax::string::IGlobalRule;
+    use rax::text::IGlobalRule;
     use rstest::rstest;
 
     use super::*;

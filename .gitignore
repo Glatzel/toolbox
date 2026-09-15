@@ -9,6 +9,7 @@ __pycache__
 build
 output
 *.egg-info
+*.pyd
 
 # rust
 target

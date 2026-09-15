@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::string::{Decoder, IDecode};
+use rax::text::{Decoder, IDecode};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;

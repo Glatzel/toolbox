@@ -1,0 +1,9 @@
+---
+source: crates/rax/src/text/rules/char.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "expected character not found",
+    },
+)

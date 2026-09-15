@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use rax::string::{Decoder, IDecode, IGlobalRule, IStrFlowRule};
+use rax::text::{Decoder, IDecode, IGlobalRule, IStrFlowRule};
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {

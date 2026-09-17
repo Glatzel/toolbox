@@ -21,11 +21,16 @@ use crate::text::filters::{CharSetFilter, IFilter};
 /// - `N`: Number of characters to match at the start of the input.
 /// - `M`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NInCharSet<'f, const N: usize, const M: usize>(pub &'f CharSetFilter<M>);
+pub struct NInCharSet<'f, const N: usize, const M: usize, const IS_ASCII: bool>(
+    pub &'f CharSetFilter<M>,
+);
 
-impl<const N: usize, const M: usize> IRule for NInCharSet<'_, N, M> {}
+impl<const N: usize, const M: usize, const IS_ASCII: bool> IRule
+    for NInCharSet<'_, N, M, IS_ASCII>
+{
+}
 
-impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
+impl<'f, const N: usize, const M: usize> IFlowRule<true> for NInCharSet<'f, N, M, true> {
     type Output<'a> = &'a str;
 
     /// Applies the `NInCharSet` rule to the input string.
@@ -41,51 +46,28 @@ impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 
-        if is_ascii {
-            let bytes = input.as_bytes();
+        let bytes = input.as_bytes();
 
-            if bytes.len() < N {
-                return Err(RuleError {
-                    reason: "input too short or not enough chars in set".into(),
-                });
-            }
+        if bytes.len() < N {
+            return Err(RuleError {
+                reason: "input too short or not enough chars in set".into(),
+            });
+        }
 
-            if let Some(mask) = self.0.ascii_mask() {
-                // Fast path: bitmask, no per-byte filter() dispatch
-                for (i, &b) in bytes.iter().enumerate().take(N) {
-                    if mask & (1_u128 << u32::from(b)) == 0 {
-                        clerk::debug!(
-                            "{:?} did not match: char '{}' not in set at byte pos {}",
-                            self,
-                            b as char,
-                            i
-                        );
-                        return Err(RuleError {
-                            reason: "char not in set".into(),
-                        });
-                    }
-                }
-                return Ok(unsafe { (input.get_unchecked(..N), N) });
-            }
-
-            // Fallback: table has non-ASCII entries
+        if let Some(mask) = self.0.ascii_mask() {
+            // Fast path: bitmask, no per-byte filter() dispatch
             for (i, &b) in bytes.iter().enumerate().take(N) {
-                let c = b as char;
-                if !self.0.filter(&c) {
+                if mask & (1_u128 << u32::from(b)) == 0 {
                     clerk::debug!(
                         "{:?} did not match: char '{}' not in set at byte pos {}",
                         self,
-                        c,
+                        b as char,
                         i
                     );
                     return Err(RuleError {
@@ -95,6 +77,47 @@ impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
             }
             return Ok(unsafe { (input.get_unchecked(..N), N) });
         }
+
+        // Fallback: table has non-ASCII entries
+        for (i, &b) in bytes.iter().enumerate().take(N) {
+            let c = b as char;
+            if !self.0.filter(&c) {
+                clerk::debug!(
+                    "{:?} did not match: char '{}' not in set at byte pos {}",
+                    self,
+                    c,
+                    i
+                );
+                return Err(RuleError {
+                    reason: "char not in set".into(),
+                });
+            }
+        }
+        return Ok(unsafe { (input.get_unchecked(..N), N) });
+    }
+}
+impl<'f, const N: usize, const M: usize> IFlowRule<false> for NInCharSet<'f, N, M, false> {
+    type Output<'a> = &'a str;
+
+    /// Applies the `NInCharSet` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(matched), rest)` if the first `N` characters are all in the
+    ///   character set.
+    /// - `(None, input)` if a character is not in the set before reaching `N`,
+    ///   or if the input has fewer than `N` characters.
+    ///
+    /// # Logging
+    ///
+    /// - Debug-level logs indicate matches, unmatched characters, and
+    ///   insufficient input.
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        if N == 0 {
+            clerk::warn!("N is 0, returning empty string");
+            return Ok(("", 0));
+        }
+
         let mut count = 0;
         for (i, c) in input.char_indices() {
             if !self.0.filter(&c) {
@@ -126,40 +149,75 @@ impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
         })
     }
 }
-
 #[cfg(test)]
 mod tests {
-    use core::marker::PhantomData;
-
-    extern crate std;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
+    use crate::test_rule;
     use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
-    #[rstest::rstest]
-    #[case("ascii_match","abc123", PhantomData::<NInCharSet<4,_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
-    #[case("ascii_no_match","12abc", PhantomData::<NInCharSet<3,_>>,&CHAR_SET_DIGITS)]
-    #[case("ascii_too_short","ab", PhantomData::<NInCharSet<4,_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
-    #[case("ascii_empty_input","", PhantomData::<NInCharSet<1,_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
-    #[case("ascii_fallback_match", "abc123", PhantomData::<NInCharSet<4,_>>, &CharSetFilter::new(['a', 'b', 'c', '1', '你']))]
-    #[case("ascii_fallback_no_match", "abx123", PhantomData::<NInCharSet<4,_>>, &CharSetFilter::new(['a', 'b', 'c', '1', '你']))]
-    #[case("ascii_fallback_too_short", "abc", PhantomData::<NInCharSet<4,_>>, &CharSetFilter::new(['a', 'b', 'c', '1', '你']))]
-    #[case("utf8_match","你好世界", PhantomData::<NInCharSet<2,_>>,&CharSetFilter::new(['你', '好']))]
-    #[case("utf8_no_match","你好世界", PhantomData::<NInCharSet<3,_>>,&CHAR_SET_DIGITS)]
-    #[case("utf8_too_short","你", PhantomData::<NInCharSet<5,_>>,&CharSetFilter::new(['你', '好']))]
-    #[case("zero_n","abc123", PhantomData::<NInCharSet<0,_>>,&CharSetFilter::new(['你', '好']))]
-    fn test_n_in_charset<const N: usize, const M: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<NInCharSet<N, M>>,
-        #[case] charset: &CharSetFilter<M>,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = NInCharSet::<N, M>(charset)
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    test_rule!(
+        ascii_match,
+        "abc123",
+        NInCharSet::<4, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+    );
+
+    test_rule!(
+        ascii_no_match,
+        "12abc",
+        NInCharSet::<3, _, true>(&CHAR_SET_DIGITS)
+    );
+
+    test_rule!(
+        ascii_too_short,
+        "ab",
+        NInCharSet::<4, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+    );
+
+    test_rule!(
+        ascii_empty_input,
+        "",
+        NInCharSet::<1, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+    );
+
+    test_rule!(
+        ascii_fallback_match,
+        "abc123",
+        NInCharSet::<4, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
+    );
+
+    test_rule!(
+        ascii_fallback_no_match,
+        "abx123",
+        NInCharSet::<4, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
+    );
+
+    test_rule!(
+        ascii_fallback_too_short,
+        "abc",
+        NInCharSet::<4, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
+    );
+
+    test_rule!(
+        utf8_match,
+        "你好世界",
+        NInCharSet::<2, _, false>(&CharSetFilter::new(['你', '好']))
+    );
+
+    test_rule!(
+        utf8_no_match,
+        "你好世界",
+        NInCharSet::<3, _, false>(&CHAR_SET_DIGITS)
+    );
+
+    test_rule!(
+        utf8_too_short,
+        "你",
+        NInCharSet::<5, _, false>(&CharSetFilter::new(['你', '好']))
+    );
+
+    test_rule!(
+        zero_n,
+        "abc123",
+        NInCharSet::<0, _, false>(&CharSetFilter::new(['你', '好']))
+    );
 }

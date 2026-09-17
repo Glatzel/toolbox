@@ -6,13 +6,13 @@ use rax::text::rules::{
     UntilNotInCharSet, UntilOneInCharSet, UntilStr,
 };
 
-fn bench_rule<R: IFlowRule>(c: &mut Criterion, name: &str, rule: R, input: &'static str) {
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
+fn bench_rule<R: IFlowRule<true>>(c: &mut Criterion, name: &str, rule: R, input: &'static str) {
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input))));
 }
 
 fn benches(c: &mut Criterion) {
-    bench_rule(c, "byte_count", ByteCount::<2>, "hello");
-    bench_rule(c, "char_count", CharCount::<2>, "110324,foo,bar");
+    bench_rule(c, "byte_count", ByteCount::<2, true>, "hello");
+    bench_rule(c, "char_count", CharCount::<2, true>, "110324,foo,bar");
     bench_rule(c, "char", Char::<'a'>, "a123");
     bench_rule(
         c,

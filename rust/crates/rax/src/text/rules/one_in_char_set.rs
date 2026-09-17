@@ -21,30 +21,32 @@ use crate::text::filters::{CharSetFilter, IFilter};
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct OneOfCharSet<'f, const N: usize>(pub &'f CharSetFilter<N>);
+pub struct OneOfCharSet<'f, const N: usize, const IS_ASCII: bool>(pub &'f CharSetFilter<N>);
 
-impl<const N: usize> IRule for OneOfCharSet<'_, N> {}
+impl<const N: usize, const IS_ASCII: bool> IRule for OneOfCharSet<'_, N, IS_ASCII> {}
 
-impl<'f, const N: usize> IFlowRule for OneOfCharSet<'f, N> {
+impl<'f, const N: usize> IFlowRule<true> for OneOfCharSet<'f, N, true> {
     type Output<'a> = char;
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
-        if is_ascii {
-            let b = input.as_bytes().first().ok_or_else(|| RuleError {
-                reason: "empty input".into(),
-            })?;
 
-            if !self.0.filter(&(*b as char)) {
-                return Err(RuleError {
-                    reason: "character not in set".into(),
-                });
-            }
-            return Ok((*b as char, 1));
+        let b = input.as_bytes().first().ok_or_else(|| RuleError {
+            reason: "empty input".into(),
+        })?;
+
+        if !self.0.filter(&(*b as char)) {
+            return Err(RuleError {
+                reason: "character not in set".into(),
+            });
         }
+        return Ok((*b as char, 1));
+    }
+}
+impl<'f, const N: usize> IFlowRule<false> for OneOfCharSet<'f, N, false> {
+    type Output<'a> = char;
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        clerk::trace!("OneOfCharSet rule: input='{}'", input);
+
         let c = input.chars().next().ok_or_else(|| unreachable!())?;
 
         if !self.0.filter(&c) {
@@ -55,33 +57,39 @@ impl<'f, const N: usize> IFlowRule for OneOfCharSet<'f, N> {
         Ok((c, c.len_utf8()))
     }
 }
-
 #[cfg(test)]
 mod tests {
-    extern crate std;
-    use core::marker::PhantomData;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
+    use crate::test_rule;
     use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
-    #[rstest::rstest]
-    #[case("ascii_match","a123", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
-    #[case("ascii_no_match","abc", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
-    #[case("ascii_empty_input","", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_ASCII_LETTERS_DIGITS)]
-    #[case("utf8_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CharSetFilter::new(['你']))]
-    #[case("utf8_no_match","你好世界", PhantomData::<OneOfCharSet<_>>,&CHAR_SET_DIGITS)]
-    fn test_one_in_char_set<const N: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<OneOfCharSet<N>>,
-        #[case] charset: &CharSetFilter<N>,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = OneOfCharSet::<N>(charset)
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+
+    test_rule!(
+        ascii_match,
+        "a123",
+        OneOfCharSet::<62, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+    );
+
+    test_rule!(
+        ascii_no_match,
+        "abc",
+        OneOfCharSet::<10, true>(&CHAR_SET_DIGITS)
+    );
+
+    test_rule!(
+        ascii_empty_input,
+        "",
+        OneOfCharSet::<62, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+    );
+
+    test_rule!(
+        utf8_match,
+        "你好世界",
+        OneOfCharSet::<1, false>(&CharSetFilter::new(['你']))
+    );
+
+    test_rule!(
+        utf8_no_match,
+        "你好世界",
+        OneOfCharSet::<10, false>(&CHAR_SET_DIGITS)
+    );
 }

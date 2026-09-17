@@ -33,53 +33,60 @@ use crate::text::rules::UntilMode;
 /// - Returns `(None, input)` if fewer than N characters in the set are found.
 /// - Respects UTF-8 character boundaries and logs trace/debug information.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UntilNInCharSet<'f, const N: usize, const M: usize> {
+pub struct UntilNInCharSet<'f, const N: usize, const M: usize, const IS_ASCII: bool> {
     pub filter: &'f CharSetFilter<M>,
     pub mode: UntilMode,
 }
 
-impl<const N: usize, const M: usize> IRule for UntilNInCharSet<'_, N, M> {}
+impl<const N: usize, const M: usize, const IS_ASCII: bool> IRule
+    for UntilNInCharSet<'_, N, M, IS_ASCII>
+{
+}
 
-impl<'f, const N: usize, const M: usize> IFlowRule for UntilNInCharSet<'f, N, M> {
+impl<'f, const N: usize, const M: usize> IFlowRule<true> for UntilNInCharSet<'f, N, M, true> {
     type Output<'a> = &'a str;
 
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 
-        if is_ascii {
-            let mut remaining = N;
-            if let Some(mask) = self.filter.ascii_mask() {
-                // Fast path: bitmask lookup, no per-char filter() call
-                for (idx, &b) in input.as_bytes().iter().enumerate() {
-                    if mask & (1_u128 << u32::from(b)) != 0 {
-                        remaining -= 1;
-                        if remaining == 0 {
-                            return Ok(self.mode.split_str(input, idx, 1));
-                        }
-                    }
-                }
-            } else {
-                // Fallback: table has non-ASCII entries, use original filter
-                for (idx, &b) in input.as_bytes().iter().enumerate() {
-                    let ch = b as char;
-                    if self.filter.filter(&ch) {
-                        remaining -= 1;
-                        if remaining == 0 {
-                            return Ok(self.mode.split_str(input, idx, 1));
-                        }
+        let mut remaining = N;
+        if let Some(mask) = self.filter.ascii_mask() {
+            // Fast path: bitmask lookup, no per-char filter() call
+            for (idx, &b) in input.as_bytes().iter().enumerate() {
+                if mask & (1_u128 << u32::from(b)) != 0 {
+                    remaining -= 1;
+                    if remaining == 0 {
+                        return Ok(self.mode.split_str(input, idx, 1));
                     }
                 }
             }
-            return Err(RuleError {
-                reason: "fewer than N matches found".into(),
-            });
+        } else {
+            // Fallback: table has non-ASCII entries, use original filter
+            for (idx, &b) in input.as_bytes().iter().enumerate() {
+                let ch = b as char;
+                if self.filter.filter(&ch) {
+                    remaining -= 1;
+                    if remaining == 0 {
+                        return Ok(self.mode.split_str(input, idx, 1));
+                    }
+                }
+            }
+        }
+        return Err(RuleError {
+            reason: "fewer than N matches found".into(),
+        });
+    }
+}
+impl<'f, const N: usize, const M: usize> IFlowRule<false> for UntilNInCharSet<'f, N, M, false> {
+    type Output<'a> = &'a str;
+
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        if N == 0 {
+            clerk::warn!("N is 0, returning empty string");
+            return Ok(("", 0));
         }
 
         // UTF-8 path
@@ -102,102 +109,96 @@ impl<'f, const N: usize, const M: usize> IFlowRule for UntilNInCharSet<'f, N, M>
 
 #[cfg(test)]
 mod tests {
-    use core::marker::PhantomData;
-
-    extern crate std;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
+    use crate::test_rule;
     use crate::text::filters::CHAR_SET_DIGITS;
-    #[rstest::rstest]
-    #[case(
-        "zero_n",
+    test_rule!(
+        zero_n,
         "a1b2c3",
-        PhantomData::<UntilNInCharSet<0, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::Discard
-    )]
-    #[rstest::rstest]
-    #[case(
-        "ascii_discard",
-        "a1b2c3",
-        PhantomData::<UntilNInCharSet<2, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::Discard
-    )]
-    #[case(
-        "ascii_keep_left",
-        "a1b2c3",
-        PhantomData::<UntilNInCharSet<2, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::KeepInOutput,
+        UntilNInCharSet::<0, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
 
-    )]
-    #[case(
-        "ascii_keep_right",
+    test_rule!(
+        ascii_discard,
         "a1b2c3",
-        PhantomData::<UntilNInCharSet<2, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::KeepInRest,
+        UntilNInCharSet::<2, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
 
-    )]
-    #[case(
-        "ascii_not_enough_matches",
+    test_rule!(
+        ascii_keep_left,
         "a1b2c3",
-        PhantomData::<UntilNInCharSet<4, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::Discard,
+        UntilNInCharSet::<2, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::KeepInOutput,
+        }
+    );
 
-    )]
-    #[case(
-        "ascii_empty_input",
+    test_rule!(
+        ascii_keep_right,
+        "a1b2c3",
+        UntilNInCharSet::<2, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::KeepInRest,
+        }
+    );
+
+    test_rule!(
+        ascii_not_enough_matches,
+        "a1b2c3",
+        UntilNInCharSet::<4, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_empty_input,
         "",
-        PhantomData::<UntilNInCharSet<1, _>>,
-        &CHAR_SET_DIGITS,
-        UntilMode::Discard,
+        UntilNInCharSet::<1, 10, true> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
 
-    )]
-    #[case(
-        "ascii_fallback_match",
+    test_rule!(
+        ascii_fallback_match,
         "a1b2c3",
-        PhantomData::<UntilNInCharSet<2, _>>,
-        &CharSetFilter::new(['0', '1', '2', '你']),
-        UntilMode::KeepInOutput,
-    )]
-    #[case(
-        "ascii_fallback_not_enough_matches",
+        UntilNInCharSet::<2, 4, true> {
+            filter: &CharSetFilter::new(['0', '1', '2', '你']),
+            mode: UntilMode::KeepInOutput,
+        }
+    );
+
+    test_rule!(
+        ascii_fallback_not_enough_matches,
         "abc",
-        PhantomData::<UntilNInCharSet<1, _>>,
-        &CharSetFilter::new(['1', '2', '你']),
-        UntilMode::KeepInOutput,
-    )]
-    #[case(
-        "utf8_unicode_keep_left",
+        UntilNInCharSet::<1, 3, true> {
+            filter: &CharSetFilter::new(['1', '2', '你']),
+            mode: UntilMode::KeepInOutput,
+        }
+    );
+
+    test_rule!(
+        utf8_unicode_keep_left,
         "你好世界",
-        PhantomData::<UntilNInCharSet<2, 3>>,
-        &CharSetFilter::new(['你', '世', '好']),
-        UntilMode::KeepInOutput,
-    )]
-    #[case(
-        "utf8_not_enough_matches",
+        UntilNInCharSet::<2, 3, false> {
+            filter: &CharSetFilter::new(['你', '世', '好']),
+            mode: UntilMode::KeepInOutput,
+        }
+    );
+
+    test_rule!(
+        utf8_not_enough_matches,
         "你好世界",
-        PhantomData::<UntilNInCharSet<4, 3>>,
-        &CharSetFilter::new(['你', '世', '好']),
-        UntilMode::KeepInOutput,
-    )]
-    fn test_until_n_in_char_set<const N: usize, const M: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<UntilNInCharSet<N, M>>,
-        #[case] filter: &CharSetFilter<M>,
-        #[case] mode: UntilMode,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNInCharSet::<N, M> { filter, mode }
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+        UntilNInCharSet::<4, 3, false> {
+            filter: &CharSetFilter::new(['你', '世', '好']),
+            mode: UntilMode::KeepInOutput,
+        }
+    );
 }

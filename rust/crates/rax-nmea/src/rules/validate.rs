@@ -13,7 +13,7 @@ pub struct NmeaValidate;
 
 impl IRule for NmeaValidate {}
 
-impl rax::text::IGlobalRule for NmeaValidate {
+impl rax::text::IGlobalRule<true> for NmeaValidate {
     type Output<'a> = ();
 
     /// Applies the `NmeaValidate` rule to the input string.
@@ -119,7 +119,7 @@ pub struct NmeaValidateMultiLine;
 
 impl IRule for NmeaValidateMultiLine {}
 
-impl rax::text::IGlobalRule for NmeaValidateMultiLine {
+impl rax::text::IGlobalRule<true> for NmeaValidateMultiLine {
     type Output<'a> = ();
 
     /// Applies the `NmeaValidate` rule to the input string.

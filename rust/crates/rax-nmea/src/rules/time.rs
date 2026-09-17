@@ -43,20 +43,16 @@ pub struct NmeaTime;
 
 impl IRule for NmeaTime {}
 
-impl rax::text::IFlowRule for NmeaTime {
+impl rax::text::IFlowRule<true> for NmeaTime {
     type Output<'a> = Option<Time>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("{:?}: input='{}'", self, input);
 
-        let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input, is_ascii) else {
+        let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input) else {
             return Err(RuleError {
                 reason: "Missing time string.".into(),
             });
@@ -132,7 +128,7 @@ mod tests {
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
         let result = NmeaTime
-            .apply(input, true)
+            .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }

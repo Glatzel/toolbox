@@ -16,11 +16,11 @@ use crate::text::rules::IRule;
 /// This rule is useful for parsing fixed-width fields or binary-like data
 /// represented as UTF-8 strings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ByteCount<const N: usize>;
+pub struct ByteCount<const N: usize, const IS_ASCII: bool>;
 
-impl<const N: usize> IRule for ByteCount<N> {}
+impl<const N: usize, const IS_ASCII: bool> IRule for ByteCount<N, IS_ASCII> {}
 
-impl<const N: usize> IFlowRule for ByteCount<N> {
+impl<const N: usize, const IS_ASCII: bool> IFlowRule<IS_ASCII> for ByteCount<N, IS_ASCII> {
     type Output<'a> = &'a str;
 
     /// Applies the `ByteCount` rule to the input string.
@@ -30,11 +30,7 @@ impl<const N: usize> IFlowRule for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        _is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         input.get(..N).map_or_else(
             || {
                 Err(RuleError {
@@ -48,32 +44,14 @@ impl<const N: usize> IFlowRule for ByteCount<N> {
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
-    #[cfg(test)]
-    use core::marker::PhantomData;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
+    use crate::test_rule;
 
-    #[rstest::rstest]
-    #[case("ascii_count_exact_length","test", PhantomData::<ByteCount<4>>)]
-    #[case("ascii_count_less_than_length","hello", PhantomData::<ByteCount<2>>)]
-    #[case("ascii_count_more_than_length","short", PhantomData::<ByteCount<10>>)]
-    #[case("ascii_count_zero","abc", PhantomData::<ByteCount<0>>)]
-    #[case("ascii_count_empty_input","", PhantomData::<ByteCount<0>>)]
-    #[case("utf8_valid_boundary","你好世界", PhantomData::<ByteCount< 3>>)]
-    #[case("utf8_invalid_boundary","你好世界", PhantomData::<ByteCount<2>>)]
-    fn test_byte_count<const N: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<ByteCount<N>>,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = ByteCount::<N>
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    test_rule!(ascii_count_exact_length, "test", ByteCount::<4, true>);
+    test_rule!(ascii_count_less_than_length, "hello", ByteCount::<2, true>);
+    test_rule!(ascii_count_more_than_length, "short", ByteCount::<10, true>);
+    test_rule!(ascii_count_zero, "abc", ByteCount::<0, true>);
+    test_rule!(ascii_count_empty_input, "", ByteCount::<0, true>);
+    test_rule!(utf8_valid_boundary, "你好世界", ByteCount::<3, false>);
+    test_rule!(utf8_invalid_boundary, "你好世界", ByteCount::<2, false>);
 }

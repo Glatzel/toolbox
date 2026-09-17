@@ -8,7 +8,7 @@ use crate::common::Identifier;
 pub struct NmeaIdentifier;
 
 impl IRule for NmeaIdentifier {}
-impl IGlobalRule for NmeaIdentifier {
+impl IGlobalRule<true> for NmeaIdentifier {
     type Output<'a> = Identifier;
 
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {

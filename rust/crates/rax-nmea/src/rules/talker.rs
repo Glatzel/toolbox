@@ -8,7 +8,7 @@ use crate::common::Talker;
 pub struct NmeaTalker;
 
 impl IRule for NmeaTalker {}
-impl IGlobalRule for NmeaTalker {
+impl IGlobalRule<true> for NmeaTalker {
     type Output<'a> = Talker;
 
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {

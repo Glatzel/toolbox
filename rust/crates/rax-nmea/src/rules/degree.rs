@@ -17,24 +17,17 @@ pub struct NmeaDegree;
 
 impl IRule for NmeaDegree {}
 
-impl IFlowRule for NmeaDegree {
+impl IFlowRule<true> for NmeaDegree {
     type Output<'a> = Option<f64>;
 
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
-        let (deg_str, advanced1) =
-            UNTIL_COMMA_DISCARD
-                .apply(input, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing degree string.".into(),
-                })?;
+        let (deg_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing degree string.".into(),
+        })?;
         let (sign_str, advanced2) = UNTIL_COMMA_DISCARD
-            .apply(unsafe { input.get_unchecked(advanced1..) }, is_ascii)
+            .apply(unsafe { input.get_unchecked(advanced1..) })
             .map_err(|_| RuleError {
                 reason: "Missing sign string.".into(),
             })?;
@@ -74,7 +67,7 @@ mod test {
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
         let result = NmeaDegree
-            .apply(input, true)
+            .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }

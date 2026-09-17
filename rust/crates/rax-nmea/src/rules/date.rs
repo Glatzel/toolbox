@@ -50,7 +50,7 @@ impl rax::text::IFlowRule<true> for NmeaDate {
             Err(e) => {
                 clerk::error!("{:?}: failed to parse date from '{}'", self, res);
                 return Err(RuleError {
-                    reason: alloc::format!("{:?}", e).into(),
+                    reason: alloc::format!("{e:?}").into(),
                 });
             }
         };

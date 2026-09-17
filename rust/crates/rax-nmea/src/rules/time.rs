@@ -100,7 +100,7 @@ impl rax::text::IFlowRule<true> for NmeaTime {
             Err(e) => {
                 clerk::error!("{:?}: failed to parse time from '{}'", self, res);
                 return Err(RuleError {
-                    reason: format!("Failed to parse time field: {}", e).into(),
+                    reason: format!("Failed to parse time field: {e}").into(),
                 });
             }
         };

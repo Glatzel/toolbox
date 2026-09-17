@@ -27,7 +27,7 @@ pub struct Dhv {
     /// Ground speed (meters/second)
     gdspd: Option<f64>,
 }
-impl<'a> IParseStr<RaxNmeaError, true> for Dhv {
+impl IParseStr<RaxNmeaError, true> for Dhv {
     fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;

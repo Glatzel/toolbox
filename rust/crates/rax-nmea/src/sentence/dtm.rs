@@ -40,8 +40,8 @@ pub struct Dtm {
     /// Offset in altitude
     alt: Option<f64>,
 }
-impl IParseStr<RaxNmeaError, true> for Dtm {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Dtm {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let datum = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

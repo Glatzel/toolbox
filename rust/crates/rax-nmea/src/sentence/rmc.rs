@@ -62,8 +62,8 @@ pub struct Rmc {
     nav_status: Option<RmcNavigationStatus>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Rmc {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Rmc {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let status = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let lat = parser.take(&NmeaCoord)?;

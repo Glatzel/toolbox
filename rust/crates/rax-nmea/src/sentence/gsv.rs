@@ -40,8 +40,9 @@ pub struct Gsv {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IParseStr<RaxNmeaError, true> for Gsv {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Gsv {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites

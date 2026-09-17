@@ -22,8 +22,8 @@ pub struct Vlw {
     gd: Option<f64>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Vlw {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Vlw {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let twd = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

@@ -31,8 +31,8 @@ pub struct Txt {
     message: Vec<(TxtType, String)>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Txt {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Txt {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {

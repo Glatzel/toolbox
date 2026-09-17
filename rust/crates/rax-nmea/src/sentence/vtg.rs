@@ -25,8 +25,8 @@ pub struct Vtg {
     pos_mode: Option<FaaMode>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Vtg {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Vtg {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let cogt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

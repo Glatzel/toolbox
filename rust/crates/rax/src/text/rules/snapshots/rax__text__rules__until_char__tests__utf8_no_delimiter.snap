@@ -1,0 +1,9 @@
+---
+source: crates/rax/src/text/rules/until_char.rs
+expression: result
+---
+Err(
+    RuleError {
+        reason: "input is empty or does not contain the expected character.",
+    },
+)

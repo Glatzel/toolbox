@@ -148,7 +148,7 @@ const FILES: &[&str] = &[
     include_str!("../external/nmea/tests/data/nmea_with_sat_info.log"),
 ];
 fn bench_reuse_parser(c: &mut Criterion) {
-    c.bench_function("validate", |b| {
+    c.bench_function("reuse_parser", |b| {
         b.iter(|| {
             for text in FILES {
                 reuse_parser(text).unwrap();
@@ -157,7 +157,7 @@ fn bench_reuse_parser(c: &mut Criterion) {
     });
 }
 fn bench_use_trait_parser(c: &mut Criterion) {
-    c.bench_function("validate", |b| {
+    c.bench_function("use_trait_parser", |b| {
         b.iter(|| {
             for text in FILES {
                 use_trait_parser(text).unwrap();

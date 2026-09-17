@@ -166,5 +166,5 @@ fn bench_use_trait_parser(c: &mut Criterion) {
         })
     });
 }
-criterion_group!(benches_group, bench_reuse_parser,bench_use_trait_parser);
+criterion_group!(benches_group, bench_reuse_parser, bench_use_trait_parser);
 criterion_main!(benches_group);

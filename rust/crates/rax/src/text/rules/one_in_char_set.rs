@@ -8,7 +8,7 @@ use crate::text::filters::ICharSetFilter;
 /// Rule that matches the first character of the input string if it belongs to
 /// a specified character set.
 ///
-/// `OneOfCharSet<'a, N>` takes a reference to a [`CharSetFilter<N>`] and checks
+/// `OneOfCharSet<'a, N>` takes a reference to a [`ICharSetFilter<N>`] and checks
 /// the first character of the input. If the first character is in the set, it
 /// returns a tuple `(Some(matched), rest)` where `matched` is the character and
 /// `rest` is the remainder of the input. Otherwise, it returns `(None, input)`.

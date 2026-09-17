@@ -84,8 +84,8 @@ pub trait IGlobalRule<const IS_ASCII: bool>: IRule {
     /// Apply the rule to the full input.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError>;
 }
-
-#[cfg_attr(debug_assertions, macro_export)]
+#[cfg(test)]
+#[cfg_attr(test, macro_export)]
 macro_rules! test_rule {
     ($name:ident, $input:expr, $rule:expr) => {
         #[test]

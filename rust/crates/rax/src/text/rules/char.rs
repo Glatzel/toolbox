@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::rules::IRule;
 
@@ -14,29 +14,16 @@ use crate::text::rules::IRule;
 /// This rule respects UTF-8 character boundaries and only examines the first
 /// character of the input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Char<const C: char>;
+pub struct Char<const C: char, const IS_ASCII: bool>;
 
-impl<const C: char> IRule for Char<C> {}
+impl<const C: char, const IS_ASCII: bool> IRule for Char<C, IS_ASCII> {}
 
-impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
-    type Output = char;
+impl<const C: char> IFlowRule<true> for Char<C, true> {
+    type Output<'a> = char;
 
-    /// Applies the `Char` rule to the input string.
-    ///
-    /// # Returns
-    ///
-    /// - `(Some(C), rest)` if the first character of the input matches `C`.
-    /// - `(None, input)` if the first character does not match `C` or the input
-    ///   is empty.
-    ///
-    /// # Logging
-    ///
-    /// - Trace-level logs show the input and the expected character.
-    /// - Debug-level logs show whether a match occurred and the resulting rest
-    ///   of the input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
-        if is_ascii && C.is_ascii() {
+        if C.is_ascii() {
             // C is a const generic, so `C.is_ascii()` and `C as u8` are
             // compile-time constants
             match input.as_bytes().first() {
@@ -45,7 +32,19 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
                     reason: "expected character not found".into(),
                 }),
             }
-        } else if input.starts_with(C) {
+        } else {
+            Err(RuleError {
+                reason: "expected character not found".into(),
+            })
+        }
+    }
+}
+impl<const C: char> IFlowRule<false> for Char<C, false> {
+    type Output<'a> = char;
+
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
+        if input.starts_with(C) {
             Ok((C, C.len_utf8()))
         } else {
             Err(RuleError {
@@ -54,31 +53,13 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
         }
     }
 }
-
 #[cfg(test)]
 mod tests {
-    extern crate std;
-
-    use core::marker::PhantomData;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("ascii_match","a123", PhantomData::<Char<'a'>>)]
-    #[case("ascii_no_match","abc", PhantomData::<Char<'d'>>)]
-    #[case("ascii_empty_input","", PhantomData::<Char<'a'>>)]
-    #[case("utf8_match","你好", PhantomData::<Char<'你'>>)]
-    fn test_byte_count<const C: char>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<Char<C>>,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = Char::<C>
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    use crate::test_rule;
+
+    test_rule!(ascii_match, "a123", Char::<'a', true>);
+    test_rule!(ascii_no_match, "abc", Char::<'d', true>);
+    test_rule!(ascii_empty_input, "", Char::<'a', true>);
+    test_rule!(utf8_match, "你好", Char::<'你', false>);
 }

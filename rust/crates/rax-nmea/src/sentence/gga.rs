@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -72,8 +72,9 @@ pub struct Gga {
     /// Differential reference station ID, 0000-1023
     diff_station: Option<u16>,
 }
-impl IDecode<RaxNmeaError> for Gga {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gga {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
@@ -139,23 +140,13 @@ impl IDecode<RaxNmeaError> for Gga {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case(
-        "1",
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gga1,
+        1,
+        Gga,
         "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D"
-    )]
-    fn test_gga(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gga = Gga::decode(&mut decoder)?;
-        println!("{gga:?}");
-        insta::assert_json_snapshot!(index, gga);
-        Ok(())
-    }
+    );
 }

@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::text::{IRule, IStrFlowRule};
+use rax::text::{IFlowRule, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -22,23 +22,20 @@ impl NmeaCoord {
         deg + min / 60.0
     }
 }
-impl<'a> IStrFlowRule<'a> for NmeaCoord {
-    type Output = Option<f64>;
+impl IFlowRule<true> for NmeaCoord {
+    type Output<'a> = Option<f64>;
     /// Applies the `NmeaCoord` rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
-        let (num_str, advanced1) =
-            UNTIL_COMMA_DISCARD
-                .apply(input, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing number string.".into(),
-                })?;
+        let (num_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing number string.".into(),
+        })?;
 
         let (sign_str, advanced2) = UNTIL_COMMA_DISCARD
-            .apply(unsafe { input.get_unchecked(advanced1..) }, is_ascii)
+            .apply(unsafe { input.get_unchecked(advanced1..) })
             .map_err(|_| RuleError {
                 reason: "Missing sign string.".into(),
             })?;
@@ -105,7 +102,7 @@ mod tests {
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
         init_log_with_level(LevelFilter::TRACE);
         let result = NmeaCoord
-            .apply(input, true)
+            .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }

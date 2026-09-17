@@ -1,7 +1,7 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
-use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::filters::{AsciiCharSetFilter, CharSetFilter, ICharSetFilter, IFilter};
 use crate::text::rules::UntilMode;
 /// Rule that extracts a prefix from the input string consisting of consecutive
 /// characters that are in the provided character set, stopping at the first
@@ -26,38 +26,20 @@ use crate::text::rules::UntilMode;
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information at each split or if all characters are in the set.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UntilNotInCharSet<'a, const N: usize> {
-    pub filter: &'a CharSetFilter<N>,
+pub struct UntilNotInCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>> {
+    pub filter: &'f F,
     pub mode: UntilMode,
 }
 
-impl<const N: usize> IRule for UntilNotInCharSet<'_, N> {}
+impl<const N: usize, const IS_ASCII: bool, F: ICharSetFilter<N>> IRule
+    for UntilNotInCharSet<'_, IS_ASCII, N, F>
+{
+}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
-    type Output = &'a str;
+impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for UntilNotInCharSet<'_, false, N, F> {
+    type Output<'a> = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
-        if is_ascii {
-            if let Some(mask) = self.filter.ascii_mask() {
-                // Fast path: bitmask, no per-byte filter() dispatch
-                for (i, &b) in input.as_bytes().iter().enumerate() {
-                    if mask & (1_u128 << u32::from(b)) == 0 {
-                        return Ok(self.mode.split_str(input, i, 1));
-                    }
-                }
-                return Ok((input, input.len()));
-            }
-            // Fallback: table has non-ASCII entries
-            for (i, &b) in input.as_bytes().iter().enumerate() {
-                let c = b as char;
-                if !self.filter.filter(&c) {
-                    return Ok(self.mode.split_str(input, i, 1));
-                }
-            }
-            return Ok((input, input.len()));
-        }
-
-        // UTF-8 path
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
                 return Ok(self.mode.split_str(input, i, c.len_utf8()));
@@ -67,40 +49,125 @@ impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
         Ok((input, input.len()))
     }
 }
+impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, AsciiCharSetFilter<N>> {
+    type Output<'a> = &'a str;
+
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        for (i, &b) in input.as_bytes().iter().enumerate() {
+            if self.filter.mask() & (1_u128 << u32::from(b)) == 0 {
+                return Ok(self.mode.split_str(input, i, 1));
+            }
+        }
+        Ok((input, input.len()))
+    }
+}
+impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, CharSetFilter<N>> {
+    type Output<'a> = &'a str;
+
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        for (i, &b) in input.as_bytes().iter().enumerate() {
+            let c = b as char;
+            if !self.filter.filter(&c) {
+                return Ok(self.mode.split_str(input, i, 1));
+            }
+        }
+        Ok((input, input.len()))
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    use core::marker::PhantomData;
-
-    extern crate std;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
+    use crate::test_rule;
     use crate::text::filters::CHAR_SET_DIGITS;
-    #[rstest::rstest]
-    #[case("ascii_discard", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
-    #[case("ascii_keep_left", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInOutput)]
-    #[case("ascii_keep_right", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::KeepInRest)]
-    #[case("ascii_all_in_set", "123456", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
-    #[case("ascii_first_char_not_in_set", "a123", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
-    #[case("ascii_empty_input", "", PhantomData::<UntilNotInCharSet<_>>, &CHAR_SET_DIGITS, UntilMode::Discard)]
-    #[case("ascii_fallback_not_in_set", "123abc", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['0', '1', '2', '3', '你']), UntilMode::Discard)]
-    #[case("ascii_fallback_all_in_set", "123", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['0', '1', '2', '3', '你']), UntilMode::Discard)]
-    #[case("utf8_discard", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['好', '你']), UntilMode::Discard)]
-    #[case("utf8_all_in_set", "你好世界", PhantomData::<UntilNotInCharSet<_>>, &CharSetFilter::new(['你', '好','世','界']), UntilMode::Discard)]
-    fn test_until_not_in_char_set<const N: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<UntilNotInCharSet<N>>,
-        #[case] filter: &CharSetFilter<N>,
-        #[case] mode: UntilMode,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = UntilNotInCharSet::<N> { filter, mode }
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+
+    test_rule!(
+        ascii_discard,
+        "123abc",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_keep_left,
+        "123abc",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::KeepInOutput,
+        }
+    );
+
+    test_rule!(
+        ascii_keep_right,
+        "123abc",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::KeepInRest,
+        }
+    );
+
+    test_rule!(
+        ascii_all_in_set,
+        "123456",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_first_char_not_in_set,
+        "a123",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_empty_input,
+        "",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CHAR_SET_DIGITS,
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_fallback_not_in_set,
+        "123abc",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CharSetFilter::new(['0', '1', '2', '3', '你']),
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_fallback_all_in_set,
+        "123",
+        UntilNotInCharSet::<true, _, _> {
+            filter: &CharSetFilter::new(['你', '0', '1', '2', '3']),
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        utf8_discard,
+        "你好世界",
+        UntilNotInCharSet::<false, _, _> {
+            filter: &CharSetFilter::new(['好', '你']),
+            mode: UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        utf8_all_in_set,
+        "你好世界",
+        UntilNotInCharSet::<false, _, _> {
+            filter: &CharSetFilter::new(['你', '好', '世', '界']),
+            mode: UntilMode::Discard,
+        }
+    );
 }

@@ -1,13 +1,8 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::text::{IGlobalRule, IStrFlowRule};
+use rax::text::{IFlowRule, IGlobalRule};
 use rax_nmea::rules::*;
-fn bench_rule<R: IStrFlowRule<'static>>(
-    c: &mut Criterion,
-    name: &str,
-    rule: R,
-    input: &'static str,
-) {
-    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
+fn bench_rule<R: IFlowRule<true>>(c: &mut Criterion, name: &str, rule: R, input: &'static str) {
+    c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input))));
 }
 fn benches(c: &mut Criterion) {
     bench_rule(c, "coord", NmeaCoord, "12319.123,E,rest");

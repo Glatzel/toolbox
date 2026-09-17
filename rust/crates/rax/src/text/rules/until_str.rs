@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::rules::UntilMode;
@@ -22,15 +22,15 @@ use crate::text::rules::UntilMode;
 /// - Returns `(None, input)` if the delimiter is not found.
 /// - Logs debug information for each split or when no match is found.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct UntilStr {
+pub struct UntilStr<const IS_ASCII: bool> {
     pub pattern: &'static str,
     pub mode: UntilMode,
 }
 
-impl IRule for UntilStr {}
-impl<'a> IStrFlowRule<'a> for UntilStr {
-    type Output = &'a str;
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+impl<const IS_ASCII: bool> IRule for UntilStr<IS_ASCII> {}
+impl<const IS_ASCII: bool> IFlowRule<IS_ASCII> for UntilStr<IS_ASCII> {
+    type Output<'a> = &'a str;
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,
@@ -57,24 +57,60 @@ impl<'a> IStrFlowRule<'a> for UntilStr {
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("ascii_discard", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("ascii_keep_left", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInOutput })]
-    #[case("ascii_keep_right", "abc-def", UntilStr { pattern: "-", mode: super::UntilMode::KeepInRest })]
-    #[case("ascii_no_delimiter", "abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("ascii_delimiter_at_start", "-abcdef", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    #[case("ascii_empty_input", "", UntilStr { pattern: "-", mode: super::UntilMode::Discard })]
-    fn test_until_str(#[case] name: &str, #[case] input: &str, #[case] rule: UntilStr) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = rule
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    use crate::test_rule;
+
+    test_rule!(
+        ascii_discard,
+        "abc-def",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_keep_left,
+        "abc-def",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::KeepInOutput,
+        }
+    );
+
+    test_rule!(
+        ascii_keep_right,
+        "abc-def",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::KeepInRest,
+        }
+    );
+
+    test_rule!(
+        ascii_no_delimiter,
+        "abcdef",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_delimiter_at_start,
+        "-abcdef",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::Discard,
+        }
+    );
+
+    test_rule!(
+        ascii_empty_input,
+        "",
+        UntilStr::<true> {
+            pattern: "-",
+            mode: super::UntilMode::Discard,
+        }
+    );
 }

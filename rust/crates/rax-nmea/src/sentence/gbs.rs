@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
@@ -50,8 +50,9 @@ pub struct Gbs {
     signal_id: Option<u16>,
 }
 
-impl IDecode<RaxNmeaError> for Gbs {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gbs {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let err_lat = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
         let _ = parser.skip(&UNTIL_M_DISCARD);
@@ -109,20 +110,19 @@ impl IDecode<RaxNmeaError> for Gbs {
 
 #[cfg(test)]
 mod tests {
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07")]
-    #[case("2", "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B")]
-    fn test_gbs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gbs = Gbs::decode(&mut decoder)?;
-        println!("{gbs:?}");
-        insta::assert_json_snapshot!(index, gbs);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gbs1,
+        1,
+        Gbs,
+        "$GPGBS,125027,23.43,M,13.91,M,34.01,M*07"
+    );
+    test_sentence!(
+        test_gbs2,
+        2,
+        Gbs,
+        "$GPGBS,235458.00,1.4,1.3,3.1,03,,-21.4,3.8,1,0*5B"
+    );
 }

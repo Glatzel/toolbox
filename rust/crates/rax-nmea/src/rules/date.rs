@@ -11,21 +11,18 @@ pub struct NmeaDate;
 
 impl IRule for NmeaDate {}
 
-impl<'a> rax::text::IStrFlowRule<'a> for NmeaDate {
-    type Output = Option<Date>;
+impl rax::text::IFlowRule<true> for NmeaDate {
+    type Output<'a> = Option<Date>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("NmeaUtc rule: input='{}'", input);
 
-        let (res, advanced) =
-            UNTIL_COMMA_DISCARD
-                .apply(input, is_ascii)
-                .map_err(|_| RuleError {
-                    reason: "Missing Date string.".into(),
-                })?;
+        let (res, advanced) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
+            reason: "Missing Date string.".into(),
+        })?;
         if res.is_empty() {
             return Ok((None, advanced));
         }
@@ -53,7 +50,7 @@ impl<'a> rax::text::IStrFlowRule<'a> for NmeaDate {
             Err(e) => {
                 clerk::error!("{:?}: failed to parse date from '{}'", self, res);
                 return Err(RuleError {
-                    reason: alloc::format!("{:?}", e).into(),
+                    reason: alloc::format!("{e:?}").into(),
                 });
             }
         };
@@ -63,7 +60,7 @@ impl<'a> rax::text::IStrFlowRule<'a> for NmeaDate {
 
 #[cfg(test)]
 mod tests {
-    use rax::text::IStrFlowRule;
+    use rax::text::IFlowRule;
 
     use super::*;
 
@@ -77,7 +74,7 @@ mod tests {
     #[case("empty", ",foo,bar")]
     fn test_nmea_date_valid(#[case] name: &str, #[case] input: &str) {
         let result = NmeaDate
-            .apply(input, true)
+            .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));
         insta::assert_debug_snapshot!(name, result)
     }

@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -16,8 +16,9 @@ pub struct Ths {
     /// Mode indicator
     mi: Option<FaaMode>,
 }
-impl IDecode<RaxNmeaError> for Ths {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Ths {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let headt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -30,20 +31,7 @@ impl IDecode<RaxNmeaError> for Ths {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPTHS,77.52,E*34")]
-    fn test_ths(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let ths = Ths::decode(&mut decoder)?;
-        println!("{ths:?}");
-        insta::assert_json_snapshot!(index, ths);
-        Ok(())
-    }
+    use crate::test_sentence;
+    test_sentence!(test_ths, 1, Ths, "$GPTHS,77.52,E*34");
 }

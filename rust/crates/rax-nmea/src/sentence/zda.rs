@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -28,8 +28,9 @@ pub struct Zda {
     ltzn: Option<u8>,
 }
 
-impl IDecode<RaxNmeaError> for Zda {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Zda {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let day = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let month = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -50,19 +51,7 @@ impl IDecode<RaxNmeaError> for Zda {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPZDA,160012.71,11,03,2004,-1,00*7D")]
-    fn test_zda(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let zda = Zda::decode(&mut decoder)?;
-        println!("{zda:?}");
-        insta::assert_json_snapshot!(index, zda);
-        Ok(())
-    }
+    use crate::test_sentence;
+    test_sentence!(test_zda1, 1, Zda, "$GPZDA,160012.71,11,03,2004,-1,00*7D");
 }

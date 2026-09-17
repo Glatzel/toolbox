@@ -11,6 +11,10 @@ name = "nmea"
 harness = false
 name = "rules"
 
+[[bench]]
+harness = false
+name = "parser_api"
+
 [dependencies]
 clerk.workspace = true
 derive-getters.workspace = true

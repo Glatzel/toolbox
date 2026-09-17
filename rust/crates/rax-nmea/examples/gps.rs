@@ -2,11 +2,12 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use clerk::LevelFilter;
-use rax::text::Decoder;
+use rax::text::StrParser;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
 use rax_nmea::sentence::*;
 use rstest::rstest;
+
 #[derive(Debug)]
 pub enum Dispatcher {
     DHV(Talker, Dhv),
@@ -40,7 +41,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             return Ok(collector);
         }
 
-        let mut probe = Decoder::new(&buf);
+        let mut probe = StrParser::new(&buf);
         let identifier = probe.global(&NmeaIdentifier)?;
         let talker = probe.global(&NmeaTalker)?;
         // For multi-line sentences, accumulate all lines into buf first
@@ -59,29 +60,29 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             }
             _ => {}
         }
-        let mut decoder = Decoder::new(&buf);
-        decoder.global(&NmeaValidateMultiLine)?;
+        let mut parser = StrParser::new(&buf);
+        parser.global(&NmeaValidateMultiLine)?;
         match identifier {
-            Identifier::DHV => collector.push(Dispatcher::DHV(talker, decoder.decode()?)),
-            Identifier::DTM => collector.push(Dispatcher::DTM(talker, decoder.decode()?)),
-            Identifier::GBQ => collector.push(Dispatcher::GBQ(talker, decoder.decode()?)),
-            Identifier::GBS => collector.push(Dispatcher::GBS(talker, decoder.decode()?)),
-            Identifier::GGA => collector.push(Dispatcher::GGA(talker, decoder.decode()?)),
-            Identifier::GLL => collector.push(Dispatcher::GLL(talker, decoder.decode()?)),
-            Identifier::GLQ => collector.push(Dispatcher::GLQ(talker, decoder.decode()?)),
-            Identifier::GNQ => collector.push(Dispatcher::GNQ(talker, decoder.decode()?)),
-            Identifier::GNS => collector.push(Dispatcher::GNS(talker, decoder.decode()?)),
-            Identifier::GPQ => collector.push(Dispatcher::GPQ(talker, decoder.decode()?)),
-            Identifier::GRS => collector.push(Dispatcher::GRS(talker, decoder.decode()?)),
-            Identifier::GSA => collector.push(Dispatcher::GSA(talker, decoder.decode()?)),
-            Identifier::GST => collector.push(Dispatcher::GST(talker, decoder.decode()?)),
-            Identifier::GSV => collector.push(Dispatcher::GSV(talker, decoder.decode()?)),
-            Identifier::RMC => collector.push(Dispatcher::RMC(talker, decoder.decode()?)),
-            Identifier::THS => collector.push(Dispatcher::THS(talker, decoder.decode()?)),
-            Identifier::TXT => collector.push(Dispatcher::TXT(talker, decoder.decode()?)),
-            Identifier::VLW => collector.push(Dispatcher::VLW(talker, decoder.decode()?)),
-            Identifier::VTG => collector.push(Dispatcher::VTG(talker, decoder.decode()?)),
-            Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, decoder.decode()?)),
+            Identifier::DHV => collector.push(Dispatcher::DHV(talker, parser.parse()?)),
+            Identifier::DTM => collector.push(Dispatcher::DTM(talker, parser.parse()?)),
+            Identifier::GBQ => collector.push(Dispatcher::GBQ(talker, parser.parse()?)),
+            Identifier::GBS => collector.push(Dispatcher::GBS(talker, parser.parse()?)),
+            Identifier::GGA => collector.push(Dispatcher::GGA(talker, parser.parse()?)),
+            Identifier::GLL => collector.push(Dispatcher::GLL(talker, parser.parse()?)),
+            Identifier::GLQ => collector.push(Dispatcher::GLQ(talker, parser.parse()?)),
+            Identifier::GNQ => collector.push(Dispatcher::GNQ(talker, parser.parse()?)),
+            Identifier::GNS => collector.push(Dispatcher::GNS(talker, parser.parse()?)),
+            Identifier::GPQ => collector.push(Dispatcher::GPQ(talker, parser.parse()?)),
+            Identifier::GRS => collector.push(Dispatcher::GRS(talker, parser.parse()?)),
+            Identifier::GSA => collector.push(Dispatcher::GSA(talker, parser.parse()?)),
+            Identifier::GST => collector.push(Dispatcher::GST(talker, parser.parse()?)),
+            Identifier::GSV => collector.push(Dispatcher::GSV(talker, parser.parse()?)),
+            Identifier::RMC => collector.push(Dispatcher::RMC(talker, parser.parse()?)),
+            Identifier::THS => collector.push(Dispatcher::THS(talker, parser.parse()?)),
+            Identifier::TXT => collector.push(Dispatcher::TXT(talker, parser.parse()?)),
+            Identifier::VLW => collector.push(Dispatcher::VLW(talker, parser.parse()?)),
+            Identifier::VTG => collector.push(Dispatcher::VTG(talker, parser.parse()?)),
+            Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, parser.parse()?)),
         }
         buf.clear();
     }

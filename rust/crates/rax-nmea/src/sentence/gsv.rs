@@ -3,7 +3,7 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -40,8 +40,10 @@ pub struct Gsv {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IDecode<RaxNmeaError> for Gsv {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+
+impl IParseStr<RaxNmeaError, true> for Gsv {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
@@ -76,9 +78,9 @@ impl IDecode<RaxNmeaError> for Gsv {
         // Parse all but the last line (each has 4 satellites)
         for _i in 0..line_count - 1 {
             for _ in 0..3 {
-                satellites.push(Self::parse_satellite(parser)?);
+                satellites.push(Self::parse_satellite(&mut parser)?);
             }
-            satellites.push(Self::parse_satellite_last(parser)?);
+            satellites.push(Self::parse_satellite_last(&mut parser)?);
             // Skip any extra fields after the 4th satellite in the line
             parser
                 .skip(&UNTIL_NEW_LINE_DISCARD)?
@@ -90,9 +92,9 @@ impl IDecode<RaxNmeaError> for Gsv {
         // Parse the last line (may have fewer than 4 satellites)
         if last_line_satellite_count != 0 {
             for _ in 0..(last_line_satellite_count - 1) {
-                satellites.push(Self::parse_satellite(parser)?);
+                satellites.push(Self::parse_satellite(&mut parser)?);
             }
-            satellites.push(Self::parse_satellite_last(parser)?);
+            satellites.push(Self::parse_satellite_last(&mut parser)?);
             let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         }
         clerk::debug!("satellites: {:?}", satellites);
@@ -106,7 +108,7 @@ impl IDecode<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    fn parse_satellite(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut StrParser<'_, true>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -114,7 +116,7 @@ impl Gsv {
             cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
-    fn parse_satellite_last(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite_last(ctx: &mut StrParser<'_, true>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -126,30 +128,31 @@ impl Gsv {
 
 #[cfg(test)]
 mod test {
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    extern crate std;
-    #[rstest::rstest]
-    #[case(
-        "1",
+    use crate::test_sentence;
+    test_sentence!(
+        test_gsv1,
+        1,
+        Gsv,
         "$GPGSV,3,1,10,25,68,053,47,21,59,306,49,29,56,161,49,31,36,265,49*79\r\n$GPGSV,3,2,10,12,29,048,49,05,22,123,49,18,13,000,49,01,00,000,49*72\r\n$GPGSV,3,3,10,14,00,000,03,16,00,000,27*7C"
-    )]
-    #[case("2", "$GPGSV,1,1,4,02,35,291,,03,09,129,,05,14,305,,06,38,226,*4E")]
-    #[case("3", "$GPGSV,1,1,3,02,35,291,,03,09,129,,05,14,305,*72")]
-    #[case("4", "$GPGSV,1,1,0,*65")]
-    #[case(
-        "5",
+    );
+    test_sentence!(
+        test_gsv2,
+        2,
+        Gsv,
+        "$GPGSV,1,1,4,02,35,291,,03,09,129,,05,14,305,,06,38,226,*4E"
+    );
+    test_sentence!(
+        test_gsv3,
+        3,
+        Gsv,
+        "$GPGSV,1,1,3,02,35,291,,03,09,129,,05,14,305,*72"
+    );
+    test_sentence!(test_gsv4, 4, Gsv, "$GPGSV,1,1,0,*65");
+    test_sentence!(
+        test_gsv5,
+        5,
+        Gsv,
         "$GPGSV,3,1,11,05,19,222,36,07,05,090,29,13,84,239,39,14,56,052,36,1*64\r\n$GPGSV,3,2,11,15,50,296,25,17,35,125,24,23,11,319,28,24,16,284,32,1*60\r\n$GPGSV,3,3,11,19,23,147,,20,03,201,,30,28,084,,1*58\r\n"
-    )]
-    fn test_gsv(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gsv = Gsv::decode(&mut decoder)?;
-        println!("{gsv:?}");
-        insta::assert_json_snapshot!(index, gsv);
-        Ok(())
-    }
+    );
 }

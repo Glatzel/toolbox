@@ -13,14 +13,14 @@ pub struct NmeaValidate;
 
 impl IRule for NmeaValidate {}
 
-impl<'a> rax::text::IGlobalRule<'a> for NmeaValidate {
-    type Output = ();
+impl rax::text::IGlobalRule<true> for NmeaValidate {
+    type Output<'a> = ();
 
     /// Applies the `NmeaValidate` rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
 
@@ -119,14 +119,14 @@ pub struct NmeaValidateMultiLine;
 
 impl IRule for NmeaValidateMultiLine {}
 
-impl<'a> rax::text::IGlobalRule<'a> for NmeaValidateMultiLine {
-    type Output = ();
+impl rax::text::IGlobalRule<true> for NmeaValidateMultiLine {
+    type Output<'a> = ();
 
     /// Applies the `NmeaValidate` rule to the input string.
     /// Checks that the sentence starts with '$', contains a checksum delimiter
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         // Log the input at trace level.
         clerk::trace!("NmeaValidate rule: input='{:?}'", input);
         for line in input.split_inclusive('\n') {

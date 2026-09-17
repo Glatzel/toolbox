@@ -62,7 +62,7 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
 /// `Option<u128>` to inspect at call time.
 ///
 /// Because ASCII-ness is guaranteed, membership testing is a single shift
-/// + mask against a 128-bit bitmap, and `contains` is itself `const`, so
+/// `+` mask against a 128-bit bitmap, and `contains` is itself `const`, so
 /// lookups can be evaluated at compile time too.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AsciiCharSetFilter<const N: usize> {

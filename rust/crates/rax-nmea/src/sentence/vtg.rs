@@ -60,5 +60,10 @@ mod test {
     use super::*;
     use crate::test_sentence;
 
-    test_sentence!(test_vtg1, 1, Vtg, "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22");
+    test_sentence!(
+        test_vtg1,
+        1,
+        Vtg,
+        "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22"
+    );
 }

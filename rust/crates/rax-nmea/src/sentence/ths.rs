@@ -33,5 +33,5 @@ impl IParseStr<RaxNmeaError, true> for Ths {
 mod test {
     use super::*;
     use crate::test_sentence;
-    test_sentence!(test_ths,1, Ths, "$GPTHS,77.52,E*34");
+    test_sentence!(test_ths, 1, Ths, "$GPTHS,77.52,E*34");
 }

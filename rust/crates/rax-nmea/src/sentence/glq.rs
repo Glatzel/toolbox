@@ -32,5 +32,5 @@ mod test {
     use super::*;
     use crate::test_sentence;
 
-    test_sentence!(test_glq,1, Glq, "$EIGLQ,RMC*26");
+    test_sentence!(test_glq, 1, Glq, "$EIGLQ,RMC*26");
 }

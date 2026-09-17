@@ -32,5 +32,5 @@ mod test {
     use super::*;
     use crate::test_sentence;
 
-    test_sentence!(test_gnq,1, Gnq, "$EIGNQ,RMC*24");
+    test_sentence!(test_gnq, 1, Gnq, "$EIGNQ,RMC*24");
 }

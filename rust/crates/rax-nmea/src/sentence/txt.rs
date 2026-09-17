@@ -60,7 +60,8 @@ mod test {
     use crate::test_sentence;
 
     test_sentence!(
-        test_txt,1,
+        test_txt,
+        1,
         Txt,
         "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D"
     );

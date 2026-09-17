@@ -64,7 +64,8 @@ mod test {
     use crate::test_sentence;
 
     test_sentence!(
-        test_gst,1,
+        test_gst,
+        1,
         Gst,
         "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54"
     );

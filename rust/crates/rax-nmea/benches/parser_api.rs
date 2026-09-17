@@ -1,4 +1,3 @@
-use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use criterion::{Criterion, criterion_group, criterion_main};

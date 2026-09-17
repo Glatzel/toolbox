@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rax::text::IFlowRule;
-use rax::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS, CharSetFilter};
+use rax::text::filters::{AsciiCharSetFilter, CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
 use rax::text::rules::{
     ByteCount, Char, CharCount, NInCharSet, OneOfCharSet, UntilChar, UntilMode, UntilNInCharSet,
     UntilNotInCharSet, UntilOneInCharSet, UntilStr,

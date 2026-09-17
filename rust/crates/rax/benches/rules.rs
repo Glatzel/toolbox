@@ -37,7 +37,7 @@ fn benches(c: &mut Criterion) {
     bench_rule(
         c,
         "until_n_in_char_set",
-        UntilNInCharSet::<2, true, _> {
+        UntilNInCharSet::<2, true, _, _> {
             filter: &CHAR_SET_DIGITS,
             mode: UntilMode::KeepInRest,
         },

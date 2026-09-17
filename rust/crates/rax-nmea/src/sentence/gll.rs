@@ -28,8 +28,8 @@ pub struct Gll {
     /// FAA mode
     pos_mode: Option<FaaMode>,
 }
-impl IParseStr<RaxNmeaError, true> for Gll {
-    fn parse_str(ctx: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Gll {
+    fn parse_str(ctx: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");

@@ -59,8 +59,8 @@ pub struct Gns {
     nav_status: Option<GnsNavigationStatus>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Gns {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Gns {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");

@@ -42,8 +42,8 @@ pub struct Grs {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IParseStr<RaxNmeaError, true> for Grs {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Grs {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

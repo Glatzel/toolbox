@@ -33,8 +33,8 @@ pub struct Gst {
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
-impl IParseStr<RaxNmeaError, true> for Gst {
-    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
+impl<'a> IParseStr<'a, RaxNmeaError, true> for Gst {
+    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let std_major = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

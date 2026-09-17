@@ -49,8 +49,8 @@ impl<const N: usize, F: ICharSetFilter<N_CHAR_SET>, const N_CHAR_SET: usize, con
 {
 }
 
-impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
-    for UntilNInCharSet<'f, N, true, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET>
+impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
+    for UntilNInCharSet<'_, N, true, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 
@@ -71,14 +71,14 @@ impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
             }
         }
 
-        return Err(RuleError {
+        Err(RuleError {
             reason: "fewer than N matches found".into(),
-        });
+        })
     }
 }
 
-impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
-    for UntilNInCharSet<'f, N, false, CharSetFilter<N_CHAR_SET>, N_CHAR_SET>
+impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
+    for UntilNInCharSet<'_, N, false, CharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 

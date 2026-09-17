@@ -23,12 +23,12 @@ use crate::text::filters::ICharSetFilter;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>>(pub &'f F);
 
-impl<'f, const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool> IRule
-    for OneOfCharSet<'f, IS_ASCII, N, F>
+impl<const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool> IRule
+    for OneOfCharSet<'_, IS_ASCII, N, F>
 {
 }
 
-impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'f, true, N, F> {
+impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'_, true, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
@@ -42,10 +42,10 @@ impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<
                 reason: "character not in set".into(),
             });
         }
-        return Ok((*b as char, 1));
+        Ok((*b as char, 1))
     }
 }
-impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'f, false, N, F> {
+impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'_, false, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);

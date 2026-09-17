@@ -92,7 +92,7 @@ impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
         }
         clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
 
-        return ByteCount::<N, true>.apply(input);
+        ByteCount::<N, true>.apply(input)
     }
 }
 

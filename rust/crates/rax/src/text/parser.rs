@@ -29,7 +29,7 @@ pub struct StrParser<'a, const IS_ASCII: bool> {
     cursor: usize,
 }
 
-impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
+impl<const IS_ASCII: bool> StrParser<'_, IS_ASCII> {
     pub fn parse<D, E>(&mut self) -> Result<D, E>
     where
         D: IParseStr<E, IS_ASCII>,
@@ -47,7 +47,7 @@ impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
         Self { full: s, cursor: 0 }
     }
 
-    pub fn set_str(&mut self, input: &'a str) -> &mut Self {
+    pub const fn set_str(&mut self, input: &'a str) -> &mut Self {
         self.full = input;
         self.cursor = 0;
         self

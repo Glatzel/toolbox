@@ -21,17 +21,16 @@ pub struct NInCharSet<
 >(pub &'f F);
 
 impl<
-    'f,
     const N: usize,
     const IS_ASCII: bool,
     F: ICharSetFilter<N_CHAR_SET>,
     const N_CHAR_SET: usize,
-> IRule for NInCharSet<'f, N, IS_ASCII, F, N_CHAR_SET>
+> IRule for NInCharSet<'_, N, IS_ASCII, F, N_CHAR_SET>
 {
 }
 
-impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
-    for NInCharSet<'f, N, true, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET>
+impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
+    for NInCharSet<'_, N, true, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 
@@ -63,12 +62,12 @@ impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
                 });
             }
         }
-        return Ok(unsafe { (input.get_unchecked(..N), N) });
+        Ok(unsafe { (input.get_unchecked(..N), N) })
     }
 }
 
-impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
-    for NInCharSet<'f, N, false, CharSetFilter<N_CHAR_SET>, N_CHAR_SET>
+impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
+    for NInCharSet<'_, N, false, CharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 

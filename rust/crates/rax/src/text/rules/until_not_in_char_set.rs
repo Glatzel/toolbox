@@ -36,8 +36,8 @@ impl<const N: usize, const IS_ASCII: bool, F: ICharSetFilter<N>> IRule
 {
 }
 
-impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false>
-    for UntilNotInCharSet<'f, false, N, F>
+impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false>
+    for UntilNotInCharSet<'_, false, N, F>
 {
     type Output<'a> = &'a str;
 
@@ -51,7 +51,7 @@ impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false>
         Ok((input, input.len()))
     }
 }
-impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, true, N, AsciiCharSetFilter<N>> {
+impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, AsciiCharSetFilter<N>> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
@@ -60,10 +60,10 @@ impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, true, N, Asci
                 return Ok(self.mode.split_str(input, i, 1));
             }
         }
-        return Ok((input, input.len()));
+        Ok((input, input.len()))
     }
 }
-impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, true, N, CharSetFilter<N>> {
+impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, CharSetFilter<N>> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
@@ -73,7 +73,7 @@ impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, true, N, Char
                 return Ok(self.mode.split_str(input, i, 1));
             }
         }
-        return Ok((input, input.len()));
+        Ok((input, input.len()))
     }
 }
 

@@ -10,8 +10,8 @@ pub enum Verb {
     Global,
 }
 
-pub trait IParseStr<E>: Sized {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, E>;
+pub trait IParseStr<E, const IS_ASCII: bool>: Sized {
+    fn parse_str(parser: &mut StrParser<'_, IS_ASCII>) -> Result<Self, E>;
 }
 
 /// Maintains parsing state for string-based parsers.
@@ -22,40 +22,34 @@ pub trait IParseStr<E>: Sized {
 ///
 /// The lifetime `'a` is tied to the input string reference.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct StrParser<'a> {
+pub struct StrParser<'a, const IS_ASCII: bool> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
     cursor: usize,
-    is_ascii: bool,
 }
 
-impl<'a> StrParser<'a> {
+impl<const IS_ASCII: bool> StrParser<'_, IS_ASCII> {
     pub fn parse<D, E>(&mut self) -> Result<D, E>
     where
-        D: IParseStr<E>,
+        D: IParseStr<E, IS_ASCII>,
     {
         D::parse_str(self)
     }
 }
 
-impl<'a> StrParser<'a> {
+impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     pub fn new<S>(input: &'a S) -> Self
     where
         S: AsRef<str> + ?Sized,
     {
         let s = input.as_ref();
-        Self {
-            full: s,
-            cursor: 0,
-            is_ascii: s.is_ascii(),
-        }
+        Self { full: s, cursor: 0 }
     }
 
-    pub fn set_str(&mut self, input: &'a str) -> &mut Self {
+    pub const fn set_str(&mut self, input: &'a str) -> &mut Self {
         self.full = input;
         self.cursor = 0;
-        self.is_ascii = input.is_ascii();
         self
     }
 
@@ -76,22 +70,19 @@ impl<'a> StrParser<'a> {
     }
 }
 
-impl Default for StrParser<'_> {
+impl<const IS_ASCII: bool> Default for StrParser<'_, IS_ASCII> {
     fn default() -> Self { Self::new("") }
 }
 
-impl<'a> StrParser<'a> {
+impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
     pub fn take<R>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
-        R: IFlowRule,
+        R: IFlowRule<IS_ASCII>,
     {
-        match rule.apply(
-            unsafe { self.full.get_unchecked(self.cursor..) },
-            self.is_ascii,
-        ) {
+        match rule.apply(unsafe { self.full.get_unchecked(self.cursor..) }) {
             Ok((v, advanced)) => {
                 self.cursor += advanced;
                 Ok(v)
@@ -105,12 +96,9 @@ impl<'a> StrParser<'a> {
     /// Returns an error if the rule does not match.
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
-        R: IFlowRule,
+        R: IFlowRule<IS_ASCII>,
     {
-        match rule.apply(
-            unsafe { self.full.get_unchecked(self.cursor..) },
-            self.is_ascii,
-        ) {
+        match rule.apply(unsafe { self.full.get_unchecked(self.cursor..) }) {
             Ok((_, advanced)) => {
                 self.cursor += advanced;
                 Ok(self)
@@ -125,18 +113,9 @@ impl<'a> StrParser<'a> {
     /// and do not modify the parser's `rest` pointer.
     pub fn global<R>(&mut self, rule: &R) -> Result<R::Output<'_>, VerbError>
     where
-        R: IGlobalRule,
+        R: IGlobalRule<IS_ASCII>,
     {
         rule.apply(self.full)
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
-    }
-}
-
-impl StrParser<'_> {
-    pub fn decode<D, E>(&mut self) -> Result<D, E>
-    where
-        D: IParseStr<E>,
-    {
-        D::parse_str(self)
     }
 }

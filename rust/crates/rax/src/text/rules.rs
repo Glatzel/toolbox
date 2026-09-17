@@ -62,7 +62,7 @@ pub trait IRule {
 /// Flow rules operate on a slice of the input string and return
 /// a tuple of the parsed value (or `None` if no match) and the
 /// remaining unparsed string.
-pub trait IFlowRule: IRule {
+pub trait IFlowRule<const IS_ASCII: bool>: IRule {
     /// Type of the value produced by this rule.
     type Output<'a>;
 
@@ -70,21 +70,33 @@ pub trait IFlowRule: IRule {
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError>;
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).
 ///
 /// Global rules return a value based on the full input string
 /// and do not consume or track the remaining input.
-pub trait IGlobalRule: IRule {
+pub trait IGlobalRule<const IS_ASCII: bool>: IRule {
     /// Type of the value produced by this rule.
     type Output<'a>;
 
     /// Apply the rule to the full input.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError>;
+}
+#[cfg(test)]
+#[cfg_attr(test, macro_export)]
+macro_rules! test_rule {
+    ($name:ident, $input:expr, $rule:expr) => {
+        #[test]
+        fn $name() {
+            clerk::init_log_with_level(clerk::LevelFilter::TRACE);
+
+            let result = $rule
+                .apply($input)
+                .map(|(out, idx)| (out, $input.get(idx..).unwrap()));
+
+            insta::assert_debug_snapshot!(stringify!($name), result);
+        }
+    };
 }

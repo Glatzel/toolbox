@@ -3,7 +3,7 @@ use rax::text::{IGlobalRule, IRule};
 
 pub struct NmeaTxtLineCount;
 impl IRule for NmeaTxtLineCount {}
-impl IGlobalRule for NmeaTxtLineCount {
+impl IGlobalRule<true> for NmeaTxtLineCount {
     type Output<'a> = u8;
 
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {

@@ -4,15 +4,15 @@ use crate::text::IRule;
 /// Rule that extracts a substring from the start of the input until a
 /// specified delimiter character is encountered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct UntilChar<const C: char> {
+pub struct UntilChar<const C: char, const IS_ASCII: bool> {
     pub mode: super::UntilMode,
 }
-impl<const C: char> UntilChar<C> {
+impl<const C: char, const IS_ASCII: bool> UntilChar<C, IS_ASCII> {
     const DELIM_LEN: usize = C.len_utf8();
 }
-impl<const C: char> IRule for UntilChar<C> {}
+impl<const C: char, const IS_ASCII: bool> IRule for UntilChar<C, IS_ASCII> {}
 
-impl<const C: char> IFlowRule for UntilChar<C> {
+impl<const C: char, const IS_ASCII: bool> IFlowRule<IS_ASCII> for UntilChar<C, IS_ASCII> {
     type Output<'a> = &'a str;
 
     /// Applies the `UntilChar` rule to the input string.
@@ -20,11 +20,7 @@ impl<const C: char> IFlowRule for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        _is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,
@@ -45,32 +41,54 @@ impl<const C: char> IFlowRule for UntilChar<C> {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(test)]
-    use core::marker::PhantomData;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
     use super::*;
+    use crate::test_rule;
     use crate::text::UntilMode;
+    test_rule!(
+        ascii_discard,
+        "abc-def",
+        UntilChar::<'-', true> {
+            mode: UntilMode::Discard
+        }
+    );
 
-    #[rstest::rstest]
-    #[case("ascii_discard","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("ascii_keep_left","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepInOutput)]
-    #[case("ascii_keep_right","abc-def", PhantomData::<UntilChar<'-'>>, UntilMode::KeepInRest)]
-    #[case("ascii_delimiter_at_start","-abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("ascii_no_delimiter","abcdef", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    #[case("utf8_empty_input","", PhantomData::<UntilChar<'-'>>, UntilMode::Discard)]
-    fn test_until_char<const C: char>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<UntilChar<C>>,
-        #[case] mode: UntilMode,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = UntilChar::<C> { mode }
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    test_rule!(
+        ascii_keep_left,
+        "abc-def",
+        UntilChar::<'-', true> {
+            mode: UntilMode::KeepInOutput
+        }
+    );
+
+    test_rule!(
+        ascii_keep_right,
+        "abc-def",
+        UntilChar::<'-', true> {
+            mode: UntilMode::KeepInRest
+        }
+    );
+
+    test_rule!(
+        ascii_delimiter_at_start,
+        "-abcdef",
+        UntilChar::<'-', true> {
+            mode: UntilMode::Discard
+        }
+    );
+
+    test_rule!(
+        ascii_no_delimiter,
+        "abcdef",
+        UntilChar::<'-', true> {
+            mode: UntilMode::Discard
+        }
+    );
+
+    test_rule!(
+        utf8_empty_input,
+        "",
+        UntilChar::<'-', false> {
+            mode: UntilMode::Discard
+        }
+    );
 }

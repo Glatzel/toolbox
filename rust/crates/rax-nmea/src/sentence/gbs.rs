@@ -50,8 +50,8 @@ pub struct Gbs {
     signal_id: Option<u16>,
 }
 
-impl IParseStr<RaxNmeaError> for Gbs {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gbs {
+    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let err_lat = parser.take(&UNTIL_COMMA_KEEP_RIGHT)?.parse_option()?;
         let _ = parser.skip(&UNTIL_M_DISCARD);

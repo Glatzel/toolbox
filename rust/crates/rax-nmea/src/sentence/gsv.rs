@@ -40,8 +40,8 @@ pub struct Gsv {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IParseStr<RaxNmeaError> for Gsv {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gsv {
+    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
@@ -106,7 +106,7 @@ impl IParseStr<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    fn parse_satellite(ctx: &mut StrParser<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut StrParser<'_, true>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -114,7 +114,7 @@ impl Gsv {
             cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
-    fn parse_satellite_last(ctx: &mut StrParser<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite_last(ctx: &mut StrParser<'_, true>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,

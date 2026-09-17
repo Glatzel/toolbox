@@ -20,11 +20,11 @@ use crate::text::rules::IRule;
 /// multi-byte UTF-8 characters. It is useful for parsing fixed-length
 /// fields based on character count rather than byte count.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct CharCount<const N: usize>;
+pub struct CharCount<const N: usize, const IS_ASCII: bool>;
 
-impl<const N: usize> IRule for CharCount<N> {}
+impl<const N: usize, const IS_ASCII: bool> IRule for CharCount<N, IS_ASCII> {}
 
-impl<const N: usize> IFlowRule for CharCount<N> {
+impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
     type Output<'a> = &'a str;
 
     /// Applies the `CharCount` rule to the input string.
@@ -39,11 +39,7 @@ impl<const N: usize> IFlowRule for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply<'a>(
-        &self,
-        input: &'a str,
-        is_ascii: bool,
-    ) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",
@@ -53,9 +49,7 @@ impl<const N: usize> IFlowRule for CharCount<N> {
             return Ok(("", 0));
         }
         clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
-        if is_ascii {
-            return ByteCount::<N>.apply(input, is_ascii);
-        }
+
         let result = input
             .char_indices()
             .nth(N)
@@ -72,34 +66,45 @@ impl<const N: usize> IFlowRule for CharCount<N> {
         Ok(result)
     }
 }
+impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
+    type Output<'a> = &'a str;
+
+    /// Applies the `CharCount` rule to the input string.
+    ///
+    /// # Returns
+    ///
+    /// - `(Some(prefix), rest)` if the input contains at least `N` characters.
+    /// - `(None, input)` if the input is shorter than `N` characters.
+    ///
+    /// # Logging
+    ///
+    /// Logs trace messages showing the input and requested character count,
+    /// debug messages showing the split position, and warnings if the input
+    /// is too short.
+    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
+        if N == 0 {
+            clerk::warn!(
+                "{:?}: count is zero, returning empty prefix and full input.",
+                self
+            );
+
+            return Ok(("", 0));
+        }
+        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
+
+        ByteCount::<N, true>.apply(input)
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
-
-    use core::marker::PhantomData;
-    use std::format;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
+    use crate::test_rule;
 
-    #[rstest::rstest]
-    #[case("ascii_exact_length","test", PhantomData::<CharCount<4>>)]
-    #[case("ascii_less_than_length","hello", PhantomData::<CharCount<2>>)]
-    #[case("ascii_more_than_length","short", PhantomData::<CharCount<10>>)]
-    #[case("ascii_zero","abc", PhantomData::<CharCount<0>>)]
-    #[case("ascii_empty_input","", PhantomData::<CharCount<0>>)]
-    #[case("utf8_less_than_length","你好世界", PhantomData::<CharCount<2>>)]
-    fn test_char_count<const C: usize>(
-        #[case] name: &str,
-        #[case] input: &str,
-        #[case] _rule: PhantomData<CharCount<C>>,
-    ) {
-        init_log_with_level(LevelFilter::TRACE);
-        let result = CharCount::<C>
-            .apply(input, input.is_ascii())
-            .map(|(out, idx)| (out, input.get(idx..).unwrap()));
-        insta::assert_debug_snapshot!(format!("{}", name), result);
-    }
+    test_rule!(ascii_exact_length, "test", CharCount::<4, true>);
+    test_rule!(ascii_less_than_length, "hello", CharCount::<2, true>);
+    test_rule!(ascii_more_than_length, "short", CharCount::<10, true>);
+    test_rule!(ascii_zero, "abc", CharCount::<0, true>);
+    test_rule!(ascii_empty_input, "", CharCount::<0, true>);
+    test_rule!(utf8_less_than_length, "你好世界", CharCount::<2, false>);
 }

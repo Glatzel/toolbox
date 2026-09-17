@@ -3,7 +3,7 @@ use core::fmt::Debug;
 use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
-use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::filters::ICharSetFilter;
 
 /// Rule that matches the first character of the input string if it belongs to
 /// a specified character set.
@@ -21,11 +21,14 @@ use crate::text::filters::{CharSetFilter, IFilter};
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct OneOfCharSet<'f, const N: usize, const IS_ASCII: bool>(pub &'f CharSetFilter<N>);
+pub struct OneOfCharSet<'f, const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool>(pub &'f F);
 
-impl<const N: usize, const IS_ASCII: bool> IRule for OneOfCharSet<'_, N, IS_ASCII> {}
+impl<'f, const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool> IRule
+    for OneOfCharSet<'f, N, F, IS_ASCII>
+{
+}
 
-impl<'f, const N: usize> IFlowRule<true> for OneOfCharSet<'f, N, true> {
+impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'f, N, F, true> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
@@ -42,7 +45,7 @@ impl<'f, const N: usize> IFlowRule<true> for OneOfCharSet<'f, N, true> {
         return Ok((*b as char, 1));
     }
 }
-impl<'f, const N: usize> IFlowRule<false> for OneOfCharSet<'f, N, false> {
+impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'f, N, F, false> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
@@ -61,35 +64,35 @@ impl<'f, const N: usize> IFlowRule<false> for OneOfCharSet<'f, N, false> {
 mod tests {
     use super::*;
     use crate::test_rule;
-    use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS};
+    use crate::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS, CharSetFilter};
 
     test_rule!(
         ascii_match,
         "a123",
-        OneOfCharSet::<62, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        OneOfCharSet::<_, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         ascii_no_match,
         "abc",
-        OneOfCharSet::<10, true>(&CHAR_SET_DIGITS)
+        OneOfCharSet::<_, _, true>(&CHAR_SET_DIGITS)
     );
 
     test_rule!(
         ascii_empty_input,
         "",
-        OneOfCharSet::<62, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        OneOfCharSet::<_, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         utf8_match,
         "你好世界",
-        OneOfCharSet::<1, false>(&CharSetFilter::new(['你']))
+        OneOfCharSet::<_, _, false>(&CharSetFilter::new(['你']))
     );
 
     test_rule!(
         utf8_no_match,
         "你好世界",
-        OneOfCharSet::<10, false>(&CHAR_SET_DIGITS)
+        OneOfCharSet::<_, _, false>(&CHAR_SET_DIGITS)
     );
 }

@@ -2,7 +2,7 @@ use core::fmt::Debug;
 
 use crate::text::filters::IFilter;
 
-pub trait ICharSetFilter<'a, const N: usize>: IFilter<&'a char> + Debug {}
+pub trait ICharSetFilter<const N: usize>: for<'a> IFilter<&'a char> + Debug {}
 
 /// A fixed, sorted set of characters for efficient membership testing.
 ///
@@ -40,7 +40,7 @@ impl<const N: usize> CharSetFilter<N> {
         Self { table }
     }
 }
-impl<const N: usize> ICharSetFilter<'_, N> for CharSetFilter<N> {}
+impl<const N: usize> ICharSetFilter<N> for CharSetFilter<N> {}
 impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     fn filter(&self, input: &char) -> bool {
         clerk::trace!(
@@ -121,7 +121,7 @@ impl<const N: usize> AsciiCharSetFilter<N> {
     /// The cached bitmask backing `contains`.
     pub const fn mask(&self) -> u128 { self.mask }
 }
-impl<const N: usize> ICharSetFilter<'_> for AsciiCharSetFilter<N> {}
+impl<const N: usize> ICharSetFilter<N> for AsciiCharSetFilter<N> {}
 impl<const N: usize> IFilter<&char> for AsciiCharSetFilter<N> {
     fn filter(&self, input: &char) -> bool {
         clerk::trace!(

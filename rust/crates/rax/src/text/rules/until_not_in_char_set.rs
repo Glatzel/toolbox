@@ -46,6 +46,7 @@ impl<'f, const N: usize> IFlowRule<false> for UntilNotInCharSet<'f, N, false> {
         Ok((input, input.len()))
     }
 }
+
 impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, N, true> {
     type Output<'a> = &'a str;
 
@@ -69,6 +70,7 @@ impl<'f, const N: usize> IFlowRule<true> for UntilNotInCharSet<'f, N, true> {
         return Ok((input, input.len()));
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -36,9 +36,7 @@ impl<const N: usize, const IS_ASCII: bool, F: ICharSetFilter<N>> IRule
 {
 }
 
-impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false>
-    for UntilNotInCharSet<'_, false, N, F>
-{
+impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for UntilNotInCharSet<'_, false, N, F> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {

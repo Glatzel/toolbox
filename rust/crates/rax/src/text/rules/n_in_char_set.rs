@@ -20,12 +20,8 @@ pub struct NInCharSet<
     const N_CHAR_SET: usize,
 >(pub &'f F);
 
-impl<
-    const N: usize,
-    const IS_ASCII: bool,
-    F: ICharSetFilter<N_CHAR_SET>,
-    const N_CHAR_SET: usize,
-> IRule for NInCharSet<'_, N, IS_ASCII, F, N_CHAR_SET>
+impl<const N: usize, const IS_ASCII: bool, F: ICharSetFilter<N_CHAR_SET>, const N_CHAR_SET: usize>
+    IRule for NInCharSet<'_, N, IS_ASCII, F, N_CHAR_SET>
 {
 }
 

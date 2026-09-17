@@ -1,6 +1,6 @@
-mod decode;
+mod parser;
 pub mod filters;
 pub mod rules;
 
-pub use decode::*;
+pub use parser::*;
 pub use rules::*;

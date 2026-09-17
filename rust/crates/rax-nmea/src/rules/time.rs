@@ -43,7 +43,7 @@ pub struct NmeaTime;
 
 impl IRule for NmeaTime {}
 
-impl rax::text::IStrFlowRule for NmeaTime {
+impl rax::text::IFlowRule for NmeaTime {
     type Output<'a> = Option<Time>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
@@ -115,7 +115,7 @@ impl rax::text::IStrFlowRule for NmeaTime {
 #[cfg(test)]
 mod tests {
     use clerk::{LevelFilter, init_log_with_level};
-    use rax::text::IStrFlowRule;
+    use rax::text::IFlowRule;
 
     use super::*;
     #[rstest::rstest]

@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::rules::UntilMode;
@@ -28,7 +28,7 @@ pub struct UntilStr {
 }
 
 impl IRule for UntilStr {}
-impl IStrFlowRule for UntilStr {
+impl IFlowRule for UntilStr {
     type Output<'a> = &'a str;
     fn apply<'a>(
         &self,

@@ -11,13 +11,17 @@ pub struct NmeaDate;
 
 impl IRule for NmeaDate {}
 
-impl rax::text::IStrFlowRule for NmeaDate {
+impl rax::text::IFlowRule for NmeaDate {
     type Output<'a> = Option<Date>;
     /// Applies the `NmeaUtc` rule to the input string.
     /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
-    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("NmeaUtc rule: input='{}'", input);
 
         let (res, advanced) =
@@ -63,7 +67,7 @@ impl rax::text::IStrFlowRule for NmeaDate {
 
 #[cfg(test)]
 mod tests {
-    use rax::text::IStrFlowRule;
+    use rax::text::IFlowRule;
 
     use super::*;
 

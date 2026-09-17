@@ -1,17 +1,12 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use rax::text::IStrFlowRule;
+use rax::text::IFlowRule;
 use rax::text::filters::{CHAR_SET_ASCII_LETTERS_DIGITS, CHAR_SET_DIGITS, CharSetFilter};
 use rax::text::rules::{
     ByteCount, Char, CharCount, NInCharSet, OneOfCharSet, UntilChar, UntilMode, UntilNInCharSet,
     UntilNotInCharSet, UntilOneInCharSet, UntilStr,
 };
 
-fn bench_rule<R: IStrFlowRule<'static>>(
-    c: &mut Criterion,
-    name: &str,
-    rule: R,
-    input: &'static str,
-) {
+fn bench_rule<R: IFlowRule>(c: &mut Criterion, name: &str, rule: R, input: &'static str) {
     c.bench_function(name, |b| b.iter(|| rule.apply(black_box(input), true)));
 }
 

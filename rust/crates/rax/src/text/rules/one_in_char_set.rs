@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -25,7 +25,7 @@ pub struct OneOfCharSet<'f, const N: usize>(pub &'f CharSetFilter<N>);
 
 impl<const N: usize> IRule for OneOfCharSet<'_, N> {}
 
-impl<'f, const N: usize> IStrFlowRule for OneOfCharSet<'f, N> {
+impl<'f, const N: usize> IFlowRule for OneOfCharSet<'f, N> {
     type Output<'a> = char;
     fn apply<'a>(
         &self,

@@ -3,10 +3,10 @@ use rax::text::{IGlobalRule, IRule};
 
 pub struct NmeaTxtLineCount;
 impl IRule for NmeaTxtLineCount {}
-impl<'a> IGlobalRule<'a> for NmeaTxtLineCount {
-    type Output = u8;
+impl IGlobalRule for NmeaTxtLineCount {
+    type Output<'a> = u8;
 
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         let s = input.split(',').nth(1).ok_or_else(|| RuleError {
             reason: "missing line count".into(),
         })?;

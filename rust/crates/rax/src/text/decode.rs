@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use crate::error::VerbError;
-use crate::text::{IGlobalRule, IStrFlowRule};
+use crate::text::{IFlowRule, IGlobalRule};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
     Take,
@@ -71,7 +71,7 @@ impl<'a> Decoder<'a> {
     /// Returns an error if the rule does not match.
     pub fn take<R>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
-        R: IStrFlowRule,
+        R: IFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },
@@ -90,7 +90,7 @@ impl<'a> Decoder<'a> {
     /// Returns an error if the rule does not match.
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
-        R: IStrFlowRule,
+        R: IFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },
@@ -108,9 +108,9 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
+    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output<'_>, VerbError>
     where
-        R: IGlobalRule<'a>,
+        R: IGlobalRule,
     {
         rule.apply(self.full)
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))

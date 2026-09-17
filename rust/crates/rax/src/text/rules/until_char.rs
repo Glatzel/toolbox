@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 /// Rule that extracts a substring from the start of the input until a
@@ -12,7 +12,7 @@ impl<const C: char> UntilChar<C> {
 }
 impl<const C: char> IRule for UntilChar<C> {}
 
-impl<const C: char> IStrFlowRule for UntilChar<C> {
+impl<const C: char> IFlowRule for UntilChar<C> {
     type Output<'a> = &'a str;
 
     /// Applies the `UntilChar` rule to the input string.
@@ -20,7 +20,11 @@ impl<const C: char> IStrFlowRule for UntilChar<C> {
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply<'a>(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        _is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,

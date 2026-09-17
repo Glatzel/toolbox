@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -40,7 +40,7 @@ pub struct UntilNInCharSet<'f, const N: usize, const M: usize> {
 
 impl<const N: usize, const M: usize> IRule for UntilNInCharSet<'_, N, M> {}
 
-impl<'f, const N: usize, const M: usize> IStrFlowRule for UntilNInCharSet<'f, N, M> {
+impl<'f, const N: usize, const M: usize> IFlowRule for UntilNInCharSet<'f, N, M> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(

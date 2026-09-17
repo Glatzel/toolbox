@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -25,7 +25,7 @@ pub struct NInCharSet<'f, const N: usize, const M: usize>(pub &'f CharSetFilter<
 
 impl<const N: usize, const M: usize> IRule for NInCharSet<'_, N, M> {}
 
-impl<'f, const N: usize, const M: usize> IStrFlowRule for NInCharSet<'f, N, M> {
+impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
     type Output<'a> = &'a str;
 
     /// Applies the `NInCharSet` rule to the input string.
@@ -41,7 +41,11 @@ impl<'f, const N: usize, const M: usize> IStrFlowRule for NInCharSet<'f, N, M> {
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));

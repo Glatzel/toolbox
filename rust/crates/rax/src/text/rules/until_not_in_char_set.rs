@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -33,10 +33,14 @@ pub struct UntilNotInCharSet<'f, const N: usize> {
 
 impl<const N: usize> IRule for UntilNotInCharSet<'_, N> {}
 
-impl<'f, const N: usize> IStrFlowRule for UntilNotInCharSet<'f, N> {
+impl<'f, const N: usize> IFlowRule for UntilNotInCharSet<'f, N> {
     type Output<'a> = &'a str;
 
-    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         if is_ascii {
             if let Some(mask) = self.filter.ascii_mask() {
                 // Fast path: bitmask, no per-byte filter() dispatch

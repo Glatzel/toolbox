@@ -62,7 +62,7 @@ pub trait IRule {
 /// Flow rules operate on a slice of the input string and return
 /// a tuple of the parsed value (or `None` if no match) and the
 /// remaining unparsed string.
-pub trait IStrFlowRule: IRule {
+pub trait IFlowRule: IRule {
     /// Type of the value produced by this rule.
     type Output<'a>;
 
@@ -81,10 +81,10 @@ pub trait IStrFlowRule: IRule {
 ///
 /// Global rules return a value based on the full input string
 /// and do not consume or track the remaining input.
-pub trait IGlobalRule<'a>: IRule {
+pub trait IGlobalRule: IRule {
     /// Type of the value produced by this rule.
-    type Output;
+    type Output<'a>;
 
     /// Apply the rule to the full input.
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError>;
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError>;
 }

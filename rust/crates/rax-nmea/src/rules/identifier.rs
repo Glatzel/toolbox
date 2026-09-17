@@ -8,10 +8,10 @@ use crate::common::Identifier;
 pub struct NmeaIdentifier;
 
 impl IRule for NmeaIdentifier {}
-impl<'a> IGlobalRule<'a> for NmeaIdentifier {
-    type Output = Identifier;
+impl IGlobalRule for NmeaIdentifier {
+    type Output<'a> = Identifier;
 
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         let s = input.get(3..6).ok_or_else(|| RuleError {
             reason: "missing identifier".into(),
         })?;

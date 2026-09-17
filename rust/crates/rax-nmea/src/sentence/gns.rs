@@ -5,7 +5,7 @@ use core::fmt::Debug;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -59,8 +59,8 @@ pub struct Gns {
     nav_status: Option<GnsNavigationStatus>,
 }
 
-impl IDecode<RaxNmeaError> for Gns {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gns {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
@@ -153,8 +153,8 @@ mod test {
     #[case("2", "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59")]
     fn test_gns(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gns = Gns::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gns = Gns::parse_str(&mut decoder)?;
         println!("{gns:?}");
         insta::assert_json_snapshot!(index, gns);
         Ok(())

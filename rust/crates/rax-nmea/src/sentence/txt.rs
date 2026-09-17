@@ -3,7 +3,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -31,8 +31,8 @@ pub struct Txt {
     message: Vec<(TxtType, String)>,
 }
 
-impl IDecode<RaxNmeaError> for Txt {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Txt {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
@@ -67,8 +67,8 @@ mod test {
     )]
     fn test_txt(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let txt = Txt::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let txt = Txt::parse_str(&mut decoder)?;
         println!("{txt:?}");
         insta::assert_json_snapshot!(index, txt);
         Ok(())

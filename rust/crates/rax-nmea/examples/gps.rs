@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use clerk::LevelFilter;
-use rax::text::Decoder;
+use rax::text::StrParser;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
 use rax_nmea::sentence::*;
@@ -40,7 +40,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             return Ok(collector);
         }
 
-        let mut probe = Decoder::new(&buf);
+        let mut probe = StrParser::new(&buf);
         let identifier = probe.global(&NmeaIdentifier)?;
         let talker = probe.global(&NmeaTalker)?;
         // For multi-line sentences, accumulate all lines into buf first
@@ -59,7 +59,7 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             }
             _ => {}
         }
-        let mut decoder = Decoder::new(&buf);
+        let mut decoder = StrParser::new(&buf);
         decoder.global(&NmeaValidateMultiLine)?;
         match identifier {
             Identifier::DHV => collector.push(Dispatcher::DHV(talker, decoder.decode()?)),

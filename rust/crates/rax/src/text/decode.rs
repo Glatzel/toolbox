@@ -8,8 +8,8 @@ pub enum Verb {
     Skip,
     Global,
 }
-pub trait IDecode<E>: Sized {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, E>;
+pub trait IParseStr<E>: Sized {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, E>;
 }
 /// Maintains parsing state for string-based parsers.
 ///
@@ -17,7 +17,7 @@ pub trait IDecode<E>: Sized {
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Decoder<'a> {
+pub struct StrParser<'a> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
@@ -25,7 +25,7 @@ pub struct Decoder<'a> {
     is_ascii: bool,
 }
 
-impl<'a> Decoder<'a> {
+impl<'a> StrParser<'a> {
     pub fn new<S>(input: &'a S) -> Self
     where
         S: AsRef<str> + ?Sized,
@@ -61,11 +61,11 @@ impl<'a> Decoder<'a> {
         self
     }
 }
-impl Default for Decoder<'_> {
+impl Default for StrParser<'_> {
     fn default() -> Self { Self::new("") }
 }
 
-impl<'a> Decoder<'a> {
+impl<'a> StrParser<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
@@ -116,11 +116,11 @@ impl<'a> Decoder<'a> {
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
-impl Decoder<'_> {
+impl StrParser<'_> {
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
-        D: IDecode<E>,
+        D: IParseStr<E>,
     {
-        D::decode(self)
+        D::parse_str(self)
     }
 }

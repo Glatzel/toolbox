@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -33,8 +33,8 @@ pub struct Gst {
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
-impl IDecode<RaxNmeaError> for Gst {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gst {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let std_major = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -69,8 +69,8 @@ mod test {
     #[case("1", "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54")]
     fn test_gst(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gst = Gst::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gst = Gst::parse_str(&mut decoder)?;
         println!("{gst:?}");
         insta::assert_json_snapshot!(index, gst);
         Ok(())

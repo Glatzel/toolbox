@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
@@ -42,8 +42,8 @@ pub struct Grs {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IDecode<RaxNmeaError> for Grs {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Grs {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -96,8 +96,8 @@ mod test {
     #[case("2", "$GNGRS,181604.00,1,,,,,,,,,,,,*5A")]
     fn test_grs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let grs = Grs::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let grs = Grs::parse_str(&mut decoder)?;
         println!("{grs:?}");
         insta::assert_json_snapshot!(index, grs);
         Ok(())

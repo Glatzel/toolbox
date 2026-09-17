@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -28,8 +28,8 @@ pub struct Gll {
     /// FAA mode
     pos_mode: Option<FaaMode>,
 }
-impl IDecode<RaxNmeaError> for Gll {
-    fn decode(ctx: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gll {
+    fn parse_str(ctx: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");
@@ -69,8 +69,8 @@ mod test {
     #[case("1", "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E")]
     fn test_gll(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gll = Gll::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gll = Gll::parse_str(&mut decoder)?;
         println!("{gll:?}");
         insta::assert_json_snapshot!(index, gll);
         Ok(())

@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -28,8 +28,8 @@ pub struct Zda {
     ltzn: Option<u8>,
 }
 
-impl IDecode<RaxNmeaError> for Zda {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Zda {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let day = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let month = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -59,8 +59,8 @@ mod test {
     #[case("1", "$GPZDA,160012.71,11,03,2004,-1,00*7D")]
     fn test_zda(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let zda = Zda::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let zda = Zda::parse_str(&mut decoder)?;
         println!("{zda:?}");
         insta::assert_json_snapshot!(index, zda);
         Ok(())

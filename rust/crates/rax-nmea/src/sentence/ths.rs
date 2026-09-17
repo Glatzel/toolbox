@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -16,8 +16,8 @@ pub struct Ths {
     /// Mode indicator
     mi: Option<FaaMode>,
 }
-impl IDecode<RaxNmeaError> for Ths {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Ths {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let headt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -40,8 +40,8 @@ mod test {
     #[case("1", "$GPTHS,77.52,E*34")]
     fn test_ths(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let ths = Ths::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let ths = Ths::parse_str(&mut decoder)?;
         println!("{ths:?}");
         insta::assert_json_snapshot!(index, ths);
         Ok(())

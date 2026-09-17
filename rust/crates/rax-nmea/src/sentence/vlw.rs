@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::UNTIL_COMMA_DISCARD;
@@ -22,8 +22,8 @@ pub struct Vlw {
     gd: Option<f64>,
 }
 
-impl IDecode<RaxNmeaError> for Vlw {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Vlw {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let twd = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -49,8 +49,8 @@ mod test {
     #[case("1", "$GPVLW,,N,,N,15.8,N,1.2,N*65")]
     fn test_vlw(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let vlw = Vlw::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let vlw = Vlw::parse_str(&mut decoder)?;
         println!("{vlw:?}");
         insta::assert_json_snapshot!(index, vlw);
         Ok(())

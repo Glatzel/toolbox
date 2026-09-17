@@ -4,7 +4,7 @@ use alloc::string::String;
 use core::fmt;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -17,8 +17,8 @@ pub struct Gpq {
     /// Message ID of the message to be polled
     msg_id: Option<String>,
 }
-impl IDecode<RaxNmeaError> for Gpq {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gpq {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let msg_id = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?
@@ -52,8 +52,8 @@ mod test {
     #[case("1", "$EIGPQ,RMC*3A")]
     fn test_gpq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gpq = Gpq::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gpq = Gpq::parse_str(&mut decoder)?;
         println!("{gpq:?}");
         insta::assert_json_snapshot!(index, gpq);
         Ok(())

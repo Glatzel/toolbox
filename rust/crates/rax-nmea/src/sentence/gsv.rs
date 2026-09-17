@@ -3,7 +3,7 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -40,8 +40,8 @@ pub struct Gsv {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IDecode<RaxNmeaError> for Gsv {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gsv {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
@@ -106,7 +106,7 @@ impl IDecode<RaxNmeaError> for Gsv {
     }
 }
 impl Gsv {
-    fn parse_satellite(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite(ctx: &mut StrParser<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -114,7 +114,7 @@ impl Gsv {
             cno: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
         })
     }
-    fn parse_satellite_last(ctx: &mut Decoder<'_>) -> Result<Satellite, RaxNmeaError> {
+    fn parse_satellite_last(ctx: &mut StrParser<'_>) -> Result<Satellite, RaxNmeaError> {
         Ok(Satellite {
             svid: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
             elv: ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?,
@@ -146,8 +146,8 @@ mod test {
     )]
     fn test_gsv(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gsv = Gsv::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gsv = Gsv::parse_str(&mut decoder)?;
         println!("{gsv:?}");
         insta::assert_json_snapshot!(index, gsv);
         Ok(())

@@ -26,17 +26,17 @@ use crate::text::rules::UntilMode;
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information at each split or if all characters are in the set.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UntilNotInCharSet<'a, const N: usize> {
-    pub filter: &'a CharSetFilter<N>,
+pub struct UntilNotInCharSet<'f, const N: usize> {
+    pub filter: &'f CharSetFilter<N>,
     pub mode: UntilMode,
 }
 
 impl<const N: usize> IRule for UntilNotInCharSet<'_, N> {}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for UntilNotInCharSet<'a, N> {
-    type Output = &'a str;
+impl<'f, const N: usize> IStrFlowRule for UntilNotInCharSet<'f, N> {
+    type Output<'a> = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         if is_ascii {
             if let Some(mask) = self.filter.ascii_mask() {
                 // Fast path: bitmask, no per-byte filter() dispatch

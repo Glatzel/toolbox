@@ -12,15 +12,15 @@ impl<const C: char> UntilChar<C> {
 }
 impl<const C: char> IRule for UntilChar<C> {}
 
-impl<'a, const C: char> IStrFlowRule<'a> for UntilChar<C> {
-    type Output = &'a str;
+impl<const C: char> IStrFlowRule for UntilChar<C> {
+    type Output<'a> = &'a str;
 
     /// Applies the `UntilChar` rule to the input string.
     ///
     /// - Scans the input from the start until the delimiter `C` is found.
     /// - Returns a tuple `(prefix, rest)` split according to `self.mode`.
     /// - If the delimiter is not found, returns `(None, input)`.
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?} rule: input='{:?}', char='{}', mode={:?}",
             self,

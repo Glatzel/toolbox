@@ -20,8 +20,8 @@ pub struct ByteCount<const N: usize>;
 
 impl<const N: usize> IRule for ByteCount<N> {}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
-    type Output = &'a str;
+impl<const N: usize> IStrFlowRule for ByteCount<N> {
+    type Output<'a> = &'a str;
 
     /// Applies the `ByteCount` rule to the input string.
     ///
@@ -30,7 +30,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for ByteCount<N> {
     /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
     ///   the split occurs on a valid UTF-8 boundary.
     /// - `(None, input)` otherwise.
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         input.get(..N).map_or_else(
             || {
                 Err(RuleError {

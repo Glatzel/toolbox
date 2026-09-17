@@ -28,9 +28,13 @@ pub struct UntilStr {
 }
 
 impl IRule for UntilStr {}
-impl<'a> IStrFlowRule<'a> for UntilStr {
-    type Output = &'a str;
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+impl IStrFlowRule for UntilStr {
+    type Output<'a> = &'a str;
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        _is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,

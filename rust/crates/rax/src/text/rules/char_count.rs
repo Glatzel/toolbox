@@ -24,8 +24,8 @@ pub struct CharCount<const N: usize>;
 
 impl<const N: usize> IRule for CharCount<N> {}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
-    type Output = &'a str;
+impl<const N: usize> IStrFlowRule for CharCount<N> {
+    type Output<'a> = &'a str;
 
     /// Applies the `CharCount` rule to the input string.
     ///
@@ -39,7 +39,7 @@ impl<'a, const N: usize> IStrFlowRule<'a> for CharCount<N> {
     /// Logs trace messages showing the input and requested character count,
     /// debug messages showing the split position, and warnings if the input
     /// is too short.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!(
                 "{:?}: count is zero, returning empty prefix and full input.",

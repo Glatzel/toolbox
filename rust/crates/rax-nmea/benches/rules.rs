@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rax::text::{IGlobalRule, IStrFlowRule};
 use rax_nmea::rules::*;
-fn bench_rule<R: IStrFlowRule<'static>>(
+fn bench_rule<R: IStrFlowRule>(
     c: &mut Criterion,
     name: &str,
     rule: R,

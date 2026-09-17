@@ -62,15 +62,19 @@ pub trait IRule {
 /// Flow rules operate on a slice of the input string and return
 /// a tuple of the parsed value (or `None` if no match) and the
 /// remaining unparsed string.
-pub trait IStrFlowRule<'a>: IRule {
+pub trait IStrFlowRule: IRule {
     /// Type of the value produced by this rule.
-    type Output;
+    type Output<'a>;
 
     /// Apply the rule to the given input.
     ///
     /// Returns `(Some(output), remaining)` if the rule matches,
     /// or `(None, remaining)` if it does not match.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError>;
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError>;
 }
 
 /// Trait for rules that operate on the entire input (global rules).

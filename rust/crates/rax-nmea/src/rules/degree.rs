@@ -17,10 +17,10 @@ pub struct NmeaDegree;
 
 impl IRule for NmeaDegree {}
 
-impl<'a> IStrFlowRule<'a> for NmeaDegree {
-    type Output = Option<f64>;
+impl IStrFlowRule for NmeaDegree {
+    type Output<'a> = Option<f64>;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
         let (deg_str, advanced1) =

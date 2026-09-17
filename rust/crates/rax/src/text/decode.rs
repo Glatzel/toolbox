@@ -69,9 +69,9 @@ impl<'a> Decoder<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
+    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
-        R: IStrFlowRule<'a>,
+        R: IStrFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },
@@ -90,7 +90,7 @@ impl<'a> Decoder<'a> {
     /// Returns an error if the rule does not match.
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
-        R: IStrFlowRule<'a>,
+        R: IStrFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },

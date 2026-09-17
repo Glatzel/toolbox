@@ -18,8 +18,8 @@ pub struct Char<const C: char>;
 
 impl<const C: char> IRule for Char<C> {}
 
-impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
-    type Output = char;
+impl<const C: char> IStrFlowRule for Char<C> {
+    type Output<'a> = char;
 
     /// Applies the `Char` rule to the input string.
     ///
@@ -34,7 +34,7 @@ impl<'a, const C: char> IStrFlowRule<'a> for Char<C> {
     /// - Trace-level logs show the input and the expected character.
     /// - Debug-level logs show whether a match occurred and the resulting rest
     ///   of the input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if is_ascii && C.is_ascii() {
             // C is a const generic, so `C.is_ascii()` and `C as u8` are

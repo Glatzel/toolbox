@@ -2,15 +2,18 @@ use core::fmt::Debug;
 
 use crate::error::VerbError;
 use crate::text::{IFlowRule, IGlobalRule};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
     Take,
     Skip,
     Global,
 }
+
 pub trait IParseStr<E>: Sized {
     fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, E>;
 }
+
 /// Maintains parsing state for string-based parsers.
 ///
 /// [`Decoder`] stores the full input string and a pointer
@@ -23,6 +26,15 @@ pub struct StrParser<'a> {
     /// Pointer to the remaining unconsumed portion of the input.
     cursor: usize,
     is_ascii: bool,
+}
+
+impl<'a> StrParser<'a> {
+    pub fn parse<D, E>(&mut self) -> Result<D, E>
+    where
+        D: IParseStr<E>,
+    {
+        D::parse_str(self)
+    }
 }
 
 impl<'a> StrParser<'a> {
@@ -61,6 +73,7 @@ impl<'a> StrParser<'a> {
         self
     }
 }
+
 impl Default for StrParser<'_> {
     fn default() -> Self { Self::new("") }
 }
@@ -116,6 +129,7 @@ impl<'a> StrParser<'a> {
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
+
 impl StrParser<'_> {
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where

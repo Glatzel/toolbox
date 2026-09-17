@@ -144,9 +144,9 @@ fn use_trait_parser(f: &str) -> mischief::Result<Vec<Dispatcher>> {
     Ok(collector)
 }
 const FILES: &[&str] = &[
-    include_str!("external/nmea/tests/data/nmea1.log"),
-    include_str!("external/nmea/tests/data/nmea2.log"),
-    include_str!("external/nmea/tests/data/nmea_with_sat_info.log"),
+    include_str!("../external/nmea/tests/data/nmea1.log"),
+    include_str!("../external/nmea/tests/data/nmea2.log"),
+    include_str!("../external/nmea/tests/data/nmea_with_sat_info.log"),
 ];
 fn bench_reuse_parser(c: &mut Criterion) {
     c.bench_function("validate", |b| {

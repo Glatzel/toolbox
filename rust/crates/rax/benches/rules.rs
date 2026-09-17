@@ -29,7 +29,7 @@ fn benches(c: &mut Criterion) {
     bench_rule(
         c,
         "until_char",
-        UntilChar::<';'> {
+        UntilChar::<';', true> {
             mode: UntilMode::KeepInRest,
         },
         "123;abc",
@@ -37,7 +37,7 @@ fn benches(c: &mut Criterion) {
     bench_rule(
         c,
         "until_n_in_char_set",
-        UntilNInCharSet::<2, 10> {
+        UntilNInCharSet::<2, true, _> {
             filter: &CHAR_SET_DIGITS,
             mode: UntilMode::KeepInRest,
         },

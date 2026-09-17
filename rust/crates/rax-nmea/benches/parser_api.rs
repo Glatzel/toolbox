@@ -157,7 +157,7 @@ fn bench_reuse_parser(c: &mut Criterion) {
         })
     });
 }
-fn bench_reuse_parser(c: &mut Criterion) {
+fn bench_use_trait_parser(c: &mut Criterion) {
     c.bench_function("validate", |b| {
         b.iter(|| {
             for text in FILES {

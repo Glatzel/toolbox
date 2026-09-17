@@ -4,8 +4,8 @@ use rax_nmea::RaxNmeaError;
 
 fn bench_nmea<'a, F, D, T>(c: &mut Criterion, name: &str, sentence: &'static str, ctor: F)
 where
-    F: Fn(&mut StrParser) -> Result<D, RaxNmeaError> + 'static,
-    D: IParseStr<T>,
+    F: Fn(&mut StrParser<true>) -> Result<D, RaxNmeaError> + 'static,
+    D: IParseStr<T, true>,
 {
     let mut ctx = StrParser::new(&sentence);
     c.bench_function(name, move |b| {

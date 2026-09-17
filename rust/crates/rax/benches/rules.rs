@@ -52,7 +52,7 @@ fn benches(c: &mut Criterion) {
         },
         "123abc",
     );
-    const FILTER: CharSetFilter<2> = CharSetFilter::<2>::new([',', '*']);
+    const FILTER: AsciiCharSetFilter<2> = AsciiCharSetFilter::new([',', '*']);
     bench_rule(
         c,
         "until_one_in_char_set",

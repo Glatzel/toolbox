@@ -58,8 +58,9 @@ pub struct Gsa {
     system_id: Option<SystemId>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Gsa {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gsa {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let op_mode = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -104,21 +105,19 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Gsa {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38")]
-    #[case("2", "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B")]
-    fn test_gsa(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let gsa = Gsa::parse_str(&mut decoder)?;
-        println!("{gsa:?}");
-        insta::assert_json_snapshot!(index, gsa);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gsa1,
+        1,
+        Gsa,
+        "$GNGSA,A,3,05,07,13,14,15,17,19,23,24,,,,1.0,0.7,0.7,1*38"
+    );
+    test_sentence!(
+        test_gsa2,
+        2,
+        Gsa,
+        "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B"
+    );
 }

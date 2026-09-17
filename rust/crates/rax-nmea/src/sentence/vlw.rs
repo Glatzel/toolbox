@@ -22,8 +22,9 @@ pub struct Vlw {
     gd: Option<f64>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Vlw {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Vlw {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let twd = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -40,19 +41,8 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Vlw {
 
 #[cfg(test)]
 mod test {
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPVLW,,N,,N,15.8,N,1.2,N*65")]
-    fn test_vlw(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let vlw = Vlw::parse_str(&mut decoder)?;
-        println!("{vlw:?}");
-        insta::assert_json_snapshot!(index, vlw);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(test_vlw1, 1, Vlw, "$GPVLW,,N,,N,15.8,N,1.2,N*65");
 }

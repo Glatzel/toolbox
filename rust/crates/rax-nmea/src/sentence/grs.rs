@@ -42,8 +42,9 @@ pub struct Grs {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Grs {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Grs {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -85,21 +86,14 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Grs {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55")]
-    #[case("2", "$GNGRS,181604.00,1,,,,,,,,,,,,*5A")]
-    fn test_grs(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let grs = Grs::parse_str(&mut decoder)?;
-        println!("{grs:?}");
-        insta::assert_json_snapshot!(index, grs);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_grs1,
+        1,
+        Grs,
+        "$GPGRS,220320.0,0,-0.8,-0.2,-0.1,-0.2,0.8,0.6,,,,,,,*55"
+    );
+    test_sentence!(test_grs2, 2, Grs, "$GNGRS,181604.00,1,,,,,,,,,,,,*5A");
 }

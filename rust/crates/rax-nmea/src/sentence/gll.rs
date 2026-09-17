@@ -28,8 +28,9 @@ pub struct Gll {
     /// FAA mode
     pos_mode: Option<FaaMode>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Gll {
-    fn parse_str(ctx: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gll {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut ctx = StrParser::new(input);
         clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
         clerk::debug!("Parsing lat...");
@@ -59,20 +60,13 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Gll {
 
 #[cfg(test)]
 mod test {
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
-    extern crate std;
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E")]
-    fn test_gll(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let gll = Gll::parse_str(&mut decoder)?;
-        println!("{gll:?}");
-        insta::assert_json_snapshot!(index, gll);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gll,
+        1,
+        Gll,
+        "$GPGLL,2959.9925,S,12000.0090,E,235316.000,A,A*4E"
+    );
 }

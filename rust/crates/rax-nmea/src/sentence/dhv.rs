@@ -27,8 +27,9 @@ pub struct Dhv {
     /// Ground speed (meters/second)
     gdspd: Option<f64>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Dhv {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Dhv {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let speed3d = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let speed_x = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -49,20 +50,13 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Dhv {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65")]
-    fn test_dhv(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let dhv = Dhv::parse_str(&mut decoder)?;
-        println!("{dhv:?}");
-        insta::assert_json_snapshot!(index, dhv);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_dhv,
+        1,
+        Dhv,
+        "$GNDHV,021150.000,0.03,0.006,-0.042,-0.026,0.06*65"
+    );
 }

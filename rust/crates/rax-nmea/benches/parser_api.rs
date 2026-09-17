@@ -32,7 +32,7 @@ pub enum Dispatcher {
 }
 
 fn reuse_parser(f: &str) -> mischief::Result<Vec<Dispatcher>> {
-    let mut reader = BufReader::new(File::open(f)?);
+    let mut reader = BufReader::new(f.as_bytes());
     let mut buf = String::new();
     let mut collector = Vec::<Dispatcher>::new();
     while reader.read_line(&mut buf).is_ok() {
@@ -88,7 +88,7 @@ fn reuse_parser(f: &str) -> mischief::Result<Vec<Dispatcher>> {
     Ok(collector)
 }
 fn use_trait_parser(f: &str) -> mischief::Result<Vec<Dispatcher>> {
-    let mut reader = BufReader::new(File::open(f)?);
+    let mut reader = BufReader::new(f.as_bytes());
     let mut buf = String::new();
     let mut collector = Vec::<Dispatcher>::new();
     while reader.read_line(&mut buf).is_ok() {

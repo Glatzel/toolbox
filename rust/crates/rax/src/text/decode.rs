@@ -16,9 +16,11 @@ pub trait IParseStr<E>: Sized {
 
 /// Maintains parsing state for string-based parsers.
 ///
-/// [`Decoder`] stores the full input string and a pointer
+/// [`StrParser`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
+///
+/// The lifetime `'a` is tied to the input string reference.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct StrParser<'a> {
     /// The full input string.

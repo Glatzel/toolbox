@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -40,8 +40,8 @@ pub struct Dtm {
     /// Offset in altitude
     alt: Option<f64>,
 }
-impl IDecode<RaxNmeaError> for Dtm {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Dtm {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let datum = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -73,8 +73,8 @@ mod test {
     #[case("1", "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B")]
     fn test_dtm(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let dtm = Dtm::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let dtm = Dtm::parse_str(&mut decoder)?;
         println!("{dtm:?}");
         insta::assert_json_snapshot!(index, dtm);
         Ok(())

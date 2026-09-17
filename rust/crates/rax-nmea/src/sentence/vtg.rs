@@ -1,5 +1,5 @@
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -25,8 +25,8 @@ pub struct Vtg {
     pos_mode: Option<FaaMode>,
 }
 
-impl IDecode<RaxNmeaError> for Vtg {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Vtg {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let cogt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -65,8 +65,8 @@ mod test {
     #[case("1", "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22")]
     fn test_vtg(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let vtg = Vtg::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let vtg = Vtg::parse_str(&mut decoder)?;
         println!("{vtg:?}");
         insta::assert_json_snapshot!(index, vtg);
         Ok(())

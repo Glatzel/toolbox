@@ -3,10 +3,10 @@ use rax::text::{IGlobalRule, IRule};
 
 pub struct NmeaGsvLineCount;
 impl IRule for NmeaGsvLineCount {}
-impl<'a> IGlobalRule<'a> for NmeaGsvLineCount {
-    type Output = u8;
+impl IGlobalRule for NmeaGsvLineCount {
+    type Output<'a> = u8;
 
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         let s = input.split(',').nth(1).ok_or_else(|| RuleError {
             reason: "missing second field".into(),
         })?;

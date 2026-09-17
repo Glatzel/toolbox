@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::text::{IRule, IStrFlowRule};
+use rax::text::{IFlowRule, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -22,12 +22,16 @@ impl NmeaCoord {
         deg + min / 60.0
     }
 }
-impl<'a> IStrFlowRule<'a> for NmeaCoord {
-    type Output = Option<f64>;
+impl IFlowRule for NmeaCoord {
+    type Output<'a> = Option<f64>;
     /// Applies the `NmeaCoord` rule to the input string.
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("NmeaCoord rule: input='{}'", input);
 
         let (num_str, advanced1) =

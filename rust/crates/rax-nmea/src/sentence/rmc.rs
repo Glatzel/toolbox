@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::{Date, Time};
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -62,8 +62,8 @@ pub struct Rmc {
     nav_status: Option<RmcNavigationStatus>,
 }
 
-impl IDecode<RaxNmeaError> for Rmc {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Rmc {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let status = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let lat = parser.take(&NmeaCoord)?;
@@ -110,8 +110,8 @@ mod test {
     #[case("3", "$GPRMC,,V,,,,,,,,,,N,V*29")]
     fn test_rmc(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let rmc = Rmc::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let rmc = Rmc::parse_str(&mut decoder)?;
         println!("{rmc:?}");
         insta::assert_json_snapshot!(index, rmc);
         Ok(())

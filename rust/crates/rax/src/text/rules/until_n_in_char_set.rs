@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -33,17 +33,21 @@ use crate::text::rules::UntilMode;
 /// - Returns `(None, input)` if fewer than N characters in the set are found.
 /// - Respects UTF-8 character boundaries and logs trace/debug information.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UntilNInCharSet<'a, const N: usize, const M: usize> {
-    pub filter: &'a CharSetFilter<M>,
+pub struct UntilNInCharSet<'f, const N: usize, const M: usize> {
+    pub filter: &'f CharSetFilter<M>,
     pub mode: UntilMode,
 }
 
 impl<const N: usize, const M: usize> IRule for UntilNInCharSet<'_, N, M> {}
 
-impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for UntilNInCharSet<'a, N, M> {
-    type Output = &'a str;
+impl<'f, const N: usize, const M: usize> IFlowRule for UntilNInCharSet<'f, N, M> {
+    type Output<'a> = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));

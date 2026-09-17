@@ -8,10 +8,10 @@ use crate::common::Talker;
 pub struct NmeaTalker;
 
 impl IRule for NmeaTalker {}
-impl<'a> IGlobalRule<'a> for NmeaTalker {
-    type Output = Talker;
+impl IGlobalRule for NmeaTalker {
+    type Output<'a> = Talker;
 
-    fn apply(&self, input: &'a str) -> Result<Self::Output, RuleError> {
+    fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         let s = input.get(1..3).ok_or_else(|| RuleError {
             reason: "missing talker".into(),
         })?;

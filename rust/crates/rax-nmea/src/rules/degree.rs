@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::format;
 
 use rax::error::RuleError;
-use rax::text::{IRule, IStrFlowRule};
+use rax::text::{IFlowRule, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
@@ -17,10 +17,14 @@ pub struct NmeaDegree;
 
 impl IRule for NmeaDegree {}
 
-impl<'a> IStrFlowRule<'a> for NmeaDegree {
-    type Output = Option<f64>;
+impl IFlowRule for NmeaDegree {
+    type Output<'a> = Option<f64>;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         // Log the input at trace level.
         clerk::trace!("{:?}: input='{}'", self, input);
         let (deg_str, advanced1) =

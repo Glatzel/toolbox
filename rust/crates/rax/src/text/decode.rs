@@ -1,23 +1,28 @@
 use core::fmt::Debug;
 
 use crate::error::VerbError;
-use crate::text::{IGlobalRule, IStrFlowRule};
+use crate::text::{IFlowRule, IGlobalRule};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
     Take,
     Skip,
     Global,
 }
-pub trait IDecode<E>: Sized {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, E>;
+
+pub trait IParseStr<E>: Sized {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, E>;
 }
+
 /// Maintains parsing state for string-based parsers.
 ///
-/// [`Decoder`] stores the full input string and a pointer
+/// [`StrParser`] stores the full input string and a pointer
 /// to the remaining portion of the string that has not yet been consumed.
 /// It provides utilities to take, skip, and apply rules sequentially.
+///
+/// The lifetime `'a` is tied to the input string reference.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Decoder<'a> {
+pub struct StrParser<'a> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
@@ -25,7 +30,16 @@ pub struct Decoder<'a> {
     is_ascii: bool,
 }
 
-impl<'a> Decoder<'a> {
+impl<'a> StrParser<'a> {
+    pub fn parse<D, E>(&mut self) -> Result<D, E>
+    where
+        D: IParseStr<E>,
+    {
+        D::parse_str(self)
+    }
+}
+
+impl<'a> StrParser<'a> {
     pub fn new<S>(input: &'a S) -> Self
     where
         S: AsRef<str> + ?Sized,
@@ -61,17 +75,18 @@ impl<'a> Decoder<'a> {
         self
     }
 }
-impl Default for Decoder<'_> {
+
+impl Default for StrParser<'_> {
     fn default() -> Self { Self::new("") }
 }
 
-impl<'a> Decoder<'a> {
+impl<'a> StrParser<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
+    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
-        R: IStrFlowRule<'a>,
+        R: IFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },
@@ -90,7 +105,7 @@ impl<'a> Decoder<'a> {
     /// Returns an error if the rule does not match.
     pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
-        R: IStrFlowRule<'a>,
+        R: IFlowRule,
     {
         match rule.apply(
             unsafe { self.full.get_unchecked(self.cursor..) },
@@ -108,19 +123,20 @@ impl<'a> Decoder<'a> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output, VerbError>
+    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output<'_>, VerbError>
     where
-        R: IGlobalRule<'a>,
+        R: IGlobalRule,
     {
         rule.apply(self.full)
             .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
     }
 }
-impl Decoder<'_> {
+
+impl StrParser<'_> {
     pub fn decode<D, E>(&mut self) -> Result<D, E>
     where
-        D: IDecode<E>,
+        D: IParseStr<E>,
     {
-        D::decode(self)
+        D::parse_str(self)
     }
 }

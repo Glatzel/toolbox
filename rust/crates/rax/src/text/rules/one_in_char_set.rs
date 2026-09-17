@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -21,13 +21,17 @@ use crate::text::filters::{CharSetFilter, IFilter};
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct OneOfCharSet<'a, const N: usize>(pub &'a CharSetFilter<N>);
+pub struct OneOfCharSet<'f, const N: usize>(pub &'f CharSetFilter<N>);
 
 impl<const N: usize> IRule for OneOfCharSet<'_, N> {}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for OneOfCharSet<'a, N> {
-    type Output = char;
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+impl<'f, const N: usize> IFlowRule for OneOfCharSet<'f, N> {
+    type Output<'a> = char;
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
         if is_ascii {
             let b = input.as_bytes().first().ok_or_else(|| RuleError {

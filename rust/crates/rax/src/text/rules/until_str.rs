@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::rules::UntilMode;
@@ -28,9 +28,13 @@ pub struct UntilStr {
 }
 
 impl IRule for UntilStr {}
-impl<'a> IStrFlowRule<'a> for UntilStr {
-    type Output = &'a str;
-    fn apply(&self, input: &'a str, _is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+impl IFlowRule for UntilStr {
+    type Output<'a> = &'a str;
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        _is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!(
             "{:?}: input='{}', delimiter='{}', mode={:?}",
             self,

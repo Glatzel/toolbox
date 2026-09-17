@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use derive_getters::Getters;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -58,8 +58,8 @@ pub struct Gsa {
     system_id: Option<SystemId>,
 }
 
-impl IDecode<RaxNmeaError> for Gsa {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gsa {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -115,8 +115,8 @@ mod test {
     #[case("2", "$GPGSA,A,3,05,07,08,10,15,17,18,19,30,,,,1.2,0.9,0.8*3B")]
     fn test_gsa(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gsa = Gsa::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gsa = Gsa::parse_str(&mut decoder)?;
         println!("{gsa:?}");
         insta::assert_json_snapshot!(index, gsa);
         Ok(())

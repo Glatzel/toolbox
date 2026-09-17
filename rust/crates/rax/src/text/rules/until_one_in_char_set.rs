@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -25,17 +25,21 @@ use crate::text::rules::UntilMode;
 /// - Respects UTF-8 character boundaries.
 /// - Logs debug information for each split or if no match is found.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct UntilOneInCharSet<'a, const N: usize> {
-    pub filter: &'a CharSetFilter<N>,
+pub struct UntilOneInCharSet<'f, const N: usize> {
+    pub filter: &'f CharSetFilter<N>,
     pub mode: UntilMode,
 }
 
 impl<const N: usize> IRule for UntilOneInCharSet<'_, N> {}
 
-impl<'a, const N: usize> IStrFlowRule<'a> for UntilOneInCharSet<'a, N> {
-    type Output = &'a str;
+impl<'f, const N: usize> IFlowRule for UntilOneInCharSet<'f, N> {
+    type Output<'a> = &'a str;
 
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         if is_ascii {
             if let Some(mask) = self.filter.ascii_mask() {
                 return input

@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{Decoder, IDecode};
+use rax::text::{IParseStr, StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -72,8 +72,8 @@ pub struct Gga {
     /// Differential reference station ID, 0000-1023
     diff_station: Option<u16>,
 }
-impl IDecode<RaxNmeaError> for Gga {
-    fn decode(parser: &mut Decoder<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError> for Gga {
+    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
@@ -152,8 +152,8 @@ mod test {
     )]
     fn test_gga(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
         init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = Decoder::new(input);
-        let gga = Gga::decode(&mut decoder)?;
+        let mut decoder = StrParser::new(input);
+        let gga = Gga::parse_str(&mut decoder)?;
         println!("{gga:?}");
         insta::assert_json_snapshot!(index, gga);
         Ok(())

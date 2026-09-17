@@ -1,4 +1,4 @@
-use super::IStrFlowRule;
+use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{CharSetFilter, IFilter};
@@ -21,12 +21,12 @@ use crate::text::filters::{CharSetFilter, IFilter};
 /// - `N`: Number of characters to match at the start of the input.
 /// - `M`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NInCharSet<'a, const N: usize, const M: usize>(pub &'a CharSetFilter<M>);
+pub struct NInCharSet<'f, const N: usize, const M: usize>(pub &'f CharSetFilter<M>);
 
 impl<const N: usize, const M: usize> IRule for NInCharSet<'_, N, M> {}
 
-impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, M> {
-    type Output = &'a str;
+impl<'f, const N: usize, const M: usize> IFlowRule for NInCharSet<'f, N, M> {
+    type Output<'a> = &'a str;
 
     /// Applies the `NInCharSet` rule to the input string.
     ///
@@ -41,7 +41,11 @@ impl<'a, const N: usize, const M: usize> IStrFlowRule<'a> for NInCharSet<'a, N, 
     ///
     /// - Debug-level logs indicate matches, unmatched characters, and
     ///   insufficient input.
-    fn apply(&self, input: &'a str, is_ascii: bool) -> Result<(Self::Output, usize), RuleError> {
+    fn apply<'a>(
+        &self,
+        input: &'a str,
+        is_ascii: bool,
+    ) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));

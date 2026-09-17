@@ -5,16 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2026.9.14] - 2026-09-14
+## [2026.9.14] - 2026-09-17
 
 ### Changed
 
 - **(ttyw)** Change default shell by @Glatzel in [#805](https://github.com/Glatzel/toolbox/pull/805)
 - **(rax)** Change api name by @Glatzel in [#812](https://github.com/Glatzel/toolbox/pull/812)
+- **(rax)** Change api and rule lifetime by @Glatzel in [#817](https://github.com/Glatzel/toolbox/pull/817)
+- Dispatch rule by @Glatzel in [#818](https://github.com/Glatzel/toolbox/pull/818)
 
 ### Fixed
 
 - **(ttyw)** Input number key by @Glatzel in [#804](https://github.com/Glatzel/toolbox/pull/804)
+- Fuzz test by @Glatzel in [#816](https://github.com/Glatzel/toolbox/pull/816)
 
 ## [2026.9.10] - 2026-09-09
 

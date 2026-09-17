@@ -1,51 +1,29 @@
 use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::IRule;
-use crate::text::filters::{CharSetFilter, IFilter};
+use crate::text::filters::{CharSetFilter, ICharSetFilter, IFilter};
 
-/// Rule that matches if the first `N` characters of the input are all in a
-/// specified character set.
+/// Matches exactly `N` characters from an ASCII-only char set.
 ///
-/// `NInCharSet<'a, N, M>` takes a reference to a [`CharSetFilter<M>`] and
-/// checks the first `N` characters of the input string. If all `N` characters
-/// are present in the character set, it returns a tuple `(Some(matched), rest)`
-/// where `matched` is the substring of the first `N` characters and `rest` is
-/// the remainder of the input. Otherwise, it returns `(None, input)`.
-///
-/// This rule respects UTF-8 boundaries and stops immediately on the first
-/// character that does not belong to the set, or if the input is too short.
-///
-/// # Type Parameters
-///
-/// - `'a`: Lifetime of the character set reference.
-/// - `N`: Number of characters to match at the start of the input.
-/// - `M`: Size of the character set (length of the `CharSetFilter`).
+/// Because the wrapped [`AsciiCharSetFilter`] guarantees ASCII-only
+/// entries at compile time, every matched character is exactly one byte,
+/// so this walks `input` by byte index instead of by UTF-8 char boundary
+/// (no `char_indices` overhead), and membership testing is
+/// `AsciiCharSetFilter::contains` — a single shift + mask, no per-call
+/// `Option` unwrap.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NInCharSet<'f, const N: usize, const M: usize, const IS_ASCII: bool>(
-    pub &'f CharSetFilter<M>,
-);
+pub struct NInAsciiCharSet<'f, F: ICharSetFilter<'f, N>, const N: usize, const M: usize>(pub &'f F);
 
-impl<const N: usize, const M: usize, const IS_ASCII: bool> IRule
-    for NInCharSet<'_, N, M, IS_ASCII>
+impl<'f, F: ICharSetFilter<'f, N>, const N: usize, const M: usize> IRule
+    for NInAsciiCharSet<'f, F, N, M>
 {
 }
 
-impl<'f, const N: usize, const M: usize> IFlowRule<true> for NInCharSet<'f, N, M, true> {
+impl<'f, F: ICharSetFilter<'f, N>, const N: usize, const M: usize> IFlowRule<true>
+    for NInAsciiCharSet<'f, F, N, M>
+{
     type Output<'a> = &'a str;
 
-    /// Applies the `NInCharSet` rule to the input string.
-    ///
-    /// # Returns
-    ///
-    /// - `(Some(matched), rest)` if the first `N` characters are all in the
-    ///   character set.
-    /// - `(None, input)` if a character is not in the set before reaching `N`,
-    ///   or if the input has fewer than `N` characters.
-    ///
-    /// # Logging
-    ///
-    /// - Debug-level logs indicate matches, unmatched characters, and
-    ///   insufficient input.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
@@ -60,32 +38,17 @@ impl<'f, const N: usize, const M: usize> IFlowRule<true> for NInCharSet<'f, N, M
             });
         }
 
-        if let Some(mask) = self.0.ascii_mask() {
-            // Fast path: bitmask, no per-byte filter() dispatch
-            for (i, &b) in bytes.iter().enumerate().take(N) {
-                if mask & (1_u128 << u32::from(b)) == 0 {
-                    clerk::debug!(
-                        "{:?} did not match: char '{}' not in set at byte pos {}",
-                        self,
-                        b as char,
-                        i
-                    );
-                    return Err(RuleError {
-                        reason: "char not in set".into(),
-                    });
-                }
-            }
-            return Ok(unsafe { (input.get_unchecked(..N), N) });
-        }
-
-        // Fallback: table has non-ASCII entries
         for (i, &b) in bytes.iter().enumerate().take(N) {
-            let c = b as char;
-            if !self.0.filter(&c) {
+            // `b` may be >= 0x80 (a lead/continuation byte of a multi-byte
+            // UTF-8 char). `contains` checks `is_ascii()` first and
+            // returns `false` for those rather than shifting out of
+            // range, so this is also a correctness fix over shifting a
+            // u128 by a raw byte value up to 255 directly.
+            if !self.0.contains(b as char) {
                 clerk::debug!(
                     "{:?} did not match: char '{}' not in set at byte pos {}",
                     self,
-                    c,
+                    b as char,
                     i
                 );
                 return Err(RuleError {
@@ -93,25 +56,21 @@ impl<'f, const N: usize, const M: usize> IFlowRule<true> for NInCharSet<'f, N, M
                 });
             }
         }
-        return Ok(unsafe { (input.get_unchecked(..N), N) });
+
+        Ok(unsafe { (input.get_unchecked(..N), N) })
     }
 }
-impl<'f, const N: usize, const M: usize> IFlowRule<false> for NInCharSet<'f, N, M, false> {
+
+/// Matches exactly `N` characters from a general (possibly non-ASCII)
+/// char set.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct NInCharSet<'f, const N: usize, const M: usize>(pub &'f CharSetFilter<M>);
+
+impl<const N: usize, const M: usize> IRule for NInCharSet<'_, N, M> {}
+
+impl<'f, const N: usize, const M: usize> IFlowRule<false> for NInCharSet<'f, N, M> {
     type Output<'a> = &'a str;
 
-    /// Applies the `NInCharSet` rule to the input string.
-    ///
-    /// # Returns
-    ///
-    /// - `(Some(matched), rest)` if the first `N` characters are all in the
-    ///   character set.
-    /// - `(None, input)` if a character is not in the set before reaching `N`,
-    ///   or if the input has fewer than `N` characters.
-    ///
-    /// # Logging
-    ///
-    /// - Debug-level logs indicate matches, unmatched characters, and
-    ///   insufficient input.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             clerk::warn!("N is 0, returning empty string");
@@ -127,7 +86,6 @@ impl<'f, const N: usize, const M: usize> IFlowRule<false> for NInCharSet<'f, N, 
                     c,
                     i
                 );
-
                 return Err(RuleError {
                     reason: "char not in set".into(),
                 });

@@ -13,11 +13,11 @@ fn bench_rule<R: IFlowRule<true>>(c: &mut Criterion, name: &str, rule: R, input:
 fn benches(c: &mut Criterion) {
     bench_rule(c, "byte_count", ByteCount::<2, true>, "hello");
     bench_rule(c, "char_count", CharCount::<2, true>, "110324,foo,bar");
-    bench_rule(c, "char", Char::<'a'>, "a123");
+    bench_rule(c, "char", Char::<'a', true>, "a123");
     bench_rule(
         c,
         "n_in_char_set",
-        NInCharSet::<3, 62>(&CHAR_SET_ASCII_LETTERS_DIGITS),
+        NInCharSet::<4, true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS),
         "abc123",
     );
     bench_rule(

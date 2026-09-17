@@ -28,8 +28,8 @@ pub struct Zda {
     ltzn: Option<u8>,
 }
 
-impl IParseStr<RaxNmeaError> for Zda {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Zda {
+    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let day = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let month = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

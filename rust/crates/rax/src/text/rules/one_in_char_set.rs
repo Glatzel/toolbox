@@ -21,14 +21,14 @@ use crate::text::filters::ICharSetFilter;
 /// - `'a`: Lifetime of the character set reference.
 /// - `N`: Size of the character set (length of the `CharSetFilter`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct OneOfCharSet<'f, const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool>(pub &'f F);
+pub struct OneOfCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>>(pub &'f F);
 
 impl<'f, const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool> IRule
-    for OneOfCharSet<'f, N, F, IS_ASCII>
+    for OneOfCharSet<'f, IS_ASCII, N, F>
 {
 }
 
-impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'f, N, F, true> {
+impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'f, true, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
@@ -45,7 +45,7 @@ impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<
         return Ok((*b as char, 1));
     }
 }
-impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'f, N, F, false> {
+impl<'f, const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'f, false, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         clerk::trace!("OneOfCharSet rule: input='{}'", input);
@@ -69,30 +69,30 @@ mod tests {
     test_rule!(
         ascii_match,
         "a123",
-        OneOfCharSet::<_, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        OneOfCharSet::<true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         ascii_no_match,
         "abc",
-        OneOfCharSet::<_, _, true>(&CHAR_SET_DIGITS)
+        OneOfCharSet::<true, _, _>(&CHAR_SET_DIGITS)
     );
 
     test_rule!(
         ascii_empty_input,
         "",
-        OneOfCharSet::<_, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        OneOfCharSet::<true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         utf8_match,
         "你好世界",
-        OneOfCharSet::<_, _, false>(&CharSetFilter::new(['你']))
+        OneOfCharSet::<false, _, _>(&CharSetFilter::new(['你']))
     );
 
     test_rule!(
         utf8_no_match,
         "你好世界",
-        OneOfCharSet::<_, _, false>(&CHAR_SET_DIGITS)
+        OneOfCharSet::<true, _, _>(&CHAR_SET_DIGITS)
     );
 }

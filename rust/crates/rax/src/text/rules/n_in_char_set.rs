@@ -15,23 +15,23 @@ use crate::text::filters::{AsciiCharSetFilter, CharSetFilter, ICharSetFilter, IF
 pub struct NInCharSet<
     'f,
     const N: usize,
+    const IS_ASCII: bool,
     F: ICharSetFilter<N_CHAR_SET>,
     const N_CHAR_SET: usize,
-    const IS_ASCII: bool,
 >(pub &'f F);
 
 impl<
     'f,
-    F: ICharSetFilter<N_CHAR_SET>,
     const N: usize,
-    const N_CHAR_SET: usize,
     const IS_ASCII: bool,
-> IRule for NInCharSet<'f, N, F, N_CHAR_SET, IS_ASCII>
+    F: ICharSetFilter<N_CHAR_SET>,
+    const N_CHAR_SET: usize,
+> IRule for NInCharSet<'f, N, IS_ASCII, F, N_CHAR_SET>
 {
 }
 
 impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
-    for NInCharSet<'f, N, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET, true>
+    for NInCharSet<'f, N, true, AsciiCharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 
@@ -66,45 +66,9 @@ impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
         return Ok(unsafe { (input.get_unchecked(..N), N) });
     }
 }
-impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
-    for NInCharSet<'f, N, CharSetFilter<N_CHAR_SET>, N_CHAR_SET, true>
-{
-    type Output<'a> = &'a str;
-
-    fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        if N == 0 {
-            clerk::warn!("N is 0, returning empty string");
-            return Ok(("", 0));
-        }
-
-        let bytes = input.as_bytes();
-
-        if bytes.len() < N {
-            return Err(RuleError {
-                reason: "input too short or not enough chars in set".into(),
-            });
-        }
-
-        for (i, &b) in bytes.iter().enumerate().take(N) {
-            let c = b as char;
-            if !self.0.filter(&c) {
-                clerk::debug!(
-                    "{:?} did not match: char '{}' not in set at byte pos {}",
-                    self,
-                    c,
-                    i
-                );
-                return Err(RuleError {
-                    reason: "char not in set".into(),
-                });
-            }
-        }
-        return Ok(unsafe { (input.get_unchecked(..N), N) });
-    }
-}
 
 impl<'f, const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
-    for NInCharSet<'f, N, CharSetFilter<N_CHAR_SET>, N_CHAR_SET, false>
+    for NInCharSet<'f, N, false, CharSetFilter<N_CHAR_SET>, N_CHAR_SET>
 {
     type Output<'a> = &'a str;
 
@@ -153,66 +117,42 @@ mod tests {
     test_rule!(
         ascii_match,
         "abc123",
-        NInCharSet::<4, _, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        NInCharSet::<4, true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         ascii_no_match,
         "12abc",
-        NInCharSet::<3, _, _, true>(&CHAR_SET_DIGITS)
+        NInCharSet::<3, true, _, _>(&CHAR_SET_DIGITS)
     );
 
     test_rule!(
         ascii_too_short,
         "ab",
-        NInCharSet::<4, _, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
+        NInCharSet::<4, true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         ascii_empty_input,
         "",
-        NInCharSet::<1, _, _, true>(&CHAR_SET_ASCII_LETTERS_DIGITS)
-    );
-
-    test_rule!(
-        ascii_fallback_match,
-        "abc123",
-        NInCharSet::<4, _, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
-    );
-
-    test_rule!(
-        ascii_fallback_no_match,
-        "abx123",
-        NInCharSet::<4, _, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
-    );
-
-    test_rule!(
-        ascii_fallback_too_short,
-        "abc",
-        NInCharSet::<4, _, _, true>(&CharSetFilter::new(['a', 'b', 'c', '1', '你']))
+        NInCharSet::<1, true, _, _>(&CHAR_SET_ASCII_LETTERS_DIGITS)
     );
 
     test_rule!(
         utf8_match,
         "你好世界",
-        NInCharSet::<2, _, _, false>(&CharSetFilter::new(['你', '好']))
-    );
-
-    test_rule!(
-        utf8_no_match,
-        "你好世界",
-        NInCharSet::<3, _, _, false>(&CHAR_SET_DIGITS)
+        NInCharSet::<2, false, _, _>(&CharSetFilter::new(['你', '好']))
     );
 
     test_rule!(
         utf8_too_short,
         "你",
-        NInCharSet::<5, _, _, false>(&CharSetFilter::new(['你', '好']))
+        NInCharSet::<5, false, _, _>(&CharSetFilter::new(['你', '好']))
     );
 
     test_rule!(
         zero_n,
         "abc123",
-        NInCharSet::<0, _, _, false>(&CharSetFilter::new(['你', '好']))
+        NInCharSet::<0, false, _, _>(&CharSetFilter::new(['你', '好']))
     );
 }

@@ -15,8 +15,8 @@ pub struct Glq {
     /// Message ID of the message to be polled
     msg_id: Option<String>,
 }
-impl IParseStr<RaxNmeaError> for Glq {
-    fn parse_str(ctx: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Glq {
+    fn parse_str(ctx: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
         let msg_id = ctx
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?

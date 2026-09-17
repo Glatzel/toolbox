@@ -8,7 +8,7 @@ mod time;
 mod txt_line_count;
 mod validate;
 
-use rax::text::filters::CharSetFilter;
+use rax::text::filters::AsciiCharSetFilter;
 use rax::text::rules::{UntilChar, UntilMode, UntilOneInCharSet};
 
 pub use crate::rules::coord::NmeaCoord;
@@ -37,11 +37,13 @@ pub const UNTIL_NEW_LINE_DISCARD: UntilChar<'\n', true> = UntilChar {
     mode: UntilMode::Discard,
 };
 
-pub const UNTIL_COMMA_OR_STAR_DISCARD: UntilOneInCharSet<'_, 2, true> = UntilOneInCharSet {
-    filter: &CharSetFilter::new([',', '*']),
-    mode: UntilMode::Discard,
-};
-pub const UNTIL_COMMA_OR_STAR_KEEP_RIGHT: UntilOneInCharSet<'_, 2, true> = UntilOneInCharSet {
-    filter: &CharSetFilter::new([',', '*']),
-    mode: UntilMode::KeepInRest,
-};
+pub const UNTIL_COMMA_OR_STAR_DISCARD: UntilOneInCharSet<true, 2, AsciiCharSetFilter<2>> =
+    UntilOneInCharSet {
+        filter: &AsciiCharSetFilter::new([',', '*']),
+        mode: UntilMode::Discard,
+    };
+pub const UNTIL_COMMA_OR_STAR_KEEP_RIGHT: UntilOneInCharSet<true, 2, AsciiCharSetFilter<2>> =
+    UntilOneInCharSet {
+        filter: &AsciiCharSetFilter::new([',', '*']),
+        mode: UntilMode::KeepInRest,
+    };

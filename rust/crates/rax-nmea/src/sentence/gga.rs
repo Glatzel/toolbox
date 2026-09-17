@@ -72,8 +72,8 @@ pub struct Gga {
     /// Differential reference station ID, 0000-1023
     diff_station: Option<u16>,
 }
-impl IParseStr<RaxNmeaError> for Gga {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gga {
+    fn parse_str(parser: &mut StrParser<true>) -> Result<Self, RaxNmeaError> {
         clerk::trace!("Gga::new: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");

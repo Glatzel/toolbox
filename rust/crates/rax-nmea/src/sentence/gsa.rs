@@ -58,8 +58,8 @@ pub struct Gsa {
     system_id: Option<SystemId>,
 }
 
-impl IParseStr<RaxNmeaError> for Gsa {
-    fn parse_str(parser: &mut StrParser<'_>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gsa {
+    fn parse_str(parser: &mut StrParser<'_, true>) -> Result<Self, RaxNmeaError> {
         let op_mode = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?

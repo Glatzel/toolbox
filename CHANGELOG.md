@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(rax)** Change api name by @Glatzel in [#812](https://github.com/Glatzel/toolbox/pull/812)
 - **(rax)** Change api and rule lifetime by @Glatzel in [#817](https://github.com/Glatzel/toolbox/pull/817)
 - Dispatch rule by @Glatzel in [#818](https://github.com/Glatzel/toolbox/pull/818)
+- Change parser lifetime by @Glatzel in [#820](https://github.com/Glatzel/toolbox/pull/820)
+- **(rax)** Optimize parser by @Glatzel in [#822](https://github.com/Glatzel/toolbox/pull/822)
 
 ### Fixed
 

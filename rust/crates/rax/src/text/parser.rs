@@ -10,8 +10,8 @@ pub enum Verb {
     Global,
 }
 
-pub trait IParseStr<'a, E, const IS_ASCII: bool>: Sized {
-    fn parse_str(parser: &mut StrParser<'a, IS_ASCII>) -> Result<Self, E>;
+pub trait IParseStr<E, const IS_ASCII: bool>: Sized {
+    fn parse_str(input: &str) -> Result<Self, E>;
 }
 
 /// Maintains parsing state for string-based parsers.
@@ -32,9 +32,9 @@ pub struct StrParser<'a, const IS_ASCII: bool> {
 impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     pub fn parse<D, E>(&'a mut self) -> Result<D, E>
     where
-        D: IParseStr<'a, E, IS_ASCII>,
+        D: IParseStr<E, IS_ASCII>,
     {
-        D::parse_str(self)
+        D::parse_str(self.rest_str())
     }
 }
 

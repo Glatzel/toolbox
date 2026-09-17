@@ -25,8 +25,9 @@ pub struct Vtg {
     pos_mode: Option<FaaMode>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Vtg {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Vtg {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let cogt = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -56,19 +57,8 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Vtg {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22")]
-    fn test_vtg(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let vtg = Vtg::parse_str(&mut decoder)?;
-        println!("{vtg:?}");
-        insta::assert_json_snapshot!(index, vtg);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(test_vtg1, 1, Vtg, "$GPVTG,83.7,T,83.7,M,146.3,N,271.0,K,D*22");
 }

@@ -59,8 +59,9 @@ pub struct Gns {
     nav_status: Option<GnsNavigationStatus>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Gns {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gns {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
         clerk::debug!("Parsing utc_time...");
@@ -143,20 +144,14 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Gns {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57")]
-    #[case("2", "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59")]
-    fn test_gns(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let gns = Gns::parse_str(&mut decoder)?;
-        println!("{gns:?}");
-        insta::assert_json_snapshot!(index, gns);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gns1,
+        1,
+        Gns,
+        "$GPGNS,112257.00,3844.24011,N,00908.43828,W,AN,03,10.5,,*57"
+    );
+    test_sentence!(test_gns2, 2, Gns, "$GNGNS,181604.00,,,,,NN,00,99.99,,,,*59");
 }

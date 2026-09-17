@@ -40,8 +40,9 @@ pub struct Dtm {
     /// Offset in altitude
     alt: Option<f64>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Dtm {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Dtm {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let datum = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
@@ -63,20 +64,8 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Dtm {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B")]
-    fn test_dtm(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let dtm = Dtm::parse_str(&mut decoder)?;
-        println!("{dtm:?}");
-        insta::assert_json_snapshot!(index, dtm);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(test_dtm, 1, Dtm, "$GPDTM,999,,0.08,N,0.07,E,-47.7,W84*1B");
 }

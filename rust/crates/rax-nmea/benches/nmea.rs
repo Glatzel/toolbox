@@ -6,7 +6,7 @@ use rax_nmea::sentence::*;
 
 fn bench_nmea<D, E>(c: &mut Criterion, name: &str, sentence: &str)
 where
-    for<'a> D: IParseStr<'a, E, true>,
+    D: IParseStr<E, true>,
     E: Debug,
 {
     c.bench_function(name, move |b| {

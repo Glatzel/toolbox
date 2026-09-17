@@ -17,8 +17,9 @@ pub struct Gpq {
     /// Message ID of the message to be polled
     msg_id: Option<String>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Gpq {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gpq {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let msg_id = parser
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?
@@ -42,20 +43,8 @@ impl fmt::Debug for Gpq {
 
 #[cfg(test)]
 mod test {
-
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$EIGPQ,RMC*3A")]
-    fn test_gpq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let gpq = Gpq::parse_str(&mut decoder)?;
-        println!("{gpq:?}");
-        insta::assert_json_snapshot!(index, gpq);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(test_gpq, 1, Gpq, "$EIGPQ,RMC*3A");
 }

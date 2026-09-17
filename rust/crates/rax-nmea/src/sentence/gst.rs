@@ -33,8 +33,9 @@ pub struct Gst {
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Gst {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Gst {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let std_major = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
@@ -59,20 +60,12 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Gst {
 
 #[cfg(test)]
 mod test {
-    extern crate std;
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54")]
-    fn test_gst(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let gst = Gst::parse_str(&mut decoder)?;
-        println!("{gst:?}");
-        insta::assert_json_snapshot!(index, gst);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_gst,1,
+        Gst,
+        "$GPGST,182141.000,15.5,15.3,7.2,21.8,0.9,0.5,0.8*54"
+    );
 }

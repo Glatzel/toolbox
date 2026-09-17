@@ -15,8 +15,9 @@ pub struct Glq {
     /// Message ID of the message to be polled
     msg_id: Option<String>,
 }
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Glq {
-    fn parse_str(ctx: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Glq {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut ctx = StrParser::new(input);
         let msg_id = ctx
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_STAR_DISCARD)?
@@ -28,19 +29,8 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Glq {
 
 #[cfg(test)]
 mod test {
-    use std::println;
-
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
     use super::*;
-    #[rstest::rstest]
-    #[case("1", "$EIGLQ,RMC*26")]
-    fn test_glq(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let glq = Glq::parse_str(&mut decoder)?;
-        println!("{glq:?}");
-        insta::assert_json_snapshot!(index, glq);
-        Ok(())
-    }
+    use crate::test_sentence;
+
+    test_sentence!(test_glq,1, Glq, "$EIGLQ,RMC*26");
 }

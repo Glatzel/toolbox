@@ -62,8 +62,9 @@ pub struct Rmc {
     nav_status: Option<RmcNavigationStatus>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Rmc {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Rmc {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let status = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let lat = parser.take(&NmeaCoord)?;
@@ -95,25 +96,15 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Rmc {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
-
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case(
-        "1",
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_rmc1,
+        1,
+        Rmc,
         "$GPRMC,110125,A,5505.337580,N,03858.653666,E,148.8,84.6,310317,8.9,E,D*2E"
-    )]
-    #[case("2", "$GPRMC,,V,,,,,,,,,,N*53")]
-    #[case("3", "$GPRMC,,V,,,,,,,,,,N,V*29")]
-    fn test_rmc(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let rmc = Rmc::parse_str(&mut decoder)?;
-        println!("{rmc:?}");
-        insta::assert_json_snapshot!(index, rmc);
-        Ok(())
-    }
+    );
+    test_sentence!(test_rmc2, 2, Rmc, "$GPRMC,,V,,,,,,,,,,N*53");
+    test_sentence!(test_rmc3, 3, Rmc, "$GPRMC,,V,,,,,,,,,,N,V*29");
 }

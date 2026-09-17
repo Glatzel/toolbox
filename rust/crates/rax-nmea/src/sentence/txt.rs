@@ -31,8 +31,9 @@ pub struct Txt {
     message: Vec<(TxtType, String)>,
 }
 
-impl<'a> IParseStr<'a, RaxNmeaError, true> for Txt {
-    fn parse_str(parser: &mut StrParser<'a, true>) -> Result<Self, RaxNmeaError> {
+impl IParseStr<RaxNmeaError, true> for Txt {
+    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+        let mut parser = StrParser::new(input);
         clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
@@ -55,22 +56,12 @@ impl<'a> IParseStr<'a, RaxNmeaError, true> for Txt {
 
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
-    extern crate std;
-    use std::println;
-
     use super::*;
-    #[rstest::rstest]
-    #[case(
-        "1",
+    use crate::test_sentence;
+
+    test_sentence!(
+        test_txt,1,
+        Txt,
         "$GPTXT,03,01,02,MA=CASIC*25\r\n$GPTXT,03,02,02,IC=ATGB03+ATGR201*70\r\n$GPTXT,03,03,02,SW=URANUS2,V2.2.1.0*1D"
-    )]
-    fn test_txt(#[case] index: &str, #[case] input: &str) -> mischief::Result<()> {
-        init_log_with_level(LevelFilter::TRACE);
-        let mut decoder = StrParser::new(input);
-        let txt = Txt::parse_str(&mut decoder)?;
-        println!("{txt:?}");
-        insta::assert_json_snapshot!(index, txt);
-        Ok(())
-    }
+    );
 }

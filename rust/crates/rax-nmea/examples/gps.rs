@@ -41,27 +41,27 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
             return Ok(collector);
         }
 
-        let mut probe = StrParser::new(&buf);
-        let identifier = probe.global(&NmeaIdentifier)?;
-        let talker = probe.global(&NmeaTalker)?;
+        let identifier = StrParser::global(&buf, &NmeaIdentifier)?;
+        let talker = StrParser::global(&buf, &NmeaTalker)?;
         // For multi-line sentences, accumulate all lines into buf first
         match identifier {
             Identifier::GSV => {
-                let count = probe.global(&NmeaGsvLineCount)?;
+                let count = StrParser::global(&buf, &NmeaGsvLineCount)?;
                 for _ in 0..count - 1 {
                     reader.read_line(&mut buf)?; // buf borrow is free here
                 }
             }
             Identifier::TXT => {
-                let count = probe.global(&NmeaTxtLineCount)?;
+                let count = StrParser::global(&buf, &NmeaTxtLineCount)?;
                 for _ in 0..count - 1 {
                     reader.read_line(&mut buf)?;
                 }
             }
             _ => {}
         }
+
+        StrParser::global(&buf, &NmeaValidateMultiLine)?;
         let mut parser = StrParser::new(&buf);
-        parser.global(&NmeaValidateMultiLine)?;
         match identifier {
             Identifier::DHV => collector.push(Dispatcher::DHV(talker, parser.parse()?)),
             Identifier::DTM => collector.push(Dispatcher::DTM(talker, parser.parse()?)),

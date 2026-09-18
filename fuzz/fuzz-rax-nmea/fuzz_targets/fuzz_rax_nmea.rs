@@ -4,7 +4,9 @@ use libfuzzer_sys::fuzz_target;
 use rax::text::{IFlowRule, IGlobalRule, IParseStr};
 
 fuzz_target!(|data: &[u8]| {
-    if let Ok(s) = std::str::from_utf8(data) && s.is_ascii(){
+    if let Ok(s) = std::str::from_utf8(data)
+        && s.is_ascii()
+    {
         let _ = rax_nmea::rules::NmeaCoord.apply(s);
         let _ = rax_nmea::rules::NmeaDate.apply(s);
         let _ = rax_nmea::rules::NmeaDegree.apply(s);

@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader};
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rax::text::{IParseStr, StrParser};
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
@@ -150,10 +150,6 @@ fn bench_use_trait_parser(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    benches_group,
-    bench_reuse_parser,
-    bench_use_trait_parser
-);
+criterion_group!(benches_group, bench_reuse_parser, bench_use_trait_parser);
 
 criterion_main!(benches_group);

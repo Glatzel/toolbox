@@ -111,11 +111,11 @@ impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(&mut self, rule: &R) -> Result<R::Output<'_>, VerbError>
+    pub fn global<R>(input: &'a str, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
         R: IGlobalRule<IS_ASCII>,
     {
-        rule.apply(self.full)
-            .map_err(|e| e.to_verb::<R>(Verb::Global, self.full))
+        rule.apply(input)
+            .map_err(|e| e.to_verb::<R>(Verb::Global, input))
     }
 }

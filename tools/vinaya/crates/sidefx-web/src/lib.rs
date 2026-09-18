@@ -188,7 +188,7 @@ impl SideFXWeb {
                 server_code,
                 products.as_ref()
             ],
-            {"version": version.map(std::string::ToString::to_string).unwrap_or_default()}
+            {"version": version.map_or_default(std::string::ToString::to_string)}
         ]);
         let response = self
             .client

@@ -1,8 +1,10 @@
+#[cfg(feature = "backend-phastft")]
 pub mod phastft;
+#[cfg(feature = "backend-rustfft")]
 pub mod rustfft;
 
 use num_complex::{Complex, ComplexFloat};
-pub use phastft::RealPhastftBackend;
+
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum FftError {
     #[error("size not equal, real: {real}, imag: {imag}")]

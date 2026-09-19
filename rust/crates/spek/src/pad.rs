@@ -3,6 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::iter::Sum;
 
+use generic_num::num;
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
@@ -139,7 +140,7 @@ where
                 padded.extend_from_slice(signal);
 
                 for i in 0..pad_after {
-                    let alpha = num!(i + 1) / num!(pad_after + 1).unwrap();
+                    let alpha = num!(i + 1) / num!(pad_after + 1);
 
                     padded.push(last * (T::one() - alpha));
                 }

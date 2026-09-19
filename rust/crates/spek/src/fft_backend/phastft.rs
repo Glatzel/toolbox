@@ -120,3 +120,26 @@ impl<const N_FFT: usize> IComplexFftBackend<f32, N_FFT> for ComplexPhastftBacken
         )
     }
 }
+impl<const N_FFT: usize> IComplexFftBackend<f64, N_FFT> for ComplexPhastftBackend<f64, N_FFT> {
+    fn fft_unchecked(&self, buffer: &mut [num_complex::Complex<f64>]) {
+        fft_f64_dit_interleaved_with_planner_and_opts(
+            buffer,
+            Direction::Forward,
+            &self.planar,
+            &self.options,
+        )
+    }
+
+    fn ifft_unchecked(
+        &self,
+        buffer: &mut [num_complex::Complex<f64>],
+        scratch: &mut [num_complex::Complex<f64>],
+    ) {
+        fft_f64_dit_interleaved_with_planner_and_opts(
+            buffer,
+            Direction::Inverse,
+            &self.planar,
+            &self.options,
+        )
+    }
+}

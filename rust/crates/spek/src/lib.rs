@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-mod error;
-mod stft;
+
 pub mod pad;
+pub mod stft;
 pub mod windows;
-pub use error::SpekError;
+pub mod spectogram;
+pub mod fft_backend;

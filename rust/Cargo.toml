@@ -22,7 +22,6 @@ defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 insta = "1.48.0"
 jiff = { version = "0.2.37", default-features = false, features = ["perf-inline"] }
-num-complex = "0.4.6"
 num-traits = "0.2.19"
 owo-colors = "4.4.0"
 phastft = { version = "0.4.1", default-features = false }

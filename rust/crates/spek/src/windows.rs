@@ -52,6 +52,7 @@ pub enum WindowError {
 /// at the cost of a wider main lobe. Windows such as `FlatTop` prioritize
 /// amplitude accuracy, while `Dpss` is designed for concentration of energy
 /// within a chosen bandwidth.
+#[derive(Debug, Clone, PartialEq)]
 pub enum Window<T>
 where
     T: Float + FloatConst,

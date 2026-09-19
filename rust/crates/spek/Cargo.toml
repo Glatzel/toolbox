@@ -9,6 +9,8 @@ num-traits.workspace = true
 thiserror.workspace = true
 rayon = { workspace = true, optional = true }
 phastft.workspace = true
+rustfft.workspace = true
+num-complex.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

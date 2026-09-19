@@ -3,6 +3,7 @@ use alloc::vec::Vec;
 
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
+
 #[derive(Debug, Clone, PartialEq, Error)]
 pub enum SpectrogramError {
     #[error("frame index out of bounds, index: {index}, frames: {frames}")]

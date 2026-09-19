@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
-use crate::pad::{IPad, PadError};
+use crate::pad::PadError;
 use crate::spectogram::{Spectrogram, SpectrogramError};
 use crate::windows::{Window, WindowError};
 
@@ -22,39 +22,32 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct Stft<T, const FFT_SIZE: usize, PAD, FftBackend>
+pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend>
 where
     T: Float + FloatConst,
-    PAD: IPad<T>,
     FftBackend: crate::fft_backend::IFftBackend<T, FFT_SIZE>,
 {
     hop_size: usize,
     win_size: usize,
     window: Vec<T>,
-    center: bool,
-    pad_mode: PAD,
     fft_backend: FftBackend,
 }
-impl<T, const FFT_SIZE: usize, PAD, FftBackend> Stft<T, FFT_SIZE, PAD, FftBackend>
+
+impl<T, const FFT_SIZE: usize, FftBackend> RealImagStft<T, FFT_SIZE, FftBackend>
 where
     T: Float + FloatConst,
-    PAD: IPad<T>,
     FftBackend: crate::fft_backend::IFftBackend<T, FFT_SIZE>,
 {
     pub fn new(
         hop_size: usize,
         win_size: usize,
         window: Window<T>,
-        center: bool,
-        pad_mode: PAD,
         fft_backend: FftBackend,
     ) -> Result<Self, StftError> {
         Ok(Self {
             hop_size,
             win_size,
             window: window.window(win_size, false)?,
-            center,
-            pad_mode,
             fft_backend,
         })
     }
@@ -96,13 +89,6 @@ where
         Ok((real, imag))
     }
     pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<T>, StftError> {
-        let signal = if self.center {
-            self.pad_mode
-                .pad(signal, self.win_size / 2, self.win_size / 2)?
-        } else {
-            signal.to_vec()
-        };
-
         let mut spectrogram = Spectrogram::new(self.frame_count(&signal), FFT_SIZE / 2 + 1);
         for start in (0..signal.len() - self.frame_count(&signal)) {
             let frame = self.frame_unchecked(&signal[start..start + self.win_size]);
@@ -112,4 +98,5 @@ where
 
         Ok(spectrogram)
     }
+    pub fn istft(&self) { todo!() }
 }

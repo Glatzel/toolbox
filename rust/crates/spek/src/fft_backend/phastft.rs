@@ -24,25 +24,23 @@ macro_rules! impl_phastft {
             }
         }
 
-        impl<const N_FFT: usize> IRealImagFftBackend<$ty, N_FFT>
-            for PhastftBackend<$planner, N_FFT>
-        {
-            fn fft_unchecked(&self, input: &[$ty], real: &mut [$ty], imag: &mut [$ty]) {
-                phastft::$r2c(input, real, imag, &self.planar, &self.options)
+        impl<const N_FFT: usize> IFftBackend<$ty, N_FFT> for PhastftBackend<$planner, N_FFT> {
+            fn fft_unchecked(&self, signal: &[$ty], real: &mut [$ty], imag: &mut [$ty]) {
+                phastft::$r2c(signal, real, imag, &self.planar, &self.options)
             }
 
             fn ifft_unchecked(
                 &self,
                 real: &[$ty],
                 imag: &[$ty],
-                output: &mut [$ty],
+                signal: &mut [$ty],
                 scratch_real: &mut [$ty],
                 scratch_imag: &mut [$ty],
             ) {
                 phastft::$c2r(
                     real,
                     imag,
-                    output,
+                    signal,
                     &self.planar,
                     &self.options,
                     scratch_real,

@@ -38,8 +38,8 @@ where
 
         unsafe {
             (
-                &self.real.get_unchecked(start..end),
-                &self.imag.get_unchecked(start..end),
+                self.real.get_unchecked(start..end),
+                self.imag.get_unchecked(start..end),
             )
         }
     }

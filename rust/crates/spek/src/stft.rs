@@ -25,7 +25,6 @@ pub enum StftError {
 pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend>
 where
     T: Float + FloatConst,
-    FftBackend: crate::fft_backend::IFftBackend<T, FFT_SIZE>,
 {
     hop_size: usize,
     win_size: usize,
@@ -89,8 +88,8 @@ where
         Ok((real, imag))
     }
     pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<T>, StftError> {
-        let mut spectrogram = Spectrogram::new(self.frame_count(&signal), FFT_SIZE / 2 + 1);
-        for start in (0..signal.len() - self.frame_count(&signal)) {
+        let mut spectrogram = Spectrogram::new(self.frame_count(signal), FFT_SIZE / 2 + 1);
+        for start in 0..signal.len() - self.frame_count(signal) {
             let frame = self.frame_unchecked(&signal[start..start + self.win_size]);
             let (real, imag) = spectrogram.frame_mut_unchecked(start);
             self.fft_backend.fft_unchecked(&frame, real, imag);

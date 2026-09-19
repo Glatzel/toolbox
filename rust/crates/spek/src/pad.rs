@@ -47,27 +47,27 @@ where
         let mut padded = Vec::with_capacity(signal.len() + pad_before + pad_after);
 
         match self {
-            PadMode::Constant(value) => {
-                padded.extend(core::iter::repeat(*value).take(pad_before));
+            Self::Constant(value) => {
+                padded.extend(core::iter::repeat_n(*value, pad_before));
                 padded.extend_from_slice(signal);
-                padded.extend(core::iter::repeat(*value).take(pad_after));
+                padded.extend(core::iter::repeat_n(*value, pad_after));
             }
 
-            PadMode::Empty => {
-                padded.extend(core::iter::repeat(T::zero()).take(pad_before));
+            Self::Empty => {
+                padded.extend(core::iter::repeat_n(T::zero(), pad_before));
                 padded.extend_from_slice(signal);
-                padded.extend(core::iter::repeat(T::zero()).take(pad_after));
+                padded.extend(core::iter::repeat_n(T::zero(), pad_after));
             }
 
-            PadMode::Edge => {
-                padded.extend(core::iter::repeat(signal[0]).take(pad_before));
+            Self::Edge => {
+                padded.extend(core::iter::repeat_n(signal[0], pad_before));
 
                 padded.extend_from_slice(signal);
 
-                padded.extend(core::iter::repeat(*signal.last().unwrap()).take(pad_after));
+                padded.extend(core::iter::repeat_n(*signal.last().unwrap(), pad_after));
             }
 
-            PadMode::Reflect => {
+            Self::Reflect => {
                 for i in (1..=pad_before).rev() {
                     if i >= signal.len() {
                         return Err(PadError::SignalSizeTooSmall {
@@ -91,7 +91,7 @@ where
                 }
             }
 
-            PadMode::Symmetric => {
+            Self::Symmetric => {
                 for i in (0..pad_before).rev() {
                     let idx = i.min(signal.len() - 1);
                     padded.push(signal[idx]);
@@ -105,7 +105,7 @@ where
                 }
             }
 
-            PadMode::Wrap => {
+            Self::Wrap => {
                 // Index j (0-based, counting backwards from the start of `signal`)
                 // maps to `signal[(j - pad_before) mod len]`. Using `rem_euclid`
                 // on a signed offset avoids the unsigned-modulo edge case where
@@ -125,7 +125,7 @@ where
                 }
             }
 
-            PadMode::LinearRamp => {
+            Self::LinearRamp => {
                 let first = signal[0];
                 let last = *signal.last().unwrap();
 
@@ -144,17 +144,17 @@ where
                 }
             }
 
-            PadMode::Maximum | PadMode::Minimum | PadMode::Mean | PadMode::Median => {
+            Self::Maximum | Self::Minimum | Self::Mean | Self::Median => {
                 let value = match self {
-                    PadMode::Maximum => signal.iter().copied().fold(T::neg_infinity(), T::max),
+                    Self::Maximum => signal.iter().copied().fold(T::neg_infinity(), T::max),
 
-                    PadMode::Minimum => signal.iter().copied().fold(T::infinity(), T::min),
+                    Self::Minimum => signal.iter().copied().fold(T::infinity(), T::min),
 
-                    PadMode::Mean => {
+                    Self::Mean => {
                         signal.iter().copied().sum::<T>() / T::from(signal.len()).unwrap()
                     }
 
-                    PadMode::Median => {
+                    Self::Median => {
                         // Only the middle element is needed, so a full O(n log n)
                         // sort is wasted work. `select_nth_unstable_by` partitions
                         // around the median index in O(n) average time and gives
@@ -169,11 +169,11 @@ where
                     _ => unreachable!(),
                 };
 
-                padded.extend(core::iter::repeat(value).take(pad_before));
+                padded.extend(core::iter::repeat_n(value, pad_before));
 
                 padded.extend_from_slice(signal);
 
-                padded.extend(core::iter::repeat(value).take(pad_after));
+                padded.extend(core::iter::repeat_n(value, pad_after));
             }
         }
 

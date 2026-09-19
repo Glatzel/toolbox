@@ -512,6 +512,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
+name = "fearless_simd"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a847f35d37ef14f89ccd8028d7d98a43a59d3c9bfae690ca7a8a95a5937ff9b5"
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -994,6 +1000,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-complex"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "num-traits"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1034,6 +1049,17 @@ name = "owo-colors"
 version = "4.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c45bb4a6ae1280ec0803b1ef9d3455eb50f01efbbe1447ab020f1d54fba9d8"
+
+[[package]]
+name = "phastft"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cb78e480b46a4032bcf9111bbc1a571ed04d7a790d51adc4f6d952c94bdcd4c"
+dependencies = [
+ "fearless_simd",
+ "num-traits",
+ "rayon",
+]
 
 [[package]]
 name = "pin-project-lite"
@@ -1432,7 +1458,10 @@ dependencies = [
  "generic-num",
  "insta",
  "mischief",
+ "num-complex",
  "num-traits",
+ "phastft",
+ "rayon",
  "rstest",
  "thiserror",
 ]

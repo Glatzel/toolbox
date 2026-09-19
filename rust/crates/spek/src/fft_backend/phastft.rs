@@ -23,7 +23,9 @@ macro_rules! impl_phastft {
                 }
             }
         }
-
+        impl<const N_FFT: usize> Default for PhastftBackend<$planner, N_FFT> {
+            fn default() -> Self { Self::new() }
+        }
         impl<const N_FFT: usize> IFftBackend<$ty, N_FFT> for PhastftBackend<$planner, N_FFT> {
             fn fft_unchecked(&self, signal: &[$ty], real: &mut [$ty], imag: &mut [$ty]) {
                 phastft::$r2c(signal, real, imag, &self.planar, &self.options)

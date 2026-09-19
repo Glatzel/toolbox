@@ -25,6 +25,7 @@ pub enum StftError {
 pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend>
 where
     T: Float + FloatConst,
+    FftBackend: crate::fft_backend::IRealFftBackend<T, FFT_SIZE>,
 {
     hop_size: usize,
     win_size: usize,
@@ -35,7 +36,7 @@ where
 impl<T, const FFT_SIZE: usize, FftBackend> RealImagStft<T, FFT_SIZE, FftBackend>
 where
     T: Float + FloatConst,
-    FftBackend: crate::fft_backend::IFftBackend<T, FFT_SIZE>,
+    FftBackend: crate::fft_backend::IRealFftBackend<T, FFT_SIZE>,
 {
     pub fn new(
         hop_size: usize,

@@ -244,7 +244,7 @@ where
     let mut window = Vec::with_capacity(n);
 
     for i in 0..n {
-        let i = T::from(i).unwrap();
+        let i = num!(i);
 
         let value = T::one() - ((num!(2.0) * i - denominator).abs() / denominator);
 

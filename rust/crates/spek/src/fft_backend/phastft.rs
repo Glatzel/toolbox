@@ -1,68 +1,122 @@
-use phastft::planner::{PlannerR2c32, PlannerR2c64};
+use phastft::planner::{Direction, PlannerDit32, PlannerDit64, PlannerR2c32, PlannerR2c64};
 
 use super::IRealFftBackend;
+use crate::fft_backend::IComplexFftBackend;
 
 #[derive(Debug, Clone)]
-pub struct PhastftBackend<P, const N_FFT: usize> {
+pub struct RealPhastftBackend<P, const N_FFT: usize> {
     options: phastft::options::Options,
     planar: P,
 }
 
-macro_rules! impl_phastft {
-    (
-        $ty:ty,
-        $planner:ty,
-        $r2c:ident,
-        $c2r:ident
-    ) => {
-        impl<const N_FFT: usize> PhastftBackend<$planner, N_FFT> {
-            pub fn new() -> Self {
-                Self {
-                    options: phastft::options::Options::guess_options(N_FFT),
-                    planar: <$planner>::new(N_FFT),
-                }
-            }
+impl<P, const N_FFT: usize> RealPhastftBackend<PlannerR2c32, N_FFT> {
+    pub fn new() -> Self {
+        Self {
+            options: phastft::options::Options::guess_options(N_FFT),
+            planar: PlannerR2c32::new(N_FFT),
         }
-        impl<const N_FFT: usize> Default for PhastftBackend<$planner, N_FFT> {
-            fn default() -> Self { Self::new() }
+    }
+}
+impl<const N_FFT: usize> RealPhastftBackend<PlannerR2c64, N_FFT> {
+    pub fn new() -> Self {
+        Self {
+            options: phastft::options::Options::guess_options(N_FFT),
+            planar: PlannerR2c64::new(N_FFT),
         }
-        impl<const N_FFT: usize> IRealFftBackend<$ty, N_FFT> for PhastftBackend<$planner, N_FFT> {
-            fn fft_unchecked(&self, signal: &[$ty], real: &mut [$ty], imag: &mut [$ty]) {
-                phastft::$r2c(signal, real, imag, &self.planar, &self.options)
-            }
-
-            fn ifft_unchecked(
-                &self,
-                real: &[$ty],
-                imag: &[$ty],
-                signal: &mut [$ty],
-                scratch_real: &mut [$ty],
-                scratch_imag: &mut [$ty],
-            ) {
-                phastft::$c2r(
-                    real,
-                    imag,
-                    signal,
-                    &self.planar,
-                    &self.options,
-                    scratch_real,
-                    scratch_imag,
-                )
-            }
-        }
-    };
+    }
 }
 
-impl_phastft!(
-    f32,
-    PlannerR2c32,
-    r2c_fft_f32_with_planner_and_opts,
-    c2r_fft_f32_with_planner_and_opts
-);
+impl<const N_FFT: usize> IRealFftBackend<f32, N_FFT> for RealPhastftBackend<PlannerR2c32, N_FFT> {
+    fn fft_unchecked(&self, signal: &[f32], real: &mut [f32], imag: &mut [f32]) {
+        phastft::r2c_fft_f32_with_planner_and_opts(signal, real, imag, &self.planar, &self.options)
+    }
+    fn ifft_unchecked(
+        &self,
+        real: &[f32],
+        imag: &[f32],
+        signal: &mut [f32],
+        scratch_real: &mut [f32],
+        scratch_imag: &mut [f32],
+    ) {
+        phastft::c2r_fft_f32_with_planner_and_opts(
+            real,
+            imag,
+            signal,
+            &self.planar,
+            &self.options,
+            scratch_real,
+            scratch_imag,
+        )
+    }
+}
 
-impl_phastft!(
-    f64,
-    PlannerR2c64,
-    r2c_fft_f64_with_planner_and_opts,
-    c2r_fft_f64_with_planner_and_opts
-);
+impl<const N_FFT: usize> IRealFftBackend<f64, N_FFT> for RealPhastftBackend<PlannerR2c64, N_FFT> {
+    fn fft_unchecked(&self, signal: &[f64], real: &mut [f64], imag: &mut [f64]) {
+        phastft::r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planar, &self.options)
+    }
+    fn ifft_unchecked(
+        &self,
+        real: &[f64],
+        imag: &[f64],
+        signal: &mut [f64],
+        scratch_real: &mut [f64],
+        scratch_imag: &mut [f64],
+    ) {
+        phastft::c2r_fft_f64_with_planner_and_opts(
+            real,
+            imag,
+            signal,
+            &self.planar,
+            &self.options,
+            scratch_real,
+            scratch_imag,
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ComplexPhastftBackend<P, const N_FFT: usize> {
+    options: phastft::options::Options,
+    planar: P,
+}
+
+impl<const N_FFT: usize> ComplexPhastftBackend<PlannerDit32, N_FFT> {
+    pub fn new() -> Self {
+        Self {
+            options: phastft::options::Options::guess_options(N_FFT),
+            planar: PlannerDit32::new(N_FFT),
+        }
+    }
+}
+impl<const N_FFT: usize> ComplexPhastftBackend<PlannerDit64, N_FFT> {
+    pub fn new() -> Self {
+        Self {
+            options: phastft::options::Options::guess_options(N_FFT),
+            planar: PlannerDit64::new(N_FFT),
+        }
+    }
+}
+
+impl<const N_FFT: usize> IComplexFftBackend<f32, N_FFT> for ComplexPhastftBackend<f32, N_FFT> {
+    fn fft_unchecked(&self, buffer: &mut [num_complex::Complex<f32>]) {
+        fft_f32_dit_interleaved_with_planner_and_opts(
+            buffer,
+            Direction::Forward,
+            &self.planar,
+            &self.options,
+        )
+    }
+
+    fn ifft_unchecked(
+        &self,
+        buffer: &mut [num_complex::Complex<f32>],
+        scratch: &mut [num_complex::Complex<f32>],
+    ) {
+        fft_f32_dit_interleaved_with_planner_and_opts(
+            buffer,
+            Direction::Inverse,
+            &self.planar,
+            &self.options,
+        )
+    }
+}

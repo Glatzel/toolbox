@@ -2,7 +2,7 @@ pub mod phastft;
 pub mod rustfft;
 
 use num_complex::{Complex, ComplexFloat};
-pub use phastft::PhastftBackend;
+pub use phastft::RealPhastftBackend;
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum FftError {
     #[error("size not equal, real: {real}, imag: {imag}")]
@@ -39,8 +39,8 @@ pub trait IRealFftBackend<T, const N_FFT: usize> {
         check_size("real", real.len(), bins)?;
         check_size("imag", imag.len(), bins)?;
         check_size("output", signal.len(), N_FFT)?;
-        check_size("scratch_real", scratch_len, scratch_len)?;
-        check_size("scratch_imag    ", scratch_len, scratch_len)?;
+        check_size("scratch_real", scratch_real.len(), scratch_len)?;
+        check_size("scratch_imag", scratch_imag.len(), scratch_len)?;
 
         self.ifft_unchecked(real, imag, signal, scratch_real, scratch_imag);
         Ok(())
@@ -61,19 +61,13 @@ where
     T: ComplexFloat,
 {
     fn fft(&self, buffer: &mut [Complex<T>]) -> Result<(), FftError> {
-        let bins = N_FFT / 2 + 1;
-        check_size("buffer", buffer.len(), bins)?;
-        self.fft_inplace_unchecked(buffer);
+        check_size("buffer", buffer.len(), N_FFT)?;
+        self.fft_unchecked(buffer);
         Ok(())
     }
-    fn ifft(
-        &self,
-        buffer: &mut [Complex<T>],
-        scratch: &mut [Complex<T>],
-    ) -> Result<(), FftError> {
-        let bins = N_FFT / 2 + 1;
-        check_size("buffer", buffer.len(), bins)?;
-        check_size("scratch", scratch.len(), N_FFT / 2)?;
+    fn ifft(&self, buffer: &mut [Complex<T>], scratch: &mut [Complex<T>]) -> Result<(), FftError> {
+        check_size("buffer", buffer.len(), N_FFT)?;
+        check_size("scratch", scratch.len(), N_FFT)?;
         self.ifft_unchecked(buffer, scratch);
         Ok(())
     }

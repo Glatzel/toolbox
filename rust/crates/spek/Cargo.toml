@@ -5,12 +5,12 @@ edition.workspace = true
 
 [dependencies]
 generic-num.workspace = true
-num-traits.workspace = true
-thiserror.workspace = true
-rayon = { workspace = true, optional = true }
-phastft.workspace = true
-rustfft.workspace = true
 num-complex.workspace = true
+num-traits.workspace = true
+phastft = { workspace = true, features = ["complex-nums"], optional = true }
+rayon = { workspace = true, optional = true }
+rustfft.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
@@ -18,5 +18,5 @@ mischief.workspace = true
 rstest.workspace = true
 
 [features]
+parallel = ["phastft/parallel", "rayon", "std"]
 std = []
-parallel = ["rayon","phastft/parallel", "std"]

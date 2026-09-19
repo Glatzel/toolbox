@@ -106,9 +106,10 @@ where
             }
 
             Self::Wrap => {
-                // Index j (0-based, counting backwards from the start of `signal`)
-                // maps to `signal[(j - pad_before) mod len]`. Using `rem_euclid`
-                // on a signed offset avoids the unsigned-modulo edge case where
+                // Index j (0-based, counting backwards from the start of
+                // `signal`) maps to `signal[(j - pad_before)
+                // mod len]`. Using `rem_euclid` on a signed
+                // offset avoids the unsigned-modulo edge case where
                 // `(pad_before - i) % len == 0`, which previously produced an
                 // out-of-bounds index of `len` instead of `0`.
                 let len = signal.len() as isize;
@@ -130,7 +131,7 @@ where
                 let last = *signal.last().unwrap();
 
                 for i in 0..pad_before {
-                    let alpha = T::from(i + 1).unwrap() / T::from(pad_before + 1).unwrap();
+                    let alpha = num!(i + 1) / num!(pad_before + 1);
 
                     padded.push(first * (T::one() - alpha));
                 }
@@ -138,7 +139,7 @@ where
                 padded.extend_from_slice(signal);
 
                 for i in 0..pad_after {
-                    let alpha = T::from(i + 1).unwrap() / T::from(pad_after + 1).unwrap();
+                    let alpha = num!(i + 1) / num!(pad_after + 1).unwrap();
 
                     padded.push(last * (T::one() - alpha));
                 }
@@ -150,19 +151,19 @@ where
 
                     Self::Minimum => signal.iter().copied().fold(T::infinity(), T::min),
 
-                    Self::Mean => {
-                        signal.iter().copied().sum::<T>() / T::from(signal.len()).unwrap()
-                    }
+                    Self::Mean => signal.iter().copied().sum::<T>() / num!(signal.len()),
 
                     Self::Median => {
-                        // Only the middle element is needed, so a full O(n log n)
-                        // sort is wasted work. `select_nth_unstable_by` partitions
-                        // around the median index in O(n) average time and gives
-                        // the identical result since we only ever read one slot.
+                        // Only the middle element is needed, so a full O(n log
+                        // n) sort is wasted work.
+                        // `select_nth_unstable_by` partitions
+                        // around the median index in O(n) average time and
+                        // gives the identical result
+                        // since we only ever read one slot.
                         let mut values = signal.to_vec();
                         let mid = values.len() / 2;
-                        let (_, median, _) = values
-                            .select_nth_unstable_by(mid, |a, b| a.partial_cmp(b).unwrap());
+                        let (_, median, _) =
+                            values.select_nth_unstable_by(mid, |a, b| a.partial_cmp(b).unwrap());
                         *median
                     }
 
@@ -188,12 +189,7 @@ mod tests {
     fn assert_close(a: &[f64], b: &[f64]) {
         assert_eq!(a.len(), b.len(), "length mismatch: {:?} vs {:?}", a, b);
         for (x, y) in a.iter().zip(b.iter()) {
-            assert!(
-                (x - y).abs() < 1e-9,
-                "values differ: {:?} vs {:?}",
-                a,
-                b
-            );
+            assert!((x - y).abs() < 1e-9, "values differ: {:?} vs {:?}", a, b);
         }
     }
 
@@ -267,7 +263,8 @@ mod tests {
     fn linear_ramp() {
         let signal = [4.0];
         let result = PadMode::LinearRamp.pad(&signal, 4, 0).unwrap();
-        // ramps from 0 towards 4.0 over 4 steps: 4*(1-1/5), 4*(1-2/5), 4*(1-3/5), 4*(1-4/5)
+        // ramps from 0 towards 4.0 over 4 steps: 4*(1-1/5), 4*(1-2/5),
+        // 4*(1-3/5), 4*(1-4/5)
         assert_close(&result, &[3.2, 2.4, 1.6, 0.8, 4.0]);
     }
 
@@ -337,9 +334,6 @@ mod tests {
     fn wrap_pad_larger_than_signal() {
         let signal = [1.0, 2.0];
         let result = PadMode::Wrap.pad(&signal, 5, 3).unwrap();
-        assert_close(
-            &result,
-            &[2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
-        );
+        assert_close(&result, &[2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]);
     }
 }

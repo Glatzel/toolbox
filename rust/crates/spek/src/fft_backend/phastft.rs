@@ -1,240 +1,140 @@
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 
-use super::IFftBackend;
+use super::{FftError, IFftBackend};
 
 #[derive(Debug, Clone)]
 pub struct Phastft<P, const N_FFT: usize> {
     options: phastft::options::Options,
     planar: P,
 }
-impl<const N_FFT: usize> Phastft<PlannerR2c32, N_FFT> {
-    pub fn new() -> Self {
-        Self {
-            options: phastft::options::Options::guess_options(N_FFT),
-            planar: PlannerR2c32::new(N_FFT),
+
+fn check_fft_size<const N_FFT: usize>(
+    input: usize,
+    real: usize,
+    imag: usize,
+) -> Result<(), FftError> {
+    let bins = N_FFT / 2 + 1;
+
+    for (actual, expected) in [(input, N_FFT), (real, bins), (imag, bins)] {
+        if actual != expected {
+            return Err(FftError::SizeNotMatch { expected, actual });
         }
     }
+
+    Ok(())
 }
-impl<const N_FFT: usize> Phastft<PlannerR2c64, N_FFT> {
-    pub fn new() -> Self {
-        Self {
-            options: phastft::options::Options::guess_options(N_FFT),
-            planar: PlannerR2c64::new(N_FFT),
+
+fn check_ifft_size<const N_FFT: usize>(
+    real: usize,
+    imag: usize,
+    output: usize,
+    scratch_real: usize,
+    scratch_imag: usize,
+) -> Result<(), FftError> {
+    let bins = N_FFT / 2 + 1;
+    let scratch = N_FFT / 2;
+
+    for (actual, expected) in [
+        (real, bins),
+        (imag, bins),
+        (output, N_FFT),
+        (scratch_real, scratch),
+        (scratch_imag, scratch),
+    ] {
+        if actual != expected {
+            return Err(FftError::SizeNotMatch { expected, actual });
         }
     }
+
+    Ok(())
 }
 
-impl<const N_FFT: usize> IFftBackend<f32, N_FFT> for Phastft<PlannerR2c32, N_FFT> {
-    fn fft_unchecked(&self, input: &[f32], real: &mut [f32], imag: &mut [f32]) {
-        phastft::r2c_fft_f32_with_planner_and_opts(input, real, imag, &self.planar, &self.options)
-    }
-    fn ifft_unchecked(
-        &self,
-        real: &[f32],
-        imag: &[f32],
-        output: &mut [f32],
-        scratch_real: &mut [f32],
-        scratch_imag: &mut [f32],
-    ) {
-        phastft::c2r_fft_f32_with_planner_and_opts(
-            real,
-            imag,
-            output,
-            &self.planar,
-            &self.options,
-            scratch_real,
-            scratch_imag,
-        )
-    }
-
-    fn fft(
-        &self,
-        input: &[f32],
-        real: &mut [f32],
-        imag: &mut [f32],
-    ) -> Result<(), super::FftError> {
-        let expected_bins = N_FFT / 2 + 1;
-
-        if input.len() != N_FFT {
-            return Err(super::FftError::SizeNotMatch {
-                expected: N_FFT,
-                actual: input.len(),
-            });
+macro_rules! impl_phastft {
+    (
+        $ty:ty,
+        $planner:ty,
+        $r2c:ident,
+        $c2r:ident
+    ) => {
+        impl<const N_FFT: usize> Phastft<$planner, N_FFT> {
+            pub fn new() -> Self {
+                Self {
+                    options: phastft::options::Options::guess_options(N_FFT),
+                    planar: <$planner>::new(N_FFT),
+                }
+            }
         }
 
-        if real.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: real.len(),
-            });
+        impl<const N_FFT: usize> IFftBackend<$ty, N_FFT> for Phastft<$planner, N_FFT> {
+            fn fft_unchecked(&self, input: &[$ty], real: &mut [$ty], imag: &mut [$ty]) {
+                phastft::$r2c(input, real, imag, &self.planar, &self.options)
+            }
+
+            fn ifft_unchecked(
+                &self,
+                real: &[$ty],
+                imag: &[$ty],
+                output: &mut [$ty],
+                scratch_real: &mut [$ty],
+                scratch_imag: &mut [$ty],
+            ) {
+                phastft::$c2r(
+                    real,
+                    imag,
+                    output,
+                    &self.planar,
+                    &self.options,
+                    scratch_real,
+                    scratch_imag,
+                )
+            }
+
+            fn fft(
+                &self,
+                input: &[$ty],
+                real: &mut [$ty],
+                imag: &mut [$ty],
+            ) -> Result<(), FftError> {
+                check_fft_size::<N_FFT>(input.len(), real.len(), imag.len())?;
+
+                self.fft_unchecked(input, real, imag);
+                Ok(())
+            }
+
+            fn ifft(
+                &self,
+                real: &[$ty],
+                imag: &[$ty],
+                output: &mut [$ty],
+                scratch_real: &mut [$ty],
+                scratch_imag: &mut [$ty],
+            ) -> Result<(), FftError> {
+                check_ifft_size::<N_FFT>(
+                    real.len(),
+                    imag.len(),
+                    output.len(),
+                    scratch_real.len(),
+                    scratch_imag.len(),
+                )?;
+
+                self.ifft_unchecked(real, imag, output, scratch_real, scratch_imag);
+
+                Ok(())
+            }
         }
-
-        if imag.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: imag.len(),
-            });
-        }
-
-        self.fft_unchecked(input, real, imag);
-        Ok(())
-    }
-
-    fn ifft(
-        &self,
-        real: &[f32],
-        imag: &[f32],
-        output: &mut [f32],
-        scratch_real: &mut [f32],
-        scratch_imag: &mut [f32],
-    ) -> Result<(), super::FftError> {
-        let expected_bins = N_FFT / 2 + 1;
-        let expected_scratch = N_FFT / 2;
-
-        if real.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: real.len(),
-            });
-        }
-
-        if imag.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: imag.len(),
-            });
-        }
-
-        if output.len() != N_FFT {
-            return Err(super::FftError::SizeNotMatch {
-                expected: N_FFT,
-                actual: output.len(),
-            });
-        }
-
-        if scratch_real.len() != expected_scratch {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_scratch,
-                actual: scratch_real.len(),
-            });
-        }
-
-        if scratch_imag.len() != expected_scratch {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_scratch,
-                actual: scratch_imag.len(),
-            });
-        }
-
-        self.ifft_unchecked(real, imag, output, scratch_real, scratch_imag);
-
-        Ok(())
-    }
+    };
 }
-impl<const N_FFT: usize> IFftBackend<f64, N_FFT> for Phastft<PlannerR2c64, N_FFT> {
-    fn fft_unchecked(&self, input: &[f64], real: &mut [f64], imag: &mut [f64]) {
-        phastft::r2c_fft_f64_with_planner_and_opts(input, real, imag, &self.planar, &self.options)
-    }
-    fn ifft_unchecked(
-        &self,
-        real: &[f64],
-        imag: &[f64],
-        output: &mut [f64],
-        scratch_real: &mut [f64],
-        scratch_imag: &mut [f64],
-    ) {
-        phastft::c2r_fft_f64_with_planner_and_opts(
-            real,
-            imag,
-            output,
-            &self.planar,
-            &self.options,
-            scratch_real,
-            scratch_imag,
-        )
-    }
 
-    fn fft(
-        &self,
-        input: &[f64],
-        real: &mut [f64],
-        imag: &mut [f64],
-    ) -> Result<(), super::FftError> {
-        let expected_bins = N_FFT / 2 + 1;
+impl_phastft!(
+    f32,
+    PlannerR2c32,
+    r2c_fft_f32_with_planner_and_opts,
+    c2r_fft_f32_with_planner_and_opts
+);
 
-        if input.len() != N_FFT {
-            return Err(super::FftError::SizeNotMatch {
-                expected: N_FFT,
-                actual: input.len(),
-            });
-        }
-
-        if real.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: real.len(),
-            });
-        }
-
-        if imag.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: imag.len(),
-            });
-        }
-
-        self.fft_unchecked(input, real, imag);
-        Ok(())
-    }
-
-    fn ifft(
-        &self,
-        real: &[f64],
-        imag: &[f64],
-        output: &mut [f64],
-        scratch_real: &mut [f64],
-        scratch_imag: &mut [f64],
-    ) -> Result<(), super::FftError> {
-        let expected_bins = N_FFT / 2 + 1;
-        let expected_scratch = N_FFT / 2;
-
-        if real.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: real.len(),
-            });
-        }
-
-        if imag.len() != expected_bins {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_bins,
-                actual: imag.len(),
-            });
-        }
-
-        if output.len() != N_FFT {
-            return Err(super::FftError::SizeNotMatch {
-                expected: N_FFT,
-                actual: output.len(),
-            });
-        }
-
-        if scratch_real.len() != expected_scratch {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_scratch,
-                actual: scratch_real.len(),
-            });
-        }
-
-        if scratch_imag.len() != expected_scratch {
-            return Err(super::FftError::SizeNotMatch {
-                expected: expected_scratch,
-                actual: scratch_imag.len(),
-            });
-        }
-
-        self.ifft_unchecked(real, imag, output, scratch_real, scratch_imag);
-
-        Ok(())
-    }
-}
+impl_phastft!(
+    f64,
+    PlannerR2c64,
+    r2c_fft_f64_with_planner_and_opts,
+    c2r_fft_f64_with_planner_and_opts
+);

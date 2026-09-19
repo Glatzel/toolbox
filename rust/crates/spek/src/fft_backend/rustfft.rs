@@ -1,8 +1,7 @@
-
 use num_complex::{Complex, ComplexFloat};
 use rustfft::{Direction, Fft, FftNum, Length};
 
-use crate::fft_backend::IFftInplaceBackend;
+use crate::fft_backend::IComplexFftBackend;
 
 pub struct RustfftBackend<T, A, const N_FFT: usize>
 where
@@ -24,14 +23,14 @@ where
         }
     }
 }
-impl<T, A, const N_FFT: usize> IFftInplaceBackend<T, N_FFT> for RustfftBackend<T, A, N_FFT>
+impl<T, A, const N_FFT: usize> IComplexFftBackend<T, N_FFT> for RustfftBackend<T, A, N_FFT>
 where
     T: FftNum + ComplexFloat,
     A: Direction + Fft<T> + Length,
 {
-    fn fft_inplace_unchecked(&self, buffer: &mut [Complex<T>]) { self.algorithm.process(buffer); }
+    fn fft_unchecked(&self, buffer: &mut [Complex<T>]) { self.algorithm.process(buffer); }
 
-    fn ifft_inplace_unchecked(&self, buffer: &mut [Complex<T>], scratch: &mut [Complex<T>]) {
+    fn ifft_unchecked(&self, buffer: &mut [Complex<T>], scratch: &mut [Complex<T>]) {
         self.algorithm.process_with_scratch(buffer, scratch);
     }
 }

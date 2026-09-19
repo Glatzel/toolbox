@@ -16,7 +16,7 @@ pub enum FftError {
     #[error("size not power of two, got {size}")]
     SizeNotPowerOfTwo { size: usize },
 }
-pub trait IFftBackend<T, const N_FFT: usize> {
+pub trait IRealFftBackend<T, const N_FFT: usize> {
     fn fft(&self, signal: &[T], real: &mut [T], imag: &mut [T]) -> Result<(), FftError> {
         let bins = N_FFT / 2 + 1;
         check_size("input", signal.len(), N_FFT)?;
@@ -55,17 +55,18 @@ pub trait IFftBackend<T, const N_FFT: usize> {
         scratch_imag: &mut [T],
     );
 }
-pub trait IFftInplaceBackend<T, const N_FFT: usize>
+
+pub trait IComplexFftBackend<T, const N_FFT: usize>
 where
     T: ComplexFloat,
 {
-    fn fft_inplace(&self, buffer: &mut [Complex<T>]) -> Result<(), FftError> {
+    fn fft(&self, buffer: &mut [Complex<T>]) -> Result<(), FftError> {
         let bins = N_FFT / 2 + 1;
         check_size("buffer", buffer.len(), bins)?;
         self.fft_inplace_unchecked(buffer);
         Ok(())
     }
-    fn ifft_inplace(
+    fn ifft(
         &self,
         buffer: &mut [Complex<T>],
         scratch: &mut [Complex<T>],
@@ -73,11 +74,11 @@ where
         let bins = N_FFT / 2 + 1;
         check_size("buffer", buffer.len(), bins)?;
         check_size("scratch", scratch.len(), N_FFT / 2)?;
-        self.ifft_inplace_unchecked(buffer, scratch);
+        self.ifft_unchecked(buffer, scratch);
         Ok(())
     }
-    fn fft_inplace_unchecked(&self, buffer: &mut [Complex<T>]);
-    fn ifft_inplace_unchecked(&self, buffer: &mut [Complex<T>], scratch: &mut [Complex<T>]);
+    fn fft_unchecked(&self, buffer: &mut [Complex<T>]);
+    fn ifft_unchecked(&self, buffer: &mut [Complex<T>], scratch: &mut [Complex<T>]);
 }
 
 const fn check_size(name: &'static str, input: usize, expected: usize) -> Result<(), FftError> {

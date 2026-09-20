@@ -17,6 +17,7 @@ thiserror.workspace = true
 insta.workspace = true
 mischief.workspace = true
 rstest.workspace = true
+rand.workspace = true
 
 [features]
 default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]

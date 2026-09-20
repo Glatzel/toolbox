@@ -1,19 +1,15 @@
-use num_complex::Complex;
-use phastft::planner::{Direction, PlannerDit32, PlannerDit64, PlannerR2c32, PlannerR2c64};
-use phastft::{
-    fft_f32_dit_interleaved_with_planner_and_opts, fft_f32_dit_with_planner_and_opts,
-    fft_f64_dit_interleaved_with_planner_and_opts, fft_f64_dit_with_planner_and_opts,
-};
+use phastft::planner::{PlannerR2c32, PlannerR2c64};
+use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
-use super::IRealSplitFftBackend;
-use crate::fft_backend::{IComplexFftBackend, IComplexSplitFftBackend};
+use super::{FftError, IFftBackend};
+use crate::fft_backend::{check_size, check_size_at_least};
 
 #[derive(Debug, Clone)]
 pub struct PhastftBackend<P, const N_FFT: usize> {
     options: phastft::options::Options,
     planner: P,
 }
-
+impl<P, const N_FFT: usize> PhastftBackend<P, N_FFT> {}
 impl<const N_FFT: usize> PhastftBackend<PlannerR2c32, N_FFT> {
     pub fn new() -> Self {
         Self {
@@ -23,18 +19,42 @@ impl<const N_FFT: usize> PhastftBackend<PlannerR2c32, N_FFT> {
     }
 }
 
-impl<const N_FFT: usize> IRealSplitFftBackend<f32, N_FFT> for PhastftBackend<PlannerR2c32, N_FFT> {
-    fn fft_unchecked(&self, signal: &[f32], real: &mut [f32], imag: &mut [f32]) {
+impl<const N_FFT: usize> IFftBackend<f32, f32, f32, N_FFT> for PhastftBackend<PlannerR2c32, N_FFT> {
+    fn signal_size(&self) -> usize { N_FFT }
+    fn spectrum_size(&self) -> usize { N_FFT / 2 + 1 }
+    fn forward_scratch_size(&self) -> usize { N_FFT / 2 }
+    fn inverse_scratch_size(&self) -> usize { N_FFT / 2 }
+    fn fft(
+        &self,
+        signal: &mut [f32],
+        spectrum: &mut [f32],
+        scratch: &mut [f32],
+    ) -> Result<(), FftError> {
+        check_size_at_least("signal", signal.len(), self.signal_size())?;
+        check_size("spectrum", spectrum.len(), self.spectrum_size() * 2)?;
+        self.fft_unchecked(signal, spectrum, scratch);
+        Ok(())
+    }
+    fn ifft(
+        &self,
+        spectrum: &mut [f32],
+        signal: &mut [f32],
+        scratch: &mut [f32],
+    ) -> Result<(), FftError> {
+        check_size("spectrum", spectrum.len(), self.spectrum_size() * 2)?;
+        check_size("signal", signal.len(), self.signal_size())?;
+        check_size("scratch", scratch.len(), self.inverse_scratch_size() * 2)?;
+        self.ifft_unchecked(spectrum, signal, scratch);
+        Ok(())
+    }
+    fn fft_unchecked(&self, signal: &mut [f32], spectrum: &mut [f32], _scratch: &mut [f32]) {
+        let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size()) };
         phastft::r2c_fft_f32_with_planner_and_opts(signal, real, imag, &self.planner, &self.options)
     }
-    fn ifft_unchecked(
-        &self,
-        real: &[f32],
-        imag: &[f32],
-        signal: &mut [f32],
-        scratch_real: &mut [f32],
-        scratch_imag: &mut [f32],
-    ) {
+    fn ifft_unchecked(&self, spectrum: &mut [f32], signal: &mut [f32], scratch: &mut [f32]) {
+        let (real, imag) = unsafe { spectrum.split_at_unchecked(self.spectrum_size()) };
+        let (scratch_real, scratch_imag) =
+            unsafe { scratch.split_at_mut_unchecked(self.inverse_scratch_size()) };
         phastft::c2r_fft_f32_with_planner_and_opts(
             real,
             imag,
@@ -45,6 +65,12 @@ impl<const N_FFT: usize> IRealSplitFftBackend<f32, N_FFT> for PhastftBackend<Pla
             scratch_imag,
         )
     }
+
+    fn new_spectrum(&self) -> Vec<f32> { vec![0.0; self.spectrum_size() * 2] }
+
+    fn new_forward_scratch(&self) -> Vec<f32> { vec![0.0; self.forward_scratch_size() * 2] }
+
+    fn new_inverse_scratch(&self) -> Vec<f32> { vec![0.0; self.inverse_scratch_size() * 2] }
 }
 
 impl<const N_FFT: usize> PhastftBackend<PlannerR2c64, N_FFT> {
@@ -56,19 +82,28 @@ impl<const N_FFT: usize> PhastftBackend<PlannerR2c64, N_FFT> {
     }
 }
 
-impl<const N_FFT: usize> IRealSplitFftBackend<f64, N_FFT> for PhastftBackend<PlannerR2c64, N_FFT> {
-    fn fft_unchecked(&self, signal: &[f64], real: &mut [f64], imag: &mut [f64]) {
-        phastft::r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options)
-    }
-    fn ifft_unchecked(
+impl<const N_FFT: usize> IFftBackend<f64, f64, f64, N_FFT> for PhastftBackend<PlannerR2c64, N_FFT> {
+    fn fft(
         &self,
-        real: &[f64],
-        imag: &[f64],
         signal: &mut [f64],
-        scratch_real: &mut [f64],
-        scratch_imag: &mut [f64],
-    ) {
-        phastft::c2r_fft_f64_with_planner_and_opts(
+        spectrum: &mut [f64],
+        scratch: &mut [f64],
+    ) -> Result<(), FftError> {
+        check_size_at_least("signal", signal.len(), self.signal_size())?;
+        check_size("spectrum", spectrum.len(), self.spectrum_size() * 2)?;
+        check_size("scratch", scratch.len(), self.inverse_scratch_size() * 2)?;
+        self.fft_unchecked(signal, spectrum, scratch);
+        Ok(())
+    }
+    fn fft_unchecked(&self, signal: &mut [f64], spectrum: &mut [f64], _scratch: &mut [f64]) {
+        let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size()) };
+        r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options)
+    }
+    fn ifft_unchecked(&self, spectrum: &mut [f64], signal: &mut [f64], scratch: &mut [f64]) {
+        let (real, imag) = unsafe { spectrum.split_at_unchecked(self.spectrum_size()) };
+        let (scratch_real, scratch_imag) =
+            unsafe { scratch.split_at_mut_unchecked(self.inverse_scratch_size()) };
+        c2r_fft_f64_with_planner_and_opts(
             real,
             imag,
             signal,
@@ -78,119 +113,27 @@ impl<const N_FFT: usize> IRealSplitFftBackend<f64, N_FFT> for PhastftBackend<Pla
             scratch_imag,
         )
     }
-}
-impl<const N_FFT: usize> PhastftBackend<PlannerDit32, N_FFT> {
-    pub fn new() -> Self {
-        Self {
-            options: phastft::options::Options::guess_options(N_FFT),
-            planner: PlannerDit32::new(N_FFT),
-        }
-    }
-}
-
-impl<const N_FFT: usize> IComplexSplitFftBackend<f32, N_FFT>
-    for PhastftBackend<PlannerDit32, N_FFT>
-{
-    fn fft_unchecked(&self, real: &mut [f32], imag: &mut [f32]) {
-        fft_f32_dit_with_planner_and_opts(
-            real,
-            imag,
-            Direction::Forward,
-            &self.planner,
-            &self.options,
-        )
-    }
-
-    fn ifft_unchecked(
+    fn ifft(
         &self,
-        real: &mut [f32],
-        imag: &mut [f32],
-        _scratch_real: &mut [f32],
-        _scratch_imag: &mut [f32],
-    ) {
-        fft_f32_dit_with_planner_and_opts(
-            real,
-            imag,
-            Direction::Inverse,
-            &self.planner,
-            &self.options,
-        )
-    }
-}
-impl<const N_FFT: usize> PhastftBackend<PlannerDit64, N_FFT> {
-    pub fn new() -> Self {
-        Self {
-            options: phastft::options::Options::guess_options(N_FFT),
-            planner: PlannerDit64::new(N_FFT),
-        }
-    }
-}
-impl<const N_FFT: usize> IComplexSplitFftBackend<f64, N_FFT>
-    for PhastftBackend<PlannerDit64, N_FFT>
-{
-    fn fft_unchecked(&self, real: &mut [f64], imag: &mut [f64]) {
-        fft_f64_dit_with_planner_and_opts(
-            real,
-            imag,
-            Direction::Forward,
-            &self.planner,
-            &self.options,
-        )
+        spectrum: &mut [f64],
+        signal: &mut [f64],
+        scratch: &mut [f64],
+    ) -> Result<(), FftError> {
+        check_size("spectrum", spectrum.len(), self.spectrum_size() * 2)?;
+        check_size("signal", signal.len(), self.signal_size())?;
+        check_size("scratch", scratch.len(), self.inverse_scratch_size() * 2)?;
+        self.ifft_unchecked(spectrum, signal, scratch);
+        Ok(())
     }
 
-    fn ifft_unchecked(
-        &self,
-        real: &mut [f64],
-        imag: &mut [f64],
-        _scratch_real: &mut [f64],
-        _scratch_imag: &mut [f64],
-    ) {
-        fft_f64_dit_with_planner_and_opts(
-            real,
-            imag,
-            Direction::Inverse,
-            &self.planner,
-            &self.options,
-        )
-    }
-}
+    fn signal_size(&self) -> usize { N_FFT }
+    fn spectrum_size(&self) -> usize { N_FFT / 2 + 1 }
+    fn forward_scratch_size(&self) -> usize { N_FFT / 2 }
+    fn inverse_scratch_size(&self) -> usize { N_FFT / 2 }
 
-impl<const N_FFT: usize> IComplexFftBackend<f32, N_FFT> for PhastftBackend<PlannerDit32, N_FFT> {
-    fn fft_unchecked(&self, buffer: &mut [Complex<f32>]) {
-        fft_f32_dit_interleaved_with_planner_and_opts(
-            buffer,
-            Direction::Forward,
-            &self.planner,
-            &self.options,
-        )
-    }
+    fn new_spectrum(&self) -> Vec<f64> { vec![0.0; self.spectrum_size() * 2] }
 
-    fn ifft_unchecked(&self, buffer: &mut [Complex<f32>], _scratch: &mut [Complex<f32>]) {
-        fft_f32_dit_interleaved_with_planner_and_opts(
-            buffer,
-            Direction::Inverse,
-            &self.planner,
-            &self.options,
-        )
-    }
-}
+    fn new_forward_scratch(&self) -> Vec<f64> { vec![0.0; self.forward_scratch_size() * 2] }
 
-impl<const N_FFT: usize> IComplexFftBackend<f64, N_FFT> for PhastftBackend<PlannerDit64, N_FFT> {
-    fn fft_unchecked(&self, buffer: &mut [Complex<f64>]) {
-        fft_f64_dit_interleaved_with_planner_and_opts(
-            buffer,
-            Direction::Forward,
-            &self.planner,
-            &self.options,
-        )
-    }
-
-    fn ifft_unchecked(&self, buffer: &mut [Complex<f64>], _scratch: &mut [Complex<f64>]) {
-        fft_f64_dit_interleaved_with_planner_and_opts(
-            buffer,
-            Direction::Inverse,
-            &self.planner,
-            &self.options,
-        )
-    }
+    fn new_inverse_scratch(&self) -> Vec<f64> { vec![0.0; self.inverse_scratch_size() * 2] }
 }

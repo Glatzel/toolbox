@@ -11,6 +11,7 @@ pub enum SpectrogramError {
 }
 pub trait ISpectrogram<T> {
     fn new(frames: usize, bins: usize) -> Self;
+    fn frame_count(&self) -> usize;
     fn frame_unchecked(&self, index: usize) -> &[T];
     fn frame_mut_unchecked(&mut self, index: usize) -> &mut [T];
     fn frame(&self, index: usize) -> Result<&[T], SpectrogramError>;
@@ -21,6 +22,8 @@ pub struct Spectrogram<T> {
     pub frames: usize,
     pub bins: usize,
 }
+unsafe impl<T> Send for Spectrogram<T> {}
+unsafe impl<T> Sync for Spectrogram<T> {}
 
 macro_rules! impl_spectrogram {
     ($ty:ty, $stride:expr) => {
@@ -32,6 +35,7 @@ macro_rules! impl_spectrogram {
                     bins,
                 }
             }
+            fn frame_count(&self) -> usize { self.frames }
 
             fn frame_unchecked(&self, index: usize) -> &[$ty] {
                 let start = index * self.bins * $stride;

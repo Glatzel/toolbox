@@ -6,5 +6,6 @@ platforms = ["win-64", "linux-64"]
 snap = 'python  "check-window-snap.py"'
 fft = 'python  "fft.py"'
 stft = 'python  "stft.py"'
+
 [dependencies]
 scipy = "==1.18.0"

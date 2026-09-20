@@ -16,8 +16,8 @@ thiserror.workspace = true
 [dev-dependencies]
 insta.workspace = true
 mischief.workspace = true
-rstest.workspace = true
 rand.workspace = true
+rstest.workspace = true
 
 [features]
 default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]

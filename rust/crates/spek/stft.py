@@ -1,7 +1,6 @@
 import numpy as np
-from scipy.signal.windows import hann
 from scipy.fft import rfft
-
+from scipy.signal.windows import hann
 
 signal = np.array(
     [
@@ -72,7 +71,7 @@ spectrogram = []
 for start in range(0, len(signal) - win_size + 1, hop_size):
     # Same as Rust:
     # signal[start:start + win_size] * window
-    frame = signal[start:start + win_size] * window
+    frame = signal[start : start + win_size] * window
 
     # Zero-pad win_size -> fft_size
     frame = np.pad(

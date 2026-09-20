@@ -27,7 +27,7 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend, SP>
+pub struct Stft<T, const FFT_SIZE: usize, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -40,7 +40,7 @@ where
     phantom: PhantomData<SP>,
 }
 
-impl<T, const FFT_SIZE: usize, FftBackend, SP> RealImagStft<T, FFT_SIZE, FftBackend, SP>
+impl<T, const FFT_SIZE: usize, FftBackend, SP> Stft<T, FFT_SIZE, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -130,7 +130,7 @@ where
     pub fn stft_parallel_unchecked(&self, signal: &[T]) -> Spectrogram<SP>
     where
         T: Sync,
-        SP: Send,
+        SP: Send + Sync,
         FftBackend: Sync,
     {
         // ASSUMPTION: `Spectrogram` exposes `frames_mut_unchecked(&mut self)
@@ -147,7 +147,6 @@ where
         spectrogram
             .frames_mut_unchecked()
             .enumerate()
-            .par_bridge()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
                 let mut frame = self.frame_unchecked(&signal[start..start + self.win_size]);
@@ -163,7 +162,7 @@ where
     pub fn stft_parallel(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError>
     where
         T: Sync,
-        SP: Send,
+        SP: Send + Sync,
         FftBackend: Sync,
     {
         if signal.len() < self.win_size {
@@ -295,7 +294,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel(&self, spectrogram: &Spectrogram<SP>) -> Result<Vec<T>, StftError>
+    pub fn istft_parallel(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError>
     where
         T: Send + Sync,
         SP: Sync,
@@ -304,11 +303,11 @@ where
         Ok(self.istft_parallel_unchecked(spectrogram))
     }
 
-    pub fn istft_unchecked(&self, spectrogram: &Spectrogram<SP>) -> Vec<T> {
+    pub fn istft_unchecked(&self, spectrogram: &mut Spectrogram<SP>) -> Vec<T> {
         self.istft_frames_unchecked(spectrogram)
     }
 
-    pub fn istft(&self, spectrogram: &Spectrogram<SP>) -> Result<Vec<T>, StftError> {
+    pub fn istft(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError> {
         Ok(self.istft_frames_unchecked(spectrogram))
     }
 }

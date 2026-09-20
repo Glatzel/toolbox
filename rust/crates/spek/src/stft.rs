@@ -27,7 +27,7 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct Stft<T, const FFT_SIZE: usize, FftBackend, SP>
+pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -40,7 +40,7 @@ where
     phantom: PhantomData<SP>,
 }
 
-impl<T, const FFT_SIZE: usize, FftBackend, SP> Stft<T, FFT_SIZE, FftBackend, SP>
+impl<T, const FFT_SIZE: usize, FftBackend, SP> RealImagStft<T, FFT_SIZE, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -245,7 +245,7 @@ where
     pub fn istft_parallel_unchecked(&self, spectrogram: &mut Spectrogram<SP>) -> Vec<T>
     where
         T: Send + Sync,
-        SP: Sync,
+        SP: Send + Sync,
         FftBackend: Sync,
     {
         // Overlap-add has a data dependency across frames that touch the
@@ -253,21 +253,28 @@ where
         // other), so this parallelizes the per-frame IFFT + windowing into
         // scratch buffers and does the (cheap, O(n)) accumulation
         // sequentially, rather than writing into `output` concurrently.
+        //
+        // `frames_mut_unchecked` (via `par_chunks_mut`) hands each rayon
+        // task its own disjoint `&mut [SP]`, split up front from the
+        // underlying buffer. That's what lets the closure below be `Fn`
+        // (each call gets a distinct argument, not a re-borrow of a shared
+        // `&mut Spectrogram`) and is what makes this actually sound —
+        // calling `spectrogram.frame_mut_unchecked(idx)` *inside* the
+        // closure instead would need a fresh exclusive borrow of the same
+        // `spectrogram` per call, which the compiler can't treat as `Fn`
+        // and can't verify is non-aliasing across threads.
         use rayon::prelude::*;
 
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
-        let windowed_frames: Vec<Vec<T>> = (0..frame_count)
-            .into_par_iter()
-            .map(|frame_idx| {
+        let windowed_frames: Vec<Vec<T>> = spectrogram
+            .frames_mut_unchecked()
+            .map(|spectrum| {
                 let mut time_frame = vec![T::zero(); self.win_size];
                 let mut scratch = self.fft_backend.new_inverse_scratch();
-                self.fft_backend.ifft_unchecked(
-                    spectrogram.frame_mut_unchecked(frame_idx),
-                    &mut time_frame,
-                    &mut scratch,
-                );
+                self.fft_backend
+                    .ifft_unchecked(spectrum, &mut time_frame, &mut scratch);
                 for i in 0..self.win_size {
                     time_frame[i] = time_frame[i] * self.window[i];
                 }
@@ -297,7 +304,7 @@ where
     pub fn istft_parallel(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError>
     where
         T: Send + Sync,
-        SP: Sync,
+        SP: Send + Sync,
         FftBackend: Sync,
     {
         Ok(self.istft_parallel_unchecked(spectrogram))

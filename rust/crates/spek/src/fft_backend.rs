@@ -1,3 +1,5 @@
+use crate::spectogram::{ISpectrogram, Spectrogram};
+
 #[cfg(feature = "backend-phastft")]
 pub mod phastft;
 #[cfg(feature = "backend-realfft")]
@@ -33,14 +35,20 @@ pub enum FftDirection {
     Inverse,
 }
 
-pub trait IFftBackend<SI, SP, SC, const N: usize> {
-    fn signal_size(&self) -> usize;
+pub trait IFftBackend<SI, SP, const N: usize>
+where
+    Spectrogram<SP>: ISpectrogram<SP>,
+{
+    fn signal_size(&self) -> usize { N }
     fn spectrum_size(&self) -> usize;
     fn forward_scratch_size(&self) -> usize;
     fn inverse_scratch_size(&self) -> usize;
     fn new_spectrum(&self) -> Vec<SP>;
-    fn new_forward_scratch(&self) -> Vec<SC>;
-    fn new_inverse_scratch(&self) -> Vec<SC>;
+    fn new_forward_scratch(&self) -> Vec<SP>;
+    fn new_inverse_scratch(&self) -> Vec<SP>;
+    fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<SP> {
+        <Spectrogram<SP> as ISpectrogram<SP>>::new(frame_len, self.spectrum_size())
+    }
     fn fft(
         &self,
         signal: &mut [SI],

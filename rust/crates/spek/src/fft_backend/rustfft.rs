@@ -6,6 +6,7 @@ use num_traits::Float;
 use rustfft::{Fft, FftNum};
 
 use crate::fft_backend::{FftError, IFftBackend, check_size};
+use crate::spectogram::{ISpectrogram, Spectrogram};
 
 pub struct RustfftBackend<T, const N: usize>
 where
@@ -32,10 +33,10 @@ where
         })
     }
 }
-impl<T, const N: usize> IFftBackend<T, Complex<T>, Complex<T>, N>
-    for RustfftBackend<T, N>
+impl<T, const N: usize> IFftBackend<T, Complex<T>, N> for RustfftBackend<T, N>
 where
     T: FftNum + Float,
+    Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
 {
     fn fft(
         &self,
@@ -87,8 +88,6 @@ where
             *dst = src.re;
         }
     }
-
-    fn signal_size(&self) -> usize { N }
 
     fn spectrum_size(&self) -> usize { N }
 

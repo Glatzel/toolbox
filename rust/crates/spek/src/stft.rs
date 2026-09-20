@@ -1,12 +1,14 @@
 extern crate alloc;
-use alloc::vec;
+
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
+use crate::fft_backend::{FftError, IFftBackend};
 use crate::pad::PadError;
-use crate::spectogram::{Spectrogram, SpectrogramError};
+use crate::spectogram::{ISpectrogram, Spectrogram, SpectrogramError};
 use crate::windows::{Window, WindowError};
 
 #[derive(Error, Debug)]
@@ -17,26 +19,31 @@ pub enum StftError {
     Window(#[from] WindowError),
     #[error(transparent)]
     Spectrogram(#[from] SpectrogramError),
+    #[error(transparent)]
+    Fft(#[from] FftError),
 
     #[error("invalid input size, expected {expected}, got {actual}")]
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend>
+pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend, SP>
 where
     T: Float + FloatConst,
-    FftBackend: crate::fft_backend::IRealSplitFftBackend<T, FFT_SIZE>,
+    FftBackend: IFftBackend<T, SP, FFT_SIZE>,
+    Spectrogram<SP>: ISpectrogram<SP>,
 {
     hop_size: usize,
     win_size: usize,
     window: Vec<T>,
     fft_backend: FftBackend,
+    phantom: PhantomData<SP>,
 }
 
-impl<T, const FFT_SIZE: usize, FftBackend> RealImagStft<T, FFT_SIZE, FftBackend>
+impl<T, const FFT_SIZE: usize, FftBackend, SP> RealImagStft<T, FFT_SIZE, FftBackend, SP>
 where
     T: Float + FloatConst,
-    FftBackend: crate::fft_backend::IRealSplitFftBackend<T, FFT_SIZE>,
+    FftBackend: IFftBackend<T, SP, FFT_SIZE>,
+    Spectrogram<SP>: ISpectrogram<SP>,
 {
     pub fn new(
         hop_size: usize,
@@ -49,19 +56,18 @@ where
             win_size,
             window: window.window(win_size, false)?,
             fft_backend,
+            phantom: PhantomData,
         })
     }
     const fn frame_count(&self, signal: &[T]) -> usize {
         ((signal.len() - self.win_size) / self.hop_size) + 1
     }
     fn frame_unchecked(&self, input: &[T]) -> Vec<T> {
-        let mut frame = vec![T::zero(); FFT_SIZE];
-
-        // apply window
-        for i in 0..self.win_size {
-            frame[i] = input[i] * self.window[i];
-        }
-
+        let frame: Vec<T> = input
+            .iter()
+            .zip(self.window.iter())
+            .map(|(i, w)| *i * *w)
+            .collect();
         frame
     }
     fn frame(&self, input: &[T]) -> Result<Vec<T>, StftError> {
@@ -74,26 +80,28 @@ where
 
         Ok(self.frame_unchecked(input))
     }
-    pub fn stft_frame_unchecked(&self, signal: &[T]) -> (Vec<T>, Vec<T>) {
-        let frame = self.frame_unchecked(signal);
-        let mut real = vec![T::zero(); FFT_SIZE / 2 + 1];
-        let mut imag = vec![T::zero(); FFT_SIZE / 2 + 1];
-        self.fft_backend.fft_unchecked(&frame, &mut real, &mut imag);
-        (real, imag)
+    pub fn stft_frame_unchecked(&self, input: &[T], scratch: &mut [SP]) -> Vec<SP> {
+        let mut frame = self.frame_unchecked(input);
+        let mut spectrum = self.fft_backend.new_spectrum();
+        self.fft_backend
+            .fft_unchecked(&mut frame, &mut spectrum, scratch);
+        spectrum
     }
-    pub fn stft_frame(&self, signal: &[T]) -> Result<(Vec<T>, Vec<T>), StftError> {
-        let frame = self.frame(signal)?;
-        let mut real = vec![T::zero(); FFT_SIZE / 2 + 1];
-        let mut imag = vec![T::zero(); FFT_SIZE / 2 + 1];
-        self.fft_backend.fft_unchecked(&frame, &mut real, &mut imag);
-        Ok((real, imag))
+
+    pub fn stft_frame(&self, input: &[T], scratch: &mut [SP]) -> Result<Vec<SP>, StftError> {
+        let mut frame = self.frame(input)?;
+        let mut spectrum = self.fft_backend.new_spectrum();
+        self.fft_backend.fft(&mut frame, &mut spectrum, scratch)?;
+        Ok(spectrum)
     }
-    pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<T>, StftError> {
-        let mut spectrogram = Spectrogram::new(self.frame_count(signal), FFT_SIZE / 2 + 1);
+    pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError> {
+        let mut spectrogram = self.fft_backend.new_spectrogram(self.frame_count(signal));
+        let mut scratch = self.fft_backend.new_forward_scratch();
         for start in 0..signal.len() - self.frame_count(signal) {
-            let frame = self.frame_unchecked(&signal[start..start + self.win_size]);
-            let (real, imag) = spectrogram.frame_mut_unchecked(start);
-            self.fft_backend.fft_unchecked(&frame, real, imag);
+            let mut frame = self.frame_unchecked(&signal[start..start + self.win_size]);
+            let spectrum = spectrogram.frame_mut_unchecked(start);
+            self.fft_backend
+                .fft_unchecked(&mut frame, spectrum, &mut scratch);
         }
 
         Ok(spectrogram)

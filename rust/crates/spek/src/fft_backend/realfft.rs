@@ -3,13 +3,14 @@ use alloc::sync::Arc;
 
 use num_complex::Complex;
 use num_traits::FloatConst;
-use realfft::{ComplexToReal, RealFftPlanner, RealToComplex};
+use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
 use crate::fft_backend::{IFftBackend, check_size};
+use crate::spectogram::{ISpectrogram, Spectrogram};
 
 pub struct RealfftBackend<T, const N: usize>
 where
-    T: realfft::FftNum,
+    T: FftNum,
 {
     forward_planner: Arc<dyn RealToComplex<T>>,
     inverse_planner: Arc<dyn ComplexToReal<T>>,
@@ -17,7 +18,7 @@ where
 
 impl<T, const N: usize> RealfftBackend<T, N>
 where
-    T: realfft::FftNum,
+    T: FftNum,
 {
     pub fn new() -> Self {
         let mut planner = RealFftPlanner::new();
@@ -29,14 +30,14 @@ where
 }
 impl<T, const N: usize> Default for RealfftBackend<T, N>
 where
-    T: realfft::FftNum,
+    T: FftNum,
 {
     fn default() -> Self { Self::new() }
 }
-impl<T, const N: usize> IFftBackend<T, Complex<T>, Complex<T>, N>
-    for RealfftBackend<T, N>
+impl<T, const N: usize> IFftBackend<T, Complex<T>, N> for RealfftBackend<T, N>
 where
-    T: realfft::FftNum + FloatConst,
+    T: FftNum + FloatConst,
+    Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
 {
     fn signal_size(&self) -> usize { N }
 

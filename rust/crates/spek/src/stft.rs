@@ -2,6 +2,7 @@ extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
+use core::fmt::Debug;
 use core::marker::PhantomData;
 
 use num_traits::{Float, FloatConst};
@@ -42,9 +43,10 @@ where
 
 impl<T, const FFT_SIZE: usize, FftBackend, SP> Stft<T, FFT_SIZE, FftBackend, SP>
 where
-    T: Float + FloatConst,
+    T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
     Spectrogram<SP>: ISpectrogram<SP>,
+    SP: Debug,
 {
     pub fn new(
         hop_size: usize,
@@ -52,6 +54,7 @@ where
         window: Window<T>,
         fft_backend: FftBackend,
     ) -> Result<Self, StftError> {
+        dbg!(window.window(win_size, false)?);
         Ok(Self {
             hop_size,
             win_size,
@@ -138,6 +141,7 @@ where
             let spectrum = spectrogram.frame_mut_unchecked(frame_idx);
             self.fft_backend
                 .fft_unchecked(&mut frame, spectrum, &mut scratch);
+            // dbg!(frame_idx, &frame, &spectrum, &scratch);
         }
 
         spectrogram
@@ -369,7 +373,9 @@ mod tests {
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let mut rng = StdRng::seed_from_u64(0xF77_u64);
         let mut signal: Vec<T> = (0..signal_len).map(|_| rng.random()).collect();
-        dbg!(&signal);
+        insta::assert_debug_snapshot!("signal", &signal);
+        let frame = stft.frame_unchecked(&signal[0..win_size]);
+        insta::assert_debug_snapshot!("frame", &frame);
         let spectogram = stft.stft(&mut signal)?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
         Ok(())

@@ -1,7 +1,7 @@
 import numpy as np
-from scipy import signal
-from scipy.signal import ShortTimeFFT
 from scipy.signal.windows import hann
+from scipy.fft import rfft
+
 
 signal = np.array(
     [
@@ -57,16 +57,45 @@ signal = np.array(
     ],
     dtype=np.float32,
 )
-stft = ShortTimeFFT(
-    win=hann(7, False),
-    hop=4,
-    fs=1.0,
-    fft_mode="twosided",
-    mfft=8,
-    dual_win=None,
-    scale_to=None,
-    phase_shift=0,
-)
-s = stft.stft(signal)
 
-print(s)
+hop_size = 4
+win_size = 7
+fft_size = 8
+
+window = hann(win_size, False)
+
+print("window:")
+print(window)
+
+spectrogram = []
+
+for start in range(0, len(signal) - win_size + 1, hop_size):
+    # Same as Rust:
+    # signal[start:start + win_size] * window
+    frame = signal[start:start + win_size] * window
+
+    # Zero-pad win_size -> fft_size
+    frame = np.pad(
+        frame,
+        (0, fft_size - win_size),
+        mode="constant",
+    )
+
+    print(f"\nframe {start // hop_size}:")
+    print(frame)
+
+    # Same one-sided real FFT as Rust
+    spectrum = rfft(frame)
+
+    print("spectrum:")
+    print(spectrum)
+
+    spectrogram.append(spectrum)
+
+spectrogram = np.asarray(spectrogram)
+
+print("\nspectrogram:")
+print(spectrogram)
+
+print("\nshape:")
+print(spectrogram.shape)

@@ -57,8 +57,8 @@ signal = np.array(
     ],
     dtype=np.float32,
 )
-stft= ShortTimeFFT(
-    win=hann(7,False),
+stft = ShortTimeFFT(
+    win=hann(7, False),
     hop=4,
     fs=1.0,
     fft_mode="twosided",
@@ -67,7 +67,6 @@ stft= ShortTimeFFT(
     scale_to=None,
     phase_shift=0,
 )
-s=stft.stft(signal)
+s = stft.stft(signal)
 
 print(s)
-

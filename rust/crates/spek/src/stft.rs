@@ -94,6 +94,11 @@ where
         self.fft_backend.fft(&mut frame, &mut spectrum, scratch)?;
         Ok(spectrum)
     }
+    #[cfg(feature = "parallel")]
+    pub fn stft_parallel_unchecked(&self, signal: &[T]) -> Spectrogram<SP> { todo!() }
+    #[cfg(feature = "parallel")]
+    pub fn stft_parallel(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError> { todo!() }
+    pub fn stft_unchecked(&self, signal: &[T]) -> Spectrogram<SP> { todo!() }
     pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError> {
         let mut spectrogram = self.fft_backend.new_spectrogram(self.frame_count(signal));
         let mut scratch = self.fft_backend.new_forward_scratch();
@@ -106,5 +111,12 @@ where
 
         Ok(spectrogram)
     }
-    pub fn istft(&self) { todo!() }
+    #[cfg(feature = "parallel")]
+    pub fn istft_parallel_unchecked(&self, spectrogram: &Spectrogram<SP>) -> Vec<T> { todo!() }
+    #[cfg(feature = "parallel")]
+    pub fn istft_parallel(&self, spectrogram: &Spectrogram<SP>) -> Result<Vec<T>, StftError> {
+        todo!()
+    }
+    pub fn istft_unchecked(&self, spectrogram: &Spectrogram<SP>) -> Vec<T> { todo!() }
+    pub fn istft(&self, spectrogram: &Spectrogram<SP>) -> Result<Vec<T>, StftError> { todo!() }
 }

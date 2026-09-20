@@ -46,9 +46,7 @@ where
     fn new_spectrum(&self) -> Vec<SP>;
     fn new_forward_scratch(&self) -> Vec<SP>;
     fn new_inverse_scratch(&self) -> Vec<SP>;
-    fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<SP> {
-        <Spectrogram<SP> as ISpectrogram<SP>>::new(frame_len, self.spectrum_size())
-    }
+    fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<SP>;
     fn fft(
         &self,
         signal: &mut [SI],

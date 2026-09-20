@@ -25,7 +25,9 @@ pub trait ISpectrogram<T> {
     where
         T: Send;
 }
-pub struct Spectrogram<T> {
+#[derive(Debug)]
+pub struct Spectrogram<T>
+{
     pub data: Vec<T>,
     pub frames: usize,
     pub bins: usize,

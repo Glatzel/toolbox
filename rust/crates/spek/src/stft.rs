@@ -27,7 +27,7 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct RealImagStft<T, const FFT_SIZE: usize, FftBackend, SP>
+pub struct Stft<T, const FFT_SIZE: usize, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -40,7 +40,7 @@ where
     phantom: PhantomData<SP>,
 }
 
-impl<T, const FFT_SIZE: usize, FftBackend, SP> RealImagStft<T, FFT_SIZE, FftBackend, SP>
+impl<T, const FFT_SIZE: usize, FftBackend, SP> Stft<T, FFT_SIZE, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP, FFT_SIZE>,
@@ -76,15 +76,22 @@ where
     }
 
     fn frame_unchecked(&self, input: &[T]) -> Vec<T> {
-        let frame: Vec<T> = input
+        let mut frame: Vec<T> = input
             .iter()
             .zip(self.window.iter())
             .map(|(i, w)| *i * *w)
             .collect();
+        frame.resize(FFT_SIZE, T::zero());
         frame
     }
     fn frame(&self, input: &[T]) -> Result<Vec<T>, StftError> {
         if input.len() != self.win_size {
+            return Err(StftError::InvalidFrameInputSize {
+                expected: self.win_size,
+                actual: input.len(),
+            });
+        }
+        if input.len() > FFT_SIZE {
             return Err(StftError::InvalidFrameInputSize {
                 expected: self.win_size,
                 actual: input.len(),
@@ -114,6 +121,16 @@ where
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrogram(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
+        dbg!(
+            signal.len(),
+            FFT_SIZE,
+            self.win_size,
+            self.hop_size,
+            frame_count,
+            spectrogram.bins,
+            spectrogram.frames,
+            scratch.len()
+        );
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
@@ -316,5 +333,45 @@ where
 
     pub fn istft(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError> {
         Ok(self.istft_frames_unchecked(spectrogram))
+    }
+}
+#[cfg(test)]
+mod tests {
+    use core::fmt::Debug;
+
+    use phastft::planner::PlannerR2c32;
+    use rand::distr::{Distribution, StandardUniform};
+    use rand::rngs::StdRng;
+    use rand::{RngExt, SeedableRng};
+    use rstest::rstest;
+
+    use super::*;
+    use crate::fft_backend::phastft::PhastftBackend;
+    use crate::fft_backend::realfft::RealfftBackend;
+    #[rstest]
+    #[case("hop4.win7.window_hann.backend_phastft" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32, 8>::new(), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_realfft" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 49, PhantomData::<f32>)]
+    fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP, N>, const N: usize, SP>(
+        #[case] name: &str,
+        #[case] hop_size: usize,
+        #[case] win_size: usize,
+        #[case] window: Window<T>,
+        #[case] fft_backend: FftBackend,
+        #[case] signal_len: usize,
+        #[case] _t: PhantomData<T>,
+    ) -> mischief::Result<()>
+    where
+        StandardUniform: Distribution<T>,
+        Spectrogram<SP>: ISpectrogram<SP>,
+        SP: Debug,
+        T: Debug,
+    {
+        let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
+        let mut rng = StdRng::seed_from_u64(0xF77_u64);
+        let mut signal: Vec<T> = (0..signal_len).map(|_| rng.random()).collect();
+        dbg!(&signal);
+        let spectogram = stft.stft(&mut signal)?;
+        insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
+        Ok(())
     }
 }

@@ -2,7 +2,7 @@ use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
 use super::{FftError, IFftBackend};
-use crate::fft_backend::{check_size};
+use crate::fft_backend::check_size;
 
 #[derive(Debug, Clone)]
 pub struct PhastftBackend<P, const N: usize> {
@@ -13,7 +13,7 @@ impl<P, const N: usize> PhastftBackend<P, N> {}
 impl<const N: usize> PhastftBackend<PlannerR2c32, N> {
     pub fn new() -> Self {
         Self {
-            options: phastft::options::Options::guess_options(N / 2),
+            options: phastft::options::Options::guess_options(N),
             planner: PlannerR2c32::new(N),
         }
     }

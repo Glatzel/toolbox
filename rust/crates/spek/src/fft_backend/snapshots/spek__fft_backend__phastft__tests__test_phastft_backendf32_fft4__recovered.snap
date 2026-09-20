@@ -1,0 +1,10 @@
+---
+source: crates/spek/src/fft_backend/phastft.rs
+expression: recovered
+---
+[
+    0.27098152,
+    0.14039207,
+    0.9799018,
+    0.5933856,
+]

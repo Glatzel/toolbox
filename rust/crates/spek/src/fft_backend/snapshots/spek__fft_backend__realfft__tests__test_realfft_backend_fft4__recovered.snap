@@ -1,0 +1,10 @@
+---
+source: crates/spek/src/fft_backend/realfft.rs
+expression: recovered
+---
+[
+    1.0839261,
+    0.56156826,
+    3.9196072,
+    2.3735423,
+]

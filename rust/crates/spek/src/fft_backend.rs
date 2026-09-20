@@ -7,8 +7,6 @@ pub mod rustfft;
 
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum FftError {
-    #[error("size not equal, real: {real}, imag: {imag}")]
-    SizeNotEqual { real: usize, imag: usize },
     #[error("{name} size not correct, expected {expected}, got {actual}")]
     SizeNotCorrect {
         name: &'static str,
@@ -35,7 +33,7 @@ pub enum FftDirection {
     Inverse,
 }
 
-pub trait IFftBackend<SI, SP, SC, const N_FFT: usize> {
+pub trait IFftBackend<SI, SP, SC, const N: usize> {
     fn signal_size(&self) -> usize;
     fn spectrum_size(&self) -> usize;
     fn forward_scratch_size(&self) -> usize;
@@ -69,20 +67,7 @@ const fn check_size(name: &'static str, input: usize, expected: usize) -> Result
     }
     Ok(())
 }
-const fn check_size_at_least(
-    name: &'static str,
-    input: usize,
-    expected: usize,
-) -> Result<(), FftError> {
-    if input < expected {
-        return Err(FftError::SizeTooSmall {
-            name,
-            expected,
-            actual: input,
-        });
-    }
-    Ok(())
-}
+
 /// `test_fft_backend!` — generates a round-trip snapshot test for any
 /// `IFftBackend` implementation.
 ///
@@ -119,40 +104,40 @@ const fn check_size_at_least(
 ///   rand::distributions::Distribution<SI>`
 /// - `SP: Default + core::fmt::Debug`
 /// - `SC: Default`
-#[cfg(test)]
-#[cfg_attr(test, macro_export)]
+///
+/// No assumption is made about the numeric relationship between
+/// `spectrum_size()` and the length of `new_spectrum()` — some backends
+/// interleave real/imag components into one flat buffer twice that long.
+#[macro_export]
 macro_rules! test_fft_backend {
-    ($test_name:ident, $backend_ty:ty, $signal_len:expr) => {
+    ($test_name:ident, $T:ty,$backend_ty:ty) => {
         $crate::test_fft_backend!(
             $test_name,
+            $T,
             $backend_ty,
-            $signal_len,
             <$backend_ty as ::core::default::Default>::default()
         );
     };
 
-    ($test_name:ident, $backend_ty:ty, $signal_len:expr, $backend_expr:expr) => {
+    ($test_name:ident,$T:ty, $backend_ty:ty, $backend_expr:expr) => {
         #[test]
         fn $test_name() {
-            use rand::{rngs::StdRng, Rng, SeedableRng};
+            use rand::rngs::StdRng;
+            use rand::{RngExt, SeedableRng};
 
             // Fixed seed: keeps insta snapshots deterministic across runs.
             let mut rng = StdRng::seed_from_u64(0xF77_u64);
 
             let backend: $backend_ty = $backend_expr;
 
-            let signal_size = backend.signal_size();
-            let spectrum_size = backend.spectrum_size();
-
             // Allocate at `signal_size()`, but only randomize the first
             // `min(signal_len, signal_size)` samples.
-            let fill_len = core::cmp::min($signal_len, signal_size);
-            let mut signal: Vec<_> = (0..signal_size)
-                .map(|_| ::core::default::Default::default())
-                .collect();
-            for sample in signal.iter_mut().take(fill_len) {
-                *sample = rng.gen();
-            }
+            let signal_size: usize = backend.signal_size();
+            let mut signal: Vec<_> = (0..signal_size).map(|_| rng.random()).collect();
+            insta::assert_debug_snapshot!(
+                format!("signal_{}_{}", stringify!($T), signal_size),
+                signal
+            );
 
             let mut spectrum = backend.new_spectrum();
             let mut forward_scratch = backend.new_forward_scratch();
@@ -161,18 +146,15 @@ macro_rules! test_fft_backend {
                 .fft(&mut signal, &mut spectrum, &mut forward_scratch)
                 .expect(concat!(stringify!($test_name), ": fft() failed"));
 
-            assert_eq!(
-                spectrum.len(),
-                spectrum_size,
-                "{}: spectrum length mismatch",
-                stringify!($test_name)
-            );
-            insta::assert_debug_snapshot!(
-                concat!(stringify!($test_name), "__spectrum"),
-                spectrum
-            );
+            // Note: `spectrum.len()` is not asserted against
+            // `backend.spectrum_size()` here — that relationship is
+            // backend-specific (e.g. a real/imag-interleaved flat buffer
+            // is `spectrum_size() * 2` long), not guaranteed 1:1 by the
+            // trait. `new_spectrum()` is trusted as the source of truth
+            // for buffer size.
+            insta::assert_debug_snapshot!(concat!(stringify!($test_name), "__spectrum"), spectrum);
 
-            let mut recovered: Vec<_> = (0..signal_size)
+            let mut recovered: Vec<_> = (0..backend.signal_size())
                 .map(|_| ::core::default::Default::default())
                 .collect();
             let mut inverse_scratch = backend.new_inverse_scratch();

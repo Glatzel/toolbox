@@ -1,35 +1,41 @@
+extern crate alloc;
+use alloc::sync::Arc;
+
 use num_complex::Complex;
 use num_traits::Float;
-use rustfft::FftDirection::{Forward, Inverse};
 use rustfft::{Fft, FftNum};
 
-use crate::fft_backend::{FftError, IFftBackend, check_size, check_size_at_least};
+use crate::fft_backend::{FftError, IFftBackend, check_size};
 
-pub struct RustfftBackend<T, P, const N_FFT: usize>
+pub struct RustfftBackend<T, const N: usize>
 where
     T: FftNum,
-    P: Fft<T>,
 {
-    planner: P,
+    forward_planner: Arc<dyn Fft<T>>,
+    inverse_planner: Arc<dyn Fft<T>>,
     phantom: core::marker::PhantomData<T>,
 }
-impl<T, P, const N_FFT: usize> RustfftBackend<T, P, N_FFT>
+impl<T, const N: usize> RustfftBackend<T, N>
 where
     T: FftNum,
-    P: Fft<T>,
 {
-    pub const fn new(planner: P) -> Self {
-        Self {
-            planner,
+    pub fn new(
+        forward_planner: Arc<dyn Fft<T>>,
+        inverse_planner: Arc<dyn Fft<T>>,
+    ) -> Result<Self, FftError> {
+        check_size("forward_planner", forward_planner.len(), N)?;
+        check_size("inverse_planner", inverse_planner.len(), N)?;
+        Ok(Self {
+            forward_planner,
+            inverse_planner,
             phantom: core::marker::PhantomData,
-        }
+        })
     }
 }
-impl<T, P, const N_FFT: usize> IFftBackend<T, Complex<T>, Complex<T>, N_FFT>
-    for RustfftBackend<T, P, N_FFT>
+impl<T, const N: usize> IFftBackend<T, Complex<T>, Complex<T>, N>
+    for RustfftBackend<T, N>
 where
     T: FftNum + Float,
-    P: Fft<T>,
 {
     fn fft(
         &self,
@@ -37,15 +43,10 @@ where
         spectrum: &mut [Complex<T>],
         scratch: &mut [Complex<T>],
     ) -> Result<(), super::FftError> {
-        check_size_at_least("signal", signal.len(), self.signal_size())?;
+        check_size("signal", signal.len(), self.signal_size())?;
         check_size("spectrum", spectrum.len(), self.spectrum_size())?;
         check_size("scratch", scratch.len(), self.forward_scratch_size())?;
-        if self.planner.fft_direction() != Forward {
-            return Err(FftError::FftDirection {
-                expected: super::FftDirection::Forward,
-                actual: super::FftDirection::Inverse,
-            });
-        }
+
         self.fft_unchecked(signal, spectrum, scratch);
         Ok(())
     }
@@ -59,12 +60,6 @@ where
         check_size("spectrum", spectrum.len(), self.spectrum_size())?;
         check_size("signal", signal.len(), self.signal_size())?;
         check_size("scratch", scratch.len(), self.inverse_scratch_size())?;
-        if self.planner.fft_direction() != Inverse {
-            return Err(FftError::FftDirection {
-                expected: super::FftDirection::Inverse,
-                actual: super::FftDirection::Forward,
-            });
-        }
         self.ifft_unchecked(spectrum, signal, scratch);
         Ok(())
     }
@@ -78,7 +73,7 @@ where
         for (dst, &src) in spectrum.iter_mut().zip(signal.iter()) {
             *dst = Complex::new(src, T::zero());
         }
-        self.planner.process_with_scratch(spectrum, scratch);
+        self.forward_planner.process_with_scratch(spectrum, scratch);
     }
 
     fn ifft_unchecked(
@@ -87,19 +82,19 @@ where
         signal: &mut [T],
         scratch: &mut [Complex<T>],
     ) {
-        self.planner.process_with_scratch(spectrum, scratch);
+        self.inverse_planner.process_with_scratch(spectrum, scratch);
         for (dst, src) in signal.iter_mut().zip(spectrum.iter()) {
             *dst = src.re;
         }
     }
 
-    fn signal_size(&self) -> usize { N_FFT }
+    fn signal_size(&self) -> usize { N }
 
-    fn spectrum_size(&self) -> usize { N_FFT / 2 + 1 }
+    fn spectrum_size(&self) -> usize { N }
 
-    fn forward_scratch_size(&self) -> usize { self.planner.get_inplace_scratch_len() }
+    fn forward_scratch_size(&self) -> usize { self.forward_planner.get_inplace_scratch_len() }
 
-    fn inverse_scratch_size(&self) -> usize { self.planner.get_inplace_scratch_len() }
+    fn inverse_scratch_size(&self) -> usize { self.inverse_planner.get_inplace_scratch_len() }
 
     fn new_spectrum(&self) -> Vec<Complex<T>> {
         vec![
@@ -130,4 +125,13 @@ where
             self.inverse_scratch_size()
         ]
     }
+}
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::test_fft_backend;
+
+    test_fft_backend!(test_rustfft_backend_fft4, f32, RustfftBackend<f32, 4>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(4), rustfft::FftPlanner::new().plan_fft_inverse(4)).unwrap());
+    test_fft_backend!(test_rustfft_backend_fft8, f32, RustfftBackend<f32, 8>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(8), rustfft::FftPlanner::new().plan_fft_inverse(8)).unwrap());
 }

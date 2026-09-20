@@ -1,0 +1,12 @@
+---
+source: crates/spek/src/fft_backend/phastft.rs
+expression: spectrum
+---
+[
+    1.984661,
+    -0.7089203,
+    0.5171057,
+    0.0,
+    0.4529935,
+    0.0,
+]

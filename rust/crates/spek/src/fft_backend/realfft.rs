@@ -7,7 +7,7 @@ use realfft::{ComplexToReal, RealFftPlanner, RealToComplex};
 
 use crate::fft_backend::{IFftBackend, check_size};
 
-pub struct RealfftBackend<T, const N_FFT: usize>
+pub struct RealfftBackend<T, const N: usize>
 where
     T: realfft::FftNum,
 {
@@ -15,32 +15,32 @@ where
     inverse_planner: Arc<dyn ComplexToReal<T>>,
 }
 
-impl<T, const N_FFT: usize> RealfftBackend<T, N_FFT>
+impl<T, const N: usize> RealfftBackend<T, N>
 where
     T: realfft::FftNum,
 {
     pub fn new() -> Self {
         let mut planner = RealFftPlanner::new();
         Self {
-            forward_planner: planner.plan_fft_forward(N_FFT),
-            inverse_planner: planner.plan_fft_inverse(N_FFT),
+            forward_planner: planner.plan_fft_forward(N),
+            inverse_planner: planner.plan_fft_inverse(N),
         }
     }
 }
-impl<T, const N_FFT: usize> Default for RealfftBackend<T, N_FFT>
+impl<T, const N: usize> Default for RealfftBackend<T, N>
 where
     T: realfft::FftNum,
 {
     fn default() -> Self { Self::new() }
 }
-impl<T, const N_FFT: usize> IFftBackend<T, Complex<T>, Complex<T>, N_FFT>
-    for RealfftBackend<T, N_FFT>
+impl<T, const N: usize> IFftBackend<T, Complex<T>, Complex<T>, N>
+    for RealfftBackend<T, N>
 where
     T: realfft::FftNum + FloatConst,
 {
-    fn signal_size(&self) -> usize { N_FFT }
+    fn signal_size(&self) -> usize { N }
 
-    fn spectrum_size(&self) -> usize { N_FFT / 2 + 1 }
+    fn spectrum_size(&self) -> usize { N / 2 + 1 }
 
     fn forward_scratch_size(&self) -> usize { self.forward_planner.get_scratch_len() }
 
@@ -95,7 +95,6 @@ where
             .unwrap();
     }
 
-
     fn new_spectrum(&self) -> Vec<Complex<T>> {
         vec![
             Complex {
@@ -125,4 +124,11 @@ where
             self.inverse_scratch_size()
         ]
     }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_fft_backend;
+    test_fft_backend!(test_realfft_backend_fft4, f32, RealfftBackend<f32, 4>);
+    test_fft_backend!(test_realfft_backend_fft8, f32, RealfftBackend<f32, 8>);
 }

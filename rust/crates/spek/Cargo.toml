@@ -9,6 +9,7 @@ num-complex.workspace = true
 num-traits.workspace = true
 phastft = { workspace = true, features = ["complex-nums"], optional = true }
 rayon = { workspace = true, optional = true }
+realfft = { workspace = true, optional = true }
 rustfft = { workspace = true, optional = true }
 thiserror.workspace = true
 
@@ -18,9 +19,11 @@ mischief.workspace = true
 rstest.workspace = true
 
 [features]
+default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]
 parallel = ["rayon", "std"]
 std = []
 
 backend-phastft = ["phastft"]
 backend-phastft-parallel = ["backend-phastft", "phastft/parallel", "std"]
+backend-realfft = ["realfft"]
 backend-rustfft = ["rustfft"]

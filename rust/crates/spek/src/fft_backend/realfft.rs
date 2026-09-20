@@ -127,7 +127,7 @@ where
     }
 
     fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<Complex<T>> {
-         crate::spectogram::Spectrogram::new(frame_len, self.spectrum_size())
+        crate::spectogram::Spectrogram::new(frame_len, self.spectrum_size())
     }
 }
 #[cfg(test)]

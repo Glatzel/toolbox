@@ -20,6 +20,10 @@ impl<const N: usize> PhastftBackend<PlannerR2c32, N> {
     }
 }
 
+impl<const N: usize> Default for PhastftBackend<PlannerR2c32, N> {
+    fn default() -> Self { Self::new() }
+}
+
 impl<const N: usize> IFftBackend<f32, f32, N> for PhastftBackend<PlannerR2c32, N>
 where
     Spectrogram<f32>: ISpectrogram<f32>,
@@ -53,7 +57,13 @@ where
     }
     fn fft_unchecked(&self, signal: &mut [f32], spectrum: &mut [f32], _scratch: &mut [f32]) {
         let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size() / 2) };
-        phastft::r2c_fft_f32_with_planner_and_opts(signal, real, imag, &self.planner, &self.options)
+        phastft::r2c_fft_f32_with_planner_and_opts(
+            signal,
+            real,
+            imag,
+            &self.planner,
+            &self.options,
+        );
     }
     fn ifft_unchecked(&self, spectrum: &mut [f32], signal: &mut [f32], scratch: &mut [f32]) {
         let (real, imag) = unsafe { spectrum.split_at_unchecked(self.spectrum_size() / 2) };
@@ -67,7 +77,7 @@ where
             &self.options,
             scratch_real,
             scratch_imag,
-        )
+        );
     }
 
     fn new_spectrum(&self) -> Vec<f32> { vec![0.0; self.spectrum_size()] }
@@ -90,6 +100,10 @@ impl<const N: usize> PhastftBackend<PlannerR2c64, N> {
     }
 }
 
+impl<const N: usize> Default for PhastftBackend<PlannerR2c64, N> {
+    fn default() -> Self { Self::new() }
+}
+
 impl<const N: usize> IFftBackend<f64, f64, N> for PhastftBackend<PlannerR2c64, N>
 where
     Spectrogram<f64>: ISpectrogram<f64>,
@@ -107,7 +121,7 @@ where
     }
     fn fft_unchecked(&self, signal: &mut [f64], spectrum: &mut [f64], _scratch: &mut [f64]) {
         let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size() / 2) };
-        r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options)
+        r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options);
     }
     fn ifft_unchecked(&self, spectrum: &mut [f64], signal: &mut [f64], scratch: &mut [f64]) {
         let (real, imag) = unsafe { spectrum.split_at_unchecked(self.spectrum_size() / 2) };
@@ -121,7 +135,7 @@ where
             &self.options,
             scratch_real,
             scratch_imag,
-        )
+        );
     }
     fn ifft(
         &self,

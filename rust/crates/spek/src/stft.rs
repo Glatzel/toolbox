@@ -54,7 +54,7 @@ where
         window: Window<T>,
         fft_backend: FftBackend,
     ) -> Result<Self, StftError> {
-        dbg!(window.window(win_size, false)?);
+        window.window(win_size, false)?;
         Ok(Self {
             hop_size,
             win_size,
@@ -124,7 +124,7 @@ where
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrogram(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
-        dbg!(
+        (
             signal.len(),
             FFT_SIZE,
             self.win_size,
@@ -132,7 +132,7 @@ where
             frame_count,
             spectrogram.bins,
             spectrogram.frames,
-            scratch.len()
+            scratch.len(),
         );
 
         for frame_idx in 0..frame_count {
@@ -241,7 +241,7 @@ where
             let mut spectrum = spectrogram.frame_mut_unchecked(frame_idx);
             let mut time_frame = vec![T::zero(); self.win_size];
             self.fft_backend
-                .ifft_unchecked(&mut spectrum, &mut time_frame, &mut scratch);
+                .ifft_unchecked(spectrum, &mut time_frame, &mut scratch);
 
             for i in 0..self.win_size {
                 // Re-apply the analysis window on the way out (standard

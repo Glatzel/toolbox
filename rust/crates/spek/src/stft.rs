@@ -124,16 +124,6 @@ where
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrogram(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
-        (
-            signal.len(),
-            FFT_SIZE,
-            self.win_size,
-            self.hop_size,
-            frame_count,
-            spectrogram.bins,
-            spectrogram.frames,
-            scratch.len(),
-        );
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
@@ -238,7 +228,7 @@ where
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
-            let mut spectrum = spectrogram.frame_mut_unchecked(frame_idx);
+            let spectrum = spectrogram.frame_mut_unchecked(frame_idx);
             let mut time_frame = vec![T::zero(); self.win_size];
             self.fft_backend
                 .ifft_unchecked(spectrum, &mut time_frame, &mut scratch);

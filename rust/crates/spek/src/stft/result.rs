@@ -25,7 +25,7 @@ where
         {
             Self {
                 data: vec![
-                    Complex {
+                    num_complex::Complex {
                         re: T::zero(),
                         im: T::zero()
                     };

@@ -1,6 +1,6 @@
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use spek::fft_backend::IFftBackend;
-const SIZE: [usize; 5] = [5, 10, 15, 20];
+const SIZE: [usize; 4] = [5, 10, 15, 20];
 
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,

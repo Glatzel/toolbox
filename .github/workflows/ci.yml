@@ -25,6 +25,7 @@ jobs:
       pull-requests: write
   changed:
     outputs:
+      changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
       changed-mischief: ${{ steps.main.outputs.mischief_any_changed }}
@@ -42,6 +43,11 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files_yaml: |
+            benchmark:
+              - ./rust/crates/rax/**
+              - ./rust/crates/rax-nmea/**
+              - ./rust/crates/spek/**
+              - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
               - ./.github/workflows/ci-python.yml
@@ -58,6 +64,10 @@ jobs:
               - ./tools/ttyw/**
             tools-vinaya:
               - ./tools/vinaya/**
+  benchmark:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-benchmark != 'false' }}
+    uses: ./.github/workflows/benchmark.yml
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}

@@ -78,9 +78,7 @@ impl PhastftBackend<PlannerR2c64> {
     }
 }
 
-impl IFftBackend<f64> for PhastftBackend<PlannerR2c64>
-
-{
+impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
     fn fft(&self, signal: &mut [f64], spectrum: &mut [f64], _scratch: &mut [f64]) {
         let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size() / 2) };
         r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options);

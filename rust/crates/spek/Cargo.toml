@@ -30,15 +30,15 @@ rstest.workspace = true
 
 [features]
 default = ["default-split"]
-default-complex = ["complex", "backend-realfft", "backend-rustfft", "parallel"]
-default-split = ["split", "backend-phastft", "backend-phastft-parallel", "parallel"]
+default-complex = ["backend-realfft", "backend-rustfft", "complex", "parallel"]
+default-split = ["backend-phastft", "backend-phastft-parallel", "parallel", "split"]
 parallel = ["rayon", "std"]
 std = []
 
 complex = ["num-complex"]
 split = []
 
-backend-phastft = ["phastft","split"]
+backend-phastft = ["phastft", "split"]
 backend-phastft-parallel = ["backend-phastft", "phastft/parallel", "std"]
-backend-realfft = ["realfft","complex"]
-backend-rustfft = ["rustfft","complex"]
+backend-realfft = ["complex", "realfft"]
+backend-rustfft = ["complex", "rustfft"]

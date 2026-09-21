@@ -159,13 +159,9 @@ macro_rules! __test_fft_backend_body {
 
         backend.ifft(&mut spectrum, &mut recovered, &mut inverse_scratch)?;
 
-        insta::assert_debug_snapshot!(
-            concat!(stringify!($test_name), "__recovered"),
-            recovered
-                .iter()
-                .map(|i| format!("{i:.5}"))
-                .collect::<Vec<_>>()
-        );
+        signal.iter().zip(recovered.iter()).for_each(|(s, r)| {
+            float_cmp::assert_approx_eq!($T, *r, *s, epsilon = 0.0001);
+        });
         Ok(())
     }};
 }

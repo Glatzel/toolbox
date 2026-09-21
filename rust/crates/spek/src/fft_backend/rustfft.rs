@@ -1,6 +1,7 @@
 extern crate alloc;
 use alloc::sync::Arc;
 
+use generic_num::num;
 use num_complex::Complex;
 use num_traits::Float;
 use rustfft::{Fft, FftNum};
@@ -85,7 +86,7 @@ where
     ) {
         self.inverse_planner.process_with_scratch(spectrum, scratch);
         for (dst, src) in signal.iter_mut().zip(spectrum.iter()) {
-            *dst = src.re;
+            *dst = src.re / num!(N);
         }
     }
 

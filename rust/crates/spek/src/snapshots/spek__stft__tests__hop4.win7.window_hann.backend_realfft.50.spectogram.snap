@@ -225,6 +225,6 @@ Spectrogram {
             im: 0.0,
         },
     ],
-    frames: 11,
-    bins: 5,
+    frame_count: 11,
+    bin_count: 5,
 }

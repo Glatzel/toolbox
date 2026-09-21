@@ -3,6 +3,10 @@ name = "spek"
 version.workspace = true
 edition.workspace = true
 
+[[bench]]
+harness = false
+name = "fft"
+
 [dependencies]
 generic-num.workspace = true
 num-complex.workspace = true
@@ -14,11 +18,11 @@ rustfft = { workspace = true, optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]
+criterion.workspace = true
 float-cmp.workspace = true
 insta.workspace = true
 mischief.workspace = true
 rstest.workspace = true
-criterion.workspace = true
 
 [features]
 default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]
@@ -29,7 +33,3 @@ backend-phastft = ["phastft"]
 backend-phastft-parallel = ["backend-phastft", "phastft/parallel", "std"]
 backend-realfft = ["realfft"]
 backend-rustfft = ["rustfft"]
-
-[[bench]]
-harness = false
-name="fft"

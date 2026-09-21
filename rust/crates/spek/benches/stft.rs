@@ -36,7 +36,7 @@ fn bench_wrapper<T, B, SP>(
     );
     g.bench_with_input(
         BenchmarkId::new(
-            format!("{}_stft_parallel_{}_2^", name, backend.fft_size()),
+            format!("{}_stft_parallel_{}_2^", name, fft_size),
             size,
         ),
         &size,

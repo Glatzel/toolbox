@@ -9,3 +9,4 @@ stft = 'python  "./scripts/stft.py"'
 
 [dependencies]
 scipy = "==1.18.0"
+nomkl = "*"

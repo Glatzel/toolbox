@@ -2,7 +2,7 @@ use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::Float;
 use spek::fft_backend::IFftBackend;
-use spek::spectrogram::{IStftResult, StftResult};
+use spek::stft::{IStftResult, StftResult};
 const SIZE: [usize; 4] = [5, 10, 15, 20];
 
 fn bench_wrapper<T, B, SP>(

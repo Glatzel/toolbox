@@ -287,7 +287,7 @@ impl IStftResult<f32, f32> for StftResult<f32> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_magnitude(c[0], c[1]))
             })
             .collect();
@@ -317,7 +317,7 @@ impl IStftResult<f32, f32> for StftResult<f32> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_amplitude(c[0], c[1], scale))
             })
             .collect();
@@ -347,7 +347,7 @@ impl IStftResult<f32, f32> for StftResult<f32> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_db(c[0], c[1], reference))
             })
             .collect();
@@ -405,7 +405,7 @@ impl IStftResult<f64, f64> for StftResult<f64> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_magnitude(c[0], c[1]))
             })
             .collect();
@@ -435,7 +435,7 @@ impl IStftResult<f64, f64> for StftResult<f64> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_amplitude(c[0], c[1], scale))
             })
             .collect();
@@ -465,7 +465,7 @@ impl IStftResult<f64, f64> for StftResult<f64> {
             .par_chunks_exact(self.bin_count * 2)
             .flat_map_iter(|frame| {
                 frame
-                    .chunks_exact(2)
+                    .as_chunks::<2>().0.iter()
                     .map(|c| spectrum_to_db(c[0], c[1], reference))
             })
             .collect();

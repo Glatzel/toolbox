@@ -3,7 +3,13 @@ use generic_num::num;
 use num_traits::Float;
 use spek::fft_backend::IFftBackend;
 use spek::stft::{IStftResult, StftResult};
-const SIZE: [usize; 4] = [5, 10, 15, 20];
+fn get_size() -> usize {
+    match (std::env::var("CI"), std::env::var("STFT_SIGNAL_SIZE")) {
+        (Ok(_), _) => 5,
+        (_, Ok(val)) => val.parse().unwrap_or(5),
+        _ => 5,
+    }
+}
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     name: &str,
@@ -43,66 +49,62 @@ fn bench_wrapper<T, B, SP>(
     );
 }
 fn bench_f32(c: &mut criterion::Criterion) {
+    let size: usize = get_size();
     let mut group = c.benchmark_group("f32");
-    for size in SIZE {
-        let bsize = 2usize.pow(size as u32);
-        bench_wrapper::<f32, _, _>(
-            &mut group,
-            "phastft",
-            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
-                bsize,
-            ),
-            size,
-        );
-        bench_wrapper::<f32, _, _>(
-            &mut group,
-            "realfft",
-            spek::fft_backend::realfft::RealfftBackend::new(bsize),
-            size,
-        );
-        let mut planner = rustfft::FftPlanner::new();
-        bench_wrapper::<f32, _, _>(
-            &mut group,
-            "rustfft",
-            spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(bsize),
-                planner.plan_fft_inverse(bsize),
-            )
-            .unwrap(),
-            size,
-        );
-    }
+
+    let bsize = 2usize.pow(size as u32);
+    bench_wrapper::<f32, _, _>(
+        &mut group,
+        "phastft",
+        spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(bsize),
+        size,
+    );
+    bench_wrapper::<f32, _, _>(
+        &mut group,
+        "realfft",
+        spek::fft_backend::realfft::RealfftBackend::new(bsize),
+        size,
+    );
+    let mut planner = rustfft::FftPlanner::new();
+    bench_wrapper::<f32, _, _>(
+        &mut group,
+        "rustfft",
+        spek::fft_backend::rustfft::RustfftBackend::new(
+            planner.plan_fft_forward(bsize),
+            planner.plan_fft_inverse(bsize),
+        )
+        .unwrap(),
+        size,
+    );
 }
 fn bench_f64(c: &mut criterion::Criterion) {
+    let size: usize = get_size();
     let mut group = c.benchmark_group("f64");
-    for size in SIZE {
-        let bsize = 2usize.pow(size as u32);
-        bench_wrapper::<f64, _, _>(
-            &mut group,
-            "phastft",
-            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
-                bsize,
-            ),
-            size,
-        );
-        bench_wrapper::<f64, _, _>(
-            &mut group,
-            "realfft",
-            spek::fft_backend::realfft::RealfftBackend::new(bsize),
-            size,
-        );
-        let mut planner = rustfft::FftPlanner::new();
-        bench_wrapper::<f64, _, _>(
-            &mut group,
-            "rustfft",
-            spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(bsize),
-                planner.plan_fft_inverse(bsize),
-            )
-            .unwrap(),
-            size,
-        );
-    }
+
+    let bsize = 2usize.pow(size as u32);
+    bench_wrapper::<f64, _, _>(
+        &mut group,
+        "phastft",
+        spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(bsize),
+        size,
+    );
+    bench_wrapper::<f64, _, _>(
+        &mut group,
+        "realfft",
+        spek::fft_backend::realfft::RealfftBackend::new(bsize),
+        size,
+    );
+    let mut planner = rustfft::FftPlanner::new();
+    bench_wrapper::<f64, _, _>(
+        &mut group,
+        "rustfft",
+        spek::fft_backend::rustfft::RustfftBackend::new(
+            planner.plan_fft_forward(bsize),
+            planner.plan_fft_inverse(bsize),
+        )
+        .unwrap(),
+        size,
+    );
 }
 criterion_group!(benches, bench_f32, bench_f64);
 criterion_main!(benches);

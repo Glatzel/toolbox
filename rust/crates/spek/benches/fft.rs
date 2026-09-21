@@ -2,7 +2,7 @@ use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::Float;
 use spek::fft_backend::IFftBackend;
-use spek::stft::{IStftResult, StftResult};
+use spek::stft::StftResult;
 fn get_size() -> usize {
     match (std::env::var("CI"), std::env::var("FFT_SIGNAL_SIZE")) {
         (Ok(_), _) => 5,
@@ -52,14 +52,14 @@ fn bench_f32(c: &mut criterion::Criterion) {
 
     let bsize = 2usize.pow(size as u32);
     #[cfg(feature = "phastft")]
-    bench_wrapper::<f32, _, _>(
+    bench_wrapper::<f32, _>(
         &mut group,
         "phastft",
         spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(bsize),
         size,
     );
     #[cfg(feature = "realfft")]
-    bench_wrapper::<f32, _, _>(
+    bench_wrapper::<f32, _>(
         &mut group,
         "realfft",
         spek::fft_backend::realfft::RealfftBackend::new(bsize),
@@ -67,7 +67,8 @@ fn bench_f32(c: &mut criterion::Criterion) {
     );
     #[cfg(feature = "rustfft")]
     let mut planner = rustfft::FftPlanner::new();
-    bench_wrapper::<f32, _, _>(
+    #[cfg(feature = "rustfft")]
+    bench_wrapper::<f32, _>(
         &mut group,
         "rustfft",
         spek::fft_backend::rustfft::RustfftBackend::new(
@@ -91,7 +92,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
         size,
     );
     #[cfg(feature = "realfft")]
-    bench_wrapper::<f64, _, _>(
+    bench_wrapper::<f64, _>(
         &mut group,
         "realfft",
         spek::fft_backend::realfft::RealfftBackend::new(bsize),
@@ -99,7 +100,8 @@ fn bench_f64(c: &mut criterion::Criterion) {
     );
     #[cfg(feature = "rustfft")]
     let mut planner = rustfft::FftPlanner::new();
-    bench_wrapper::<f64, _, _>(
+    #[cfg(feature = "rustfft")]
+    bench_wrapper::<f64, _>(
         &mut group,
         "rustfft",
         spek::fft_backend::rustfft::RustfftBackend::new(

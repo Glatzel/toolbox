@@ -331,7 +331,7 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use core::fmt::Debug;
+    use core::fmt::{Debug, Display};
 
     use phastft::planner::PlannerR2c32;
     use rand::distr::{Distribution, StandardUniform};
@@ -359,7 +359,7 @@ mod tests {
         StandardUniform: Distribution<T>,
         Spectrogram<SP>: ISpectrogram<SP>,
         SP: Debug,
-        T: Debug,
+        T: Debug + Float + Display,
     {
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let mut rng = StdRng::seed_from_u64(0xF77_u64);
@@ -373,7 +373,10 @@ mod tests {
             format!("{:#?}\n", signal),
         )?;
         let frame = stft.frame_unchecked(&signal[0..win_size]);
-        insta::assert_debug_snapshot!("frame", &frame);
+        insta::assert_debug_snapshot!(
+            "frame",
+            &frame.iter().map(|i| format!("{i:.5}")).collect::<Vec<_>>()
+        );
         let spectogram = stft.stft(&mut signal)?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
         Ok(())

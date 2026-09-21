@@ -154,7 +154,13 @@ macro_rules! __test_fft_backend_body {
         // is `spectrum_size() * 2` long), not guaranteed 1:1 by the
         // trait. `new_spectrum()` is trusted as the source of truth
         // for buffer size.
-        insta::assert_debug_snapshot!(concat!(stringify!($test_name), "__spectrum"), spectrum);
+        insta::assert_debug_snapshot!(
+            concat!(stringify!($test_name), "__spectrum"),
+            spectrum
+                .iter()
+                .map(|i| format!("{i:.5}"))
+                .collect::<Vec<_>>()
+        );
 
         let mut recovered: Vec<_> = (0..backend.signal_size())
             .map(|_| ::core::default::Default::default())
@@ -163,7 +169,13 @@ macro_rules! __test_fft_backend_body {
 
         backend.ifft(&mut spectrum, &mut recovered, &mut inverse_scratch)?;
 
-        insta::assert_debug_snapshot!(concat!(stringify!($test_name), "__recovered"), recovered);
+        insta::assert_debug_snapshot!(
+            concat!(stringify!($test_name), "__recovered"),
+            recovered
+                .iter()
+                .map(|i| format!("{i:.5}"))
+                .collect::<Vec<_>>()
+        );
         Ok(())
     }};
 }

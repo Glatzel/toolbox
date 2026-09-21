@@ -1,12 +1,12 @@
 ---
 source: crates/spek/src/fft_backend/phastft.rs
-expression: spectrum
+expression: "spectrum.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
 ---
 [
-    1.6963864399132416,
-    -0.8045949901779214,
-    0.47437197411384235,
-    0.0,
-    -0.5757639564192245,
-    0.0,
+    "1.69639",
+    "-0.80459",
+    "0.47437",
+    "0.00000",
+    "-0.57576",
+    "0.00000",
 ]

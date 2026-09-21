@@ -1,22 +1,10 @@
 ---
 source: crates/spek/src/fft_backend/realfft.rs
-expression: spectrum
+expression: "spectrum.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
 ---
 [
-    Complex {
-        re: 4.4840064,
-        im: 0.0,
-    },
-    Complex {
-        re: -0.56613576,
-        im: 0.60152864,
-    },
-    Complex {
-        re: -0.95386094,
-        im: 0.7849231,
-    },
-    Complex {
-        re: 0.22642884,
-        im: 0.3926453,
-    },
+    "4.48401+0.00000i",
+    "-0.56614+0.60153i",
+    "-0.95386+0.78492i",
+    "0.22643+0.39265i",
 ]

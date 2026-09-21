@@ -13,7 +13,7 @@ fn bench_wrapper<T, B, SP>(
 ) where
     T: Float,
     B: IFftBackend<T, SP>,
-    StftResult<SP>: IStftResult<SP>,
+    StftResult<SP>: IStftResult<SP, T>,
     SP: Clone,
 {
     let data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();

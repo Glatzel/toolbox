@@ -34,7 +34,6 @@ pub enum FftError {
         expected: FftDirection,
         actual: FftDirection,
     },
-   
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FftDirection {

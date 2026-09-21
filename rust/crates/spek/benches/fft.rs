@@ -57,7 +57,7 @@ fn bench_f32(c: &mut criterion::Criterion) {
         );
         bench_wrapper::<f32, _, _>(
             &mut group,
-            "realfft"
+            "realfft",
             spek::fft_backend::realfft::RealfftBackend::new(bsize),
             size,
         );

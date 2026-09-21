@@ -368,7 +368,7 @@ mod tests {
             "frame",
             &frame.iter().map(|i| format!("{i:.5}")).collect::<Vec<_>>()
         );
-        let mut spectogram = stft.stft(&mut signal)?;
+        let spectogram = stft.stft(&mut signal)?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
 
         // let recovered = stft.istft(&mut spectogram)?;

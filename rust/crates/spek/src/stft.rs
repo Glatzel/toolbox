@@ -9,7 +9,7 @@ pub use result::StftResult;
 use thiserror::Error;
 
 use crate::Dtype;
-use crate::fft_backend::{FftError, IFftBackend};
+use crate::fft_backend::IFftBackend;
 use crate::pad::PadError;
 use crate::windows::{Window, WindowError};
 
@@ -19,8 +19,6 @@ pub enum StftError {
     Pad(#[from] PadError),
     #[error(transparent)]
     Window(#[from] WindowError),
-    #[error(transparent)]
-    Fft(#[from] FftError),
 
     #[error("{name} size not correct, got {size} ({reason})")]
     InvalidSize {

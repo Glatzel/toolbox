@@ -8,34 +8,6 @@ pub mod realfft;
 #[cfg(feature = "backend-rustfft")]
 pub mod rustfft;
 
-#[derive(Debug, Clone, PartialEq, thiserror::Error)]
-pub enum FftError {
-    #[error("{name} size not correct, expected {expected}, got {actual}")]
-    SizeNotCorrect {
-        name: &'static str,
-        expected: usize,
-        actual: usize,
-    },
-    #[error("{name} size not equal, {a} != {b}")]
-    SizeNotEqual {
-        name: &'static str,
-        a: usize,
-        b: usize,
-    },
-    #[error("{name} size not correct, expected at least {expected}, got {actual}")]
-    SizeTooSmall {
-        name: &'static str,
-        expected: usize,
-        actual: usize,
-    },
-    #[error("size not power of two, got {size}")]
-    SizeNotPowerOfTwo { size: usize },
-    #[error("fft_direction error. expected {expected:?}, got {actual:?}")]
-    FftDirection {
-        expected: FftDirection,
-        actual: FftDirection,
-    },
-}
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FftDirection {
     Forward,

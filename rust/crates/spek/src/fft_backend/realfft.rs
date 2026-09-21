@@ -87,6 +87,7 @@ where
         signal: &mut [T],
         scratch: &mut [Complex<T>],
     ) {
+        dbg!(scratch.len());
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
@@ -104,25 +105,9 @@ where
         ]
     }
 
-    fn new_forward_scratch(&self) -> Vec<Complex<T>> {
-        vec![
-            Complex {
-                re: T::zero(),
-                im: T::zero()
-            };
-            self.forward_scratch_size()
-        ]
-    }
+    fn new_forward_scratch(&self) -> Vec<Complex<T>> { self.forward_planner.make_scratch_vec() }
 
-    fn new_inverse_scratch(&self) -> Vec<Complex<T>> {
-        vec![
-            Complex {
-                re: T::zero(),
-                im: T::zero()
-            };
-            self.inverse_scratch_size()
-        ]
-    }
+    fn new_inverse_scratch(&self) -> Vec<Complex<T>> { self.inverse_planner.make_scratch_vec() }
 
     fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
         crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())

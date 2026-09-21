@@ -6,7 +6,7 @@ use num_complex::Complex;
 use num_traits::{Float, FloatConst};
 use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
-use crate::fft_backend::{IFftBackend};
+use crate::fft_backend::IFftBackend;
 use crate::stft::{IStftResult, StftResult};
 
 pub struct RealfftBackend<T>
@@ -43,23 +43,13 @@ where
 
     fn inverse_scratch_size(&self) -> usize { self.inverse_planner.get_scratch_len() }
 
-    fn fft(
-        &self,
-        signal: &mut [T],
-        spectrum: &mut [Complex<T>],
-        scratch: &mut [Complex<T>],
-    ) {
+    fn fft(&self, signal: &mut [T], spectrum: &mut [Complex<T>], scratch: &mut [Complex<T>]) {
         self.forward_planner
             .process_with_scratch(signal, spectrum, scratch)
             .unwrap();
     }
 
-    fn ifft(
-        &self,
-        spectrum: &mut [Complex<T>],
-        signal: &mut [T],
-        scratch: &mut [Complex<T>],
-    ) {
+    fn ifft(&self, spectrum: &mut [Complex<T>], signal: &mut [T], scratch: &mut [Complex<T>]) {
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();

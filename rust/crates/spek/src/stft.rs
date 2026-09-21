@@ -21,10 +21,21 @@ pub enum StftError {
     Window(#[from] WindowError),
     #[error(transparent)]
     Fft(#[from] FftError),
-    #[error("frame index out of bounds, index: {index}, frame_count: {frame_count}")]
-    FrameIndexOutOfBounds { index: usize, frame_count: usize },
-    #[error("invalid input size, expected {expected}, got {actual}")]
-    InvalidFrameInputSize { expected: usize, actual: usize },
+
+    #[error("{name} size not correct, got {size} ({reason})")]
+    InvalidSize {
+        name: &'static str,
+        size: usize,
+        reason: &'static str,
+    },
+    #[error("size not correct, {name_a} got {size_a} and {name_b} got {size_b} ({reason})")]
+    Invalid2Size {
+        name_a: &'static str,
+        name_b: &'static str,
+        size_a: usize,
+        size_b: usize,
+        reason: &'static str,
+    },
 }
 
 pub struct Stft<T, FftBackend>
@@ -49,6 +60,46 @@ where
         window: Window<T>,
         fft_backend: FftBackend,
     ) -> Result<Self, StftError> {
+        if hop_size == 0 {
+            return Err(StftError::InvalidSize {
+                name: "hop_size",
+                size: 0,
+                reason: "must be greater than 0, got 0",
+            });
+        }
+        if win_size == 0 {
+            return Err(StftError::InvalidSize {
+                name: "win_size",
+                size: 0,
+                reason: "must be greater than 0, got 0",
+            });
+        }
+        if fft_backend.fft_size() < 2 {
+            return Err(StftError::InvalidSize {
+                name: "fft_size",
+                size: fft_backend.fft_size(),
+                reason: "must be greater than 1",
+            });
+        }
+        if win_size > fft_backend.fft_size() {
+            return Err(StftError::Invalid2Size {
+                name_a: "win_size",
+                name_b: "fft_size",
+                size_a: win_size,
+                size_b: fft_backend.fft_size(),
+                reason: "must be less than or equal to fft_size",
+            });
+        }
+        if hop_size > win_size {
+            return Err(StftError::Invalid2Size {
+                name_a: "hop_size",
+                name_b: "win_size",
+                size_a: hop_size,
+                size_b: win_size,
+                reason: "must be less than or equal to win_size",
+            });
+        }
+
         window.window(win_size, false)?;
         Ok(Self {
             hop_size,
@@ -58,15 +109,9 @@ where
         })
     }
 
-    /// Number of complete frames that fit in `signal`.
-    ///
-    /// Returns 0 rather than underflowing/panicking when `signal` is
-    /// shorter than the window; callers that need a hard error for that
-    /// case should check `signal.len() < self.win_size` first (as `stft`
-    /// and `istft` do).
     const fn frame_count(&self, signal_len: usize) -> usize {
         if signal_len < self.win_size {
-            0
+            1
         } else {
             ((signal_len - self.win_size) / self.hop_size) + 1
         }

@@ -23,13 +23,8 @@ def generate(signal: np.ndarray) -> None:
 
 
 if __name__ == "__main__":
-    signal = np.array(
-        [
-            0.2709815,
-            0.14039207,
-            0.9799018,
-            0.5933856,
-        ],
+    signal = np.arange(
+        4,
         dtype=np.float32,
     )
     generate(signal)

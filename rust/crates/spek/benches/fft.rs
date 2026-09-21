@@ -45,24 +45,25 @@ fn bench_wrapper<T, B, SP>(
 fn bench_f32(c: &mut criterion::Criterion) {
     let mut group = c.benchmark_group("f32");
     for size in SIZE {
+        let bsize = 2usize.pow(size as u32);
         bench_wrapper::<f32, _, _>(
             &mut group,
             spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
-                2usize.pow(size as u32),
+                bin_size,
             ),
             size,
         );
         bench_wrapper::<f32, _, _>(
             &mut group,
-            spek::fft_backend::realfft::RealfftBackend::new(2usize.pow(size as u32)),
+            spek::fft_backend::realfft::RealfftBackend::new(bin_size),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f32, _, _>(
             &mut group,
             spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(2usize.pow(size as u32)),
-                planner.plan_fft_inverse(2usize.pow(size as u32)),
+                planner.plan_fft_forward(bin_size),
+                planner.plan_fft_inverse(bin_size),
             )
             .unwrap(),
             size,
@@ -72,22 +73,25 @@ fn bench_f32(c: &mut criterion::Criterion) {
 fn bench_f64(c: &mut criterion::Criterion) {
     let mut group = c.benchmark_group("f64");
     for size in SIZE {
+        let bsize = 2usize.pow(size as u32);
         bench_wrapper::<f64, _, _>(
             &mut group,
-            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(size),
+            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
+                bsize,
+            ),
             size,
         );
         bench_wrapper::<f64, _, _>(
             &mut group,
-            spek::fft_backend::realfft::RealfftBackend::new(size),
+            spek::fft_backend::realfft::RealfftBackend::new(bsize),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f64, _, _>(
             &mut group,
             spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(size),
-                planner.plan_fft_inverse(size),
+                planner.plan_fft_forward(bsize),
+                planner.plan_fft_inverse(bsize),
             )
             .unwrap(),
             size,

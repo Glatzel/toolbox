@@ -54,7 +54,9 @@ where
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
         let n = num!(self.fft_size());
-        signal.iter_mut().for_each(|s| *s = *s / n);
+        for s in signal.iter_mut() {
+            *s = *s / n;
+        }
     }
 
     fn new_spectrum(&self) -> Vec<Complex<T>> {

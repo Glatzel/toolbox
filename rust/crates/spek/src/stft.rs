@@ -422,7 +422,6 @@ mod tests {
                 .zip(db.data().iter())
                 .for_each(|(m, d)| {
                     use crate::conversion::amplitude_to_db;
-
                     float_cmp::assert_approx_eq!(T, amplitude_to_db(*m, num!(2.0)), *d);
                 });
             db.data()

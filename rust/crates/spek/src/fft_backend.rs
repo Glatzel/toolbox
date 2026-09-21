@@ -75,7 +75,7 @@ const fn check_size(name: &'static str, input: usize, expected: usize) -> Result
 }
 
 #[cfg(test)]
-#[cfg_attr(test, macro_export)]
+#[macro_export]
 macro_rules! test_fft_backend {
     // --- Default backend, no attributes (unchanged) ---
     ($test_name:ident, $T:ty, $backend_ty:ty) => {

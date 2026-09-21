@@ -99,10 +99,7 @@ where
                 for b in 0..self.bin_count {
                     magnitude.push(spectrum_to_magnitude(
                         *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
-                        *unsafe {
-                            self.data
-                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
-                        },
+                        *unsafe { self.data.get_unchecked((2 * f + 1) * self.bin_count + b) },
                     ));
                 }
             }
@@ -130,10 +127,7 @@ where
                 for b in 0..self.bin_count {
                     amplitude.push(spectrum_to_amplitude(
                         *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
-                        *unsafe {
-                            self.data
-                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
-                        },
+                        *unsafe { self.data.get_unchecked((2 * f + 1) * self.bin_count + b) },
                         scale,
                     ));
                 }
@@ -162,10 +156,7 @@ where
                 for b in 0..self.bin_count {
                     amplitude.push(spectrum_to_db(
                         *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
-                        *unsafe {
-                            self.data
-                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
-                        },
+                        *unsafe { self.data.get_unchecked((2 * f + 1) * self.bin_count + b) },
                         reference,
                     ));
                 }

@@ -3,12 +3,12 @@ mod result;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use core::marker::PhantomData;
 
 use num_traits::{Float, FloatConst};
-pub use result::{IStftResult, StftResult};
+pub use result::StftResult;
 use thiserror::Error;
 
+use crate::Dtype;
 use crate::fft_backend::{FftError, IFftBackend};
 use crate::pad::PadError;
 use crate::windows::{Window, WindowError};
@@ -27,25 +27,21 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct Stft<T, FftBackend, SP>
+pub struct Stft<T, FftBackend>
 where
     T: Float + FloatConst,
-    FftBackend: IFftBackend<T, SP>,
-    StftResult<SP>: IStftResult<SP, T>,
+    FftBackend: IFftBackend<T>,
 {
     hop_size: usize,
     win_size: usize,
     window: Vec<T>,
     fft_backend: FftBackend,
-    phantom: PhantomData<SP>,
 }
 
-impl<T, FftBackend, SP> Stft<T, FftBackend, SP>
+impl<T, FftBackend> Stft<T, FftBackend>
 where
     T: Float + FloatConst + Debug,
-    FftBackend: IFftBackend<T, SP>,
-    StftResult<SP>: IStftResult<SP, T>,
-    SP: Debug,
+    FftBackend: IFftBackend<T>,
 {
     pub fn new(
         hop_size: usize,
@@ -59,7 +55,6 @@ where
             win_size,
             window: window.window(win_size, false)?,
             fft_backend,
-            phantom: PhantomData,
         })
     }
 
@@ -87,7 +82,7 @@ where
         frame
     }
 
-    pub fn stft_frame(&self, input: &[T], scratch: &mut [SP]) -> Vec<SP> {
+    pub fn stft_frame(&self, input: &[T], scratch: &mut [Dtype<T>]) -> Vec<Dtype<T>> {
         let mut frame = self.frame(input);
         let mut spectrum = self.fft_backend.new_spectrum();
         self.fft_backend.fft(&mut frame, &mut spectrum, scratch);
@@ -95,11 +90,11 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn stft_parallel(&self, signal: &[T]) -> StftResult<SP>
+    pub fn stft_parallel(&self, signal: &[T]) -> StftResult<T>
     where
         T: Sync,
-        SP: Send + Sync,
         FftBackend: Sync,
+        Dtype<T>: Send,
     {
         // ASSUMPTION: `Spectrogram` exposes `frames_mut_unchecked(&mut self)
         // -> impl IndexedParallelIterator<Item = &mut Vec<SP>>` (a rayon
@@ -110,9 +105,9 @@ where
         use rayon::prelude::*;
 
         let frame_count = self.frame_count(signal.len());
-        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
+        let mut result = self.fft_backend.new_stft_result_buffer(frame_count);
 
-        spectrogram
+        result
             .frames_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
@@ -122,10 +117,10 @@ where
                 self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
             });
 
-        spectrogram
+        result
     }
 
-    pub fn stft(&self, signal: &[T]) -> StftResult<SP> {
+    pub fn stft(&self, signal: &[T]) -> StftResult<T> {
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
@@ -155,10 +150,9 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel(&self, spectrogram: &mut StftResult<SP>) -> Vec<T>
+    pub fn istft_parallel(&self, spectrogram: &mut StftResult<T>) -> Vec<T>
     where
         T: Send + Sync,
-        SP: Send + Sync,
         FftBackend: Sync,
     {
         // Overlap-add has a data dependency across frames that touch the
@@ -213,7 +207,7 @@ where
         output
     }
 
-    pub fn istft(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
+    pub fn istft(&self, spectrogram: &mut StftResult<T>) -> Vec<T> {
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
@@ -252,33 +246,34 @@ mod tests {
     use core::fmt::{Debug, Display};
 
     use float_cmp::ApproxEq;
+    #[cfg(feature = "backend-phastft")]
     use phastft::planner::{PlannerR2c32, PlannerR2c64};
     use rstest::rstest;
 
     use super::*;
+    #[cfg(feature = "backend-phastft")]
     use crate::fft_backend::phastft::PhastftBackend;
+    #[cfg(feature = "backend-realfft")]
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
-    #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49, PhantomData::<f32>)]
-    #[case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49, PhantomData::<f32>)]
-    #[case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50, PhantomData::<f32>)]
-    #[case("f64.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 49, PhantomData::<f64>)]
-    #[case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49, PhantomData::<f64>)]
-    #[case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50, PhantomData::<f64>)]
-    fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP>, SP>(
+    #[cfg_attr(feature = "split",case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49))]
+    #[case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49)]
+    #[case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50)]
+    #[cfg_attr(feature = "split",   case("f64.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 49))]
+    #[case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49)]
+    #[case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50)]
+    fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,
         #[case] win_size: usize,
         #[case] window: Window<T>,
         #[case] fft_backend: FftBackend,
         #[case] signal_len: usize,
-        #[case] _t: PhantomData<T>,
     ) -> mischief::Result<()>
     where
-        StftResult<SP>: IStftResult<SP, T>,
-        SP: Debug + Send + Sync + Copy,
         T: Debug + Float + Display + ApproxEq + Sync,
         FftBackend: Sync,
+        Dtype<T>: Send,
     {
         use generic_num::num;
 
@@ -303,22 +298,11 @@ mod tests {
                     float_cmp::assert_approx_eq!(T, *p, *s);
                 });
         }
+
         {
             let magnitude = spectogram.magnitude();
             insta::assert_debug_snapshot!(format!("{name}.magnitude"), magnitude);
-            let magnitude_parallel = spectogram.magnitude_parallel();
-            magnitude
-                .data()
-                .iter()
-                .zip(magnitude_parallel.data().iter())
-                .for_each(|(s, p)| {
-                    float_cmp::assert_approx_eq!(T, *s, *p);
-                });
-        }
-        {
-            let magnitude = spectogram.magnitude();
             let amplitude = spectogram.amplitude(num!(2.0));
-            let amplitude_parallel = spectogram.amplitude_parallel(num!(2.0));
             magnitude
                 .data()
                 .iter()
@@ -326,18 +310,11 @@ mod tests {
                 .for_each(|(m, a)| {
                     float_cmp::assert_approx_eq!(T, *m * num!(2.0), *a);
                 });
-            amplitude
-                .data()
-                .iter()
-                .zip(amplitude_parallel.data().iter())
-                .for_each(|(s, p)| {
-                    float_cmp::assert_approx_eq!(T, *s, *p);
-                });
         }
         {
             let amplitude = spectogram.amplitude(num!(1.0));
             let db = spectogram.db(num!(2.0));
-            let db_parallel = spectogram.db_parallel(num!(2.0));
+
             amplitude
                 .data()
                 .iter()
@@ -345,12 +322,6 @@ mod tests {
                 .for_each(|(m, d)| {
                     use crate::conversion::amplitude_to_db;
                     float_cmp::assert_approx_eq!(T, amplitude_to_db(*m, num!(2.0)), *d);
-                });
-            db.data()
-                .iter()
-                .zip(db_parallel.data().iter())
-                .for_each(|(s, p)| {
-                    float_cmp::assert_approx_eq!(T, *s, *p);
                 });
         }
 

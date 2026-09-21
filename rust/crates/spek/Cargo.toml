@@ -13,9 +13,9 @@ name = "stft"
 
 [dependencies]
 generic-num.workspace = true
-num-complex.workspace = true
+num-complex = { workspace = true, optional = true }
 num-traits.workspace = true
-phastft = { workspace = true, features = ["complex-nums"], optional = true }
+phastft = { workspace = true, optional = true }
 rayon = { workspace = true, optional = true }
 realfft = { workspace = true, optional = true }
 rustfft = { workspace = true, optional = true }
@@ -29,11 +29,14 @@ mischief.workspace = true
 rstest.workspace = true
 
 [features]
-default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]
+default = ["complex", "backend-realfft", "backend-rustfft", "parallel", "std"]
 parallel = ["rayon", "std"]
 std = []
 
-backend-phastft = ["phastft"]
+complex = ["num-complex"]
+split = []
+
+backend-phastft = ["phastft","split"]
 backend-phastft-parallel = ["backend-phastft", "phastft/parallel", "std"]
-backend-realfft = ["realfft"]
-backend-rustfft = ["rustfft"]
+backend-realfft = ["realfft","complex"]
+backend-rustfft = ["rustfft","complex"]

@@ -6,8 +6,9 @@ use num_complex::Complex;
 use num_traits::{Float, FloatConst};
 use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
+use crate::Dtype;
 use crate::fft_backend::IFftBackend;
-use crate::stft::{IStftResult, StftResult};
+use crate::stft::StftResult;
 
 pub struct RealfftBackend<T>
 where
@@ -30,10 +31,9 @@ where
     }
 }
 
-impl<T> IFftBackend<T, Complex<T>> for RealfftBackend<T>
+impl<T> IFftBackend<T> for RealfftBackend<T>
 where
     T: FftNum + FloatConst + Float,
-    StftResult<Complex<T>>: IStftResult<Complex<T>, T>,
 {
     fn signal_size(&self) -> usize { self.fft_size() }
 
@@ -43,13 +43,13 @@ where
 
     fn inverse_scratch_size(&self) -> usize { self.inverse_planner.get_scratch_len() }
 
-    fn fft(&self, signal: &mut [T], spectrum: &mut [Complex<T>], scratch: &mut [Complex<T>]) {
+    fn fft(&self, signal: &mut [T], spectrum: &mut [Dtype<T>], scratch: &mut [Dtype<T>]) {
         self.forward_planner
             .process_with_scratch(signal, spectrum, scratch)
             .unwrap();
     }
 
-    fn ifft(&self, spectrum: &mut [Complex<T>], signal: &mut [T], scratch: &mut [Complex<T>]) {
+    fn ifft(&self, spectrum: &mut [Dtype<T>], signal: &mut [T], scratch: &mut [Dtype<T>]) {
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
@@ -59,7 +59,7 @@ where
         }
     }
 
-    fn new_spectrum(&self) -> Vec<Complex<T>> {
+    fn new_spectrum(&self) -> Vec<Dtype<T>> {
         vec![
             Complex {
                 re: T::zero(),
@@ -69,11 +69,11 @@ where
         ]
     }
 
-    fn new_forward_scratch(&self) -> Vec<Complex<T>> { self.forward_planner.make_scratch_vec() }
+    fn new_forward_scratch(&self) -> Vec<Dtype<T>> { self.forward_planner.make_scratch_vec() }
 
-    fn new_inverse_scratch(&self) -> Vec<Complex<T>> { self.inverse_planner.make_scratch_vec() }
+    fn new_inverse_scratch(&self) -> Vec<Dtype<T>> { self.inverse_planner.make_scratch_vec() }
 
-    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<Complex<T>> {
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<T> {
         StftResult::new(frame_count, self.spectrum_size())
     }
 

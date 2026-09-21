@@ -1,4 +1,5 @@
-use crate::stft::{IStftResult, StftResult};
+use crate::stft::StftResult;
+use crate::{Data, Dtype};
 
 #[cfg(feature = "backend-phastft")]
 pub mod phastft;
@@ -41,22 +42,20 @@ pub enum FftDirection {
     Inverse,
 }
 
-pub trait IFftBackend<SI, SP>
-where
-    StftResult<SP>: IStftResult<SP, SI>,
-{
+pub trait IFftBackend<T> {
     fn fft_size(&self) -> usize;
     fn signal_size(&self) -> usize;
     fn spectrum_size(&self) -> usize;
     fn forward_scratch_size(&self) -> usize;
     fn inverse_scratch_size(&self) -> usize;
-    fn new_signal(&self) -> Vec<SI>;
-    fn new_spectrum(&self) -> Vec<SP>;
-    fn new_forward_scratch(&self) -> Vec<SP>;
-    fn new_inverse_scratch(&self) -> Vec<SP>;
-    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<SP>;
-    fn fft(&self, signal: &mut [SI], spectrum: &mut [SP], scratch: &mut [SP]);
-    fn ifft(&self, spectrum: &mut [SP], signal: &mut [SI], scratch: &mut [SP]);
+    fn new_signal(&self) -> Vec<T>;
+    fn new_spectrum(&self) -> Data<T>;
+    fn new_forward_scratch(&self) -> Data<T>;
+    fn new_inverse_scratch(&self) -> Data<T>;
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<T>;
+
+    fn fft(&self, signal: &mut [T], spectrum: &mut [Dtype<T>], scratch: &mut [Dtype<T>]);
+    fn ifft(&self, spectrum: &mut [Dtype<T>], signal: &mut [T], scratch: &mut [Dtype<T>]);
 }
 
 #[cfg(test)]

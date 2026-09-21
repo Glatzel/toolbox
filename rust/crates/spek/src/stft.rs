@@ -130,10 +130,6 @@ where
             let mut frame = self.frame(&signal[start..start + self.win_size]);
             let spectrum = spectrogram.frame_mut(frame_idx);
             self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
-            let mut frame = self.frame(&signal[start..start + self.win_size]);
-            let spectrum = spectrogram.frame_mut(frame_idx);
-            self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
-            // dbg!(frame_idx, &frame, &spectrum, &scratch);
         }
 
         spectrogram
@@ -306,7 +302,7 @@ mod tests {
                 #[cfg(feature = "split")]
                 let v = spectrum_to_magnitude(
                     spectogram.data()[i],
-                    spectogram.data()[2 * spectogram.bin_count() + i],
+                    spectogram.data()[spectogram.bin_count() + i],
                 );
                 #[cfg(feature = "complex")]
                 let v = spectrum_to_magnitude(spectogram.data()[i].re, spectogram.data()[i].im);

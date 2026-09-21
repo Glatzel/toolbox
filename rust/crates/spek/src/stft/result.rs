@@ -39,7 +39,7 @@ where
         #[cfg(feature = "split")]
         {
             Self {
-                data: vec![T::zero(); frame_count * bin_count],
+                data: vec![T::zero(); frame_count * bin_count * 2],
                 frame_count,
                 bin_count,
             }
@@ -62,6 +62,7 @@ where
         let start = index * self.bin_count * 2;
         #[cfg(feature = "split")]
         let end = start + self.bin_count * 2;
+
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
 
@@ -92,17 +93,20 @@ where
         }
         #[cfg(feature = "split")]
         {
-            let mut amplitude = Vec::with_capacity(self.frame_count);
+            let mut magnitude = Vec::with_capacity(self.frame_count);
 
             for f in 0..self.frame_count {
                 for b in 0..self.bin_count {
-                    amplitude.push(spectrum_to_magnitude(
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2) },
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2 + 1) },
+                    magnitude.push(spectrum_to_magnitude(
+                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
+                        *unsafe {
+                            self.data
+                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
+                        },
                     ));
                 }
             }
-            Spectrogram::new(amplitude, self.frame_count, self.bin_count)
+            Spectrogram::new(magnitude, self.frame_count, self.bin_count)
         }
     }
 
@@ -125,8 +129,11 @@ where
             for f in 0..self.frame_count {
                 for b in 0..self.bin_count {
                     amplitude.push(spectrum_to_amplitude(
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2) },
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2 + 1) },
+                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
+                        *unsafe {
+                            self.data
+                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
+                        },
                         scale,
                     ));
                 }
@@ -154,8 +161,11 @@ where
             for f in 0..self.frame_count {
                 for b in 0..self.bin_count {
                     amplitude.push(spectrum_to_db(
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2) },
-                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b * 2 + 1) },
+                        *unsafe { self.data.get_unchecked(f * self.bin_count * 2 + b) },
+                        *unsafe {
+                            self.data
+                                .get_unchecked(f * self.bin_count * 2 + self.bin_count + b)
+                        },
                         reference,
                     ));
                 }

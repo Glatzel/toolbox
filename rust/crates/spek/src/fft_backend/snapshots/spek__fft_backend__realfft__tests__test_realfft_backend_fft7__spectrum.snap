@@ -1,0 +1,22 @@
+---
+source: crates/spek/src/fft_backend/realfft.rs
+expression: spectrum
+---
+[
+    Complex {
+        re: 4.4840064,
+        im: 0.0,
+    },
+    Complex {
+        re: -0.56613576,
+        im: 0.60152864,
+    },
+    Complex {
+        re: -0.95386094,
+        im: 0.7849231,
+    },
+    Complex {
+        re: 0.22642884,
+        im: 0.3926453,
+    },
+]

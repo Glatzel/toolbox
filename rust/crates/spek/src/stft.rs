@@ -343,8 +343,9 @@ mod tests {
     use crate::fft_backend::phastft::PhastftBackend;
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
-    #[case("hop4.win7.window_hann.backend_phastft" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32, 8>::new(), 49, PhantomData::<f32>)]
-    #[case("hop4.win7.window_hann.backend_realfft" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32, 8>::new(), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 50, PhantomData::<f32>)]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP, N>, const N: usize, SP>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -363,7 +364,14 @@ mod tests {
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let mut rng = StdRng::seed_from_u64(0xF77_u64);
         let mut signal: Vec<T> = (0..signal_len).map(|_| rng.random()).collect();
-        insta::assert_debug_snapshot!("signal", &signal);
+        std::fs::write(
+            format!(
+                "test_data/signal_{}_{}.txt",
+                std::any::type_name::<T>(),
+                signal_len
+            ),
+            format!("{:#?}\n", signal),
+        )?;
         let frame = stft.frame_unchecked(&signal[0..win_size]);
         insta::assert_debug_snapshot!("frame", &frame);
         let spectogram = stft.stft(&mut signal)?;

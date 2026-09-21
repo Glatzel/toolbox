@@ -1,7 +1,3 @@
----
-source: crates/spek/src/fft_backend/phastft.rs
-expression: signal
----
 [
     0.2709815,
     0.14039207,

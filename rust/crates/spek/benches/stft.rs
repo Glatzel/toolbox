@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-
+use std::marker::Sync;
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
@@ -17,7 +17,7 @@ fn bench_wrapper<T, B, SP>(
     T: Float + Debug + FloatConst,
     B: IFftBackend<T, SP>,
     StftResult<SP>: IStftResult<SP, T>,
-    SP: Clone + Debug,
+    SP: Clone + Debug+Sync,
 {
     let fft_size=backend.fft_size();
     let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();

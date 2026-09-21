@@ -124,8 +124,8 @@ where
             self.inverse_scratch_size()
         ]
     }
-    fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<Complex<T>> {
-        crate::spectogram::Spectrogram::new(frame_len, self.spectrum_size())
+    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
+        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())
     }
 }
 #[cfg(test)]

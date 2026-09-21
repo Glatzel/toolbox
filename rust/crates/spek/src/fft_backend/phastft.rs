@@ -86,8 +86,8 @@ where
 
     fn new_inverse_scratch(&self) -> Vec<f32> { vec![0.0; self.inverse_scratch_size()] }
 
-    fn new_spectrogram(&self, frame_len: usize) -> crate::spectogram::Spectrogram<f32> {
-        crate::spectogram::Spectrogram::new(frame_len, self.spectrum_size() / 2)
+    fn new_spectrogram(&self, frame_count: usize) -> crate::spectogram::Spectrogram<f32> {
+        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
     }
 }
 
@@ -160,8 +160,8 @@ where
 
     fn new_inverse_scratch(&self) -> Vec<f64> { vec![0.0; self.inverse_scratch_size()] }
 
-    fn new_spectrogram(&self, frame_len: usize) -> Spectrogram<f64> {
-        crate::spectogram::Spectrogram::new(frame_len, self.spectrum_size() / 2)
+    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<f64> {
+        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
     }
 }
 #[cfg(test)]

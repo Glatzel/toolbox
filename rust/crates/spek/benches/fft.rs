@@ -2,7 +2,7 @@ use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::Float;
 use spek::fft_backend::IFftBackend;
-use spek::stft::StftResult;
+
 fn get_size() -> usize {
     match (std::env::var("CI"), std::env::var("FFT_SIGNAL_SIZE")) {
         (Ok(_), _) => 5,

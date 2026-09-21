@@ -11,8 +11,8 @@ jobs:
       matrix:
         options:
           - -p rax -p rax-nmea --all-features
-          - -p spek --features default-complex
-          - -p spek --features default-split
+          - -p spek --features default-complex --no-default-features
+          - -p spek --features default-split --no-default-features
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

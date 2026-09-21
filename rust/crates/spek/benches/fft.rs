@@ -9,11 +9,11 @@ fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     backend: B,
     size: usize,
-    SP: Clone,
 ) where
     T: Float,
     B: IFftBackend<T, SP>,
     Spectrogram<SP>: ISpectrogram<SP>,
+    SP: Clone,
 {
     let data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();
     g.bench_with_input(

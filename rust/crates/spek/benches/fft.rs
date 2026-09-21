@@ -29,7 +29,7 @@ fn bench_wrapper<T, B, SP>(
         },
     );
     g.bench_with_input(
-        BenchmarkId::new(format!("{}_ifft_2^", std::any::type_name::<B>()), size),
+        BenchmarkId::new(format!("{}_ifft_2^", name), size),
         &size,
         |b, _| {
             let mut spectrum = backend.new_spectrum();

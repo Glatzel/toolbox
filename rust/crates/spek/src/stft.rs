@@ -355,21 +355,24 @@ mod tests {
     ) -> mischief::Result<()>
     where
         Spectrogram<SP>: ISpectrogram<SP>,
-        SP: Debug,
-        T: Debug + Float + Display + ApproxEq,
+        SP: Debug + Send + Sync,
+        T: Debug + Float + Display + ApproxEq + Sync,
+        FftBackend: Sync,
     {
         use generic_num::num;
 
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
-        let origin_signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
-        let mut signal = origin_signal.clone();
+        let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
         let frame = stft.frame_unchecked(&signal[0..win_size]);
         insta::assert_debug_snapshot!(
             "frame",
             &frame.iter().map(|i| format!("{i:.5}")).collect::<Vec<_>>()
         );
-        let spectogram = stft.stft(&mut signal)?;
+        let spectogram = stft.stft(&mut signal.clone())?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
+
+        let spectogram_parallel = stft.stft_parallel(&mut signal.clone())?;
+        insta::assert_debug_snapshot!(format!("{name}.spectogram_parallel"), spectogram_parallel);
 
         // let recovered = stft.istft(&mut spectogram)?;
         // println!("{recovered:?}");

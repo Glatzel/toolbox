@@ -1,11 +1,12 @@
-use crate::{Data, Dtype, spectrum::Spectrum2D};
-
 #[cfg(feature = "backend-phastft")]
 pub mod phastft;
 #[cfg(feature = "backend-realfft")]
 pub mod realfft;
 #[cfg(feature = "backend-rustfft")]
 pub mod rustfft;
+
+use crate::spectrum::Spectrum2D;
+use crate::{Data, Dtype};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FftDirection {

@@ -1,5 +1,8 @@
 use criterion::{BenchmarkId, criterion_group, criterion_main};
+use generic_num::num;
+use num_traits::Float;
 use spek::fft_backend::IFftBackend;
+use spek::spectogram::{ISpectrogram, Spectrogram};
 const SIZE: [usize; 4] = [5, 10, 15, 20];
 
 fn bench_wrapper<T, B, SP>(
@@ -7,7 +10,9 @@ fn bench_wrapper<T, B, SP>(
     backend: B,
     size: usize,
 ) where
+    T: Float,
     B: IFftBackend<T, SP>,
+    Spectrogram<SP>: ISpectrogram<SP>,
 {
     let data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();
     g.bench_with_input(

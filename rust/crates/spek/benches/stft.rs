@@ -21,15 +21,16 @@ fn bench_wrapper<T, B, SP>(
 {
     let fft_size=backend.fft_size();
     let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
+    let mut data=(0..2usize.pow(size as u32))
+                        .map(|i| num!(i))
+                        .collect::<Vec<_>>();
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_{}_2^", name, fft_size), size),
         &size,
         |b, _| {
             b.iter(|| {
                 stft.stft_unchecked(
-                    &mut (0..2usize.pow(size as u32))
-                        .map(|i| num!(i))
-                        .collect::<Vec<_>>(),
+                    &mut data,
                 );
             })
         },
@@ -43,9 +44,7 @@ fn bench_wrapper<T, B, SP>(
         |b, _| {
             b.iter(|| {
                 stft.stft_parallel_unchecked(
-                    &mut (0..2usize.pow(size as u32))
-                        .map(|i| num!(i))
-                        .collect::<Vec<_>>(),
+                    &mut data,
                 );
             })
         },

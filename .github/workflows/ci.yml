@@ -235,7 +235,6 @@ jobs:
       [
         lefthook,
         fuzz,
-        benchmark,
         changed,
         python-ci,
         rust-ci,

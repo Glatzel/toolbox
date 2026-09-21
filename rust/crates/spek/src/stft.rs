@@ -333,6 +333,7 @@ where
 mod tests {
     use core::fmt::{Debug, Display};
 
+    use float_cmp::ApproxEq;
     use phastft::planner::PlannerR2c32;
     use rstest::rstest;
 
@@ -355,20 +356,29 @@ mod tests {
     where
         Spectrogram<SP>: ISpectrogram<SP>,
         SP: Debug,
-        T: Debug + Float + Display,
+        T: Debug + Float + Display + ApproxEq,
     {
         use generic_num::num;
 
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
-
-        let mut signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
+        let origin_signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
+        let mut signal = origin_signal.clone();
         let frame = stft.frame_unchecked(&signal[0..win_size]);
         insta::assert_debug_snapshot!(
             "frame",
             &frame.iter().map(|i| format!("{i:.5}")).collect::<Vec<_>>()
         );
-        let spectogram = stft.stft(&mut signal)?;
+        let mut spectogram = stft.stft(&mut signal)?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
+
+        // let recovered = stft.istft(&mut spectogram)?;
+        // println!("{recovered:?}");
+        // recovered
+        //     .iter()
+        //     .zip(origin_signal.iter())
+        //     .for_each(|(r, o)| {
+        //         float_cmp::assert_approx_eq!(T, *r, *o);
+        //     });
         Ok(())
     }
 }

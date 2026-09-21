@@ -49,21 +49,21 @@ fn bench_f32(c: &mut criterion::Criterion) {
         bench_wrapper::<f32, _, _>(
             &mut group,
             spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
-                bin_size,
+                bsize,
             ),
             size,
         );
         bench_wrapper::<f32, _, _>(
             &mut group,
-            spek::fft_backend::realfft::RealfftBackend::new(bin_size),
+            spek::fft_backend::realfft::RealfftBackend::new(bsize),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f32, _, _>(
             &mut group,
             spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(bin_size),
-                planner.plan_fft_inverse(bin_size),
+                planner.plan_fft_forward(bsize),
+                planner.plan_fft_inverse(bsize),
             )
             .unwrap(),
             size,

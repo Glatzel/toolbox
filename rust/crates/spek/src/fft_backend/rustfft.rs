@@ -8,7 +8,8 @@ use rustfft::{Fft, FftNum};
 
 use crate::Dtype;
 use crate::fft_backend::IFftBackend;
-use crate::stft::StftResult;
+use crate::spectrum::Spectrum2D;
+
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum RustfftError {
     #[error("{name} size not equal, {a} != {b}")]
@@ -51,27 +52,17 @@ impl<T> IFftBackend<T> for RustfftBackend<T>
 where
     T: FftNum + Float,
 {
-    fn fft(&self, signal: &mut [T], spectrum: &mut [Dtype<T>], scratch: &mut [Dtype<T>]) {
-        for (dst, &src) in spectrum.iter_mut().zip(signal.iter()) {
-            *dst = Complex::new(src, T::zero());
-        }
-        self.forward_planner.process_with_scratch(spectrum, scratch);
-    }
+    fn fft_size(&self) -> usize { self.forward_planner.len() }
 
-    fn ifft(&self, spectrum: &mut [Dtype<T>], signal: &mut [T], scratch: &mut [Dtype<T>]) {
-        self.inverse_planner.process_with_scratch(spectrum, scratch);
-        let n = num!(self.fft_size());
-
-        for (dst, src) in signal.iter_mut().zip(spectrum.iter()) {
-            *dst = src.re / n;
-        }
-    }
+    fn signal_size(&self) -> usize { self.fft_size() }
 
     fn spectrum_size(&self) -> usize { self.fft_size() }
 
     fn forward_scratch_size(&self) -> usize { self.forward_planner.get_inplace_scratch_len() }
 
     fn inverse_scratch_size(&self) -> usize { self.inverse_planner.get_inplace_scratch_len() }
+
+    fn new_signal(&self) -> Vec<T> { vec![T::zero(); self.signal_size()] }
 
     fn new_spectrum(&self) -> Vec<Dtype<T>> {
         vec![
@@ -92,7 +83,6 @@ where
             self.forward_scratch_size()
         ]
     }
-
     fn new_inverse_scratch(&self) -> Vec<Dtype<T>> {
         vec![
             Complex {
@@ -102,15 +92,26 @@ where
             self.inverse_scratch_size()
         ]
     }
-    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<T> {
-        StftResult::new(frame_count, self.spectrum_size())
+
+    fn new_spectrum2d(&self, frame_count: usize) -> Spectrum2D<T> {
+        Spectrum2D::new(frame_count, self.spectrum_size())
     }
 
-    fn fft_size(&self) -> usize { self.forward_planner.len() }
+    fn fft(&self, signal: &mut [T], spectrum: &mut [Dtype<T>], scratch: &mut [Dtype<T>]) {
+        for (dst, &src) in spectrum.iter_mut().zip(signal.iter()) {
+            *dst = Complex::new(src, T::zero());
+        }
+        self.forward_planner.process_with_scratch(spectrum, scratch);
+    }
 
-    fn signal_size(&self) -> usize { self.fft_size() }
+    fn ifft(&self, spectrum: &mut [Dtype<T>], signal: &mut [T], scratch: &mut [Dtype<T>]) {
+        self.inverse_planner.process_with_scratch(spectrum, scratch);
+        let n = num!(self.fft_size());
 
-    fn new_signal(&self) -> Vec<T> { vec![T::zero(); self.signal_size()] }
+        for (dst, src) in signal.iter_mut().zip(spectrum.iter()) {
+            *dst = src.re / n;
+        }
+    }
 }
 #[cfg(test)]
 mod tests {

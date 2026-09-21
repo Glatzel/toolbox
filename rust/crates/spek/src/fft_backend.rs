@@ -1,5 +1,4 @@
-use crate::stft::StftResult;
-use crate::{Data, Dtype};
+use crate::{Data, Dtype, spectrum::Spectrum2D};
 
 #[cfg(feature = "backend-phastft")]
 pub mod phastft;
@@ -24,8 +23,7 @@ pub trait IFftBackend<T> {
     fn new_spectrum(&self) -> Data<T>;
     fn new_forward_scratch(&self) -> Data<T>;
     fn new_inverse_scratch(&self) -> Data<T>;
-    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<T>;
-
+    fn new_spectrum2d(&self, frame_count: usize) -> Spectrum2D<T>;
     fn fft(&self, signal: &mut [T], spectrum: &mut [Dtype<T>], scratch: &mut [Dtype<T>]);
     fn ifft(&self, spectrum: &mut [Dtype<T>], signal: &mut [T], scratch: &mut [Dtype<T>]);
 }

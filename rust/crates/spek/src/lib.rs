@@ -6,6 +6,7 @@ pub mod pad;
 pub mod spectrogram;
 pub mod stft;
 pub mod windows;
+pub mod spectrum;
 
 #[cfg(feature = "complex")]
 use num_complex::Complex;

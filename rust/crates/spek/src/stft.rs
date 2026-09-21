@@ -1,16 +1,17 @@
 extern crate alloc;
-mod result;
+
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 
 use num_traits::{Float, FloatConst};
-pub use result::StftResult;
 use thiserror::Error;
 
 use crate::Dtype;
 use crate::fft_backend::IFftBackend;
 use crate::pad::PadError;
+#[cfg(feature = "parallel")]
+use crate::spectrum::Spectrum2D;
 use crate::windows::{IWindow, WindowError};
 
 #[derive(Error, Debug)]
@@ -133,7 +134,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn stft_parallel(&self, signal: &[T]) -> StftResult<T>
+    pub fn stft_parallel(&self, signal: &[T]) -> Spectrum2D<T>
     where
         T: Sync,
         FftBackend: Sync,
@@ -148,7 +149,7 @@ where
         use rayon::prelude::*;
 
         let frame_count = self.frame_count(signal.len());
-        let mut result = self.fft_backend.new_stft_result_buffer(frame_count);
+        let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
         result
             .frames_mut()
@@ -163,9 +164,9 @@ where
         result
     }
 
-    pub fn stft(&self, signal: &[T]) -> StftResult<T> {
+    pub fn stft(&self, signal: &[T]) -> Spectrum2D<T> {
         let frame_count = self.frame_count(signal.len());
-        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
+        let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
 
         for frame_idx in 0..frame_count {
@@ -189,7 +190,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel(&self, spectrogram: &mut StftResult<T>) -> Vec<T>
+    pub fn istft_parallel(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T>
     where
         T: Send + Sync,
         FftBackend: Sync,
@@ -246,7 +247,7 @@ where
         output
     }
 
-    pub fn istft(&self, spectrogram: &mut StftResult<T>) -> Vec<T> {
+    pub fn istft(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T> {
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
@@ -346,7 +347,7 @@ mod tests {
                 &signal[0..win_size],
                 &mut Vec::with_capacity(spectogram.bin_count()),
             );
-            let mut frame_result = StftResult::new(1, spectogram.bin_count());
+            let mut frame_result = Spectrum2D::new(1, spectogram.bin_count());
             dbg!(&frame_result, &frame);
             frame_result
                 .frame_mut(0)

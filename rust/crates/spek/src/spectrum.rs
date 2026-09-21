@@ -8,15 +8,15 @@ use crate::spectrogram::Spectrogram;
 use crate::{Data, Dtype};
 
 #[derive(Debug)]
-pub struct StftResult<T> {
+pub struct Spectrum2D<T> {
     data: Data<T>,
     frame_count: usize,
     bin_count: usize,
 }
-unsafe impl<T> Send for StftResult<T> {}
-unsafe impl<T> Sync for StftResult<T> {}
+unsafe impl<T> Send for Spectrum2D<T> {}
+unsafe impl<T> Sync for Spectrum2D<T> {}
 
-impl<T> StftResult<T>
+impl<T> Spectrum2D<T>
 where
     T: Float,
 {

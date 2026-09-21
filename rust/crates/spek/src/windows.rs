@@ -38,7 +38,9 @@ pub enum WindowError {
     #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
     KaiserBesselDerivedSize,
 }
-
+pub trait IWindow<T> {
+    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError>;
+}
 /// A parameterized window function.
 ///
 /// The variants correspond to the window functions listed by
@@ -136,7 +138,7 @@ where
     /// Tukey (tapered cosine) window with taper fraction `alpha`.
     Tukey { alpha: T },
 }
-impl<T> Window<T>
+impl<T> IWindow<T> for Window<T>
 where
     T: Float + FloatConst,
 {
@@ -154,7 +156,7 @@ where
     /// Returns an error when the selected window has parameter or size
     /// restrictions, such as a non-positive exponential `tau` or an
     /// asymmetric/odd-sized Kaiser-Bessel derived window.
-    pub fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError> {
+    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError> {
         let result = match self {
             Self::Barthnn => barthnn(size, symmetric),
             Self::Bartlett => bartlett(size, symmetric),

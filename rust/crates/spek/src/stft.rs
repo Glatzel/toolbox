@@ -11,7 +11,7 @@ use thiserror::Error;
 use crate::Dtype;
 use crate::fft_backend::IFftBackend;
 use crate::pad::PadError;
-use crate::windows::{Window, WindowError};
+use crate::windows::{IWindow, WindowError};
 
 #[derive(Error, Debug)]
 pub enum StftError {
@@ -52,10 +52,10 @@ where
     T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T>,
 {
-    pub fn new(
+    pub fn new<W: IWindow<T>>(
         hop_size: usize,
         win_size: usize,
-        window: Window<T>,
+        window: W,
         fft_backend: FftBackend,
     ) -> Result<Self, StftError> {
         if hop_size == 0 {
@@ -295,6 +295,7 @@ mod tests {
     use crate::fft_backend::phastft::PhastftBackend;
     #[cfg(feature = "backend-realfft")]
     use crate::fft_backend::realfft::RealfftBackend;
+    use crate::windows::Window;
     #[rstest]
     #[cfg_attr(feature = "split",case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49))]
     #[cfg_attr(feature = "split",case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50))]

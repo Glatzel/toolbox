@@ -7,6 +7,7 @@ const SIZE: [usize; 4] = [5, 10, 15, 20];
 
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
+    name: &str
     backend: B,
     size: usize,
 ) where
@@ -17,7 +18,7 @@ fn bench_wrapper<T, B, SP>(
 {
     let data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();
     g.bench_with_input(
-        BenchmarkId::new(format!("{}_fft_2^", std::any::type_name::<B>()), size),
+        BenchmarkId::new(format!("{}_fft_2^", name), size),
         &size,
         |b, _| {
             let mut spectrum = backend.new_spectrum();
@@ -48,6 +49,7 @@ fn bench_f32(c: &mut criterion::Criterion) {
         let bsize = 2usize.pow(size as u32);
         bench_wrapper::<f32, _, _>(
             &mut group,
+            "phastft",
             spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
                 bsize,
             ),
@@ -55,12 +57,14 @@ fn bench_f32(c: &mut criterion::Criterion) {
         );
         bench_wrapper::<f32, _, _>(
             &mut group,
+            "realfft"
             spek::fft_backend::realfft::RealfftBackend::new(bsize),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f32, _, _>(
             &mut group,
+            "rustfft",
             spek::fft_backend::rustfft::RustfftBackend::new(
                 planner.plan_fft_forward(bsize),
                 planner.plan_fft_inverse(bsize),
@@ -76,6 +80,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
         let bsize = 2usize.pow(size as u32);
         bench_wrapper::<f64, _, _>(
             &mut group,
+            "phastft",
             spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
                 bsize,
             ),
@@ -83,12 +88,14 @@ fn bench_f64(c: &mut criterion::Criterion) {
         );
         bench_wrapper::<f64, _, _>(
             &mut group,
+            "realfft",
             spek::fft_backend::realfft::RealfftBackend::new(bsize),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f64, _, _>(
             &mut group,
+            "rustfft",
             spek::fft_backend::rustfft::RustfftBackend::new(
                 planner.plan_fft_forward(bsize),
                 planner.plan_fft_inverse(bsize),

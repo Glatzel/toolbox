@@ -7,7 +7,7 @@ use num_traits::Float;
 use rustfft::{Fft, FftNum};
 
 use crate::fft_backend::{FftError, IFftBackend, check_size};
-use crate::spectogram::{ISpectrogram, Spectrogram};
+use crate::stft::{IStftResult, StftResult};
 
 pub struct RustfftBackend<T>
 where
@@ -43,7 +43,7 @@ where
 impl<T> IFftBackend<T, Complex<T>> for RustfftBackend<T>
 where
     T: FftNum + Float,
-    Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
+    StftResult<Complex<T>>: IStftResult<Complex<T>, T>,
 {
     fn fft(
         &self,
@@ -133,8 +133,8 @@ where
             self.inverse_scratch_size()
         ]
     }
-    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
-        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<Complex<T>> {
+        StftResult::new(frame_count, self.spectrum_size())
     }
 
     fn fft_size(&self) -> usize { self.forward_planner.len() }

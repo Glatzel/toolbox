@@ -2,7 +2,7 @@
 source: crates/spek/src/stft.rs
 expression: spectogram
 ---
-Spectrogram {
+StftResult {
     data: [
         48.4541,
         -31.929136,

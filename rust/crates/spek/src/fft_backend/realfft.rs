@@ -7,7 +7,7 @@ use num_traits::{Float, FloatConst};
 use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
 use crate::fft_backend::{IFftBackend, check_size};
-use crate::spectogram::{ISpectrogram, Spectrogram};
+use crate::stft::{IStftResult, StftResult};
 
 pub struct RealfftBackend<T>
 where
@@ -33,7 +33,7 @@ where
 impl<T> IFftBackend<T, Complex<T>> for RealfftBackend<T>
 where
     T: FftNum + FloatConst + Float,
-    Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
+    StftResult<Complex<T>>: IStftResult<Complex<T>, T>,
 {
     fn signal_size(&self) -> usize { self.fft_size() }
 
@@ -108,8 +108,8 @@ where
 
     fn new_inverse_scratch(&self) -> Vec<Complex<T>> { self.inverse_planner.make_scratch_vec() }
 
-    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
-        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<Complex<T>> {
+        StftResult::new(frame_count, self.spectrum_size())
     }
 
     fn fft_size(&self) -> usize { self.forward_planner.len() }

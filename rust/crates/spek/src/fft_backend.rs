@@ -1,4 +1,4 @@
-use crate::spectogram::{ISpectrogram, Spectrogram};
+use crate::stft::{IStftResult, StftResult};
 
 #[cfg(feature = "backend-phastft")]
 pub mod phastft;
@@ -34,6 +34,7 @@ pub enum FftError {
         expected: FftDirection,
         actual: FftDirection,
     },
+   
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FftDirection {
@@ -43,7 +44,7 @@ pub enum FftDirection {
 
 pub trait IFftBackend<SI, SP>
 where
-    Spectrogram<SP>: ISpectrogram<SP>,
+    StftResult<SP>: IStftResult<SP, SI>,
 {
     fn fft_size(&self) -> usize;
     fn signal_size(&self) -> usize;
@@ -54,7 +55,7 @@ where
     fn new_spectrum(&self) -> Vec<SP>;
     fn new_forward_scratch(&self) -> Vec<SP>;
     fn new_inverse_scratch(&self) -> Vec<SP>;
-    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<SP>;
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<SP>;
     fn fft(
         &self,
         signal: &mut [SI],

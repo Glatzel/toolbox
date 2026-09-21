@@ -1,16 +1,16 @@
 extern crate alloc;
-
+mod result;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::marker::PhantomData;
 
 use num_traits::{Float, FloatConst};
+pub use result::{IStftResult, StftResult};
 use thiserror::Error;
 
 use crate::fft_backend::{FftError, IFftBackend};
 use crate::pad::PadError;
-use crate::spectogram::{ISpectrogram, Spectrogram, SpectrogramError};
 use crate::windows::{Window, WindowError};
 
 #[derive(Error, Debug)]
@@ -20,10 +20,9 @@ pub enum StftError {
     #[error(transparent)]
     Window(#[from] WindowError),
     #[error(transparent)]
-    Spectrogram(#[from] SpectrogramError),
-    #[error(transparent)]
     Fft(#[from] FftError),
-
+    #[error("frame index out of bounds, index: {index}, frame_count: {frame_count}")]
+    FrameIndexOutOfBounds { index: usize, frame_count: usize },
     #[error("invalid input size, expected {expected}, got {actual}")]
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
@@ -32,7 +31,7 @@ pub struct Stft<T, FftBackend, SP>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T, SP>,
-    Spectrogram<SP>: ISpectrogram<SP>,
+    StftResult<SP>: IStftResult<SP, T>,
 {
     hop_size: usize,
     win_size: usize,
@@ -45,7 +44,7 @@ impl<T, FftBackend, SP> Stft<T, FftBackend, SP>
 where
     T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T, SP>,
-    Spectrogram<SP>: ISpectrogram<SP>,
+    StftResult<SP>: IStftResult<SP, T>,
     SP: Debug,
 {
     pub fn new(
@@ -120,9 +119,9 @@ where
 
     /// Core STFT loop, shared by the checked/unchecked/parallel variants.
     /// `signal.len() >= self.win_size` must already hold.
-    fn stft_frames_unchecked(&self, signal: &[T]) -> Spectrogram<SP> {
+    fn stft_frames_unchecked(&self, signal: &[T]) -> StftResult<SP> {
         let frame_count = self.frame_count(signal.len());
-        let mut spectrogram = self.fft_backend.new_spectrogram(frame_count);
+        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
 
         for frame_idx in 0..frame_count {
@@ -138,7 +137,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn stft_parallel_unchecked(&self, signal: &[T]) -> Spectrogram<SP>
+    pub fn stft_parallel_unchecked(&self, signal: &[T]) -> StftResult<SP>
     where
         T: Sync,
         SP: Send + Sync,
@@ -153,7 +152,7 @@ where
         use rayon::prelude::*;
 
         let frame_count = self.frame_count(signal.len());
-        let mut spectrogram = self.fft_backend.new_spectrogram(frame_count);
+        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
 
         spectrogram
             .frames_mut_unchecked()
@@ -170,7 +169,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn stft_parallel(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError>
+    pub fn stft_parallel(&self, signal: &[T]) -> Result<StftResult<SP>, StftError>
     where
         T: Sync,
         SP: Send + Sync,
@@ -185,11 +184,11 @@ where
         Ok(self.stft_parallel_unchecked(signal))
     }
 
-    pub fn stft_unchecked(&self, signal: &[T]) -> Spectrogram<SP> {
+    pub fn stft_unchecked(&self, signal: &[T]) -> StftResult<SP> {
         self.stft_frames_unchecked(signal)
     }
 
-    pub fn stft(&self, signal: &[T]) -> Result<Spectrogram<SP>, StftError> {
+    pub fn stft(&self, signal: &[T]) -> Result<StftResult<SP>, StftError> {
         if signal.len() < self.win_size {
             return Err(StftError::InvalidFrameInputSize {
                 expected: self.win_size,
@@ -218,7 +217,7 @@ where
     /// expose `frame_count(&self) -> usize` and `frame_unchecked(&self,
     /// idx: usize) -> &Vec<SP>`. I don't have fft_backend.rs / spectogram.rs
     /// to confirm these names — please correct if they differ.
-    fn istft_frames_unchecked(&self, spectrogram: &mut Spectrogram<SP>) -> Vec<T> {
+    fn istft_frames_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
@@ -253,7 +252,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel_unchecked(&self, spectrogram: &mut Spectrogram<SP>) -> Vec<T>
+    pub fn istft_parallel_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T>
     where
         T: Send + Sync,
         SP: Send + Sync,
@@ -312,7 +311,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError>
+    pub fn istft_parallel(&self, spectrogram: &mut StftResult<SP>) -> Result<Vec<T>, StftError>
     where
         T: Send + Sync,
         SP: Send + Sync,
@@ -321,11 +320,11 @@ where
         Ok(self.istft_parallel_unchecked(spectrogram))
     }
 
-    pub fn istft_unchecked(&self, spectrogram: &mut Spectrogram<SP>) -> Vec<T> {
+    pub fn istft_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
         self.istft_frames_unchecked(spectrogram)
     }
 
-    pub fn istft(&self, spectrogram: &mut Spectrogram<SP>) -> Result<Vec<T>, StftError> {
+    pub fn istft(&self, spectrogram: &mut StftResult<SP>) -> Result<Vec<T>, StftError> {
         Ok(self.istft_frames_unchecked(spectrogram))
     }
 }
@@ -354,8 +353,8 @@ mod tests {
         #[case] _t: PhantomData<T>,
     ) -> mischief::Result<()>
     where
-        Spectrogram<SP>: ISpectrogram<SP>,
-        SP: Debug + Send + Sync,
+        StftResult<SP>: IStftResult<SP, T>,
+        SP: Debug + Send + Sync + Copy,
         T: Debug + Float + Display + ApproxEq + Sync,
         FftBackend: Sync,
     {
@@ -371,8 +370,68 @@ mod tests {
         let spectogram = stft.stft(&mut signal.clone())?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
 
-        let spectogram_parallel = stft.stft_parallel(&mut signal.clone())?;
-        insta::assert_debug_snapshot!(format!("{name}.spectogram_parallel"), spectogram_parallel);
+        {
+            let spectogram_parallel = stft.stft_parallel(&mut signal.clone())?;
+            spectogram_parallel
+                .magnitude()
+                .data()
+                .iter()
+                .zip(spectogram.magnitude().data().iter())
+                .for_each(|(p, s)| {
+                    float_cmp::assert_approx_eq!(T, *p, *s);
+                });
+        }
+        {
+            let magnitude = spectogram.magnitude();
+            insta::assert_debug_snapshot!(format!("{name}.magnitude"), magnitude);
+            let magnitude_parallel = spectogram.magnitude_parallel();
+            magnitude
+                .data()
+                .iter()
+                .zip(magnitude_parallel.data().iter())
+                .for_each(|(s, p)| {
+                    float_cmp::assert_approx_eq!(T, *s, *p);
+                });
+        }
+        {
+            let magnitude = spectogram.magnitude();
+            let amplitude = spectogram.amplitude(num!(2.0));
+            let amplitude_parallel = spectogram.amplitude_parallel(num!(2.0));
+            magnitude
+                .data()
+                .iter()
+                .zip(amplitude.data().iter())
+                .for_each(|(m, a)| {
+                    float_cmp::assert_approx_eq!(T, *m * num!(2.0), *a);
+                });
+            amplitude
+                .data()
+                .iter()
+                .zip(amplitude_parallel.data().iter())
+                .for_each(|(s, p)| {
+                    float_cmp::assert_approx_eq!(T, *s, *p);
+                });
+        }
+        {
+            let amplitude = spectogram.amplitude(num!(1.0));
+            let db = spectogram.db(num!(2.0));
+            let db_parallel = spectogram.db_parallel(num!(2.0));
+            amplitude
+                .data()
+                .iter()
+                .zip(db.data().iter())
+                .for_each(|(m, d)| {
+                    use crate::conversion::amplitude_to_db;
+
+                    float_cmp::assert_approx_eq!(T, amplitude_to_db(*m, num!(2.0)), *d);
+                });
+            db.data()
+                .iter()
+                .zip(db_parallel.data().iter())
+                .for_each(|(s, p)| {
+                    float_cmp::assert_approx_eq!(T, *s, *p);
+                });
+        }
 
         // let recovered = stft.istft(&mut spectogram)?;
         // println!("{recovered:?}");

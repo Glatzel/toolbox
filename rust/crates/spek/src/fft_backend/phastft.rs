@@ -5,7 +5,7 @@ use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_op
 
 use super::{FftError, IFftBackend};
 use crate::fft_backend::check_size;
-use crate::spectogram::{ISpectrogram, Spectrogram};
+use crate::stft::{IStftResult, StftResult};
 
 #[derive(Debug, Clone)]
 pub struct PhastftBackend<P> {
@@ -26,7 +26,7 @@ impl PhastftBackend<PlannerR2c32> {
 
 impl IFftBackend<f32, f32> for PhastftBackend<PlannerR2c32>
 where
-    Spectrogram<f32>: ISpectrogram<f32>,
+    StftResult<f32>: IStftResult<f32, f32>,
 {
     fn signal_size(&self) -> usize { self.fft_size }
     fn spectrum_size(&self) -> usize { (self.fft_size / 2 + 1) * 2 }
@@ -86,12 +86,12 @@ where
 
     fn new_inverse_scratch(&self) -> Vec<f32> { vec![0.0; self.inverse_scratch_size()] }
 
-    fn new_spectrogram(&self, frame_count: usize) -> crate::spectogram::Spectrogram<f32> {
-        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<f32> {
+        StftResult::new(frame_count, self.spectrum_size() / 2)
     }
 
     fn fft_size(&self) -> usize { self.fft_size }
-    fn new_signal(&self) -> Vec<f32> { vec![0f32; self.signal_size()] }
+    fn new_signal(&self) -> Vec<f32> { vec![0_f32; self.signal_size()] }
 }
 
 impl PhastftBackend<PlannerR2c64> {
@@ -106,7 +106,7 @@ impl PhastftBackend<PlannerR2c64> {
 
 impl IFftBackend<f64, f64> for PhastftBackend<PlannerR2c64>
 where
-    Spectrogram<f64>: ISpectrogram<f64>,
+    StftResult<f64>: IStftResult<f64, f64>,
 {
     fn fft(
         &self,
@@ -160,14 +160,14 @@ where
 
     fn new_inverse_scratch(&self) -> Vec<f64> { vec![0.0; self.inverse_scratch_size()] }
 
-    fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<f64> {
-        crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
+    fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<f64> {
+        StftResult::new(frame_count, self.spectrum_size() / 2)
     }
 
     fn fft_size(&self) -> usize { self.fft_size }
 
     fn signal_size(&self) -> usize { self.fft_size }
-    fn new_signal(&self) -> Vec<f64> { vec![0f64; self.signal_size()] }
+    fn new_signal(&self) -> Vec<f64> { vec![0_f64; self.signal_size()] }
 }
 #[cfg(test)]
 mod tests {

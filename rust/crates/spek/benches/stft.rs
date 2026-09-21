@@ -19,9 +19,10 @@ fn bench_wrapper<T, B, SP>(
     StftResult<SP>: IStftResult<SP, T>,
     SP: Clone + Debug,
 {
-    let stft = Stft::new(backend.fft_size(), backend.fft_size(), Hann, backend).unwrap();
+    let fft_size=backend.fft_size();
+    let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
     g.bench_with_input(
-        BenchmarkId::new(format!("{}_stft_{}_2^", name, backend.fft_size()), size),
+        BenchmarkId::new(format!("{}_stft_{}_2^", name, fft_size), size),
         &size,
         |b, _| {
             b.iter(|| {

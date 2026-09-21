@@ -15,7 +15,7 @@ fn get_size() -> usize {
     }
 }
 fn get_fft_size() -> usize {
-    match (std::env::var("CI"), std::env::var("STFT_SIGNAL_SIZE")) {
+    match (std::env::var("CI"), std::env::var("FFT_SIZE")) {
         (Ok(_), _) => 2048,
         (_, Ok(val)) => val.parse().unwrap_or(2048),
         _ => 2048,

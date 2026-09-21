@@ -4,7 +4,7 @@ use num_traits::Float;
 use spek::fft_backend::IFftBackend;
 use spek::stft::{IStftResult, StftResult};
 fn get_size() -> usize {
-    match (std::env::var("CI"), std::env::var("STFT_SIGNAL_SIZE")) {
+    match (std::env::var("CI"), std::env::var("FFT_SIGNAL_SIZE")) {
         (Ok(_), _) => 5,
         (_, Ok(val)) => val.parse().unwrap_or(5),
         _ => 5,

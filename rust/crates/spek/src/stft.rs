@@ -154,49 +154,6 @@ where
         }
     }
 
-    /// Windowed overlap-add inverse STFT.
-    ///
-    /// ASSUMPTION: `IFftBackend` provides `new_inverse_scratch(&self) ->
-    /// <scratch type>` and `ifft_unchecked(&self, spectrum: &mut Vec<SP>,
-    /// frame_out: &mut Vec<T>, scratch: &mut [SP])`, mirroring the
-    /// forward `fft`/`fft_unchecked` shape. `Spectrogram` is assumed to
-    /// expose `frame_count(&self) -> usize` and `frame_unchecked(&self,
-    /// idx: usize) -> &Vec<SP>`. I don't have fft_backend.rs / spectogram.rs
-    /// to confirm these names — please correct if they differ.
-    fn istft_frames(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
-        let frame_count = spectrogram.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
-
-        let mut output = vec![T::zero(); out_len];
-        let mut window_sum = vec![T::zero(); out_len];
-        let mut scratch = self.fft_backend.new_inverse_scratch();
-
-        for frame_idx in 0..frame_count {
-            let start = frame_idx * self.hop_size;
-            let spectrum = spectrogram.frame_mut(frame_idx);
-            let mut time_frame = vec![T::zero(); self.win_size];
-            self.fft_backend
-                .ifft(spectrum, &mut time_frame, &mut scratch);
-
-            for i in 0..self.win_size {
-                // Re-apply the analysis window on the way out (standard
-                // weighted overlap-add) and accumulate the window-squared
-                // sum so overlapping regions can be normalized afterwards.
-                let w = self.window[i];
-                output[start + i] = output[start + i] + time_frame[i] * w;
-                window_sum[start + i] = window_sum[start + i] + w * w;
-            }
-        }
-
-        for i in 0..out_len {
-            if window_sum[i] > T::zero() {
-                output[i] = output[i] / window_sum[i];
-            }
-        }
-
-        output
-    }
-
     #[cfg(feature = "parallel")]
     pub fn istft_parallel(&self, spectrogram: &mut StftResult<SP>) -> Vec<T>
     where
@@ -256,8 +213,38 @@ where
         output
     }
 
-    pub fn istft_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
-        self.istft_frames(spectrogram)
+    pub fn istft(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
+        let frame_count = spectrogram.frame_count();
+        let out_len = self.reconstructed_len(frame_count);
+
+        let mut output = vec![T::zero(); out_len];
+        let mut window_sum = vec![T::zero(); out_len];
+        let mut scratch = self.fft_backend.new_inverse_scratch();
+
+        for frame_idx in 0..frame_count {
+            let start = frame_idx * self.hop_size;
+            let spectrum = spectrogram.frame_mut(frame_idx);
+            let mut time_frame = vec![T::zero(); self.win_size];
+            self.fft_backend
+                .ifft(spectrum, &mut time_frame, &mut scratch);
+
+            for i in 0..self.win_size {
+                // Re-apply the analysis window on the way out (standard
+                // weighted overlap-add) and accumulate the window-squared
+                // sum so overlapping regions can be normalized afterwards.
+                let w = self.window[i];
+                output[start + i] = output[start + i] + time_frame[i] * w;
+                window_sum[start + i] = window_sum[start + i] + w * w;
+            }
+        }
+
+        for i in 0..out_len {
+            if window_sum[i] > T::zero() {
+                output[i] = output[i] / window_sum[i];
+            }
+        }
+
+        output
     }
 }
 #[cfg(test)]

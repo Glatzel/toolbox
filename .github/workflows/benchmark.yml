@@ -5,8 +5,14 @@ on:
   workflow_call:
 
 jobs:
-  cargo-bench-rax:
+  cargo-bench:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        options:
+          - -p rax -p rax-nmea --all-features
+          - -p spek --features default-complex
+          - -p spek --features default-split
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -15,16 +21,4 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
         with:
           working-directory: ./rust
-          options: -p rax -p rax-nmea --all-features
-
-  cargo-bench-spek:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: true
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
-        with:
-          working-directory: ./rust
-          options: -p spek --all-features
+          options: ${{ matrix.options }}

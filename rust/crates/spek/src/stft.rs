@@ -182,8 +182,8 @@ where
                 let mut scratch = self.fft_backend.new_inverse_scratch();
                 self.fft_backend
                     .ifft(spectrum, &mut time_frame, &mut scratch);
-                for i in 0..self.win_size {
-                    time_frame[i] = time_frame[i] * self.window[i];
+                for (i, f) in time_frame.iter_mut().enumerate().take(self.win_size) {
+                    *f = (*f as T) * self.window[i];
                 }
                 time_frame
             })
@@ -257,11 +257,11 @@ mod tests {
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
     #[cfg_attr(feature = "split",case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49))]
-    #[case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49)]
-    #[case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50)]
+    #[cfg_attr(feature = "complex",case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49))]
+    #[cfg_attr(feature = "complex",case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50))]
     #[cfg_attr(feature = "split",   case("f64.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 49))]
-    #[case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49)]
-    #[case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50)]
+    #[cfg_attr(feature = "complex", case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49))]
+    #[cfg_attr(feature = "complex", case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50))]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,

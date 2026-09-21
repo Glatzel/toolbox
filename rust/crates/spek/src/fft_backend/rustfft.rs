@@ -7,9 +7,17 @@ use num_traits::Float;
 use rustfft::{Fft, FftNum};
 
 use crate::Dtype;
-use crate::fft_backend::{FftError, IFftBackend};
+use crate::fft_backend::IFftBackend;
 use crate::stft::StftResult;
-
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+pub enum RustfftError {
+    #[error("{name} size not equal, {a} != {b}")]
+    SizeNotEqual {
+        name: &'static str,
+        a: usize,
+        b: usize,
+    },
+}
 pub struct RustfftBackend<T>
 where
     T: FftNum,
@@ -24,9 +32,9 @@ where
     pub fn new(
         forward_planner: Arc<dyn Fft<T>>,
         inverse_planner: Arc<dyn Fft<T>>,
-    ) -> Result<Self, FftError> {
+    ) -> Result<Self, RustfftError> {
         if forward_planner.len() != inverse_planner.len() {
-            return Err(FftError::SizeNotEqual {
+            return Err(RustfftError::SizeNotEqual {
                 name: "planner",
                 a: forward_planner.len(),
                 b: inverse_planner.len(),

@@ -8,15 +8,6 @@ pub mod realfft;
 #[cfg(feature = "backend-rustfft")]
 pub mod rustfft;
 
-#[derive(Debug, Clone, PartialEq, thiserror::Error)]
-pub enum FftError {
-    #[error("{name} size not equal, {a} != {b}")]
-    SizeNotEqual {
-        name: &'static str,
-        a: usize,
-        b: usize,
-    },
-}
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FftDirection {
     Forward,

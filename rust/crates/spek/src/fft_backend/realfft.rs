@@ -87,7 +87,6 @@ where
         signal: &mut [T],
         scratch: &mut [Complex<T>],
     ) {
-        dbg!(scratch.len());
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();

@@ -15,4 +15,4 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
         with:
           working-directory: ./rust
-          options: -p rax -p rax-nmea --all-features
+          options: -p rax -p rax-nmea -p spek --all-features

@@ -1514,6 +1514,7 @@ checksum = "e8e2fb0f499abb4d162f2bedad68f5ef91a1682b5a03596ddb67efd37768d100"
 name = "spek"
 version = "2026.9.14"
 dependencies = [
+ "codspeed-criterion-compat",
  "float-cmp",
  "generic-num",
  "insta",

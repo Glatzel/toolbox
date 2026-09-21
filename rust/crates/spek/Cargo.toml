@@ -18,6 +18,7 @@ float-cmp.workspace = true
 insta.workspace = true
 mischief.workspace = true
 rstest.workspace = true
+criterion.workspace = true
 
 [features]
 default = ["backend-phastft", "backend-phastft-parallel", "backend-realfft", "backend-rustfft", "parallel", "std"]
@@ -28,3 +29,7 @@ backend-phastft = ["phastft"]
 backend-phastft-parallel = ["backend-phastft", "phastft/parallel", "std"]
 backend-realfft = ["realfft"]
 backend-rustfft = ["rustfft"]
+
+[[bench]]
+harness = false
+name="fft"

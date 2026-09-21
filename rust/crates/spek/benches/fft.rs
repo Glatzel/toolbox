@@ -46,20 +46,22 @@ fn bench_f32(c: &mut criterion::Criterion) {
     for size in SIZE {
         bench_wrapper::<f32, _, _>(
             &mut group,
-            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(size),
+            spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
+                2usize.pow(size as u32),
+            ),
             size,
         );
         bench_wrapper::<f32, _, _>(
             &mut group,
-            spek::fft_backend::realfft::RealfftBackend::new(size),
+            spek::fft_backend::realfft::RealfftBackend::new(2usize.pow(size as u32)),
             size,
         );
         let mut planner = rustfft::FftPlanner::new();
         bench_wrapper::<f32, _, _>(
             &mut group,
             spek::fft_backend::rustfft::RustfftBackend::new(
-                planner.plan_fft_forward(size),
-                planner.plan_fft_inverse(size),
+                planner.plan_fft_forward(2usize.pow(size as u32)),
+                planner.plan_fft_inverse(2usize.pow(size as u32)),
             )
             .unwrap(),
             size,

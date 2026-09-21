@@ -7,6 +7,10 @@ edition.workspace = true
 harness = false
 name = "fft"
 
+[[bench]]
+harness = false
+name = "stft"
+
 [dependencies]
 generic-num.workspace = true
 num-complex.workspace = true

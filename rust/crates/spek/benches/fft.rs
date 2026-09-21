@@ -4,7 +4,6 @@ use num_traits::Float;
 use spek::fft_backend::IFftBackend;
 use spek::stft::{IStftResult, StftResult};
 const SIZE: [usize; 4] = [5, 10, 15, 20];
-
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     name: &str,

@@ -129,6 +129,7 @@ where
     }
 
     fn fft_size(&self) -> usize { self.forward_planner.len() }
+    fn new_signal(&self) -> Vec<T> { vec![T::zero(); self.signal_size()] }
 }
 #[cfg(test)]
 mod tests {

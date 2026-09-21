@@ -50,6 +50,7 @@ where
     fn spectrum_size(&self) -> usize;
     fn forward_scratch_size(&self) -> usize;
     fn inverse_scratch_size(&self) -> usize;
+    fn new_signal(&self) -> Vec<SI>;
     fn new_spectrum(&self) -> Vec<SP>;
     fn new_forward_scratch(&self) -> Vec<SP>;
     fn new_inverse_scratch(&self) -> Vec<SP>;

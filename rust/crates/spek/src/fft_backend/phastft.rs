@@ -1,3 +1,5 @@
+use std::f64;
+
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
@@ -89,6 +91,7 @@ where
     }
 
     fn fft_size(&self) -> usize { self.fft_size }
+    fn new_signal(&self) -> Vec<f32> { vec![0f32; self.signal_size()] }
 }
 
 impl PhastftBackend<PlannerR2c64> {
@@ -164,6 +167,7 @@ where
     fn fft_size(&self) -> usize { self.fft_size }
 
     fn signal_size(&self) -> usize { self.fft_size }
+    fn new_signal(&self) -> Vec<f64> { vec![0f64; self.signal_size()] }
 }
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,7 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use spek::fft_backend::IFftBackend;
 
-const SIZES: [usize; 5] = [5, 10, 15, 20, 25];
+const SIZES: [usize; 4] = [5, 10, 15, 20];
 
 /// Benchmarks one backend's forward FFT at the given size.
 macro_rules! bench_fwd {

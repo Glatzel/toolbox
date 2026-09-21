@@ -28,10 +28,10 @@ pub enum StftError {
     InvalidFrameInputSize { expected: usize, actual: usize },
 }
 
-pub struct Stft<T, const FFT_SIZE: usize, FftBackend, SP>
+pub struct Stft<T, FftBackend, SP>
 where
     T: Float + FloatConst,
-    FftBackend: IFftBackend<T, SP, FFT_SIZE>,
+    FftBackend: IFftBackend<T, SP>,
     Spectrogram<SP>: ISpectrogram<SP>,
 {
     hop_size: usize,
@@ -41,10 +41,10 @@ where
     phantom: PhantomData<SP>,
 }
 
-impl<T, const FFT_SIZE: usize, FftBackend, SP> Stft<T, FFT_SIZE, FftBackend, SP>
+impl<T, FftBackend, SP> Stft<T, FftBackend, SP>
 where
     T: Float + FloatConst + Debug,
-    FftBackend: IFftBackend<T, SP, FFT_SIZE>,
+    FftBackend: IFftBackend<T, SP>,
     Spectrogram<SP>: ISpectrogram<SP>,
     SP: Debug,
 {
@@ -84,7 +84,7 @@ where
             .zip(self.window.iter())
             .map(|(i, w)| *i * *w)
             .collect();
-        frame.resize(FFT_SIZE, T::zero());
+        frame.resize(self.fft_backend.fft_size(), T::zero());
         frame
     }
     fn frame(&self, input: &[T]) -> Result<Vec<T>, StftError> {
@@ -94,7 +94,7 @@ where
                 actual: input.len(),
             });
         }
-        if input.len() > FFT_SIZE {
+        if input.len() > self.fft_backend.fft_size() {
             return Err(StftError::InvalidFrameInputSize {
                 expected: self.win_size,
                 actual: input.len(),
@@ -341,10 +341,10 @@ mod tests {
     use crate::fft_backend::phastft::PhastftBackend;
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
-    #[case("hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32, 8>::new(), 49, PhantomData::<f32>)]
-    #[case("hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 49, PhantomData::<f32>)]
-    #[case("hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32, 8>::new(), 50, PhantomData::<f32>)]
-    fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP, N>, const N: usize, SP>(
+    #[case("hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49, PhantomData::<f32>)]
+    #[case("hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50, PhantomData::<f32>)]
+    fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP>, SP>(
         #[case] name: &str,
         #[case] hop_size: usize,
         #[case] win_size: usize,

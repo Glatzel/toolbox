@@ -9,7 +9,7 @@ use rustfft::{Fft, FftNum};
 use crate::fft_backend::{FftError, IFftBackend, check_size};
 use crate::spectogram::{ISpectrogram, Spectrogram};
 
-pub struct RustfftBackend<T, const N: usize>
+pub struct RustfftBackend<T>
 where
     T: FftNum,
 {
@@ -17,7 +17,7 @@ where
     inverse_planner: Arc<dyn Fft<T>>,
     phantom: core::marker::PhantomData<T>,
 }
-impl<T, const N: usize> RustfftBackend<T, N>
+impl<T> RustfftBackend<T>
 where
     T: FftNum,
 {
@@ -25,8 +25,14 @@ where
         forward_planner: Arc<dyn Fft<T>>,
         inverse_planner: Arc<dyn Fft<T>>,
     ) -> Result<Self, FftError> {
-        check_size("forward_planner", forward_planner.len(), N)?;
-        check_size("inverse_planner", inverse_planner.len(), N)?;
+        if forward_planner.len() != inverse_planner.len() {
+            return Err(FftError::SizeNotEqual {
+                name: "planner",
+                a: forward_planner.len(),
+                b: inverse_planner.len(),
+            });
+        }
+
         Ok(Self {
             forward_planner,
             inverse_planner,
@@ -34,7 +40,7 @@ where
         })
     }
 }
-impl<T, const N: usize> IFftBackend<T, Complex<T>, N> for RustfftBackend<T, N>
+impl<T> IFftBackend<T, Complex<T>> for RustfftBackend<T>
 where
     T: FftNum + Float,
     Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
@@ -85,12 +91,14 @@ where
         scratch: &mut [Complex<T>],
     ) {
         self.inverse_planner.process_with_scratch(spectrum, scratch);
+        let n = num!(self.fft_size());
+
         for (dst, src) in signal.iter_mut().zip(spectrum.iter()) {
-            *dst = src.re / num!(N);
+            *dst = src.re / n;
         }
     }
 
-    fn spectrum_size(&self) -> usize { N }
+    fn spectrum_size(&self) -> usize { self.fft_size() }
 
     fn forward_scratch_size(&self) -> usize { self.forward_planner.get_inplace_scratch_len() }
 
@@ -128,6 +136,10 @@ where
     fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
         crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())
     }
+
+    fn fft_size(&self) -> usize { self.forward_planner.len() }
+
+    fn signal_size(&self) -> usize { self.fft_size() }
 }
 #[cfg(test)]
 mod tests {
@@ -135,7 +147,34 @@ mod tests {
     use super::*;
     use crate::test_fft_backend;
 
-    test_fft_backend!(test_rustfft_backend_fft4, f32, RustfftBackend<f32, 4>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(4), rustfft::FftPlanner::new().plan_fft_inverse(4)).unwrap());
-    test_fft_backend!(test_rustfft_backend_fft8, f32, RustfftBackend<f32, 8>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(8), rustfft::FftPlanner::new().plan_fft_inverse(8)).unwrap());
-    test_fft_backend!(test_rustfft_backend_fft7, f32, RustfftBackend<f32, 7>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(7), rustfft::FftPlanner::new().plan_fft_inverse(7)).unwrap());
+    test_fft_backend!(
+        test_rustfft_backend_fft4,
+        f32,
+        RustfftBackend<f32>,
+        RustfftBackend::new(
+            rustfft::FftPlanner::new().plan_fft_forward(4),
+            rustfft::FftPlanner::new().plan_fft_inverse(4)
+        )
+        .unwrap()
+    );
+    test_fft_backend!(
+        test_rustfft_backend_fft8,
+        f32,
+        RustfftBackend<f32>,
+        RustfftBackend::new(
+            rustfft::FftPlanner::new().plan_fft_forward(8),
+            rustfft::FftPlanner::new().plan_fft_inverse(8)
+        )
+        .unwrap()
+    );
+    test_fft_backend!(
+        test_rustfft_backend_fft7,
+        f32,
+        RustfftBackend<f32>,
+        RustfftBackend::new(
+            rustfft::FftPlanner::new().plan_fft_forward(7),
+            rustfft::FftPlanner::new().plan_fft_inverse(7)
+        )
+        .unwrap()
+    );
 }

@@ -6,32 +6,30 @@ use crate::fft_backend::check_size;
 use crate::spectogram::{ISpectrogram, Spectrogram};
 
 #[derive(Debug, Clone)]
-pub struct PhastftBackend<P, const N: usize> {
+pub struct PhastftBackend<P> {
+    fft_size: usize,
     options: phastft::options::Options,
     planner: P,
 }
-impl<P, const N: usize> PhastftBackend<P, N> {}
-impl<const N: usize> PhastftBackend<PlannerR2c32, N> {
-    pub fn new() -> Self {
+
+impl PhastftBackend<PlannerR2c32> {
+    pub fn new(fft_size: usize) -> Self {
         Self {
-            options: phastft::options::Options::guess_options(N),
-            planner: PlannerR2c32::new(N),
+            fft_size,
+            options: phastft::options::Options::guess_options(fft_size),
+            planner: PlannerR2c32::new(fft_size),
         }
     }
 }
 
-impl<const N: usize> Default for PhastftBackend<PlannerR2c32, N> {
-    fn default() -> Self { Self::new() }
-}
-
-impl<const N: usize> IFftBackend<f32, f32, N> for PhastftBackend<PlannerR2c32, N>
+impl IFftBackend<f32, f32> for PhastftBackend<PlannerR2c32>
 where
     Spectrogram<f32>: ISpectrogram<f32>,
 {
-    fn signal_size(&self) -> usize { N }
-    fn spectrum_size(&self) -> usize { (N / 2 + 1) * 2 }
-    fn forward_scratch_size(&self) -> usize { (N / 2) * 2 }
-    fn inverse_scratch_size(&self) -> usize { (N / 2) * 2 }
+    fn signal_size(&self) -> usize { self.fft_size }
+    fn spectrum_size(&self) -> usize { (self.fft_size / 2 + 1) * 2 }
+    fn forward_scratch_size(&self) -> usize { (self.fft_size / 2) * 2 }
+    fn inverse_scratch_size(&self) -> usize { (self.fft_size / 2) * 2 }
     fn fft(
         &self,
         signal: &mut [f32],
@@ -89,22 +87,21 @@ where
     fn new_spectrogram(&self, frame_count: usize) -> crate::spectogram::Spectrogram<f32> {
         crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
     }
+
+    fn fft_size(&self) -> usize { self.fft_size }
 }
 
-impl<const N: usize> PhastftBackend<PlannerR2c64, N> {
-    pub fn new() -> Self {
+impl PhastftBackend<PlannerR2c64> {
+    pub fn new(fft_size: usize) -> Self {
         Self {
-            options: phastft::options::Options::guess_options(N),
-            planner: PlannerR2c64::new(N),
+            options: phastft::options::Options::guess_options(fft_size),
+            planner: PlannerR2c64::new(fft_size),
+            fft_size,
         }
     }
 }
 
-impl<const N: usize> Default for PhastftBackend<PlannerR2c64, N> {
-    fn default() -> Self { Self::new() }
-}
-
-impl<const N: usize> IFftBackend<f64, f64, N> for PhastftBackend<PlannerR2c64, N>
+impl IFftBackend<f64, f64> for PhastftBackend<PlannerR2c64>
 where
     Spectrogram<f64>: ISpectrogram<f64>,
 {
@@ -150,9 +147,9 @@ where
         Ok(())
     }
 
-    fn spectrum_size(&self) -> usize { (N / 2 + 1) * 2 }
-    fn forward_scratch_size(&self) -> usize { (N / 2) * 2 }
-    fn inverse_scratch_size(&self) -> usize { (N / 2) * 2 }
+    fn spectrum_size(&self) -> usize { (self.fft_size / 2 + 1) * 2 }
+    fn forward_scratch_size(&self) -> usize { (self.fft_size / 2) * 2 }
+    fn inverse_scratch_size(&self) -> usize { (self.fft_size / 2) * 2 }
 
     fn new_spectrum(&self) -> Vec<f64> { vec![0.0; self.spectrum_size()] }
 
@@ -163,15 +160,51 @@ where
     fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<f64> {
         crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size() / 2)
     }
+
+    fn fft_size(&self) -> usize { self.fft_size }
+
+    fn signal_size(&self) -> usize { self.fft_size }
 }
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_fft_backend;
-    test_fft_backend!(test_phastft_backendf32_fft4, f32, PhastftBackend<PlannerR2c32, 4>, PhastftBackend::<PlannerR2c32, _>::new());
-    test_fft_backend!(test_phastft_backendf32_fft8, f32, PhastftBackend<PlannerR2c32, 8>, PhastftBackend::<PlannerR2c32, _>::new());
-    test_fft_backend!(#[should_panic] test_phastft_backendf32_fft7, f32, PhastftBackend<PlannerR2c32, 7>, PhastftBackend::<PlannerR2c32, _>::new());
-    test_fft_backend!(test_phastft_backendf64_fft4, f64, PhastftBackend<PlannerR2c64, 4>, PhastftBackend::<PlannerR2c64, _>::new());
-    test_fft_backend!(test_phastft_backendf64_fft8, f64, PhastftBackend<PlannerR2c64, 8>, PhastftBackend::<PlannerR2c64, _>::new());
-    test_fft_backend!(#[should_panic] test_phastft_backendf64_fft7, f64, PhastftBackend<PlannerR2c64, 7>, PhastftBackend::<PlannerR2c64, _>::new());
+    test_fft_backend!(
+        test_phastft_backendf32_fft4,
+        f32,
+        PhastftBackend<PlannerR2c32>,
+        PhastftBackend::<PlannerR2c32>::new(4)
+    );
+    test_fft_backend!(
+        test_phastft_backendf32_fft8,
+        f32,
+        PhastftBackend<PlannerR2c32>,
+        PhastftBackend::<PlannerR2c32>::new(8)
+    );
+    test_fft_backend!(
+        #[should_panic]
+        test_phastft_backendf32_fft7,
+        f32,
+        PhastftBackend<PlannerR2c32>,
+        PhastftBackend::<PlannerR2c32>::new(7)
+    );
+    test_fft_backend!(
+        test_phastft_backendf64_fft4,
+        f64,
+        PhastftBackend<PlannerR2c64>,
+        PhastftBackend::<PlannerR2c64>::new(4)
+    );
+    test_fft_backend!(
+        test_phastft_backendf64_fft8,
+        f64,
+        PhastftBackend<PlannerR2c64>,
+        PhastftBackend::<PlannerR2c64>::new(8)
+    );
+    test_fft_backend!(
+        #[should_panic]
+        test_phastft_backendf64_fft7,
+        f64,
+        PhastftBackend<PlannerR2c64>,
+        PhastftBackend::<PlannerR2c64>::new(7)
+    );
 }

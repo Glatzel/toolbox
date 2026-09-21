@@ -9,7 +9,7 @@ use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 use crate::fft_backend::{IFftBackend, check_size};
 use crate::spectogram::{ISpectrogram, Spectrogram};
 
-pub struct RealfftBackend<T, const N: usize>
+pub struct RealfftBackend<T>
 where
     T: FftNum,
 {
@@ -17,32 +17,27 @@ where
     inverse_planner: Arc<dyn ComplexToReal<T>>,
 }
 
-impl<T, const N: usize> RealfftBackend<T, N>
+impl<T> RealfftBackend<T>
 where
     T: FftNum,
 {
-    pub fn new() -> Self {
+    pub fn new(fft_size: usize) -> Self {
         let mut planner = RealFftPlanner::new();
         Self {
-            forward_planner: planner.plan_fft_forward(N),
-            inverse_planner: planner.plan_fft_inverse(N),
+            forward_planner: planner.plan_fft_forward(fft_size),
+            inverse_planner: planner.plan_fft_inverse(fft_size),
         }
     }
 }
-impl<T, const N: usize> Default for RealfftBackend<T, N>
-where
-    T: FftNum,
-{
-    fn default() -> Self { Self::new() }
-}
-impl<T, const N: usize> IFftBackend<T, Complex<T>, N> for RealfftBackend<T, N>
+
+impl<T> IFftBackend<T, Complex<T>> for RealfftBackend<T>
 where
     T: FftNum + FloatConst + Float,
     Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
 {
-    fn signal_size(&self) -> usize { N }
+    fn signal_size(&self) -> usize { self.fft_size() }
 
-    fn spectrum_size(&self) -> usize { N / 2 + 1 }
+    fn spectrum_size(&self) -> usize { self.fft_size() / 2 + 1 }
 
     fn forward_scratch_size(&self) -> usize { self.forward_planner.get_scratch_len() }
 
@@ -95,7 +90,8 @@ where
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
-        signal.iter_mut().for_each(|s| *s = *s / num!(N));
+        let n = num!(self.fft_size());
+        signal.iter_mut().for_each(|s| *s = *s / n);
     }
 
     fn new_spectrum(&self) -> Vec<Complex<T>> {
@@ -131,12 +127,29 @@ where
     fn new_spectrogram(&self, frame_count: usize) -> Spectrogram<Complex<T>> {
         crate::spectogram::Spectrogram::new(frame_count, self.spectrum_size())
     }
+
+    fn fft_size(&self) -> usize { self.forward_planner.len() }
 }
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_fft_backend;
-    test_fft_backend!(test_realfft_backend_fft4, f32, RealfftBackend<f32, 4>);
-    test_fft_backend!(test_realfft_backend_fft8, f32, RealfftBackend<f32, 8>);
-    test_fft_backend!(test_realfft_backend_fft7, f32, RealfftBackend<f32, 7>);
+    test_fft_backend!(
+        test_realfft_backend_fft4,
+        f32,
+        RealfftBackend<f32>,
+        RealfftBackend::new(4)
+    );
+    test_fft_backend!(
+        test_realfft_backend_fft8,
+        f32,
+        RealfftBackend<f32>,
+        RealfftBackend::new(8)
+    );
+    test_fft_backend!(
+        test_realfft_backend_fft7,
+        f32,
+        RealfftBackend<f32>,
+        RealfftBackend::new(7)
+    );
 }

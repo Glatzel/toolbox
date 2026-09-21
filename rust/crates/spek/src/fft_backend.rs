@@ -15,6 +15,12 @@ pub enum FftError {
         expected: usize,
         actual: usize,
     },
+    #[error("{name} size not equal, {a} != {b}")]
+    SizeNotEqual {
+        name: &'static str,
+        a: usize,
+        b: usize,
+    },
     #[error("{name} size not correct, expected at least {expected}, got {actual}")]
     SizeTooSmall {
         name: &'static str,
@@ -35,11 +41,12 @@ pub enum FftDirection {
     Inverse,
 }
 
-pub trait IFftBackend<SI, SP, const N: usize>
+pub trait IFftBackend<SI, SP>
 where
     Spectrogram<SP>: ISpectrogram<SP>,
 {
-    fn signal_size(&self) -> usize { N }
+    fn fft_size(&self) -> usize;
+    fn signal_size(&self) -> usize;
     fn spectrum_size(&self) -> usize;
     fn forward_scratch_size(&self) -> usize;
     fn inverse_scratch_size(&self) -> usize;

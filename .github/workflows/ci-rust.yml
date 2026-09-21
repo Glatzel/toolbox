@@ -33,7 +33,13 @@ jobs:
           working-directory: ${{env.WORKDIR}}
           options: ${{matrix.options}}
           args: -D warnings
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+        if: ${{!cancelled()}}
+        with:
+          working-directory: ${{env.WORKDIR}}
+          options: ${{matrix.options}}
       - uses: Glatzel/template/.github/actions/rust/cargo-test@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+        if: ${{!cancelled()}}
         with:
           working-directory: ${{env.WORKDIR}}
           global-options: ${{matrix.options}}
@@ -59,19 +65,3 @@ jobs:
         with:
           working-directory: ${{env.WORKDIR}}
           options: -p envoy
-
-  cargo-doc:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        options:
-          - --workspace --all-features --exclude clerk
-          - --features tracing -p clerk
-    steps:
-      - parallel:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
-        with:
-          working-directory: ${{env.WORKDIR}}
-          options: ${{matrix.options}}

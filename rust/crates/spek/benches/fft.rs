@@ -9,6 +9,7 @@ fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     backend: B,
     size: usize,
+    SP: Clone,
 ) where
     T: Float,
     B: IFftBackend<T, SP>,

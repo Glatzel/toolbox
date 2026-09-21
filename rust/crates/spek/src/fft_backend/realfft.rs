@@ -95,9 +95,7 @@ where
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
-        signal
-            .iter_mut()
-            .for_each(|s| *s = *s / num!(N));
+        signal.iter_mut().for_each(|s| *s = *s / num!(N));
     }
 
     fn new_spectrum(&self) -> Vec<Complex<T>> {

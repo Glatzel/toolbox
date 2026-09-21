@@ -55,7 +55,8 @@ fn bench_f32(c: &mut criterion::Criterion) {
             spek::fft_backend::rustfft::RustfftBackend::new(
                 planner.plan_fft_forward(size),
                 planner.plan_fft_inverse(size),
-            )?,
+            )
+            .unwrap(),
             size,
         );
     }
@@ -79,7 +80,8 @@ fn bench_f64(c: &mut criterion::Criterion) {
             spek::fft_backend::rustfft::RustfftBackend::new(
                 planner.plan_fft_forward(size),
                 planner.plan_fft_inverse(size),
-            )?,
+            )
+            .unwrap(),
             size,
         );
     }

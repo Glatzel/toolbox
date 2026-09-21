@@ -6,7 +6,7 @@ use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
 use spek::stft::{IStftResult, Stft, StftResult};
 use spek::windows::Window::Hann;
-const SIZE: [usize; 3] = [20, 25, 30];
+const SIZE: [usize; 3] = [5, 6,7];
 const FFT_SIZE: [usize; 3] = [2048, 4096, 8192];
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
@@ -21,11 +21,11 @@ fn bench_wrapper<T, B, SP>(
 {
     let fft_size=backend.fft_size();
     let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
-    let mut data=(0..2usize.pow(size as u32))
+    let mut data=(0..10usize.pow(size as u32))
                         .map(|i| num!(i))
                         .collect::<Vec<_>>();
     g.bench_with_input(
-        BenchmarkId::new(format!("{}_stft_{}_2^", name, fft_size), size),
+        BenchmarkId::new(format!("{}_stft_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
             b.iter(|| {
@@ -37,7 +37,7 @@ fn bench_wrapper<T, B, SP>(
     );
     g.bench_with_input(
         BenchmarkId::new(
-            format!("{}_stft_parallel_{}_2^", name, fft_size),
+            format!("{}_stft_parallel_{}_10^", name, fft_size),
             size,
         ),
         &size,

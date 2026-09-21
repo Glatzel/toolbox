@@ -170,6 +170,8 @@ mod tests {
     use crate::test_fft_backend;
     test_fft_backend!(test_phastft_backendf32_fft4, f32, PhastftBackend<PlannerR2c32, 4>, PhastftBackend::<PlannerR2c32, _>::new());
     test_fft_backend!(test_phastft_backendf32_fft8, f32, PhastftBackend<PlannerR2c32, 8>, PhastftBackend::<PlannerR2c32, _>::new());
+    test_fft_backend!(test_phastft_backendf32_fft7, f32, PhastftBackend<PlannerR2c32, 7>, PhastftBackend::<PlannerR2c32, _>::new());
     test_fft_backend!(test_phastft_backendf64_fft4, f64, PhastftBackend<PlannerR2c64, 4>, PhastftBackend::<PlannerR2c64, _>::new());
     test_fft_backend!(test_phastft_backendf64_fft8, f64, PhastftBackend<PlannerR2c64, 8>, PhastftBackend::<PlannerR2c64, _>::new());
+    test_fft_backend!(test_phastft_backendf64_fft7, f64, PhastftBackend<PlannerR2c64, 7>, PhastftBackend::<PlannerR2c64, _>::new());
 }

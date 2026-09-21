@@ -74,47 +74,8 @@ const fn check_size(name: &'static str, input: usize, expected: usize) -> Result
     Ok(())
 }
 
-/// `test_fft_backend!` — generates a round-trip snapshot test for any
-/// `IFftBackend` implementation.
-///
-/// Requires `rand` and `insta` as dev-dependencies.
-///
-/// # Usage
-/// ```ignore
-/// // 3-arg form: backend is constructed via `Default::default()`
-/// test_fft_backend!(test_my_backend_len_100, MyFftBackend, 100);
-///
-/// // 4-arg form: supply your own constructor expression instead
-/// test_fft_backend!(
-///     test_my_backend_custom,
-///     MyFftBackend,
-///     100,
-///     MyFftBackend::new(some_config)
-/// );
-/// ```
-///
-/// `signal_len` need not equal `backend.signal_size()`: the signal buffer
-/// is always allocated at `signal_size()`, and only the first
-/// `min(signal_len, signal_size)` samples are filled with random data —
-/// the rest stay at their `Default` value (i.e. zero-padded). This lets
-/// you test how a backend behaves with a shorter "real" signal padded out
-/// to its required transform size.
-///
-/// Random data is seeded deterministically so `insta` snapshots stay
-/// stable across runs. Each test writes two named snapshots:
-/// `<test_name>__spectrum` and `<test_name>__recovered`.
-///
-/// Bounds implicitly required at the call site (via monomorphization):
-/// - `$backend_ty: Default` (3-arg form only)
-/// - `SI: Default + core::fmt::Debug`, and `rand::distributions::Standard:
-///   rand::distributions::Distribution<SI>`
-/// - `SP: Default + core::fmt::Debug`
-/// - `SC: Default`
-///
-/// No assumption is made about the numeric relationship between
-/// `spectrum_size()` and the length of `new_spectrum()` — some backends
-/// interleave real/imag components into one flat buffer twice that long.
-#[macro_export]
+#[cfg(test)]
+#[cfg_attr(test, macro_export)]
 macro_rules! test_fft_backend {
     ($test_name:ident, $T:ty,$backend_ty:ty) => {
         $crate::test_fft_backend!(
@@ -127,7 +88,7 @@ macro_rules! test_fft_backend {
 
     ($test_name:ident,$T:ty, $backend_ty:ty, $backend_expr:expr) => {
         #[test]
-        fn $test_name() {
+        fn $test_name() -> mischief::Result<()> {
             use rand::rngs::StdRng;
             use rand::{RngExt, SeedableRng};
 
@@ -148,9 +109,7 @@ macro_rules! test_fft_backend {
             let mut spectrum = backend.new_spectrum();
             let mut forward_scratch = backend.new_forward_scratch();
 
-            backend
-                .fft(&mut signal, &mut spectrum, &mut forward_scratch)
-                .expect(concat!(stringify!($test_name), ": fft() failed"));
+            backend.fft(&mut signal, &mut spectrum, &mut forward_scratch)?;
 
             // Note: `spectrum.len()` is not asserted against
             // `backend.spectrum_size()` here — that relationship is
@@ -165,14 +124,13 @@ macro_rules! test_fft_backend {
                 .collect();
             let mut inverse_scratch = backend.new_inverse_scratch();
 
-            backend
-                .ifft(&mut spectrum, &mut recovered, &mut inverse_scratch)
-                .expect(concat!(stringify!($test_name), ": ifft() failed"));
+            backend.ifft(&mut spectrum, &mut recovered, &mut inverse_scratch)?;
 
             insta::assert_debug_snapshot!(
                 concat!(stringify!($test_name), "__recovered"),
                 recovered
             );
+            Ok(())
         }
     };
 }

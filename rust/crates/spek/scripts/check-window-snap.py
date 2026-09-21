@@ -5,7 +5,7 @@ import scipy
 
 print(scipy)
 
-snap_path = Path(__file__).parent.absolute() / "src" / "snapshots"
+snap_path = Path(__file__).parent.parent.absolute() / "src" / "snapshots"
 print(snap_path)
 
 for f in snap_path.glob("*.snap"):
@@ -13,7 +13,7 @@ for f in snap_path.glob("*.snap"):
     sym = s == "symmetric"
 
     fn = eval(f"scipy.signal.windows.{method}")
-    window = None
+    window = np.array([])
     expected = np.array(eval("".join(f.read_text().splitlines()[4:])), dtype=np.float64)
     match method:
         case "barthann":

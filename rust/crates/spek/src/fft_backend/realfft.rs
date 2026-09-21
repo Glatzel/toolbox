@@ -136,4 +136,5 @@ mod tests {
     use crate::test_fft_backend;
     test_fft_backend!(test_realfft_backend_fft4, f32, RealfftBackend<f32, 4>);
     test_fft_backend!(test_realfft_backend_fft8, f32, RealfftBackend<f32, 8>);
+    test_fft_backend!(test_realfft_backend_fft7, f32, RealfftBackend<f32, 7>);
 }

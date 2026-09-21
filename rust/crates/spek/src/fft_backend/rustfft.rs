@@ -136,4 +136,5 @@ mod tests {
 
     test_fft_backend!(test_rustfft_backend_fft4, f32, RustfftBackend<f32, 4>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(4), rustfft::FftPlanner::new().plan_fft_inverse(4)).unwrap());
     test_fft_backend!(test_rustfft_backend_fft8, f32, RustfftBackend<f32, 8>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(8), rustfft::FftPlanner::new().plan_fft_inverse(8)).unwrap());
+    test_fft_backend!(test_rustfft_backend_fft7, f32, RustfftBackend<f32, 7>, RustfftBackend::new(rustfft::FftPlanner::new().plan_fft_forward(7), rustfft::FftPlanner::new().plan_fft_inverse(7)).unwrap());
 }

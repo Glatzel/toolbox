@@ -1,0 +1,14 @@
+---
+source: crates/spek/src/fft_backend/realfft.rs
+assertion_line: 139
+expression: signal
+---
+[
+    0.2709815,
+    0.14039207,
+    0.9799018,
+    0.5933856,
+    0.61059517,
+    0.94498706,
+    0.9437634,
+]

@@ -16,7 +16,6 @@ where
 {
     forward_planner: Arc<dyn Fft<T>>,
     inverse_planner: Arc<dyn Fft<T>>,
-    phantom: core::marker::PhantomData<T>,
 }
 impl<T> RustfftBackend<T>
 where
@@ -37,7 +36,6 @@ where
         Ok(Self {
             forward_planner,
             inverse_planner,
-            phantom: core::marker::PhantomData,
         })
     }
 }

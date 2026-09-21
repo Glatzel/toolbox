@@ -4,7 +4,7 @@ use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
 use super::IFftBackend;
-use crate::stft::{IStftResult, StftResult};
+use crate::stft::StftResult;
 
 #[derive(Debug, Clone)]
 pub struct PhastftBackend<P> {
@@ -23,10 +23,7 @@ impl PhastftBackend<PlannerR2c32> {
     }
 }
 
-impl IFftBackend<f32, f32> for PhastftBackend<PlannerR2c32>
-where
-    StftResult<f32>: IStftResult<f32, f32>,
-{
+impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
     fn signal_size(&self) -> usize { self.fft_size }
     fn spectrum_size(&self) -> usize { (self.fft_size / 2 + 1) * 2 }
     fn forward_scratch_size(&self) -> usize { (self.fft_size / 2) * 2 }
@@ -81,9 +78,8 @@ impl PhastftBackend<PlannerR2c64> {
     }
 }
 
-impl IFftBackend<f64, f64> for PhastftBackend<PlannerR2c64>
-where
-    StftResult<f64>: IStftResult<f64, f64>,
+impl IFftBackend<f64> for PhastftBackend<PlannerR2c64>
+
 {
     fn fft(&self, signal: &mut [f64], spectrum: &mut [f64], _scratch: &mut [f64]) {
         let (real, imag) = unsafe { spectrum.split_at_mut_unchecked(self.spectrum_size() / 2) };

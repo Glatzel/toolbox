@@ -1,13 +1,13 @@
 ---
 source: crates/spek/src/fft_backend/rustfft.rs
-expression: recovered
+expression: "recovered.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
 ---
 [
-    1.8968706,
-    0.9827447,
-    6.859312,
-    4.153699,
-    4.274166,
-    6.614909,
-    6.6063437,
+    "1.89687",
+    "0.98274",
+    "6.85931",
+    "4.15370",
+    "4.27417",
+    "6.61491",
+    "6.60634",
 ]

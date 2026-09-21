@@ -1,10 +1,10 @@
 ---
 source: crates/spek/src/fft_backend/phastft.rs
-expression: recovered
+expression: "recovered.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
 ---
 [
-    0.27098152,
-    0.14039207,
-    0.9799018,
-    0.5933856,
+    "0.27098",
+    "0.14039",
+    "0.97990",
+    "0.59339",
 ]

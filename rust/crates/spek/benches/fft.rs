@@ -7,7 +7,7 @@ const SIZE: [usize; 4] = [5, 10, 15, 20];
 
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
-    name: &str
+    name: &str,
     backend: B,
     size: usize,
 ) where

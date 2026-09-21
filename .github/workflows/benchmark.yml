@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  cargo-bench:
+  cargo-bench-rax:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -20,6 +20,26 @@ jobs:
           files: |
             ./rust/crates/rax/**
             ./rust/crates/rax-nmea/**
+            ./.github/workflows/benchmark.yml
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+        if: steps.changed-files.outputs.any_changed == 'true'
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+        if: steps.changed-files.outputs.any_changed == 'true'
+        with:
+          working-directory: ./rust
+          options: -p rax -p rax-nmea --all-features
+
+  cargo-bench-spek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - id: changed-files
+        if: ${{github.event_name == 'pull_request'}}
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files: |
             ./rust/crates/spek/**
             ./.github/workflows/benchmark.yml
       - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
@@ -28,4 +48,5 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         with:
           working-directory: ./rust
-          options: -p rax -p rax-nmea -p spek --all-features
+          options: -p spek --all-features
+          

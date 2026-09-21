@@ -384,7 +384,7 @@ impl IStftResult<f32, f32> for StftResult<f32> {
             .flat_map_iter(|frame| {
                 frame
                     .chunks_exact(2)
-                    .map(|c| spectrum_to_db(c[0], c[1], scale))
+                    .map(|c| spectrum_to_amplitude(c[0], c[1], scale))
             })
             .collect();
 
@@ -524,7 +524,7 @@ impl IStftResult<f64, f64> for StftResult<f64> {
             .flat_map_iter(|frame| {
                 frame
                     .chunks_exact(2)
-                    .map(|c| spectrum_to_db(c[0], c[1], scale))
+                    .map(|c| spectrum_to_amplitude(c[0], c[1], scale))
             })
             .collect();
 

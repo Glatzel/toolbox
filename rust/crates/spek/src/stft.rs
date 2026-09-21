@@ -333,16 +333,19 @@ mod tests {
     use core::fmt::{Debug, Display};
 
     use float_cmp::ApproxEq;
-    use phastft::planner::PlannerR2c32;
+    use phastft::planner::{PlannerR2c32, PlannerR2c64};
     use rstest::rstest;
 
     use super::*;
     use crate::fft_backend::phastft::PhastftBackend;
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
-    #[case("hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49, PhantomData::<f32>)]
-    #[case("hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49, PhantomData::<f32>)]
-    #[case("hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50, PhantomData::<f32>)]
+    #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49, PhantomData::<f32>)]
+    #[case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49, PhantomData::<f32>)]
+    #[case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50, PhantomData::<f32>)]
+    #[case("f64.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 49, PhantomData::<f64>)]
+    #[case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49, PhantomData::<f64>)]
+    #[case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50, PhantomData::<f64>)]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T, SP>, SP>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -364,8 +367,8 @@ mod tests {
         let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
         let frame = stft.frame_unchecked(&signal[0..win_size]);
         insta::assert_debug_snapshot!(
-            "frame",
-            &frame.iter().map(|i| format!("{i:.5}")).collect::<Vec<_>>()
+            format!("frame_{}", std::any::type_name::<T>()),
+            &frame.iter().map(|i| format!("{i:.6}")).collect::<Vec<_>>()
         );
         let spectogram = stft.stft(&mut signal.clone())?;
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);

@@ -36,7 +36,20 @@ pub enum StftError {
         reason: &'static str,
     },
 }
-
+/// # STFT Parameters
+///
+/// ```text
+/// signal    #####################################################•••
+///                  win_size
+///          |<--------------------->|
+///                      fft_size
+///          |<----------------------------->|
+/// frame 0   ########################00000000
+///          |
+///          |<-- hop_size -->|
+///                           |
+/// frame 1                   ########################00000000
+/// ```
 pub struct Stft<T, FftBackend>
 where
     T: Float + FloatConst,

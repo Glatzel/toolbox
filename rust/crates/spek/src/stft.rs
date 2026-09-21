@@ -251,6 +251,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::conversion::spectrum_to_magnitude;
     #[cfg(feature = "backend-phastft")]
     use crate::fft_backend::phastft::PhastftBackend;
     #[cfg(feature = "backend-realfft")]
@@ -301,7 +302,16 @@ mod tests {
 
         {
             let magnitude = spectogram.magnitude();
-            insta::assert_debug_snapshot!(format!("{name}.magnitude"), magnitude);
+            (0..spectogram.bin_count()).for_each(|i| {
+                #[cfg(feature = "split")]
+                let v = spectrum_to_magnitude(
+                    spectogram.data()[i],
+                    spectogram.data()[2 * spectogram.bin_count() + i],
+                );
+                #[cfg(feature = "complex")]
+                let v = spectrum_to_magnitude(spectogram.data()[i].re, spectogram.data()[i].im);
+                float_cmp::assert_approx_eq!(T, v, magnitude.data()[i]);
+            });
             let amplitude = spectogram.amplitude(num!(2.0));
             magnitude
                 .data()

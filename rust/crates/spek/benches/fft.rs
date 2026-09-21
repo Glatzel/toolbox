@@ -85,7 +85,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
 
     let bsize = 2usize.pow(size as u32);
     #[cfg(feature = "phastft")]
-    bench_wrapper::<f64, _, _>(
+    bench_wrapper::<f64, _>(
         &mut group,
         "phastft",
         spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(bsize),

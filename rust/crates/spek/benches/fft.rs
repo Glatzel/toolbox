@@ -36,7 +36,7 @@ fn bench_wrapper<T, B, SP>(
             let mut signal = backend.new_signal();
             let mut scratch = backend.new_inverse_scratch();
             b.iter(|| {
-                backend.ifft_unchecked(&mut spectrum, &mut signal, &mut scratch);
+                backend.ifft_unchecked(&mut spectrum.clone(), &mut signal, &mut scratch);
             })
         },
     );

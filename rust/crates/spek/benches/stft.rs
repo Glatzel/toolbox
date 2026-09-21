@@ -15,7 +15,7 @@ fn bench_wrapper<T, B, SP>(
     size: usize,
 ) where
     T: Float + Debug + FloatConst+Sync,
-    B: IFftBackend<T, SP>,
+    B: IFftBackend<T, SP>+Sync,
     StftResult<SP>: IStftResult<SP, T>,
     SP: Clone + Debug+Sync+Send,
 {

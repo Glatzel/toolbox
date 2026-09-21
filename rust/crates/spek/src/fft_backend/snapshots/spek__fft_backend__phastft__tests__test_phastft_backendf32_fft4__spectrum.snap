@@ -3,10 +3,10 @@ source: crates/spek/src/fft_backend/phastft.rs
 expression: "spectrum.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
 ---
 [
-    "1.98466",
-    "-0.70892",
-    "0.51711",
+    "14.00000",
+    "-4.00000",
+    "-6.00000",
     "0.00000",
-    "0.45299",
+    "8.00000",
     "0.00000",
 ]

@@ -16,7 +16,6 @@ thiserror.workspace = true
 [dev-dependencies]
 insta.workspace = true
 mischief.workspace = true
-rand.workspace = true
 rstest.workspace = true
 
 [features]

@@ -334,9 +334,6 @@ mod tests {
     use core::fmt::{Debug, Display};
 
     use phastft::planner::PlannerR2c32;
-    use rand::distr::{Distribution, StandardUniform};
-    use rand::rngs::StdRng;
-    use rand::{RngExt, SeedableRng};
     use rstest::rstest;
 
     use super::*;
@@ -356,22 +353,15 @@ mod tests {
         #[case] _t: PhantomData<T>,
     ) -> mischief::Result<()>
     where
-        StandardUniform: Distribution<T>,
         Spectrogram<SP>: ISpectrogram<SP>,
         SP: Debug,
         T: Debug + Float + Display,
     {
+        use generic_num::num;
+
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
-        let mut rng = StdRng::seed_from_u64(0xF77_u64);
-        let mut signal: Vec<T> = (0..signal_len).map(|_| rng.random()).collect();
-        std::fs::write(
-            format!(
-                "test_data/signal_{}_{}.txt",
-                std::any::type_name::<T>(),
-                signal_len
-            ),
-            format!("{:#?}\n", signal),
-        )?;
+
+        let mut signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
         let frame = stft.frame_unchecked(&signal[0..win_size]);
         insta::assert_debug_snapshot!(
             "frame",

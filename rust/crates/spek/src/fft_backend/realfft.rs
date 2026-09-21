@@ -1,8 +1,9 @@
 extern crate alloc;
 use alloc::sync::Arc;
 
+use generic_num::num;
 use num_complex::Complex;
-use num_traits::FloatConst;
+use num_traits::{Float, FloatConst};
 use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
 use crate::fft_backend::{IFftBackend, check_size};
@@ -36,7 +37,7 @@ where
 }
 impl<T, const N: usize> IFftBackend<T, Complex<T>, N> for RealfftBackend<T, N>
 where
-    T: FftNum + FloatConst,
+    T: FftNum + FloatConst + Float,
     Spectrogram<Complex<T>>: ISpectrogram<Complex<T>>,
 {
     fn signal_size(&self) -> usize { N }
@@ -94,6 +95,9 @@ where
         self.inverse_planner
             .process_with_scratch(spectrum, signal, scratch)
             .unwrap();
+        signal
+            .iter_mut()
+            .for_each(|s| *s = *s / num!(N));
     }
 
     fn new_spectrum(&self) -> Vec<Complex<T>> {

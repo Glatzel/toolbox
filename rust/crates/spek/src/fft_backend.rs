@@ -126,22 +126,12 @@ macro_rules! test_fft_backend {
 #[macro_export]
 macro_rules! __test_fft_backend_body {
     ($test_name:ident, $T:ty, $backend_ty:ty, $backend_expr:expr) => {{
-        use rand::rngs::StdRng;
-        use rand::{RngExt, SeedableRng};
-
-        // Fixed seed: keeps insta snapshots deterministic across runs.
-        let mut rng = StdRng::seed_from_u64(0xF77_u64);
-
         let backend: $backend_ty = $backend_expr;
 
         // Allocate at `signal_size()`, but only randomize the first
         // `min(signal_len, signal_size)` samples.
         let signal_size: usize = backend.signal_size();
-        let mut signal: Vec<_> = (0..signal_size).map(|_| rng.random()).collect();
-        std::fs::write(
-            format!("test_data/signal_{}_{}.txt", stringify!($T), signal_size),
-            format!("{:#?}\n", signal),
-        )?;
+        let mut signal: Vec<_> = (0..signal_size).map(|i| (i * i) as $T).collect();
 
         let mut spectrum = backend.new_spectrum();
         let mut forward_scratch = backend.new_forward_scratch();

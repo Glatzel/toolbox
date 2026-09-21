@@ -27,7 +27,6 @@ num-traits = "0.2.19"
 owo-colors = "4.4.0"
 phastft = { version = "0.4.1", default-features = false }
 quote = "1.0.47"
-rand = "0.10.2"
 rayon = "1.12.0"
 realfft = "3.5.0"
 rstest = "0.27.0"

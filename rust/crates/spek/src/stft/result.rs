@@ -6,22 +6,19 @@ use num_complex::Complex;
 
 use crate::conversion::{spectrum_to_amplitude, spectrum_to_db, spectrum_to_magnitude};
 use crate::spectrogram::Spectrogram;
-use crate::stft::StftError;
 
 pub trait IStftResult<T, D> {
     fn new(frame_count: usize, bin_count: usize) -> Self;
     fn bin_count(&self) -> usize;
     fn data(&self) -> &[T];
     fn frame_count(&self) -> usize;
-    fn frame_unchecked(&self, index: usize) -> &[T];
-    fn frame_mut_unchecked(&mut self, index: usize) -> &mut [T];
-    fn frame(&self, index: usize) -> Result<&[T], StftError>;
-    fn frame_mut(&mut self, index: usize) -> Result<&mut [T], StftError>;
+    fn frame(&self, index: usize) -> &[T];
+    fn frame_mut(&mut self, index: usize) -> &mut [T];
     /// Mutable parallel iterator over each frame's bin_count, in frame order.
     /// Used by the `parallel` STFT path so each frame can be FFT'd on its
     /// own thread without indexing back into `data` per-call.
     #[cfg(feature = "parallel")]
-    fn frames_mut_unchecked(&mut self) -> rayon::slice::ChunksMut<'_, T>
+    fn frames_mut(&mut self) -> rayon::slice::ChunksMut<'_, T>
     where
         T: Send;
     fn magnitude(&self) -> Spectrogram<D>;
@@ -54,40 +51,19 @@ impl IStftResult<Complex<f32>, f32> for StftResult<Complex<f32>> {
     fn data(&self) -> &[Complex<f32>] { &self.data }
     fn bin_count(&self) -> usize { self.bin_count }
     fn frame_count(&self) -> usize { self.frame_count }
-    fn frame_unchecked(&self, index: usize) -> &[Complex<f32>] {
+    fn frame(&self, index: usize) -> &[Complex<f32>] {
         let start = index * self.bin_count;
         let end = start + self.bin_count;
         unsafe { self.data.get_unchecked(start..end) }
     }
-    fn frame_mut_unchecked(&mut self, index: usize) -> &mut [Complex<f32>] {
+    fn frame_mut(&mut self, index: usize) -> &mut [Complex<f32>] {
         let start = index * self.bin_count;
         let end = start + self.bin_count;
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    fn frame(&self, index: usize) -> Result<&[Complex<f32>], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count;
-        let end = start + self.bin_count;
-        Ok(&self.data[start..end])
-    }
-    fn frame_mut(&mut self, index: usize) -> Result<&mut [Complex<f32>], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count;
-        let end = start + self.bin_count;
-        Ok(unsafe { self.data.get_unchecked_mut(start..end) })
-    }
+
     #[cfg(feature = "parallel")]
-    fn frames_mut_unchecked(&mut self) -> rayon::slice::ChunksMut<'_, Complex<f32>> {
+    fn frames_mut(&mut self) -> rayon::slice::ChunksMut<'_, Complex<f32>> {
         use rayon::prelude::*;
         let chunk_size = self.bin_count;
         self.data.par_chunks_mut(chunk_size)
@@ -174,40 +150,19 @@ impl IStftResult<Complex<f64>, f64> for StftResult<Complex<f64>> {
     fn data(&self) -> &[Complex<f64>] { &self.data }
     fn bin_count(&self) -> usize { self.bin_count }
     fn frame_count(&self) -> usize { self.frame_count }
-    fn frame_unchecked(&self, index: usize) -> &[Complex<f64>] {
+    fn frame(&self, index: usize) -> &[Complex<f64>] {
         let start = index * self.bin_count;
         let end = start + self.bin_count;
         unsafe { self.data.get_unchecked(start..end) }
     }
-    fn frame_mut_unchecked(&mut self, index: usize) -> &mut [Complex<f64>] {
+    fn frame_mut(&mut self, index: usize) -> &mut [Complex<f64>] {
         let start = index * self.bin_count;
         let end = start + self.bin_count;
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    fn frame(&self, index: usize) -> Result<&[Complex<f64>], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count;
-        let end = start + self.bin_count;
-        Ok(&self.data[start..end])
-    }
-    fn frame_mut(&mut self, index: usize) -> Result<&mut [Complex<f64>], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count;
-        let end = start + self.bin_count;
-        Ok(unsafe { self.data.get_unchecked_mut(start..end) })
-    }
+
     #[cfg(feature = "parallel")]
-    fn frames_mut_unchecked(&mut self) -> rayon::slice::ChunksMut<'_, Complex<f64>> {
+    fn frames_mut(&mut self) -> rayon::slice::ChunksMut<'_, Complex<f64>> {
         use rayon::prelude::*;
         let chunk_size = self.bin_count;
         self.data.par_chunks_mut(chunk_size)
@@ -293,40 +248,19 @@ impl IStftResult<f32, f32> for StftResult<f32> {
     fn data(&self) -> &[f32] { &self.data }
     fn bin_count(&self) -> usize { self.bin_count }
     fn frame_count(&self) -> usize { self.frame_count }
-    fn frame_unchecked(&self, index: usize) -> &[f32] {
+    fn frame(&self, index: usize) -> &[f32] {
         let start = index * self.bin_count * 2;
         let end = start + self.bin_count * 2;
         unsafe { self.data.get_unchecked(start..end) }
     }
-    fn frame_mut_unchecked(&mut self, index: usize) -> &mut [f32] {
+    fn frame_mut(&mut self, index: usize) -> &mut [f32] {
         let start = index * self.bin_count * 2;
         let end = start + self.bin_count * 2;
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    fn frame(&self, index: usize) -> Result<&[f32], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count * 2;
-        let end = start + self.bin_count * 2;
-        Ok(&self.data[start..end])
-    }
-    fn frame_mut(&mut self, index: usize) -> Result<&mut [f32], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count * 2;
-        let end = start + self.bin_count * 2;
-        Ok(unsafe { self.data.get_unchecked_mut(start..end) })
-    }
+
     #[cfg(feature = "parallel")]
-    fn frames_mut_unchecked(&mut self) -> rayon::slice::ChunksMut<'_, f32> {
+    fn frames_mut(&mut self) -> rayon::slice::ChunksMut<'_, f32> {
         use rayon::prelude::*;
         let chunk_size = self.bin_count * 2;
         self.data.par_chunks_mut(chunk_size)
@@ -432,40 +366,18 @@ impl IStftResult<f64, f64> for StftResult<f64> {
     fn data(&self) -> &[f64] { &self.data }
     fn bin_count(&self) -> usize { self.bin_count }
     fn frame_count(&self) -> usize { self.frame_count }
-    fn frame_unchecked(&self, index: usize) -> &[f64] {
+    fn frame(&self, index: usize) -> &[f64] {
         let start = index * self.bin_count * 2;
         let end = start + self.bin_count * 2;
         unsafe { self.data.get_unchecked(start..end) }
     }
-    fn frame_mut_unchecked(&mut self, index: usize) -> &mut [f64] {
+    fn frame_mut(&mut self, index: usize) -> &mut [f64] {
         let start = index * self.bin_count * 2;
         let end = start + self.bin_count * 2;
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    fn frame(&self, index: usize) -> Result<&[f64], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count * 2;
-        let end = start + self.bin_count * 2;
-        Ok(&self.data[start..end])
-    }
-    fn frame_mut(&mut self, index: usize) -> Result<&mut [f64], StftError> {
-        if index >= self.frame_count {
-            return Err(StftError::FrameIndexOutOfBounds {
-                index,
-                frame_count: self.frame_count,
-            });
-        }
-        let start = index * self.bin_count * 2;
-        let end = start + self.bin_count * 2;
-        Ok(unsafe { self.data.get_unchecked_mut(start..end) })
-    }
     #[cfg(feature = "parallel")]
-    fn frames_mut_unchecked(&mut self) -> rayon::slice::ChunksMut<'_, f64> {
+    fn frames_mut(&mut self) -> rayon::slice::ChunksMut<'_, f64> {
         use rayon::prelude::*;
         let chunk_size = self.bin_count * 2;
         self.data.par_chunks_mut(chunk_size)

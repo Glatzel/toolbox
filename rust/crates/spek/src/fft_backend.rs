@@ -55,31 +55,8 @@ where
     fn new_forward_scratch(&self) -> Vec<SP>;
     fn new_inverse_scratch(&self) -> Vec<SP>;
     fn new_stft_result_buffer(&self, frame_count: usize) -> StftResult<SP>;
-    fn fft(
-        &self,
-        signal: &mut [SI],
-        spectrum: &mut [SP],
-        scratch: &mut [SP],
-    ) -> Result<(), FftError>;
-    fn ifft(
-        &self,
-        spectrum: &mut [SP],
-        signal: &mut [SI],
-        scratch: &mut [SP],
-    ) -> Result<(), FftError>;
-    fn fft_unchecked(&self, signal: &mut [SI], spectrum: &mut [SP], scratch: &mut [SP]);
-    fn ifft_unchecked(&self, spectrum: &mut [SP], signal: &mut [SI], scratch: &mut [SP]);
-}
-
-const fn check_size(name: &'static str, input: usize, expected: usize) -> Result<(), FftError> {
-    if input != expected {
-        return Err(FftError::SizeNotCorrect {
-            name,
-            expected,
-            actual: input,
-        });
-    }
-    Ok(())
+    fn fft(&self, signal: &mut [SI], spectrum: &mut [SP], scratch: &mut [SP]);
+    fn ifft(&self, spectrum: &mut [SP], signal: &mut [SI], scratch: &mut [SP]);
 }
 
 #[cfg(test)]
@@ -144,7 +121,7 @@ macro_rules! __test_fft_backend_body {
         let mut spectrum = backend.new_spectrum();
         let mut forward_scratch = backend.new_forward_scratch();
 
-        backend.fft(&mut signal, &mut spectrum, &mut forward_scratch)?;
+        backend.fft(&mut signal, &mut spectrum, &mut forward_scratch);
 
         // Note: `spectrum.len()` is not asserted against
         // `backend.spectrum_size()` here — that relationship is
@@ -165,7 +142,7 @@ macro_rules! __test_fft_backend_body {
             .collect();
         let mut inverse_scratch = backend.new_inverse_scratch();
 
-        backend.ifft(&mut spectrum, &mut recovered, &mut inverse_scratch)?;
+        backend.ifft(&mut spectrum, &mut recovered, &mut inverse_scratch);
 
         signal.iter().zip(recovered.iter()).for_each(|(s, r)| {
             float_cmp::assert_approx_eq!($T, *r, *s, epsilon = 0.0001);

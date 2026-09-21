@@ -1,12 +1,13 @@
 use std::fmt::Debug;
-use std::marker::{Sync,Send};
+use std::marker::{Send, Sync};
+
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
 use spek::stft::{IStftResult, Stft, StftResult};
 use spek::windows::Window::Hann;
-const SIZE: [usize; 3] = [5, 6,7];
+const SIZE: [usize; 3] = [5, 6, 7];
 const FFT_SIZE: [usize; 3] = [2048, 4096, 8192];
 fn bench_wrapper<T, B, SP>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
@@ -14,38 +15,31 @@ fn bench_wrapper<T, B, SP>(
     backend: B,
     size: usize,
 ) where
-    T: Float + Debug + FloatConst+Sync,
-    B: IFftBackend<T, SP>+Sync,
+    T: Float + Debug + FloatConst + Sync,
+    B: IFftBackend<T, SP> + Sync,
     StftResult<SP>: IStftResult<SP, T>,
-    SP: Clone + Debug+Sync+Send,
+    SP: Clone + Debug + Sync + Send,
 {
-    let fft_size=backend.fft_size();
+    let fft_size = backend.fft_size();
     let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
-    let mut data=(0..10usize.pow(size as u32))
-                        .map(|i| num!(i))
-                        .collect::<Vec<_>>();
+    let mut data = (0..10usize.pow(size as u32))
+        .map(|i| num!(i))
+        .collect::<Vec<_>>();
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
             b.iter(|| {
-                stft.stft_unchecked(
-                    &mut data,
-                );
+                stft.stft(&mut data);
             })
         },
     );
     g.bench_with_input(
-        BenchmarkId::new(
-            format!("{}_stft_parallel_{}_10^", name, fft_size),
-            size,
-        ),
+        BenchmarkId::new(format!("{}_stft_parallel_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
             b.iter(|| {
-                stft.stft_parallel_unchecked(
-                    &mut data,
-                );
+                stft.stft_parallel(&mut data);
             })
         },
     );

@@ -77,7 +77,7 @@ where
         }
     }
 
-    fn frame_unchecked(&self, input: &[T]) -> Vec<T> {
+    fn frame(&self, input: &[T]) -> Vec<T> {
         let mut frame: Vec<T> = input
             .iter()
             .zip(self.window.iter())
@@ -86,58 +86,16 @@ where
         frame.resize(self.fft_backend.fft_size(), T::zero());
         frame
     }
-    fn frame(&self, input: &[T]) -> Result<Vec<T>, StftError> {
-        if input.len() != self.win_size {
-            return Err(StftError::InvalidFrameInputSize {
-                expected: self.win_size,
-                actual: input.len(),
-            });
-        }
-        if input.len() > self.fft_backend.fft_size() {
-            return Err(StftError::InvalidFrameInputSize {
-                expected: self.win_size,
-                actual: input.len(),
-            });
-        }
 
-        Ok(self.frame_unchecked(input))
-    }
-    pub fn stft_frame_unchecked(&self, input: &[T], scratch: &mut [SP]) -> Vec<SP> {
-        let mut frame = self.frame_unchecked(input);
+    pub fn stft_frame(&self, input: &[T], scratch: &mut [SP]) -> Vec<SP> {
+        let mut frame = self.frame(input);
         let mut spectrum = self.fft_backend.new_spectrum();
-        self.fft_backend
-            .fft_unchecked(&mut frame, &mut spectrum, scratch);
+        self.fft_backend.fft(&mut frame, &mut spectrum, scratch);
         spectrum
     }
 
-    pub fn stft_frame(&self, input: &[T], scratch: &mut [SP]) -> Result<Vec<SP>, StftError> {
-        let mut frame = self.frame(input)?;
-        let mut spectrum = self.fft_backend.new_spectrum();
-        self.fft_backend.fft(&mut frame, &mut spectrum, scratch)?;
-        Ok(spectrum)
-    }
-
-    /// Core STFT loop, shared by the checked/unchecked/parallel variants.
-    /// `signal.len() >= self.win_size` must already hold.
-    fn stft_frames_unchecked(&self, signal: &[T]) -> StftResult<SP> {
-        let frame_count = self.frame_count(signal.len());
-        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
-        let mut scratch = self.fft_backend.new_forward_scratch();
-
-        for frame_idx in 0..frame_count {
-            let start = frame_idx * self.hop_size;
-            let mut frame = self.frame_unchecked(&signal[start..start + self.win_size]);
-            let spectrum = spectrogram.frame_mut_unchecked(frame_idx);
-            self.fft_backend
-                .fft_unchecked(&mut frame, spectrum, &mut scratch);
-            // dbg!(frame_idx, &frame, &spectrum, &scratch);
-        }
-
-        spectrogram
-    }
-
     #[cfg(feature = "parallel")]
-    pub fn stft_parallel_unchecked(&self, signal: &[T]) -> StftResult<SP>
+    pub fn stft_parallel(&self, signal: &[T]) -> StftResult<SP>
     where
         T: Sync,
         SP: Send + Sync,
@@ -155,47 +113,35 @@ where
         let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
 
         spectrogram
-            .frames_mut_unchecked()
+            .frames_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let mut frame = self.frame_unchecked(&signal[start..start + self.win_size]);
+                let mut frame = self.frame(&signal[start..start + self.win_size]);
                 let mut scratch = self.fft_backend.new_forward_scratch();
-                self.fft_backend
-                    .fft_unchecked(&mut frame, spectrum, &mut scratch);
+                self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
             });
 
         spectrogram
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn stft_parallel(&self, signal: &[T]) -> Result<StftResult<SP>, StftError>
-    where
-        T: Sync,
-        SP: Send + Sync,
-        FftBackend: Sync,
-    {
-        if signal.len() < self.win_size {
-            return Err(StftError::InvalidFrameInputSize {
-                expected: self.win_size,
-                actual: signal.len(),
-            });
-        }
-        Ok(self.stft_parallel_unchecked(signal))
-    }
+    pub fn stft(&self, signal: &[T]) -> StftResult<SP> {
+        let frame_count = self.frame_count(signal.len());
+        let mut spectrogram = self.fft_backend.new_stft_result_buffer(frame_count);
+        let mut scratch = self.fft_backend.new_forward_scratch();
 
-    pub fn stft_unchecked(&self, signal: &[T]) -> StftResult<SP> {
-        self.stft_frames_unchecked(signal)
-    }
-
-    pub fn stft(&self, signal: &[T]) -> Result<StftResult<SP>, StftError> {
-        if signal.len() < self.win_size {
-            return Err(StftError::InvalidFrameInputSize {
-                expected: self.win_size,
-                actual: signal.len(),
-            });
+        for frame_idx in 0..frame_count {
+            let start = frame_idx * self.hop_size;
+            let mut frame = self.frame(&signal[start..start + self.win_size]);
+            let spectrum = spectrogram.frame_mut(frame_idx);
+            self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
+            let mut frame = self.frame(&signal[start..start + self.win_size]);
+            let spectrum = spectrogram.frame_mut(frame_idx);
+            self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
+            // dbg!(frame_idx, &frame, &spectrum, &scratch);
         }
-        Ok(self.stft_frames_unchecked(signal))
+
+        spectrogram
     }
 
     /// Length of the reconstructed signal for a spectrogram with
@@ -217,7 +163,7 @@ where
     /// expose `frame_count(&self) -> usize` and `frame_unchecked(&self,
     /// idx: usize) -> &Vec<SP>`. I don't have fft_backend.rs / spectogram.rs
     /// to confirm these names — please correct if they differ.
-    fn istft_frames_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
+    fn istft_frames(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
@@ -227,10 +173,10 @@ where
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
-            let spectrum = spectrogram.frame_mut_unchecked(frame_idx);
+            let spectrum = spectrogram.frame_mut(frame_idx);
             let mut time_frame = vec![T::zero(); self.win_size];
             self.fft_backend
-                .ifft_unchecked(spectrum, &mut time_frame, &mut scratch);
+                .ifft(spectrum, &mut time_frame, &mut scratch);
 
             for i in 0..self.win_size {
                 // Re-apply the analysis window on the way out (standard
@@ -252,7 +198,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn istft_parallel_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T>
+    pub fn istft_parallel(&self, spectrogram: &mut StftResult<SP>) -> Vec<T>
     where
         T: Send + Sync,
         SP: Send + Sync,
@@ -279,12 +225,12 @@ where
         let out_len = self.reconstructed_len(frame_count);
 
         let windowed_frames: Vec<Vec<T>> = spectrogram
-            .frames_mut_unchecked()
+            .frames_mut()
             .map(|spectrum| {
                 let mut time_frame = vec![T::zero(); self.win_size];
                 let mut scratch = self.fft_backend.new_inverse_scratch();
                 self.fft_backend
-                    .ifft_unchecked(spectrum, &mut time_frame, &mut scratch);
+                    .ifft(spectrum, &mut time_frame, &mut scratch);
                 for i in 0..self.win_size {
                     time_frame[i] = time_frame[i] * self.window[i];
                 }
@@ -310,22 +256,8 @@ where
         output
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn istft_parallel(&self, spectrogram: &mut StftResult<SP>) -> Result<Vec<T>, StftError>
-    where
-        T: Send + Sync,
-        SP: Send + Sync,
-        FftBackend: Sync,
-    {
-        Ok(self.istft_parallel_unchecked(spectrogram))
-    }
-
     pub fn istft_unchecked(&self, spectrogram: &mut StftResult<SP>) -> Vec<T> {
-        self.istft_frames_unchecked(spectrogram)
-    }
-
-    pub fn istft(&self, spectrogram: &mut StftResult<SP>) -> Result<Vec<T>, StftError> {
-        Ok(self.istft_frames_unchecked(spectrogram))
+        self.istft_frames(spectrogram)
     }
 }
 #[cfg(test)]
@@ -365,16 +297,16 @@ mod tests {
 
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
-        let frame = stft.frame_unchecked(&signal[0..win_size]);
+        let frame = stft.frame(&signal[0..win_size]);
         insta::assert_debug_snapshot!(
             format!("frame_{}", std::any::type_name::<T>()),
             &frame.iter().map(|i| format!("{i:.6}")).collect::<Vec<_>>()
         );
-        let spectogram = stft.stft(&mut signal.clone())?;
+        let spectogram = stft.stft(&mut signal.clone());
         insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
 
         {
-            let spectogram_parallel = stft.stft_parallel(&mut signal.clone())?;
+            let spectogram_parallel = stft.stft_parallel(&mut signal.clone());
             spectogram_parallel
                 .magnitude()
                 .data()

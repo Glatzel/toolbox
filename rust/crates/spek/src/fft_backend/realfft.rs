@@ -6,7 +6,7 @@ use num_complex::Complex;
 use num_traits::{Float, FloatConst};
 use realfft::{ComplexToReal, FftNum, RealFftPlanner, RealToComplex};
 
-use crate::fft_backend::{IFftBackend, check_size};
+use crate::fft_backend::{IFftBackend};
 use crate::stft::{IStftResult, StftResult};
 
 pub struct RealfftBackend<T>
@@ -48,40 +48,13 @@ where
         signal: &mut [T],
         spectrum: &mut [Complex<T>],
         scratch: &mut [Complex<T>],
-    ) -> Result<(), super::FftError> {
-        check_size("signal", signal.len(), self.signal_size())?;
-        check_size("spectrum", spectrum.len(), self.spectrum_size())?;
-        check_size("scratch", scratch.len(), self.forward_scratch_size())?;
-
-        self.fft_unchecked(signal, spectrum, scratch);
-        Ok(())
-    }
-
-    fn ifft(
-        &self,
-        spectrum: &mut [Complex<T>],
-        signal: &mut [T],
-        scratch: &mut [Complex<T>],
-    ) -> Result<(), super::FftError> {
-        check_size("spectrum", spectrum.len(), self.spectrum_size())?;
-        check_size("signal", signal.len(), self.signal_size())?;
-        check_size("scratch", scratch.len(), self.inverse_scratch_size())?;
-        self.ifft_unchecked(spectrum, signal, scratch);
-        Ok(())
-    }
-
-    fn fft_unchecked(
-        &self,
-        signal: &mut [T],
-        spectrum: &mut [Complex<T>],
-        scratch: &mut [Complex<T>],
     ) {
         self.forward_planner
             .process_with_scratch(signal, spectrum, scratch)
             .unwrap();
     }
 
-    fn ifft_unchecked(
+    fn ifft(
         &self,
         spectrum: &mut [Complex<T>],
         signal: &mut [T],

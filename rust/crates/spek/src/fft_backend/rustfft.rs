@@ -6,7 +6,7 @@ use num_complex::Complex;
 use num_traits::Float;
 use rustfft::{Fft, FftNum};
 
-use crate::fft_backend::{FftError, IFftBackend, check_size};
+use crate::fft_backend::{FftError, IFftBackend};
 use crate::stft::{IStftResult, StftResult};
 
 pub struct RustfftBackend<T>
@@ -45,51 +45,14 @@ where
     T: FftNum + Float,
     StftResult<Complex<T>>: IStftResult<Complex<T>, T>,
 {
-    fn fft(
-        &self,
-        signal: &mut [T],
-        spectrum: &mut [Complex<T>],
-        scratch: &mut [Complex<T>],
-    ) -> Result<(), super::FftError> {
-        check_size("signal", signal.len(), self.signal_size())?;
-        check_size("spectrum", spectrum.len(), self.spectrum_size())?;
-        check_size("scratch", scratch.len(), self.forward_scratch_size())?;
-
-        self.fft_unchecked(signal, spectrum, scratch);
-        Ok(())
-    }
-
-    fn ifft(
-        &self,
-        spectrum: &mut [Complex<T>],
-        signal: &mut [T],
-        scratch: &mut [Complex<T>],
-    ) -> Result<(), super::FftError> {
-        check_size("spectrum", spectrum.len(), self.spectrum_size())?;
-        check_size("signal", signal.len(), self.signal_size())?;
-        check_size("scratch", scratch.len(), self.inverse_scratch_size())?;
-        self.ifft_unchecked(spectrum, signal, scratch);
-        Ok(())
-    }
-
-    fn fft_unchecked(
-        &self,
-        signal: &mut [T],
-        spectrum: &mut [Complex<T>],
-        scratch: &mut [Complex<T>],
-    ) {
+    fn fft(&self, signal: &mut [T], spectrum: &mut [Complex<T>], scratch: &mut [Complex<T>]) {
         for (dst, &src) in spectrum.iter_mut().zip(signal.iter()) {
             *dst = Complex::new(src, T::zero());
         }
         self.forward_planner.process_with_scratch(spectrum, scratch);
     }
 
-    fn ifft_unchecked(
-        &self,
-        spectrum: &mut [Complex<T>],
-        signal: &mut [T],
-        scratch: &mut [Complex<T>],
-    ) {
+    fn ifft(&self, spectrum: &mut [Complex<T>], signal: &mut [T], scratch: &mut [Complex<T>]) {
         self.inverse_planner.process_with_scratch(spectrum, scratch);
         let n = num!(self.fft_size());
 

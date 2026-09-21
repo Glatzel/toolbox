@@ -42,7 +42,7 @@ fn bench_wrapper<T, B, SP>(
         &size,
         |b, _| {
             b.iter(|| {
-                stft.stft_unchecked(
+                stft.stft_parallel_unchecked(
                     &mut (0..2usize.pow(size as u32))
                         .map(|i| num!(i))
                         .collect::<Vec<_>>(),

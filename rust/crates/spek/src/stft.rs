@@ -254,11 +254,8 @@ mod tests {
     use crate::fft_backend::realfft::RealfftBackend;
     #[rstest]
     #[cfg_attr(feature = "split",case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49))]
+    #[cfg_attr(feature = "split",case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50))]
     #[cfg_attr(feature = "complex",case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49))]
-    #[cfg_attr(feature = "complex",case("f32.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 50))]
-    #[cfg_attr(feature = "split",   case("f64.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 49))]
-    #[cfg_attr(feature = "complex", case("f64.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 49))]
-    #[cfg_attr(feature = "complex", case("f64.hop4.win7.window_hann.backend_realfft.50" ,4, 7, Window::Hann,  RealfftBackend::<f64>::new(8), 50))]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -276,13 +273,16 @@ mod tests {
 
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
-        let frame = stft.frame(&signal[0..win_size]);
-        insta::assert_debug_snapshot!(
-            format!("frame_{}", std::any::type_name::<T>()),
-            &frame.iter().map(|i| format!("{i:.6}")).collect::<Vec<_>>()
-        );
+
         let spectogram = stft.stft(&mut signal.clone());
-        insta::assert_debug_snapshot!(format!("{name}.spectogram"), spectogram);
+        insta::assert_debug_snapshot!(
+            format!("{name}.spectogram"),
+            spectogram
+                .data()
+                .iter()
+                .map(|i| format!("{i:.6}"))
+                .collect::<Vec<_>>()
+        );
 
         {
             let spectogram_parallel = stft.stft_parallel(&mut signal.clone());
@@ -298,6 +298,21 @@ mod tests {
 
         {
             let magnitude = spectogram.magnitude();
+            let frame = stft.stft_frame(
+                &signal[0..win_size],
+                &mut Vec::with_capacity(spectogram.bin_count()),
+            );
+            let mut frame_result = StftResult::new(1, spectogram.bin_count());
+            dbg!(&frame_result, &frame);
+            frame_result
+                .frame_mut(0)
+                .iter_mut()
+                .enumerate()
+                .for_each(|(i, v)| {
+                    *v = frame[i];
+                });
+            let frame_mag = frame_result.magnitude();
+
             (0..spectogram.bin_count()).for_each(|i| {
                 #[cfg(feature = "split")]
                 let v = spectrum_to_magnitude(
@@ -307,7 +322,9 @@ mod tests {
                 #[cfg(feature = "complex")]
                 let v = spectrum_to_magnitude(spectogram.data()[i].re, spectogram.data()[i].im);
                 float_cmp::assert_approx_eq!(T, v, magnitude.data()[i]);
+                float_cmp::assert_approx_eq!(T, v, frame_mag.data()[i]);
             });
+
             let amplitude = spectogram.amplitude(num!(2.0));
             magnitude
                 .data()

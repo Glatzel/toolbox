@@ -394,7 +394,6 @@ mod tests {
 
         {
             let magnitude = spectrum.magnitude();
-
             let frame = stft.stft_frame(
                 &signal[0..win_size],
                 &mut Vec::with_capacity(spectrum.bin_count()),

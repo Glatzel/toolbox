@@ -3,6 +3,7 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use std::sync::Mutex;
 
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
@@ -59,6 +60,7 @@ where
     win_size: usize,
     window: Vec<T>,
     fft_backend: FftBackend,
+    norm_cache: Mutex<Option<(usize, alloc::sync::Arc<[T]>)>>,
 }
 
 impl<T, FftBackend> Stft<T, FftBackend>
@@ -118,6 +120,7 @@ where
             win_size,
             window: window.window(win_size, false)?,
             fft_backend,
+            norm_cache: Mutex::new(None),
         })
     }
 
@@ -203,98 +206,129 @@ where
         }
     }
 
+    // Add this field to the struct and init as `Mutex::new(None)` in the
+    // constructor. norm_cache: Mutex<Option<(usize, Arc<[T]>)>>,
+
+    /// Reciprocal overlap-add normalization for a given frame_count.
+    /// Pure function of (window, hop_size, win_size, frame_count) — cached
+    /// so repeated calls with the same shape skip recomputation entirely.
+    fn normalization(&self, frame_count: usize) -> alloc::sync::Arc<[T]> {
+        if let Some((len, buf)) = self.norm_cache.lock().unwrap().as_ref() {
+            if *len == frame_count {
+                return buf.clone();
+            }
+        }
+
+        let out_len = self.reconstructed_len(frame_count);
+        let mut window_sum = vec![T::zero(); out_len];
+        for frame_idx in 0..frame_count {
+            let start = frame_idx * self.hop_size;
+            for (ws, w) in window_sum[start..start + self.win_size]
+                .iter_mut()
+                .zip(self.window.iter())
+            {
+                *ws = *ws + *w * *w;
+            }
+        }
+        // Reciprocal, computed once here rather than divided-and-branched
+        // per element on every call. Where window_sum is 0, no frame ever
+        // touched that sample, so output is already 0 there — multiplying
+        // by 0 is a correct, branchless no-op.
+        for ws in window_sum.iter_mut() {
+            *ws = if *ws > T::zero() {
+                T::one() / *ws
+            } else {
+                T::zero()
+            };
+        }
+
+        let buf: alloc::sync::Arc<[T]> = alloc::sync::Arc::from(window_sum);
+        *self.norm_cache.lock().unwrap() = Some((frame_count, buf.clone()));
+        buf
+    }
+
+    pub fn istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T> {
+        let frame_count = spectrum.frame_count();
+        let out_len = self.reconstructed_len(frame_count);
+        let fft_size = self.fft_backend.fft_size();
+        let norm = self.normalization(frame_count);
+
+        let mut output = vec![T::zero(); out_len];
+        let mut scratch = self.fft_backend.new_inverse_scratch();
+        let mut time_frame = vec![T::zero(); fft_size]; // reused, not reallocated per frame
+
+        spectrum
+            .iter_frame_mut()
+            .enumerate()
+            .for_each(|(frame_idx, spectrum)| {
+                let start = frame_idx * self.hop_size;
+                self.fft_backend
+                    .ifft(spectrum, &mut time_frame, &mut scratch);
+
+                for ((o, w), t) in output[start..start + self.win_size]
+                    .iter_mut()
+                    .zip(self.window.iter())
+                    .zip(time_frame.iter())
+                {
+                    *o = *o + *t * *w;
+                }
+            });
+
+        for (o, n) in output.iter_mut().zip(norm.iter()) {
+            *o = *o * *n;
+        }
+        output
+    }
+
     #[cfg(feature = "parallel")]
     pub fn par_istft(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T>
     where
         T: Send + Sync,
         FftBackend: Sync,
     {
-        // Overlap-add has a data dependency across frames that touch the
-        // same output samples (any two frames within `win_size` of each
-        // other), so this parallelizes the per-frame IFFT + windowing into
-        // scratch buffers and does the (cheap, O(n)) accumulation
-        // sequentially, rather than writing into `output` concurrently.
-        //
-        // `frames_mut_unchecked` (via `par_chunks_mut`) hands each rayon
-        // task its own disjoint `&mut [SP]`, split up front from the
-        // underlying buffer. That's what lets the closure below be `Fn`
-        // (each call gets a distinct argument, not a re-borrow of a shared
-        // `&mut Spectrogram`) and is what makes this actually sound —
-        // calling `spectrogram.frame_mut_unchecked(idx)` *inside* the
-        // closure instead would need a fresh exclusive borrow of the same
-        // `spectrogram` per call, which the compiler can't treat as `Fn`
-        // and can't verify is non-aliasing across threads.
         use rayon::prelude::*;
 
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
         let fft_size = self.fft_backend.fft_size();
+        let norm = self.normalization(frame_count);
 
-        let windowed_frames: Vec<Vec<T>> = spectrogram
+        // Flat scratch buffer for all frames' windowed IFFT output.
+        let mut windowed = vec![T::zero(); frame_count * fft_size];
+
+        spectrogram
             .par_iter_frame_mut()
-            .map(|spectrum| {
-                let mut time_frame = vec![T::zero(); fft_size];
-                let mut scratch = self.fft_backend.new_inverse_scratch();
-                self.fft_backend
-                    .ifft(spectrum, &mut time_frame, &mut scratch);
-                for (i, f) in time_frame.iter_mut().enumerate().take(self.win_size) {
-                    *f = (*f as T) * self.window[i];
-                }
-                time_frame
-            })
-            .collect();
+            .zip(windowed.par_chunks_mut(fft_size))
+            .for_each_init(
+                || self.fft_backend.new_inverse_scratch(), // once per worker thread
+                |scratch, (spectrum, time_frame)| {
+                    self.fft_backend.ifft(spectrum, time_frame, scratch);
+                    for (t, w) in time_frame
+                        .iter_mut()
+                        .zip(self.window.iter())
+                        .take(self.win_size)
+                    {
+                        *t = *t * *w;
+                    }
+                },
+            );
 
+        // Data-dependent overlap-add stays sequential (unavoidable — adjacent
+        // frames write the same output samples), but it's now allocation-free.
         let mut output = vec![T::zero(); out_len];
-        let mut window_sum = vec![T::zero(); out_len];
-        for (frame_idx, time_frame) in windowed_frames.into_iter().enumerate() {
+        for (frame_idx, time_frame) in windowed.chunks(fft_size).enumerate() {
             let start = frame_idx * self.hop_size;
-            for i in 0..self.win_size {
-                output[start + i] = output[start + i] + time_frame[i];
-                window_sum[start + i] = window_sum[start + i] + self.window[i] * self.window[i];
-            }
-        }
-        for i in 0..out_len {
-            if window_sum[i] > T::zero() {
-                output[i] = output[i] / window_sum[i];
+            for (o, t) in output[start..start + self.win_size]
+                .iter_mut()
+                .zip(time_frame[..self.win_size].iter())
+            {
+                *o = *o + *t;
             }
         }
 
-        output
-    }
-
-    pub fn istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T> {
-        let frame_count = spectrum.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
-
-        let mut output = vec![T::zero(); out_len];
-        let mut window_sum = vec![T::zero(); out_len];
-        let mut scratch = self.fft_backend.new_inverse_scratch();
-        let fft_size = self.fft_backend.fft_size();
-        spectrum
-            .iter_frame_mut()
-            .enumerate()
-            .for_each(|(frame_idx, spectrum)| {
-                let start = frame_idx * self.hop_size;
-                let mut time_frame = vec![T::zero(); fft_size];
-                self.fft_backend
-                    .ifft(spectrum, &mut time_frame, &mut scratch);
-
-                for i in 0..self.win_size {
-                    // Re-apply the analysis window on the way out (standard
-                    // weighted overlap-add) and accumulate the window-squared
-                    // sum so overlapping regions can be normalized afterwards.
-                    let w = self.window[i];
-                    output[start + i] = output[start + i] + time_frame[i] * w;
-                    window_sum[start + i] = window_sum[start + i] + w * w;
-                }
-            });
-
-        for i in 0..out_len {
-            if window_sum[i] > T::zero() {
-                output[i] = output[i] / window_sum[i];
-            }
+        for (o, n) in output.iter_mut().zip(norm.iter()) {
+            *o = *o * *n;
         }
-
         output
     }
 }

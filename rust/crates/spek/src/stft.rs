@@ -3,9 +3,9 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use std::sync::Mutex;
 
 use num_traits::{Float, FloatConst};
+use parking_lot::Mutex;
 use thiserror::Error;
 
 use crate::Dtype;
@@ -213,7 +213,7 @@ where
     /// Pure function of (window, hop_size, win_size, frame_count) — cached
     /// so repeated calls with the same shape skip recomputation entirely.
     fn normalization(&self, frame_count: usize) -> alloc::sync::Arc<[T]> {
-        if let Some((len, buf)) = self.norm_cache.lock().unwrap().as_ref() {
+        if let Some((len, buf)) = self.norm_cache.lock().as_ref() {
             if *len == frame_count {
                 return buf.clone();
             }
@@ -243,7 +243,7 @@ where
         }
 
         let buf: alloc::sync::Arc<[T]> = alloc::sync::Arc::from(window_sum);
-        *self.norm_cache.lock().unwrap() = Some((frame_count, buf.clone()));
+        *self.norm_cache.lock() = Some((frame_count, buf.clone()));
         buf
     }
 

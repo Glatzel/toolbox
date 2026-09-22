@@ -20,6 +20,7 @@ rayon = { workspace = true, optional = true }
 realfft = { workspace = true, optional = true }
 rustfft = { workspace = true, optional = true }
 thiserror.workspace = true
+parking_lot.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

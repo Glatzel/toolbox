@@ -240,6 +240,7 @@ jobs:
     needs:
       [
         lefthook,
+        benchmark,
         fuzz,
         changed,
         python-ci,

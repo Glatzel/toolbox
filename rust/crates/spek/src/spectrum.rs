@@ -86,19 +86,12 @@ where
 
         #[cfg(feature = "split")]
         {
-            (0..self.frame_count * self.bin_count).map(|i| {
-                let frame = i / self.bin_count;
-                let bin = i % self.bin_count;
-                let offset = frame * self.bin_count * 2;
-
-                // SAFETY: i is bounded by frame_count * bin_count.
-                unsafe {
-                    (
-                        self.data.get_unchecked(offset + bin),
-                        self.data.get_unchecked(offset + self.bin_count + bin),
-                    )
-                }
-            })
+            self.data
+                .chunks_exact(self.bin_count * 2)
+                .flat_map(|frame| {
+                    let (real, imag) = unsafe { frame.split_at_unchecked(self.bin_count) };
+                    real.iter().zip(imag.iter())
+                })
         }
     }
 
@@ -109,23 +102,12 @@ where
         }
         #[cfg(feature = "split")]
         {
-            let bin_count = self.bin_count;
-            let len = self.frame_count * self.bin_count;
-            let ptr = self.data.as_mut_ptr();
-            (0..len).map(move |i| {
-                let frame = i / bin_count;
-                let bin = i % bin_count;
-                let offset = frame * bin_count * 2;
-                // SAFETY: each i maps to a unique, non-overlapping (re, im)
-                // index pair (same argument as iter()'s unsafe block), so no
-                // two yielded refs ever alias across iterations.
-                unsafe {
-                    (
-                        &mut *ptr.add(offset + bin),
-                        &mut *ptr.add(offset + bin_count + bin),
-                    )
-                }
-            })
+            self.data
+                .chunks_exact_mut(self.bin_count * 2)
+                .flat_map(|frame| {
+                    let (real, imag) = unsafe { frame.split_at_mut_unchecked(self.bin_count) };
+                    real.iter_mut().zip(imag.iter_mut())
+                })
         }
     }
 

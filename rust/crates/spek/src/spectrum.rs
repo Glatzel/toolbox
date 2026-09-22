@@ -78,10 +78,10 @@ where
 
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    pub fn iter(&self) -> impl Iterator<Item = (T, T)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (&T, &T)> + '_ {
         #[cfg(feature = "complex")]
         {
-            self.data.iter().map(|c| (c.re, c.im))
+            self.data.iter().map(|c| (&c.re, &c.im))
         }
 
         #[cfg(feature = "split")]
@@ -94,8 +94,8 @@ where
                 // SAFETY: i is bounded by frame_count * bin_count.
                 unsafe {
                     (
-                        *self.data.get_unchecked(offset + bin),
-                        *self.data.get_unchecked(offset + self.bin_count + bin),
+                        self.data.get_unchecked(offset + bin),
+                        self.data.get_unchecked(offset + self.bin_count + bin),
                     )
                 }
             })
@@ -161,7 +161,7 @@ where
     pub fn magnitude(&self) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter()
-                .map(|(r, i)| spectrum_to_magnitude(r, i))
+                .map(|(r, i)| spectrum_to_magnitude(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -170,7 +170,7 @@ where
     pub fn amplitude(&self, scale: T) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter()
-                .map(|(r, i)| spectrum_to_amplitude(r, i, scale))
+                .map(|(r, i)| spectrum_to_amplitude(*r, *i, scale))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -179,7 +179,7 @@ where
     pub fn db(&self, reference: T) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter()
-                .map(|(r, i)| spectrum_to_db(r, i, reference))
+                .map(|(r, i)| spectrum_to_db(*r, *i, reference))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -187,7 +187,7 @@ where
     }
     pub fn to_spectrogram(&self, process: impl Fn(T, T) -> T) -> Spectrogram<T> {
         Spectrogram::new(
-            self.iter().map(|(r, i)| process(r, i)).collect(),
+            self.iter().map(|(r, i)| process(*r, *i)).collect(),
             self.frame_count,
             self.bin_count,
         )
@@ -199,11 +199,11 @@ where
     T: Float + Sync + Send,
     Dtype<T>: Send + Sync,
 {
-    pub fn par_iter(&self) -> impl rayon::iter::IndexedParallelIterator<Item = (T, T)> + '_ {
+    pub fn par_iter(&self) -> impl rayon::iter::IndexedParallelIterator<Item = (&T, &T)> + '_ {
         use rayon::prelude::*;
         #[cfg(feature = "complex")]
         {
-            self.data.par_iter().map(|c| (c.re, c.im))
+            self.data.par_iter().map(|c| (&c.re, &c.im))
         }
         #[cfg(feature = "split")]
         {
@@ -216,8 +216,8 @@ where
                     let offset = frame * bin_count * 2;
                     unsafe {
                         (
-                            *self.data.get_unchecked(offset + bin),
-                            *self.data.get_unchecked(offset + bin_count + bin),
+                            self.data.get_unchecked(offset + bin),
+                            self.data.get_unchecked(offset + bin_count + bin),
                         )
                     }
                 })
@@ -303,7 +303,7 @@ where
         use rayon::prelude::*;
         Spectrogram::new(
             self.par_iter()
-                .map(|(r, i)| spectrum_to_magnitude(r, i))
+                .map(|(r, i)| spectrum_to_magnitude(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -313,7 +313,7 @@ where
         use rayon::prelude::*;
         Spectrogram::new(
             self.par_iter()
-                .map(|(r, i)| spectrum_to_amplitude(r, i, scale))
+                .map(|(r, i)| spectrum_to_amplitude(*r, *i, scale))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -323,7 +323,7 @@ where
         use rayon::prelude::*;
         Spectrogram::new(
             self.par_iter()
-                .map(|(r, i)| spectrum_to_db(r, i, reference))
+                .map(|(r, i)| spectrum_to_db(*r, *i, reference))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -335,7 +335,7 @@ where
     {
         use rayon::prelude::*;
         Spectrogram::new(
-            self.par_iter().map(|(r, i)| process(r, i)).collect(),
+            self.par_iter().map(|(r, i)| process(*r, *i)).collect(),
             self.frame_count,
             self.bin_count,
         )

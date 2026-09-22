@@ -8,7 +8,7 @@ use crate::conversion::{spectrum_to_amplitude, spectrum_to_db, spectrum_to_magni
 use crate::spectrogram::Spectrogram;
 use crate::{Data, Dtype};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Spectrum2D<T> {
     data: Data<T>,
     frame_count: usize,

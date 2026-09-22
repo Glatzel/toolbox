@@ -260,8 +260,8 @@ where
         output
     }
 
-    pub fn istft(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T> {
-        let frame_count = spectrogram.frame_count();
+    pub fn istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T> {
+        let frame_count = spectrum.frame_count();
         let out_len = self.reconstructed_len(frame_count);
 
         let mut output = vec![T::zero(); out_len];
@@ -270,7 +270,7 @@ where
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
-            let spectrum = spectrogram.frame_mut(frame_idx);
+            let spectrum = spectrum.frame_mut(frame_idx);
             let mut time_frame = vec![T::zero(); self.win_size];
             self.fft_backend
                 .ifft(spectrum, &mut time_frame, &mut scratch);
@@ -332,10 +332,10 @@ mod tests {
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
         let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
 
-        let spectogram = stft.stft(&mut signal.clone());
+        let spectrum = stft.stft(&mut signal.clone());
         insta::assert_debug_snapshot!(
             format!("{name}.spectogram"),
-            spectogram
+            spectrum
                 .data()
                 .iter()
                 .map(|i| format!("{i:.6}"))
@@ -343,25 +343,25 @@ mod tests {
         );
 
         {
-            let spectogram_parallel = stft.par_stft(&mut signal.clone());
-            spectogram_parallel
+            let spectrum_parallel = stft.par_stft(&mut signal.clone());
+            spectrum_parallel
                 .magnitude()
                 .data()
                 .iter()
-                .zip(spectogram.magnitude().data().iter())
+                .zip(spectrum.magnitude().data().iter())
                 .for_each(|(p, s)| {
                     float_cmp::assert_approx_eq!(T, *p, *s);
                 });
         }
 
         {
-            let magnitude = spectogram.magnitude();
+            let magnitude = spectrum.magnitude();
 
             let frame = stft.stft_frame(
                 &signal[0..win_size],
-                &mut Vec::with_capacity(spectogram.bin_count()),
+                &mut Vec::with_capacity(spectrum.bin_count()),
             );
-            let mut frame_result = Spectrum2D::new(1, spectogram.bin_count());
+            let mut frame_result = Spectrum2D::new(1, spectrum.bin_count());
             dbg!(&frame_result, &frame);
             frame_result
                 .frame_mut(0)
@@ -372,19 +372,19 @@ mod tests {
                 });
             let frame_magnitude = frame_result.magnitude();
 
-            (0..spectogram.bin_count()).for_each(|i| {
+            (0..spectrum.bin_count()).for_each(|i| {
                 #[cfg(feature = "split")]
                 let v = spectrum_to_magnitude(
-                    spectogram.data()[i],
-                    spectogram.data()[spectogram.bin_count() + i],
+                    spectrum.data()[i],
+                    spectrum.data()[spectrum.bin_count() + i],
                 );
                 #[cfg(feature = "complex")]
-                let v = spectrum_to_magnitude(spectogram.data()[i].re, spectogram.data()[i].im);
+                let v = spectrum_to_magnitude(spectrum.data()[i].re, spectrum.data()[i].im);
                 float_cmp::assert_approx_eq!(T, v, magnitude.data()[i]);
                 float_cmp::assert_approx_eq!(T, v, frame_magnitude.data()[i]);
             });
             {
-                let par_magnitude = spectogram.par_magnitude();
+                let par_magnitude = spectrum.par_magnitude();
                 magnitude
                     .data()
                     .iter()
@@ -394,7 +394,7 @@ mod tests {
                     });
             }
             {
-                let amplitude = spectogram.amplitude(num!(2.0));
+                let amplitude = spectrum.amplitude(num!(2.0));
                 magnitude
                     .data()
                     .iter()
@@ -404,7 +404,7 @@ mod tests {
                     });
             }
             {
-                let par_amplitude = spectogram.par_amplitude(num!(2.0));
+                let par_amplitude = spectrum.par_amplitude(num!(2.0));
                 magnitude
                     .data()
                     .iter()
@@ -415,9 +415,9 @@ mod tests {
             }
         }
         {
-            let amplitude = spectogram.amplitude(num!(1.0));
+            let amplitude = spectrum.amplitude(num!(1.0));
             {
-                let db = spectogram.db(num!(2.0));
+                let db = spectrum.db(num!(2.0));
                 amplitude
                     .data()
                     .iter()
@@ -428,7 +428,7 @@ mod tests {
                     });
             }
             {
-                let par_db = spectogram.par_db(num!(2.0));
+                let par_db = spectrum.par_db(num!(2.0));
                 amplitude
                     .data()
                     .iter()
@@ -440,14 +440,11 @@ mod tests {
             }
         }
 
-        // let recovered = stft.istft(&mut spectogram)?;
-        // println!("{recovered:?}");
-        // recovered
-        //     .iter()
-        //     .zip(origin_signal.iter())
-        //     .for_each(|(r, o)| {
-        //         float_cmp::assert_approx_eq!(T, *r, *o);
-        //     });
+        let recovered = stft.istft(&mut spectrum.clone());
+        println!("{recovered:?}");
+        recovered.iter().zip(signal.iter()).for_each(|(r, o)| {
+            float_cmp::assert_approx_eq!(T, *r, *o);
+        });
         Ok(())
     }
 }

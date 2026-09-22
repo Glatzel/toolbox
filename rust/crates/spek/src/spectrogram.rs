@@ -3,7 +3,7 @@ use core::slice::ChunksExactMut;
 #[cfg(feature = "parallel")]
 use num_traits::Float;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Spectrogram<T> {
     data: Vec<T>,
     frame_count: usize,

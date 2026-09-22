@@ -181,13 +181,14 @@ where
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         let mut scratch = self.fft_backend.new_forward_scratch();
-
-        for frame_idx in 0..frame_count {
-            let start = frame_idx * self.hop_size;
-            let mut frame = self.frame(&signal[start..start + self.win_size]);
-            let spectrum = spectrogram.frame_mut(frame_idx);
-            self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
-        }
+        spectrogram
+            .iter_frame_mut()
+            .enumerate()
+            .for_each(|(frame_idx, spectrum)| {
+                let start = frame_idx * self.hop_size;
+                let mut frame = self.frame(&signal[start..start + self.win_size]);
+                self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
+            });
 
         spectrogram
     }

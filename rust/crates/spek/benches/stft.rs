@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::marker::{Send, Sync};
 
-use criterion::{BenchmarkId, criterion_group, criterion_main};
+use criterion::{BatchSize, BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;

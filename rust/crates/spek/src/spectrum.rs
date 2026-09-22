@@ -181,7 +181,7 @@ where
     T: Float + Sync + Send,
     Dtype<T>: Send + Sync,
 {
-    pub fn par_iter(&self) -> impl rayon::iter::IndexedParallelIterator<Item = (&T, &T)> + '_ {
+    pub fn par_iter(&self) -> impl rayon::iter::ParallelIterator<Item = (&T, &T)> + '_ {
         use rayon::prelude::*;
         #[cfg(feature = "complex")]
         {
@@ -189,26 +189,18 @@ where
         }
         #[cfg(feature = "split")]
         {
-            let bin_count = self.bin_count;
-            (0..self.frame_count * self.bin_count)
-                .into_par_iter()
-                .map(move |i| {
-                    let frame = i / bin_count;
-                    let bin = i % bin_count;
-                    let offset = frame * bin_count * 2;
-                    unsafe {
-                        (
-                            self.data.get_unchecked(offset + bin),
-                            self.data.get_unchecked(offset + bin_count + bin),
-                        )
-                    }
+            self.data
+                .par_chunks_exact(self.bin_count * 2)
+                .flat_map_iter(|frame| {
+                    let (real, imag) = unsafe { frame.split_at_unchecked(self.bin_count) };
+                    real.iter().zip(imag.iter())
                 })
         }
     }
 
     pub fn par_iter_mut(
         &mut self,
-    ) -> impl rayon::iter::IndexedParallelIterator<Item = (&mut T, &mut T)> + '_ {
+    ) -> impl rayon::iter::ParallelIterator<Item = (&mut T, &mut T)> + '_ {
         use rayon::prelude::*;
         #[cfg(feature = "complex")]
         {
@@ -216,39 +208,12 @@ where
         }
         #[cfg(feature = "split")]
         {
-            let bin_count = self.bin_count;
-            let len = self.frame_count * bin_count;
-
-            struct SyncPtr<T>(*mut T);
-
-            unsafe impl<T: Send> Send for SyncPtr<T> {}
-            unsafe impl<T: Sync> Sync for SyncPtr<T> {}
-
-            impl<T> SyncPtr<T> {
-                #[inline]
-                fn get(&self) -> *mut T { self.0 }
-            }
-
-            let ptr = SyncPtr(self.data.as_mut_ptr());
-
-            (0..len).into_par_iter().map(move |i| {
-                let frame = i / bin_count;
-                let bin = i % bin_count;
-
-                let offset = frame * bin_count * 2;
-                let p = ptr.get();
-
-                // SAFETY:
-                // `i` uniquely identifies one `(real, imag)` pair.
-                // Real and imaginary regions are disjoint, and different `i`
-                // values never produce overlapping mutable references.
-                unsafe {
-                    (
-                        &mut *p.add(offset + bin),
-                        &mut *p.add(offset + bin_count + bin),
-                    )
-                }
-            })
+            self.data
+                .par_chunks_exact_mut(self.bin_count * 2)
+                .flat_map_iter(|frame| {
+                    let (real, imag) = unsafe { frame.split_at_mut_unchecked(self.bin_count) };
+                    real.iter_mut().zip(imag.iter_mut())
+                })
         }
     }
     pub fn par_iter_frame(

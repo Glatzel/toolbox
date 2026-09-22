@@ -8,5 +8,5 @@ fft = 'python  "./scripts/fft.py"'
 stft = 'python  "./scripts/stft.py"'
 
 [dependencies]
-scipy = "==1.18.0"
+scipy = "==1.18.1"
 nomkl = "*"

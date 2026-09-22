@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::marker::{Send, Sync};
 
-use criterion::{BenchmarkId, criterion_group, criterion_main};
+use criterion::{BatchSize, BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
@@ -58,18 +58,26 @@ fn bench_wrapper<T, B>(
         BenchmarkId::new(format!("{}_istft_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
-            b.iter(|| {
-                stft.istft(&mut spectrum.clone());
-            })
+            b.iter_batched(
+                || spectrum.clone(),
+                |mut spectrum| {
+                    stft.istft(&mut spectrum);
+                },
+                BatchSize::SmallInput,
+            );
         },
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_istft_parallel_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
-            b.iter(|| {
-                stft.par_istft(&mut spectrum.clone());
-            })
+            b.iter_batched(
+                || spectrum.clone(),
+                |mut spectrum| {
+                    stft.par_istft(&mut spectrum);
+                },
+                BatchSize::SmallInput,
+            );
         },
     );
 }

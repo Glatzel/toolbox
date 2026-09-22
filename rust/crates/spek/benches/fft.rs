@@ -40,9 +40,14 @@ fn bench_wrapper<T, B>(
             backend.fft(&mut data.clone(), &mut spectrum, &mut scratch);
             let mut signal = backend.new_signal();
             let mut scratch = backend.new_inverse_scratch();
-            b.iter(|| {
-                backend.ifft(&mut spectrum.clone(), &mut signal, &mut scratch);
-            })
+
+            b.iter_batched(
+                || spectrum.clone(),
+                |mut spectrum| {
+                    backend.ifft(&mut spectrum, &mut signal, &mut scratch);
+                },
+                criterion::BatchSize::SmallInput,
+            );
         },
     );
 }

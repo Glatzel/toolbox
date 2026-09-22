@@ -4,14 +4,14 @@
       "initialization_options": {
         "check": {
           "features": [
-            "serde"
+            "default"
             // "tracing",
             // "fancy"
           ]
         },
         "cargo": {
           "features": [
-            "serde"
+            "default"
             // "tracing",
             // "fancy"
           ]

@@ -19,7 +19,7 @@ fn bench_wrapper<T, B>(
     T: Float,
     B: IFftBackend<T>,
 {
-    let data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();
+    let mut data: Vec<T> = (0..2usize.pow(size as u32)).map(|i| num!(i)).collect();
     g.bench_with_input(
         BenchmarkId::new(format!("{}_fft_2^", name), size),
         &size,
@@ -27,7 +27,7 @@ fn bench_wrapper<T, B>(
             let mut spectrum = backend.new_spectrum();
             let mut scratch = backend.new_forward_scratch();
             b.iter(|| {
-                backend.fft(&mut data.clone(), &mut spectrum, &mut scratch);
+                backend.fft(&mut data, &mut spectrum, &mut scratch);
             })
         },
     );

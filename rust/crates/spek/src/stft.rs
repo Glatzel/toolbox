@@ -270,23 +270,24 @@ where
         let mut window_sum = vec![T::zero(); out_len];
         let mut scratch = self.fft_backend.new_inverse_scratch();
         let fft_size = self.fft_backend.fft_size();
+        spectrum
+            .iter_frame_mut()
+            .enumerate()
+            .for_each(|(frame_idx, spectrum)| {
+                let start = frame_idx * self.hop_size;
+                let mut time_frame = vec![T::zero(); fft_size];
+                self.fft_backend
+                    .ifft(spectrum, &mut time_frame, &mut scratch);
 
-        for frame_idx in 0..frame_count {
-            let start = frame_idx * self.hop_size;
-            let spectrum = spectrum.frame_mut(frame_idx);
-            let mut time_frame = vec![T::zero(); fft_size];
-            self.fft_backend
-                .ifft(spectrum, &mut time_frame, &mut scratch);
-
-            for i in 0..self.win_size {
-                // Re-apply the analysis window on the way out (standard
-                // weighted overlap-add) and accumulate the window-squared
-                // sum so overlapping regions can be normalized afterwards.
-                let w = self.window[i];
-                output[start + i] = output[start + i] + time_frame[i] * w;
-                window_sum[start + i] = window_sum[start + i] + w * w;
-            }
-        }
+                for i in 0..self.win_size {
+                    // Re-apply the analysis window on the way out (standard
+                    // weighted overlap-add) and accumulate the window-squared
+                    // sum so overlapping regions can be normalized afterwards.
+                    let w = self.window[i];
+                    output[start + i] = output[start + i] + time_frame[i] * w;
+                    window_sum[start + i] = window_sum[start + i] + w * w;
+                }
+            });
 
         for i in 0..out_len {
             if window_sum[i] > T::zero() {

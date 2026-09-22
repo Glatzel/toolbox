@@ -49,7 +49,7 @@ fn bench_wrapper<T, B>(
         &size,
         |b, _| {
             b.iter(|| {
-                stft.stft_parallel(&mut data);
+                stft.par_stft(&mut data);
             })
         },
     );

@@ -104,7 +104,7 @@ jobs:
             uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
             with:
               run-install: false
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color
@@ -121,19 +121,19 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
             with:
               toolchain: nightly
               components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/orc
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/orc
           nextest-options: --all-features --dep-coverage arbor,clap-style,clerk,mischief
           doc: false
-      - uses: Glatzel/template/.github/actions/common/codecov@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/common/codecov@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-orc
@@ -149,21 +149,21 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
             with:
               toolchain: nightly
               components: clippy
 
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/shook
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{matrix.machine == 'ubuntu-latest'}}
         with:
           working-directory: ./tools/shook
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief,kioyu
           doc: false
-      - uses: Glatzel/template/.github/actions/common/codecov@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/common/codecov@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{!cancelled() && matrix.machine == 'ubuntu-latest'}}
         with:
           flags: ci-tools-shook
@@ -185,19 +185,19 @@ jobs:
           pixi run check
           pixi run build
         working-directory: ./tools/ttyw
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           toolchain: nightly
           components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/ttyw
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/ttyw
           doc: false
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
-      - uses: Glatzel/template/.github/actions/common/codecov@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/common/codecov@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-ttyw
@@ -213,20 +213,20 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
             with:
               toolchain: nightly
               components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{matrix.machine=='ubuntu-latest'}}
         with:
           working-directory: ./tools/vinaya
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         with:
           working-directory: ./tools/vinaya
           doc: false
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
-      - uses: Glatzel/template/.github/actions/common/codecov@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
+      - uses: Glatzel/template/.github/actions/common/codecov@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-vinaya

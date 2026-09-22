@@ -29,7 +29,7 @@ mischief.workspace = true
 rstest.workspace = true
 
 [features]
-default = ["default-complex"]
+default = ["default-split"]
 default-complex = ["backend-realfft", "backend-rustfft", "complex", "parallel"]
 default-split = ["backend-phastft", "backend-phastft-parallel", "parallel", "split"]
 parallel = ["rayon", "std"]

@@ -62,7 +62,7 @@ jobs:
               - ./tools/vinaya/**
   benchmark:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+    if: ${{ needs.changed.outputs.changed-benchmark == 'true' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
     uses: ./.github/workflows/benchmark.yml
   python-ci:
     needs: changed

@@ -214,9 +214,10 @@ where
     /// so repeated calls with the same shape skip recomputation entirely.
     fn normalization(&self, frame_count: usize) -> alloc::sync::Arc<[T]> {
         if let Some((len, buf)) = self.norm_cache.lock().as_ref()
-            && *len == frame_count {
-                return buf.clone();
-            }
+            && *len == frame_count
+        {
+            return buf.clone();
+        }
 
         let out_len = self.reconstructed_len(frame_count);
         let mut window_sum = vec![T::zero(); out_len];

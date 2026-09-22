@@ -227,11 +227,12 @@ where
 
         let frame_count = spectrogram.frame_count();
         let out_len = self.reconstructed_len(frame_count);
+        let fft_size = self.fft_backend.fft_size();
 
         let windowed_frames: Vec<Vec<T>> = spectrogram
             .par_iter_frame_mut()
             .map(|spectrum| {
-                let mut time_frame = vec![T::zero(); self.win_size];
+                let mut time_frame = vec![T::zero(); fft_size];
                 let mut scratch = self.fft_backend.new_inverse_scratch();
                 self.fft_backend
                     .ifft(spectrum, &mut time_frame, &mut scratch);
@@ -267,11 +268,12 @@ where
         let mut output = vec![T::zero(); out_len];
         let mut window_sum = vec![T::zero(); out_len];
         let mut scratch = self.fft_backend.new_inverse_scratch();
+        let fft_size = self.fft_backend.fft_size();
 
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
             let spectrum = spectrum.frame_mut(frame_idx);
-            let mut time_frame = vec![T::zero(); self.win_size];
+            let mut time_frame = vec![T::zero(); fft_size];
             self.fft_backend
                 .ifft(spectrum, &mut time_frame, &mut scratch);
 
@@ -362,7 +364,6 @@ mod tests {
                 &mut Vec::with_capacity(spectrum.bin_count()),
             );
             let mut frame_result = Spectrum2D::new(1, spectrum.bin_count());
-            dbg!(&frame_result, &frame);
             frame_result
                 .frame_mut(0)
                 .iter_mut()
@@ -440,11 +441,20 @@ mod tests {
             }
         }
 
-        let recovered = stft.istft(&mut spectrum.clone());
-        println!("{recovered:?}");
-        recovered.iter().zip(signal.iter()).for_each(|(r, o)| {
-            float_cmp::assert_approx_eq!(T, *r, *o);
-        });
+        {
+            let recovered = stft.istft(&mut spectrum.clone());
+            let par_recovered = stft.par_istft(&mut spectrum.clone());
+            let epsilon = num!(0.001);
+            recovered.iter().zip(signal.iter()).for_each(|(r, o)| {
+                assert!((*r - *o).abs() <= epsilon);
+            });
+            recovered
+                .iter()
+                .zip(par_recovered.iter())
+                .for_each(|(r, p)| {
+                    assert!((*r - *p).abs() <= epsilon);
+                });
+        }
         Ok(())
     }
 }

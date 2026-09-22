@@ -7,6 +7,12 @@ on:
 jobs:
   cargo-bench:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        options:
+          - -p rax -p rax-nmea --all-features
+          - -p spek --features default-complex --no-default-features
+          - -p spek --features default-split --no-default-features
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -15,4 +21,4 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@ad33a0f240851891ccb1498fa5d520aafbec454d # v2026.9.11
         with:
           working-directory: ./rust
-          options: -p rax -p rax-nmea --all-features
+          options: ${{ matrix.options }}

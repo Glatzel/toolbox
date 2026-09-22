@@ -5,10 +5,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - ready_for_review
   schedule:
     - cron: 0 16 * * *
 
@@ -45,6 +41,8 @@ jobs:
           files_yaml: |
             benchmark:
               - ./rust/crates/rax/**
+              - ./rust/crates/rax-nmea/**
+              - ./rust/crates/spek/**
               - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
@@ -243,7 +241,6 @@ jobs:
       [
         lefthook,
         fuzz,
-        benchmark,
         changed,
         python-ci,
         rust-ci,

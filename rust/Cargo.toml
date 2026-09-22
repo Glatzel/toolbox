@@ -9,6 +9,7 @@ edition = "2024"
 [workspace.dependencies]
 arbor = { path = "./crates/arbor/", default-features = false }
 clerk = { path = "./crates/clerk/", default-features = false }
+generic-num = { path = "./crates/generic-num/" }
 mischief = { path = "./crates/mischief/" }
 mischief-macros = { path = "./crates/mischief-macros/" }
 rax = { path = "./crates/rax/", default-features = false }
@@ -19,11 +20,18 @@ clap = "4.6.6"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.1" }
 defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
+float-cmp = "0.10.0"
 insta = "1.48.0"
 jiff = { version = "0.2.37", default-features = false, features = ["perf-inline"] }
+num-complex = "0.4.6"
+num-traits = "0.2.19"
 owo-colors = "4.4.0"
+phastft = { version = "0.4.1", default-features = false }
 quote = "1.0.47"
+rayon = "1.12.0"
+realfft = "3.5.0"
 rstest = "0.27.0"
+rustfft = "6.4.1"
 serde = "1.0.229"
 serialport = "4.10.0"
 strum = { version = "0.28.0", features = ["derive"] }

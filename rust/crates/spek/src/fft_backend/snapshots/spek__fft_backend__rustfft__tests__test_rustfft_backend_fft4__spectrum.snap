@@ -1,0 +1,10 @@
+---
+source: crates/spek/src/fft_backend/rustfft.rs
+expression: "spectrum.iter().map(| i | format! (\"{i:.5}\")).collect :: < Vec < _ >> ()"
+---
+[
+    "14.00000+0.00000i",
+    "-4.00000+8.00000i",
+    "-6.00000+0.00000i",
+    "-4.00000-8.00000i",
+]

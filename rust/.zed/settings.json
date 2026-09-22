@@ -1,0 +1,22 @@
+{
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "features": [
+            "default"
+            // "tracing",
+            // "fancy"
+          ]
+        },
+        "cargo": {
+          "features": [
+            "default"
+            // "tracing",
+            // "fancy"
+          ]
+        }
+      }
+    }
+  }
+}

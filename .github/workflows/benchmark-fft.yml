@@ -20,8 +20,8 @@ jobs:
           - bench
           - rustfft
           - fftw_conserve_c2c
-          - fftw_converse_r2c_c2r
-          - fftw_converse_r2r
+          - fftw_conserve_r2c_c2r
+          - fftw_conserve_r2r
           - fftw_estimate_c2c
           - fftw_estimate_r2c_c2r
           - fftw_estimate_r2r

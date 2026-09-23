@@ -16,22 +16,22 @@ jobs:
 
     strategy:
       matrix:
-        target:
-          - bench
-          - rustfft
-          - fftw_conserve_c2c
-          - fftw_conserve_r2c_c2r
-          - fftw_conserve_r2r
-          - fftw_estimate_c2c
-          - fftw_estimate_r2c_c2r
-          - fftw_estimate_r2r
-          - fftw_measure_c2c
-          - fftw_measure_r2c_c2r
-          - fftw_measure_r2r
-          - realfft
-          - planner
-          - interleave
-          - bit_reversal
+        option:
+          - --bench bench
+          - --bench rustfft
+          - --bench fftw_conserve_c2c
+          - --bench fftw_conserve_r2c_c2r
+          - --bench fftw_conserve_r2r
+          - --bench fftw_estimate_c2c
+          - --bench fftw_estimate_r2c_c2r
+          - --bench fftw_estimate_r2r
+          - --bench fftw_measure_c2c
+          - --bench fftw_measure_r2c_c2r
+          - --bench fftw_measure_r2r
+          - --bench realfft
+          - --bench planner
+          - --bench interleave --feature complex-nums
+          - --bench bit_reversal --feature bench-internals
       fail-fast: true
 
     steps:
@@ -44,7 +44,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
       - name: Benchmark
-        run: cargo bench --bench ${{ matrix.target }}
+        run: cargo bench ${{ matrix.option }}
 
       - name: Upload benchmark
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

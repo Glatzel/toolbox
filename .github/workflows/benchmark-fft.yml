@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        default: Glatzel/PhastFT
+        default: smu160/PhastFT
         type: string
       ref:
         type: string

@@ -30,8 +30,8 @@ jobs:
           - --bench fftw_measure_r2r
           - --bench realfft
           - --bench planner
-          - --bench interleave --feature complex-nums
-          - --bench bit_reversal --feature bench-internals
+          - --bench interleave --features complex-nums
+          - --bench bit_reversal --features bench-internals
       fail-fast: true
 
     steps:

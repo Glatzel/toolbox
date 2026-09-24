@@ -42,7 +42,7 @@ jobs:
       - name: Benchmark
         run: |
           cargo bench ${{ matrix.target }} --all-features --profile bench
-  
+
       - name: Plot
         run: |
           uv run benches/plot_criterion_overlay.py \

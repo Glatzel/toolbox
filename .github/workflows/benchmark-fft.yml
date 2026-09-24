@@ -41,7 +41,7 @@ jobs:
 
       - name: Benchmark
         run: |
-          cargo bench ${{ matrix.target }} --all-features --profile bench
+          cargo bench --bench ${{ matrix.target }} --all-features --profile bench
 
       - name: Plot
         run: |

@@ -5,10 +5,6 @@ edition.workspace = true
 
 [[bench]]
 harness = false
-name = "fft"
-
-[[bench]]
-harness = false
 name = "stft"
 
 [dependencies]

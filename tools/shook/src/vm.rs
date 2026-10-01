@@ -164,7 +164,7 @@ pub async fn build_sandbox(
     }
 
     for (key, (value, url)) in secrets {
-        builder = builder.secret(|s| s.env(key).value(value).allow_host(url));
+        builder = builder.secret(|s| s.env(key).value(value).allow(url.as_str()));
     }
 
     clerk::debug!(

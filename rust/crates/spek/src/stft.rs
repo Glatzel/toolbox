@@ -73,7 +73,10 @@ where
         win_size: usize,
         window: W,
         fft_backend: FftBackend,
-    ) -> Result<Self, StftError> where W: IWindow<T> {
+    ) -> Result<Self, StftError>
+    where
+        W: IWindow<T>,
+    {
         if hop_size == 0 {
             return Err(StftError::InvalidSize {
                 name: "hop_size",

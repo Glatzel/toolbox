@@ -1,9 +1,9 @@
 #[cfg(feature = "complex")]
 use num_complex::Complex;
 #[cfg(feature = "complex")]
-pub(crate) type Data<T> = Vec<Complex<T>>;
+pub type Data<T> = Vec<Complex<T>>;
 #[cfg(feature = "complex")]
-pub(crate) type Dtype<T> = Complex<T>;
+pub type Dtype<T> = Complex<T>;
 #[cfg(feature = "split")]
 pub type Data<T> = Vec<T>;
 #[cfg(feature = "split")]

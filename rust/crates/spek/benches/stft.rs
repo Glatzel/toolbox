@@ -7,8 +7,10 @@ use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
 use spek::stft::Stft;
 use spek::windows::Window::Hann;
+
 const SIZE: [usize; 1] = [7];
 const FFT_SIZE: [usize; 5] = [1024, 2048, 4096, 8192, 16384];
+
 fn bench_wrapper<T, B>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     name: &str,

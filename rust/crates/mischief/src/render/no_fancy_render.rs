@@ -27,10 +27,10 @@ fn chain(diagnosis: &impl crate::IDiagnosis) -> impl Iterator<Item = &dyn crate:
 /// This renderer provides a minimal, dependency-free textual
 /// representation of diagnosis chains and can serve as a fallback
 /// when more advanced rendering systems are not required.
-pub fn render_diagnosis<D: IDiagnosis>(
-    diagnosis: &D,
-    f: &mut core::fmt::Formatter<'_>,
-) -> core::fmt::Result {
+pub fn render_diagnosis<D>(diagnosis: &D, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+where
+    D: IDiagnosis,
+{
     let mut chain = chain(diagnosis);
 
     if let Some(first) = chain.next() {

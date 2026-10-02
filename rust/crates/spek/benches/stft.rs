@@ -7,20 +7,8 @@ use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
 use spek::stft::Stft;
 use spek::windows::Window::Hann;
-fn get_size() -> usize {
-    match (std::env::var("CI"), std::env::var("STFT_SIGNAL_SIZE")) {
-        (Ok(_), _) => 6,
-        (_, Ok(val)) => val.parse().unwrap_or(6),
-        _ => 6,
-    }
-}
-fn get_fft_size() -> usize {
-    match (std::env::var("CI"), std::env::var("FFT_SIZE")) {
-        (Ok(_), _) => 2048,
-        (_, Ok(val)) => val.parse().unwrap_or(2048),
-        _ => 2048,
-    }
-}
+const SIZE: [usize; 1] = [7];
+const FFT_SIZE: [usize; 5] = [1024, 2048, 4096, 8192, 16384];
 fn bench_wrapper<T, B>(
     g: &mut criterion::BenchmarkGroup<'_, criterion::measurement::WallTime>,
     name: &str,
@@ -83,67 +71,75 @@ fn bench_wrapper<T, B>(
 }
 fn bench_f32(c: &mut criterion::Criterion) {
     let mut group = c.benchmark_group("f32");
-    let size = get_size();
-    let fft_size = get_fft_size();
-    #[cfg(feature = "phastft")]
-    bench_wrapper::<f32, _>(
-        &mut group,
-        "phastft",
-        spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(fft_size),
-        size,
-    );
-    #[cfg(feature = "realfft")]
-    bench_wrapper::<f32, _>(
-        &mut group,
-        "realfft",
-        spek::fft_backend::realfft::RealfftBackend::new(fft_size),
-        size,
-    );
-    #[cfg(feature = "rustfft")]
-    let mut planner = rustfft::FftPlanner::new();
-    #[cfg(feature = "rustfft")]
-    bench_wrapper::<f32, _>(
-        &mut group,
-        "rustfft",
-        spek::fft_backend::rustfft::RustfftBackend::new(
-            planner.plan_fft_forward(fft_size),
-            planner.plan_fft_inverse(fft_size),
-        )
-        .unwrap(),
-        size,
-    );
+    for size in SIZE {
+        for fft_size in FFT_SIZE {
+            #[cfg(feature = "phastft")]
+            bench_wrapper::<f32, _>(
+                &mut group,
+                "phastft",
+                spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
+                    fft_size,
+                ),
+                size,
+            );
+            #[cfg(feature = "realfft")]
+            bench_wrapper::<f32, _>(
+                &mut group,
+                "realfft",
+                spek::fft_backend::realfft::RealfftBackend::new(fft_size),
+                size,
+            );
+            #[cfg(feature = "rustfft")]
+            let mut planner = rustfft::FftPlanner::new();
+            #[cfg(feature = "rustfft")]
+            bench_wrapper::<f32, _>(
+                &mut group,
+                "rustfft",
+                spek::fft_backend::rustfft::RustfftBackend::new(
+                    planner.plan_fft_forward(fft_size),
+                    planner.plan_fft_inverse(fft_size),
+                )
+                .unwrap(),
+                size,
+            );
+        }
+    }
 }
 fn bench_f64(c: &mut criterion::Criterion) {
-    let size = get_size();
-    let fft_size = get_fft_size();
     let mut group = c.benchmark_group("f64");
-    #[cfg(feature = "phastft")]
-    bench_wrapper::<f64, _>(
-        &mut group,
-        "phastft",
-        spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(fft_size),
-        size,
-    );
-    #[cfg(feature = "realfft")]
-    bench_wrapper::<f64, _>(
-        &mut group,
-        "realfft",
-        spek::fft_backend::realfft::RealfftBackend::new(fft_size),
-        size,
-    );
-    #[cfg(feature = "rustfft")]
-    let mut planner = rustfft::FftPlanner::new();
-    #[cfg(feature = "rustfft")]
-    bench_wrapper::<f64, _>(
-        &mut group,
-        "rustfft",
-        spek::fft_backend::rustfft::RustfftBackend::new(
-            planner.plan_fft_forward(fft_size),
-            planner.plan_fft_inverse(fft_size),
-        )
-        .unwrap(),
-        size,
-    );
+    for size in SIZE {
+        for fft_size in FFT_SIZE {
+            #[cfg(feature = "phastft")]
+            bench_wrapper::<f64, _>(
+                &mut group,
+                "phastft",
+                spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
+                    fft_size,
+                ),
+                size,
+            );
+            #[cfg(feature = "realfft")]
+            bench_wrapper::<f64, _>(
+                &mut group,
+                "realfft",
+                spek::fft_backend::realfft::RealfftBackend::new(fft_size),
+                size,
+            );
+            #[cfg(feature = "rustfft")]
+            let mut planner = rustfft::FftPlanner::new();
+            #[cfg(feature = "rustfft")]
+            bench_wrapper::<f64, _>(
+                &mut group,
+                "rustfft",
+                spek::fft_backend::rustfft::RustfftBackend::new(
+                    planner.plan_fft_forward(fft_size),
+                    planner.plan_fft_inverse(fft_size),
+                )
+                .unwrap(),
+                size,
+            );
+        }
+    }
 }
 criterion_group!(benches, bench_f32, bench_f64);
 criterion_main!(benches);

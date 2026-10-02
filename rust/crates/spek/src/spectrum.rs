@@ -167,7 +167,7 @@ where
             self.bin_count,
         )
     }
-    pub fn to_spectrogram(&self, process: impl Fn(T, T) -> T) -> Spectrogram<T> {
+    pub fn to_spectrogram<F: Fn(T, T) -> T>(&self, process: F) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter().map(|(r, i)| process(*r, *i)).collect(),
             self.frame_count,

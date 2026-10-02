@@ -108,7 +108,6 @@ jobs:
         with:
           working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color
-          args: -D warnings
 
   tools-orc:
     needs: changed

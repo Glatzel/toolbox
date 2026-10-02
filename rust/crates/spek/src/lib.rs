@@ -9,4 +9,4 @@ pub mod spectrum;
 pub mod stft;
 pub mod windows;
 
-use data_types::*;
+use data_types::{Data, Dtype};

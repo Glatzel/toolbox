@@ -47,8 +47,8 @@ where
         }
     }
     pub fn data(&self) -> &[Dtype<T>] { &self.data }
-    pub fn bin_count(&self) -> usize { self.bin_count }
-    pub fn frame_count(&self) -> usize { self.frame_count }
+    pub const fn bin_count(&self) -> usize { self.bin_count }
+    pub const fn frame_count(&self) -> usize { self.frame_count }
 
     /// FIX: previously missing the `split`-aware stride that `frame_mut`
     /// already had. Under `split`, each frame occupies `bin_count * 2`

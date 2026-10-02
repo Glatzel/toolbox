@@ -68,12 +68,12 @@ where
     T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T>,
 {
-    pub fn new<W: IWindow<T>>(
+    pub fn new<W>(
         hop_size: usize,
         win_size: usize,
         window: W,
         fft_backend: FftBackend,
-    ) -> Result<Self, StftError> {
+    ) -> Result<Self, StftError> where W: IWindow<T> {
         if hop_size == 0 {
             return Err(StftError::InvalidSize {
                 name: "hop_size",
@@ -234,7 +234,7 @@ where
         // per element on every call. Where window_sum is 0, no frame ever
         // touched that sample, so output is already 0 there — multiplying
         // by 0 is a correct, branchless no-op.
-        for ws in window_sum.iter_mut() {
+        for ws in &mut window_sum {
             *ws = if *ws > T::zero() {
                 T::one() / *ws
             } else {

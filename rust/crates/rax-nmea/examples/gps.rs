@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use clerk::LevelFilter;
 use rax::text::StrParser;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;

@@ -33,13 +33,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
-name = "clerk"
-version = "2026.9.14"
-dependencies = [
- "thiserror",
-]
-
-[[package]]
 name = "defmt"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -224,7 +217,6 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 name = "rax"
 version = "2026.9.14"
 dependencies = [
- "clerk",
  "strum",
  "thiserror",
 ]
@@ -233,7 +225,6 @@ dependencies = [
 name = "rax-nmea"
 version = "2026.9.14"
 dependencies = [
- "clerk",
  "derive-getters",
  "jiff",
  "rax",

@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use clerk::LevelFilter;
 use rax::text::StrParser;
 use rax_nmea::common::*;
 use rax_nmea::rules::*;
@@ -90,7 +89,6 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
 }
 
 fn main() -> mischief::Result<()> {
-    clerk::init_log_with_level(LevelFilter::WARN);
     wrapper("data/nmea1.log")?;
     Ok(())
 }
@@ -99,7 +97,6 @@ fn main() -> mischief::Result<()> {
 #[case("external/nmea/tests/data/nmea2.log")]
 #[case("external/nmea/tests/data/nmea_with_sat_info.log")]
 fn test(#[case] file: &str) -> mischief::Result<()> {
-    clerk::init_log_with_level(LevelFilter::WARN);
     let _ = wrapper(file)?;
     Ok(())
 }

@@ -31,19 +31,10 @@ pub struct Gll {
 impl IParseStr<RaxNmeaError, true> for Gll {
     fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut ctx = StrParser::new(input);
-        clerk::trace!("Gll::decode: sentence='{}'", ctx.full_str());
 
-        clerk::debug!("Parsing lat...");
         let lat = ctx.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord)?;
-        clerk::debug!("lat: {:?}", lat);
-
-        clerk::debug!("Parsing lon...");
         let lon = ctx.take(&NmeaCoord)?;
-        clerk::debug!("lon: {:?}", lon);
-
-        clerk::debug!("Parsing utc_time...");
         let time = ctx.take(&NmeaTime)?;
-        clerk::debug!("utc_time: {:?}", time);
 
         let status = ctx.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
         let pos_mode = ctx.take(&UNTIL_STAR_DISCARD)?.parse_option()?;

@@ -62,70 +62,34 @@ pub struct Gns {
 impl IParseStr<RaxNmeaError, true> for Gns {
     fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
-        clerk::trace!("Gga::decode: sentence='{}'", parser.full_str());
 
-        clerk::debug!("Parsing utc_time...");
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
-        clerk::debug!("utc_time: {:?}", time);
-
-        clerk::debug!("Parsing lat...");
         let lat = parser.take(&NmeaCoord)?;
-        clerk::debug!("lat: {:?}", lat);
-
-        clerk::debug!("Parsing lon...");
         let lon = parser.take(&NmeaCoord)?;
-        clerk::debug!("lon: {:?}", lon);
-
-        clerk::debug!("Parsing mode...");
         let mode_str = parser.take(&UNTIL_COMMA_DISCARD)?;
         let pos_mode = mode_str
             .char_indices()
             .filter_map(|(_, c)| FaaMode::try_from(&c).ok())
             .collect::<Vec<FaaMode>>();
-        clerk::debug!("mode: {:?}", pos_mode);
-
-        clerk::debug!("Parsing satellites...");
         let num_sv = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        clerk::debug!("satellites: {:?}", num_sv);
-
-        clerk::debug!("Parsing hdop...");
         let hdop = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        clerk::debug!("hdop: {:?}", hdop);
-
-        clerk::debug!("Parsing altitude...");
         let alt = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
             .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
-        clerk::debug!("altitude: {:?}", alt);
-
-        clerk::debug!("Parsing goeidal_separation...");
         let sep = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
             .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
-        clerk::debug!("goeidal_separation: {:?}", sep);
-
-        clerk::debug!("Parsing differential_data_age...");
         let diff_age = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
             .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
-        clerk::debug!("differential_data_age: {:?}", diff_age);
-
-        clerk::debug!("Parsing differential_reference_station_id...");
-
         let diff_station = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?
             .parse_option()?;
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
-
-        clerk::debug!("differential_reference_station_id: {:?}", diff_station);
-
-        clerk::debug!("Parsing navigational_status...");
         let nav_status = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
-        clerk::debug!("navigational_status: {:?}", nav_status);
-
         Ok(Self {
             time,
             lat,

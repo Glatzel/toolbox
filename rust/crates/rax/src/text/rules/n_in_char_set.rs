@@ -32,7 +32,6 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 
@@ -45,14 +44,8 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
         }
 
         // Fast path: bitmask, no per-byte filter() dispatch
-        for (i, &b) in bytes.iter().enumerate().take(N) {
+        for &b in bytes.iter().take(N) {
             if self.0.mask() & (1_u128 << u32::from(b)) == 0 {
-                clerk::debug!(
-                    "{:?} did not match: char '{}' not in set at byte pos {}",
-                    self,
-                    b as char,
-                    i
-                );
                 return Err(RuleError {
                     reason: "char not in set".into(),
                 });
@@ -69,19 +62,12 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 
         let mut count = 0;
         for (i, c) in input.char_indices() {
             if !self.0.filter(&c) {
-                clerk::debug!(
-                    "{:?} did not match: char '{}' not in set at byte pos {}",
-                    self,
-                    c,
-                    i
-                );
                 return Err(RuleError {
                     reason: "char not in set".into(),
                 });
@@ -94,10 +80,6 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
                 return Ok(unsafe { (input.get_unchecked(..advanced), advanced) });
             }
         }
-        clerk::debug!(
-            "{:?} did not match: input too short or not enough chars in set",
-            self
-        );
         Err(RuleError {
             reason: "input too short or not enough chars in set".into(),
         })

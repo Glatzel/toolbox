@@ -41,14 +41,8 @@ impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
     /// is too short.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!(
-                "{:?}: count is zero, returning empty prefix and full input.",
-                self
-            );
-
             return Ok(("", 0));
         }
-        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
 
         let result = input
             .char_indices()
@@ -83,15 +77,8 @@ impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
     /// is too short.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!(
-                "{:?}: count is zero, returning empty prefix and full input.",
-                self
-            );
-
             return Ok(("", 0));
         }
-        clerk::trace!("{:?}: input='{:?}', count={:?}", self, input, N);
-
         ByteCount::<N, true>.apply(input)
     }
 }

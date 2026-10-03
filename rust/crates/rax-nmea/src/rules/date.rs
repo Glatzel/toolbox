@@ -18,8 +18,6 @@ impl rax::text::IFlowRule<true> for NmeaDate {
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("NmeaUtc rule: input='{}'", input);
-
         let (res, advanced) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
             reason: "Missing Date string.".into(),
         })?;
@@ -28,19 +26,16 @@ impl rax::text::IFlowRule<true> for NmeaDate {
         }
 
         let Some(day) = res.get(0..2).and_then(|s| s.parse::<i8>().ok()) else {
-            clerk::error!("{:?}: failed to parse day from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse day.".into(),
             });
         };
         let Some(month) = res.get(2..4).and_then(|s| s.parse::<i8>().ok()) else {
-            clerk::error!("{:?}: failed to parse month from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse month.".into(),
             });
         };
         let Some(year) = res.get(4..6).and_then(|s| s.parse::<i16>().ok()) else {
-            clerk::error!("{:?}: failed to parse year from '{}'", self, res);
             return Err(RuleError {
                 reason: "Failed to parse year.".into(),
             });
@@ -48,7 +43,6 @@ impl rax::text::IFlowRule<true> for NmeaDate {
         let dt = match Date::new(year + 2000, month, day) {
             Ok(dt) => dt,
             Err(e) => {
-                clerk::error!("{:?}: failed to parse date from '{}'", self, res);
                 return Err(RuleError {
                     reason: alloc::format!("{e:?}").into(),
                 });

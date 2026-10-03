@@ -31,21 +31,8 @@ impl<const IS_ASCII: bool> IRule for UntilStr<IS_ASCII> {}
 impl<const IS_ASCII: bool> IFlowRule<IS_ASCII> for UntilStr<IS_ASCII> {
     type Output<'a> = &'a str;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!(
-            "{:?}: input='{}', delimiter='{}', mode={:?}",
-            self,
-            input,
-            self.pattern,
-            self.mode
-        );
-
         input.find(self.pattern).map_or_else(
             || {
-                clerk::debug!(
-                    "{:?}: delimiter '{}' not found, returning None",
-                    self,
-                    self.pattern
-                );
                 Err(RuleError {
                     reason: "no match found".into(),
                 })

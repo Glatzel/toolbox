@@ -6,31 +6,13 @@ use rax::error::RuleError;
 use rax::text::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
-fn parse_field(
-    res: &str,
-    range: core::ops::Range<usize>,
-    label: &str,
-    parser: &impl core::fmt::Debug,
-    input: &str,
-) -> Result<i8, RuleError> {
-    let s = res.get(range).ok_or_else(|| {
-        clerk::error!("{:?}: missing {}, input='{:?}'", parser, label, input);
-        RuleError {
-            reason: format!("Missing {label} field.").into(),
-        }
+fn parse_field(res: &str, range: core::ops::Range<usize>, label: &str) -> Result<i8, RuleError> {
+    let s = res.get(range).ok_or_else(|| RuleError {
+        reason: format!("Missing {label} field.").into(),
     })?;
 
-    s.parse::<i8>().map_err(|_| {
-        clerk::error!(
-            "{:?}: failed to parse {}, value='{}', input={:?}",
-            parser,
-            label,
-            s,
-            input
-        );
-        RuleError {
-            reason: format!("Failed to parse {label} field.").into(),
-        }
+    s.parse::<i8>().map_err(|_| RuleError {
+        reason: format!("Failed to parse {label} field.").into(),
     })
 }
 /// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
@@ -50,8 +32,6 @@ impl rax::text::IFlowRule<true> for NmeaTime {
     /// returns the result and the rest of the string. Logs each step for
     /// debugging.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("{:?}: input='{}'", self, input);
-
         let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input) else {
             return Err(RuleError {
                 reason: "Missing time string.".into(),
@@ -74,7 +54,6 @@ impl rax::text::IFlowRule<true> for NmeaTime {
                 if let Ok(frac) = frac.parse::<i32>() {
                     frac * (1_000_000_000 / 10_i32.pow(digits))
                 } else {
-                    clerk::error!("Can not parse nano:{}", frac);
                     return Err(RuleError {
                         reason: "Failed to parse nano field.".into(),
                     });
@@ -83,22 +62,13 @@ impl rax::text::IFlowRule<true> for NmeaTime {
             None => 0,
         };
 
-        let hour = parse_field(res, 0..2, "hour", self, res)?;
-        let min = parse_field(res, 2..4, "minute", self, res)?;
-        let sec = parse_field(res, 4..6, "second", self, res)?;
+        let hour = parse_field(res, 0..2, "hour")?;
+        let min = parse_field(res, 2..4, "minute")?;
+        let sec = parse_field(res, 4..6, "second")?;
 
-        clerk::debug!(
-            "{:?}: parsed hour={}, min={}, sec={}, nanos={}",
-            self,
-            hour,
-            min,
-            sec,
-            nanos
-        );
         let t = match Time::new(hour, min, sec, nanos) {
             Ok(t) => t,
             Err(e) => {
-                clerk::error!("{:?}: failed to parse time from '{}'", self, res);
                 return Err(RuleError {
                     reason: format!("Failed to parse time field: {e}").into(),
                 });
@@ -110,7 +80,7 @@ impl rax::text::IFlowRule<true> for NmeaTime {
 
 #[cfg(test)]
 mod tests {
-    use clerk::{LevelFilter, init_log_with_level};
+
     use rax::text::IFlowRule;
 
     use super::*;
@@ -126,7 +96,6 @@ mod tests {
     #[case("empty", ",foo,bar")]
     #[case("no_comma", "123456")]
     fn test_nmea_time(#[case] name: &str, #[case] input: &str) {
-        init_log_with_level(LevelFilter::TRACE);
         let result = NmeaTime
             .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));

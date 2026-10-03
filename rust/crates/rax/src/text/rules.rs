@@ -90,8 +90,6 @@ macro_rules! test_rule {
     ($name:ident, $input:expr, $rule:expr) => {
         #[test]
         fn $name() {
-            clerk::init_log_with_level(clerk::LevelFilter::TRACE);
-
             let result = $rule
                 .apply($input)
                 .map(|(out, idx)| (out, $input.get(idx..).unwrap()));

@@ -22,7 +22,6 @@ impl IFlowRule<true> for NmeaDegree {
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         // Log the input at trace level.
-        clerk::trace!("{:?}: input='{}'", self, input);
         let (deg_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
             reason: "Missing degree string.".into(),
         })?;
@@ -38,24 +37,17 @@ impl IFlowRule<true> for NmeaDegree {
         match (deg_str.parse::<f64>(), sign_str) {
             (Ok(val), "E" | "N") => Ok((Some(val), advanced)),
             (Ok(val), "W" | "S") => Ok((Some(-val), advanced)),
-            (Ok(_), sign) => {
-                clerk::error!("{:?}: invalid sign string: '{}'", self, sign);
-                Err(RuleError {
-                    reason: format!("invalid sign string: '{sign}'").into(),
-                })
-            }
-            (Err(_), _) => {
-                clerk::error!("{:?}: invalid coord string: '{}'", self, deg_str);
-                Err(RuleError {
-                    reason: format!("invalid coord string: '{deg_str}'").into(),
-                })
-            }
+            (Ok(_), sign) => Err(RuleError {
+                reason: format!("invalid sign string: '{sign}'").into(),
+            }),
+            (Err(_), _) => Err(RuleError {
+                reason: format!("invalid coord string: '{deg_str}'").into(),
+            }),
         }
     }
 }
 #[cfg(test)]
 mod test {
-    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     #[rstest::rstest]
@@ -65,7 +57,6 @@ mod test {
     #[case("no_second_comma", "12345.6789,Nother_data")]
     #[case("null", ",,other_data")]
     fn test_nmea_degree(#[case] name: &str, #[case] input: &str) {
-        init_log_with_level(LevelFilter::TRACE);
         let result = NmeaDegree
             .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));

@@ -32,8 +32,6 @@ impl<const N: usize, F: ICharSetFilter<N>, const IS_ASCII: bool> IRule
 impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'_, true, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("OneOfCharSet rule: input='{}'", input);
-
         let b = input.as_bytes().first().ok_or_else(|| RuleError {
             reason: "empty input".into(),
         })?;
@@ -49,8 +47,6 @@ impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'_, 
 impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'_, false, N, F> {
     type Output<'a> = char;
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("OneOfCharSet rule: input='{}'", input);
-
         let c = input.chars().next().ok_or_else(|| unreachable!())?;
 
         if !self.0.filter(&c) {

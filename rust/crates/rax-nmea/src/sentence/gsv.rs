@@ -44,11 +44,9 @@ pub struct Gsv {
 impl IParseStr<RaxNmeaError, true> for Gsv {
     fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
-        clerk::trace!("Gsv::decode: sentence='{}'", parser.full_str());
 
         // Count the number of lines and satellites
         let line_count = parser.full_str().lines().count();
-        clerk::trace!("Gsv::new: line_count={}", line_count);
 
         // The first line contains the talker, number of lines, and number of
         // satellites
@@ -58,7 +56,7 @@ impl IParseStr<RaxNmeaError, true> for Gsv {
             .skip(&UNTIL_COMMA_DISCARD)?
             .take(&UNTIL_COMMA_DISCARD)?
             .parse()?;
-        clerk::trace!("Gsv::new: satellite_count={}", satellite_count);
+
         if satellite_count > line_count * 4 || satellite_count < (line_count - 1) * 4 {
             return Err(RaxNmeaError::InvalidSentence(
                 "satellite_count is out of range".to_string(),
@@ -69,10 +67,6 @@ impl IParseStr<RaxNmeaError, true> for Gsv {
         // many satellites are in the last line based on the total
         // count.
         let last_line_satellite_count = satellite_count - 4 * (line_count - 1);
-        clerk::trace!(
-            "Gsv::new: last_line_satellite_count={}",
-            last_line_satellite_count
-        );
 
         let mut satellites = Vec::with_capacity(satellite_count);
         // Parse all but the last line (each has 4 satellites)
@@ -97,8 +91,7 @@ impl IParseStr<RaxNmeaError, true> for Gsv {
             satellites.push(Self::parse_satellite_last(&mut parser)?);
             let _ = parser.skip(&UNTIL_COMMA_DISCARD);
         }
-        clerk::debug!("satellites: {:?}", satellites);
-        clerk::debug!("rest: {}", parser.rest_str());
+
         let signal_id = parser.take(&UNTIL_STAR_DISCARD)?.parse_option()?;
 
         Ok(Self {

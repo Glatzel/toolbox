@@ -28,8 +28,6 @@ impl IFlowRule<true> for NmeaCoord {
     /// Parses the coordinate and sign, converts to decimal degrees, and returns
     /// the result and the rest of the string. Logs each step for debugging.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("NmeaCoord rule: input='{}'", input);
-
         let (num_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
             reason: "Missing number string.".into(),
         })?;
@@ -47,47 +45,26 @@ impl IFlowRule<true> for NmeaCoord {
         match (num_str.parse::<f64>(), sign_str) {
             (Ok(v), "N" | "E") => {
                 let result = Self::convert_to_decimal_degrees(v);
-                clerk::debug!(
-                    "{:?}: positive sign '{}', deg={}, min={}, result={}",
-                    self,
-                    sign_str,
-                    (v / 100.0).floor(),
-                    v - (v / 100.0).floor() * 100.0,
-                    result
-                );
+
                 Ok((Some(result), advanced))
             }
             (Ok(v), "S" | "W") => {
                 let result = -Self::convert_to_decimal_degrees(v);
-                clerk::debug!(
-                    "{:?}: negative sign '{}', deg={}, min={}, result={}",
-                    self,
-                    sign_str,
-                    (v / 100.0).floor(),
-                    v - (v / 100.0).floor() * 100.0,
-                    result
-                );
+
                 Ok((Some(result), advanced))
             }
-            (Ok(_), sign) => {
-                clerk::error!("{:?}: invalid sign string: '{}'", self, sign);
-                Err(RuleError {
-                    reason: format!("invalid sign string: '{sign}'").into(),
-                })
-            }
-            (Err(_), _) => {
-                clerk::error!("{:?}: invalid coord string: '{}'", self, num_str);
-                Err(RuleError {
-                    reason: format!("invalid coord string: '{num_str}'").into(),
-                })
-            }
+            (Ok(_), sign) => Err(RuleError {
+                reason: format!("invalid sign string: '{sign}'").into(),
+            }),
+            (Err(_), _) => Err(RuleError {
+                reason: format!("invalid coord string: '{num_str}'").into(),
+            }),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use clerk::{LevelFilter, init_log_with_level};
 
     use super::*;
     #[rstest::rstest]
@@ -100,7 +77,6 @@ mod tests {
     #[case("missing_comma", "12319.123Erest")]
     #[case("empty", ",,bar")]
     fn test_nmea_coord(#[case] name: &str, #[case] input: &str) {
-        init_log_with_level(LevelFilter::TRACE);
         let result = NmeaCoord
             .apply(input)
             .map(|(out, idx)| (out, input.get(idx..).unwrap()));

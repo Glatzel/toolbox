@@ -49,8 +49,6 @@ macro_rules! test_sentence {
             extern crate std;
             use std::println;
 
-            clerk::init_log_with_level(clerk::LevelFilter::TRACE);
-
             let dhv = $identifier::parse_str($input)?;
             println!("{dhv:?}");
             insta::assert_json_snapshot!(stringify!($index), dhv);

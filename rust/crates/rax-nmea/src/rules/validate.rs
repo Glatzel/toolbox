@@ -21,18 +21,10 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
     /// '*', and that the calculated checksum matches the provided checksum.
     /// Logs each step for debugging.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
-        // Log the input at trace level.
-        clerk::trace!("NmeaValidate rule: input='{:?}'", input);
-
         let line = input.trim_end();
 
         // Check if the sentence starts with '$'.
         if !line.starts_with('$') {
-            clerk::error!(
-                "{:?}: Invalid sentence prefix: expected '$', got '{}'",
-                self,
-                line
-            );
             return Err(RuleError {
                 reason: format!("Invalid sentence prefix: expected '$', got '{line}'").into(),
             });
@@ -40,11 +32,6 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
 
         // Find the position of the '*' checksum delimiter.
         let Some(star_pos) = line.find('*') else {
-            clerk::error!(
-                "{:?}: Missing checksum delimiter: expected '*', got '{}'",
-                self,
-                line
-            );
             return Err(RuleError {
                 reason: format!("Missing checksum delimiter: expected '*', got '{line}'").into(),
             });
@@ -53,20 +40,9 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
         // Split the input into data and checksum string.
         let (data, checksum_str) = line[1..].split_at(star_pos - 1); // skip $
         let checksum_str = &checksum_str[1..];
-        clerk::debug!(
-            "{:?}: data='{:?}', checksum_str='{:?}'",
-            self,
-            data,
-            checksum_str
-        );
 
         // Check that the checksum string is exactly 2 characters.
         if checksum_str.len() != 2 {
-            clerk::error!(
-                "{:?}: Invalid checksum length: expected 2, got {}",
-                self,
-                checksum_str.len()
-            );
             return Err(RuleError {
                 reason: format!(
                     "Invalid checksum length: expected 2, got {}",
@@ -79,8 +55,7 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
         // Parse the expected checksum from hex.
         let expected = match u8::from_str_radix(checksum_str, 16) {
             Ok(v) => v,
-            Err(e) => {
-                clerk::error!("{:?}: Invalid hex checksum: {:?}", self, e);
+            Err(_e) => {
                 return Err(RuleError {
                     reason: "Invalid hex checksum".into(),
                 });
@@ -89,25 +64,13 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
 
         // Calculate the checksum by XOR'ing all data bytes.
         let calculated = data.bytes().fold(0_u8, |acc, b| acc ^ b);
-        clerk::debug!(
-            "NmeaValidate: calculated checksum={:02X}, expected={:02X}",
-            calculated,
-            expected
-        );
 
         // Compare calculated and expected checksums.
         if calculated != expected {
-            clerk::warn!(
-                "{:?}: Checksum mismatch: calculated={:02X}, expected={:02X}",
-                self,
-                calculated,
-                expected
-            );
             return Err(RuleError {
                 reason: "Checksum mismatch".into(),
             });
         }
-        clerk::info!("{:?}: sentence is valid: {:?}", self, line);
 
         Ok(())
     }
@@ -128,7 +91,7 @@ impl rax::text::IGlobalRule<true> for NmeaValidateMultiLine {
     /// Logs each step for debugging.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         // Log the input at trace level.
-        clerk::trace!("NmeaValidate rule: input='{:?}'", input);
+
         for line in input.split_inclusive('\n') {
             NmeaValidate.apply(line)?;
         }
@@ -139,7 +102,6 @@ impl rax::text::IGlobalRule<true> for NmeaValidateMultiLine {
 mod tests {
     extern crate std;
 
-    use clerk::{LevelFilter, init_log_with_level};
     use rax::text::IGlobalRule;
     use rstest::rstest;
 
@@ -178,7 +140,6 @@ mod tests {
         "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*4"
     )]
     fn test_nmea_validate(#[case] name: &str, #[case] input: &str) {
-        init_log_with_level(LevelFilter::TRACE);
         let result = NmeaValidate.apply(input);
         insta::assert_debug_snapshot!(name, result)
     }
@@ -197,7 +158,6 @@ mod tests {
         "$GPGSV,4,4,15,20,12,265,,24,05,285,,28,73,085,*42",
     ] .join("\n"))]
     fn test_nmea_validate_multiline(#[case] name: &str, #[case] input: &str) {
-        init_log_with_level(LevelFilter::TRACE);
         let result = NmeaValidateMultiLine.apply(input);
         insta::assert_debug_snapshot!(name, result)
     }

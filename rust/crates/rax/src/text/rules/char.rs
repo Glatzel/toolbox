@@ -22,7 +22,6 @@ impl<const C: char> IFlowRule<true> for Char<C, true> {
     type Output<'a> = char;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if C.is_ascii() {
             // C is a const generic, so `C.is_ascii()` and `C as u8` are
             // compile-time constants
@@ -43,7 +42,6 @@ impl<const C: char> IFlowRule<false> for Char<C, false> {
     type Output<'a> = char;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!("{:?}: input='{:?}', expected='{:?}'", self, input, C);
         if input.starts_with(C) {
             Ok((C, C.len_utf8()))
         } else {

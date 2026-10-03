@@ -42,14 +42,7 @@ impl<const N: usize> CharSetFilter<N> {
 }
 impl<const N: usize> ICharSetFilter<N> for CharSetFilter<N> {}
 impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
-    fn filter(&self, input: &char) -> bool {
-        clerk::trace!(
-            "CharSetFilter: checking if '{}' is in the set {:?}",
-            input,
-            self.table
-        );
-        self.table.binary_search(input).is_ok()
-    }
+    fn filter(&self, input: &char) -> bool { self.table.binary_search(input).is_ok() }
 }
 
 /// A fixed, sorted set of **ASCII** characters, verified entirely at
@@ -123,14 +116,7 @@ impl<const N: usize> AsciiCharSetFilter<N> {
 }
 impl<const N: usize> ICharSetFilter<N> for AsciiCharSetFilter<N> {}
 impl<const N: usize> IFilter<&char> for AsciiCharSetFilter<N> {
-    fn filter(&self, input: &char) -> bool {
-        clerk::trace!(
-            "AsciiCharSetFilter: checking if '{}' is in the set {:?}",
-            input,
-            self.table
-        );
-        self.contains(*input)
-    }
+    fn filter(&self, input: &char) -> bool { self.contains(*input) }
 }
 
 // Predefined filters
@@ -172,7 +158,6 @@ pub const CHAR_SET_ASCII_LETTERS_DIGITS: AsciiCharSetFilter<62> = AsciiCharSetFi
 mod tests {
     extern crate std;
 
-    use clerk::{LevelFilter, init_log_with_level};
     use rstest::rstest;
 
     use super::*;
@@ -189,7 +174,6 @@ mod tests {
     #[case('A', false)]
     #[case('B', false)]
     fn test_char_set_filter(#[case] input: char, #[case] in_set: bool) {
-        init_log_with_level(LevelFilter::TRACE);
         let filter = CharSetFilter::<_>::new(['a', '1', ',', 'あ']);
         assert_eq!(filter.filter(&input), in_set);
     }
@@ -206,7 +190,6 @@ mod tests {
     #[case('b', false)]
     #[case('あ', false)] // non-ASCII query: must return false, not panic
     fn test_ascii_char_set_filter(#[case] input: char, #[case] in_set: bool) {
-        init_log_with_level(LevelFilter::TRACE);
         assert_eq!(TEST_ASCII_FILTER.filter(&input), in_set);
         // `contains` is const, so this membership test can also be
         // evaluated entirely at compile time:

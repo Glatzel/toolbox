@@ -34,7 +34,7 @@ pub struct Txt {
 impl IParseStr<RaxNmeaError, true> for Txt {
     fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
-        clerk::trace!("Txt::new: sentence='{}'", parser.full_str());
+
         let mut infos = Vec::new();
         for _ in 0..parser.full_str().lines().count() {
             let txt_type = parser
@@ -43,9 +43,9 @@ impl IParseStr<RaxNmeaError, true> for Txt {
                 .skip(&UNTIL_COMMA_DISCARD)?
                 .take(&UNTIL_COMMA_DISCARD)?
                 .parse::<TxtType>()?;
-            clerk::debug!("txt_type: {:?}", txt_type);
+
             let info = parser.take(&UNTIL_STAR_DISCARD)?.to_string();
-            clerk::debug!("info: {:?}", info);
+
             infos.push((txt_type, info));
             let _ = parser.skip(&UNTIL_NEW_LINE_DISCARD);
         }

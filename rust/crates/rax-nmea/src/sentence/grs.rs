@@ -48,11 +48,6 @@ impl IParseStr<RaxNmeaError, true> for Grs {
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 
         let mode = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;
-        clerk::debug!(
-            "Grs::new: utc_time={:?}, grs_residual_mode={:?}",
-            time,
-            mode
-        );
 
         let mut residual = Vec::with_capacity(12);
         for _ in 0..11 {
@@ -67,7 +62,6 @@ impl IParseStr<RaxNmeaError, true> for Grs {
             residual.push(r);
         }
         let _ = parser.skip(&UNTIL_COMMA_DISCARD);
-        clerk::debug!("Grs::new: satellite_residuals={:?}", residual);
 
         let system_id = parser
             .take(&UNTIL_COMMA_OR_STAR_KEEP_RIGHT)?

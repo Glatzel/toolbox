@@ -15,14 +15,6 @@ impl<const C: char> IFlowRule<true> for UntilChar<C, true> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!(
-            "{:?} rule: input='{:?}', char='{}', mode={:?}",
-            self,
-            input,
-            C,
-            self.mode
-        );
-
         let target = C as u8;
         input
             .as_bytes()
@@ -44,14 +36,6 @@ impl<const C: char> IFlowRule<false> for UntilChar<C, false> {
     type Output<'a> = &'a str;
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
-        clerk::trace!(
-            "{:?} rule: input='{:?}', char='{}', mode={:?}",
-            self,
-            input,
-            C,
-            self.mode
-        );
-
         for (idx, ch) in input.char_indices() {
             if ch == C {
                 return Ok(self.mode.split_str(input, idx, ch.len_utf8()));

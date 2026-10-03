@@ -56,7 +56,6 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 
@@ -84,7 +83,6 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
 
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
-            clerk::warn!("N is 0, returning empty string");
             return Ok(("", 0));
         }
 

@@ -9,8 +9,3 @@ mod log_tracing;
 pub use log_tracing::*;
 
 mod macros;
-#[cfg(any(feature = "defmt", feature = "tracing"))]
-pub use macros::*;
-
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-compile_error!("Features `defmt` and `tracing` cannot be enabled at the same time");

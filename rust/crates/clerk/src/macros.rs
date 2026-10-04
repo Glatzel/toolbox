@@ -1,176 +1,58 @@
-#[cfg(not(any(feature = "tracing", feature = "defmt")))]
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {let _ = ::core::format_args!($($arg)*);};
-}
+// ============================================================================
+// backend dispatch (the only place that depends on features)
+// ============================================================================
 
 #[cfg(not(any(feature = "tracing", feature = "defmt")))]
+#[doc(hidden)]
 #[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {let _ = ::core::format_args!($($arg)*);};
+macro_rules! __log {
+    ($lvl:ident, $($arg:tt)*) => {{ let _ = ::core::format_args!($($arg)*); }};
 }
 
-#[cfg(not(any(feature = "tracing", feature = "defmt")))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {let _ = ::core::format_args!($($arg)*);};
-}
-
-#[cfg(not(any(feature = "tracing", feature = "defmt")))]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {let _ = ::core::format_args!($($arg)*);};
-}
-
-#[cfg(not(any(feature = "tracing", feature = "defmt")))]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {let _ = ::core::format_args!($($arg)*);};
-}
-
-// ============================================================================
-// tracing backend
-// ============================================================================
-
-/// Logs a trace-level message using [`tracing::trace!`].
 #[cfg(all(feature = "tracing", not(feature = "defmt")))]
+#[doc(hidden)]
 #[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {
-        $crate::tracing::trace!($($arg)*);
-    };
+macro_rules! __log {
+    ($lvl:ident, $($arg:tt)*) => { $crate::tracing::$lvl!($($arg)*) };
 }
 
-/// Logs a debug-level message using [`tracing::debug!`].
-#[cfg(all(feature = "tracing", not(feature = "defmt")))]
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        $crate::tracing::debug!($($arg)*);
-    };
-}
-
-/// Logs an info-level message using [`tracing::info!`].
-#[cfg(all(feature = "tracing", not(feature = "defmt")))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        $crate::tracing::info!($($arg)*);
-    };
-}
-
-/// Logs a warning message using [`tracing::warn!`].
-#[cfg(all(feature = "tracing", not(feature = "defmt")))]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        $crate::tracing::warn!($($arg)*);
-    };
-}
-
-/// Logs an error message using [`tracing::error!`].
-#[cfg(all(feature = "tracing", not(feature = "defmt")))]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        $crate::tracing::error!($($arg)*);
-    };
-}
-
-// ============================================================================
-// defmt backend
-// ============================================================================
-
-/// Logs a trace-level message using [`defmt::trace!`].
 #[cfg(all(feature = "defmt", not(feature = "tracing")))]
+#[doc(hidden)]
 #[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {
-        $crate::defmt::trace!($($arg)*);
-    };
-}
-
-/// Logs a debug-level message using [`defmt::debug!`].
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
-#[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        $crate::defmt::debug!($($arg)*);
-    };
-}
-
-/// Logs an info-level message using [`defmt::info!`].
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        $crate::defmt::info!($($arg)*);
-    };
-}
-
-/// Logs a warning message using [`defmt::warn!`].
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        $crate::defmt::warn!($($arg)*);
-    };
-}
-
-/// Logs a warning message using [`defmt::error!`].
-#[cfg(all(feature = "defmt", not(feature = "tracing")))]
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        $crate::defmt::error!($($arg)*);
-    };
-}
-
-// ============================================================================
-// all
-// ============================================================================
-
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! trace {
-    ($($arg:tt)*) => {
-        $crate::defmt::trace!($($arg)*); 
-        $crate::tracing::trace!($($arg)*);
-    };
+macro_rules! __log {
+    ($lvl:ident, $($arg:tt)*) => { $crate::defmt::$lvl!($($arg)*) };
 }
 
 #[cfg(all(feature = "defmt", feature = "tracing"))]
+#[doc(hidden)]
 #[macro_export]
-macro_rules! debug {
-    ($($arg:tt)*) => {
-        $crate::defmt::debug!($($arg)*);
-         $crate::tracing::debug!($($arg)*);
-    };
+macro_rules! __log {
+    ($lvl:ident, $($arg:tt)*) => {{
+        $crate::defmt::$lvl!($($arg)*);
+        $crate::tracing::$lvl!($($arg)*);
+    }};
 }
 
-#[cfg(all(feature = "defmt", feature = "tracing"))]
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {
-        $crate::defmt::info!($($arg)*);
-         $crate::tracing::info!($($arg)*);
-    };
-}
+// ============================================================================
+// public macros
+// ============================================================================
 
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// Logs a trace-level message via the enabled backend(s).
 #[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {
-        $crate::defmt::warn!($($arg)*);
-         $crate::tracing::warn!($($arg)*);
-    };
-}
+macro_rules! trace { ($($arg:tt)*) => { $crate::__log!(trace, $($arg)*) }; }
 
-#[cfg(all(feature = "defmt", feature = "tracing"))]
+/// Logs a debug-level message via the enabled backend(s).
 #[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        $crate::defmt::error!($($arg)*);
-        $crate::tracing::error!($($arg)*);
-    };
-}
+macro_rules! debug { ($($arg:tt)*) => { $crate::__log!(debug, $($arg)*) }; }
+
+/// Logs an info-level message via the enabled backend(s).
+#[macro_export]
+macro_rules! info { ($($arg:tt)*) => { $crate::__log!(info, $($arg)*) }; }
+
+/// Logs a warning message via the enabled backend(s).
+#[macro_export]
+macro_rules! warn { ($($arg:tt)*) => { $crate::__log!(warn, $($arg)*) }; }
+
+/// Logs an error message via the enabled backend(s).
+#[macro_export]
+macro_rules! error { ($($arg:tt)*) => { $crate::__log!(error, $($arg)*) }; }

@@ -1,3 +1,4 @@
+extern crate std;
 use std::path::PathBuf;
 
 use thiserror::Error;

@@ -1,3 +1,4 @@
+extern crate std;
 use std::io;
 
 use owo_colors::OwoColorize;

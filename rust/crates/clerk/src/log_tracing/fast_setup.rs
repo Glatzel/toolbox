@@ -1,3 +1,4 @@
+extern crate std;
 use std::sync::OnceLock;
 
 use tracing_subscriber::filter::LevelFilter;

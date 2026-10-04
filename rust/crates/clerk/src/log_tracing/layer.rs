@@ -1,3 +1,4 @@
+extern crate std;
 use std::path::Path;
 
 use tracing_subscriber::Layer;

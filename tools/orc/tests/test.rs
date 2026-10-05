@@ -24,8 +24,8 @@ fn test_file() -> String {
             .join("Library")
             .join("bin")
             .join("raw_r.dll")
-            .to_string_lossy()
-            .to_string()
+            .into_string()
+            .unwrap()
     }
     #[cfg(target_os = "linux")]
     {
@@ -35,8 +35,8 @@ fn test_file() -> String {
             .join("default")
             .join("lib")
             .join("libraw.so")
-            .to_slash_lossy()
-            .to_string()
+            .into_string()
+            .unwrap()
     }
 }
 fn os() -> &'static str {

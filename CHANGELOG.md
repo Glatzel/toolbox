@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.10.5] - 2026-10-05
+
+### Changed
+
+- Spek by @Glatzel in [#783](https://github.com/Glatzel/toolbox/pull/783)
+- **(spek)** Use iter api by @Glatzel in [#831](https://github.com/Glatzel/toolbox/pull/831)
+- Use iter api to get split complex by @Glatzel in [#842](https://github.com/Glatzel/toolbox/pull/842)
+- Improve bench mark to avoid clone effect measurement by @Glatzel in [#843](https://github.com/Glatzel/toolbox/pull/843)
+
+### Fixed
+
+- Fuzz test by @Glatzel in [#826](https://github.com/Glatzel/toolbox/pull/826)
+- Spek bench by @Glatzel in [#830](https://github.com/Glatzel/toolbox/pull/830)
+
+### Performance
+
+- **(rax)** Optimize UntilChar by @Glatzel in [#825](https://github.com/Glatzel/toolbox/pull/825)
+- Try to improve istft by @Glatzel in [#844](https://github.com/Glatzel/toolbox/pull/844)
+
+### Removed
+
+- Remove clerk in rax by @Glatzel in [#862](https://github.com/Glatzel/toolbox/pull/862)
+
+### Testing
+
+- Add real nmea bench by @Glatzel in [#824](https://github.com/Glatzel/toolbox/pull/824)
+
 ## [2026.9.14] - 2026-09-17
 
 ### Changed
@@ -626,6 +653,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.10.5]: https://github.com/Glatzel/toolbox/compare/v2026.9.14..v2026.10.5
 [2026.9.14]: https://github.com/Glatzel/toolbox/compare/v2026.9.10..v2026.9.14
 [2026.9.10]: https://github.com/Glatzel/toolbox/compare/v2026.8.22..v2026.9.10
 [2026.8.22]: https://github.com/Glatzel/toolbox/compare/v2026.8.4..v2026.8.22

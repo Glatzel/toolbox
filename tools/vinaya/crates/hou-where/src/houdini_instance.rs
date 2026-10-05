@@ -126,8 +126,6 @@ impl HoudiniInstance {
 }
 #[cfg(test)]
 mod tests {
-    use path_slash::PathBufExt;
-
     use super::*;
 
     fn instance() -> HoudiniInstance {
@@ -178,7 +176,7 @@ mod tests {
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
                 _ => "/opt/hfs20.5.123",
             };
-        assert_eq!(instance().hfs()?.to_slash_lossy(), expected);
+        assert_eq!(instance().hfs()?.to_string_lossy(), expected);
         Ok(())
     }
 
@@ -192,7 +190,7 @@ mod tests {
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
                 _ => "/opt/hfs20.5.123/toolkit/cmake",
             };
-        assert_eq!(instance().cmake_prefix_path()?.to_slash_lossy(), expected);
+        assert_eq!(instance().cmake_prefix_path()?.to_string_lossy(), expected);
         Ok(())
     }
 

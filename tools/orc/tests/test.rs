@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use assert_cmd::Command;
-use path_slash::PathExt;
 use rstest::rstest;
 
 fn env_path() -> String {
@@ -9,7 +8,7 @@ fn env_path() -> String {
         .join(".pixi")
         .join("envs")
         .join("default")
-        .to_slash_lossy()
+        .to_string_lossy()
         .to_string()
 }
 
@@ -23,7 +22,7 @@ fn test_file() -> String {
             .join("Library")
             .join("bin")
             .join("raw_r.dll")
-            .to_slash_lossy()
+            .to_string_lossy()
             .to_string()
     }
     #[cfg(target_os = "linux")]
@@ -54,7 +53,7 @@ macro_rules! filter {
         vec![
             (
                 PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                    .to_slash_lossy()
+                    .to_string_lossy()
                     .to_string()
                     .as_str(),
                 "[CARGO_MANIFEST_DIR]",

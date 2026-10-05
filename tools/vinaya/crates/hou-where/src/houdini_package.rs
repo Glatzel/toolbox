@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use glob::glob;
 use hou_variable::HoudiniVersionShort;
 use mischief::{IntoMischief, WrapErr};
-use path_slash::PathExt;
 use serde_json::{Value, json};
 use validator::Validate;
 
@@ -92,7 +91,7 @@ impl HoudiniPackageManager {
         if !&self.package_dir.exists() {
             mischief::bail!(
                 "Houdini package directory is not existed: {}",
-                self.package_dir.to_slash_lossy(),
+                self.package_dir.to_string_lossy(),
             )
         }
         Ok(self)

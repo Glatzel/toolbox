@@ -14,7 +14,6 @@ clap-verbosity-flag = "3.0.4"
 dunce = "1.0.5"
 goblin = "0.10.7"
 owo-colors = "4.4.0"
-path-slash = "0.2.1"
 strum = { version = "0.28", features = ["derive"] }
 
 [dev-dependencies]

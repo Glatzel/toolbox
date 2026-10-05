@@ -14,7 +14,7 @@ impl HoudiniInstance {
     ///<https://www.sidefx.com/docs/houdini/hqueue/gettingstarted.html>
     pub const INSTALL_DIR: &str =
         cfg_select! {
-            target_os = "windows" => "C:/Program Files/Side Effects Software",
+            target_os = "windows" => r"C:\Program Files\Side Effects Software",
             target_os = "macos" => "/Applications/Houdini",
             target_os = "linux" => "/opt",
         };
@@ -126,8 +126,6 @@ impl HoudiniInstance {
 }
 #[cfg(test)]
 mod tests {
-    use path_slash::PathBufExt;
-
     use super::*;
 
     fn instance() -> HoudiniInstance {
@@ -174,11 +172,11 @@ mod tests {
     fn test_hfs() -> mischief::Result<()> {
         let expected =
             cfg_select! {
-                target_os = "windows" => "C:/Program Files/Side Effects Software/Houdini 20.5.123",
+                target_os = "windows" => r"C:\Program Files\Side Effects Software\Houdini 20.5.123",
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
                 _ => "/opt/hfs20.5.123",
             };
-        assert_eq!(instance().hfs()?.to_slash_lossy(), expected);
+        assert_eq!(instance().hfs()?.to_string_lossy(), expected);
         Ok(())
     }
 
@@ -187,12 +185,12 @@ mod tests {
         let expected =
             cfg_select! {
                 target_os = "windows" => {
-                    "C:/Program Files/Side Effects Software/Houdini 20.5.123/toolkit/cmake"
+                    r"C:\Program Files\Side Effects Software\Houdini 20.5.123\toolkit\cmake"
                 }
                 target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
                 _ => "/opt/hfs20.5.123/toolkit/cmake",
             };
-        assert_eq!(instance().cmake_prefix_path()?.to_slash_lossy(), expected);
+        assert_eq!(instance().cmake_prefix_path()?.to_string_lossy(), expected);
         Ok(())
     }
 

@@ -2,7 +2,6 @@ use std::env;
 use std::path::PathBuf;
 
 use hou_variable::HoudiniVersionShort;
-use path_slash::PathExt;
 use validator::Validate;
 
 #[derive(Debug, Clone, Validate)]
@@ -54,7 +53,7 @@ impl HoudiniPreference {
         if !&self.directory.exists() {
             mischief::bail!(
                 "Houdini preference directory is not existed: {}",
-                self.directory.to_slash_lossy(),
+                self.directory.to_string_lossy(),
             )
         }
         Ok(self)
@@ -80,7 +79,7 @@ mod tests {
                 .join("20.5"),
             _ => home.join("houdini20.5"),
         };
-        assert_eq!(pref.directory.to_slash_lossy(), expected.to_slash_lossy());
+        assert_eq!(pref.directory.to_string_lossy(), expected.to_string_lossy());
     }
     #[test]
     fn test_from_version_env_override() {
@@ -91,7 +90,7 @@ mod tests {
         })
         .unwrap();
         assert_eq!(
-            pref.directory.to_slash_lossy(),
+            pref.directory.to_string_lossy(),
             "/some/custom/path/houdini20.5"
         );
         unsafe { env::remove_var("HOUDINI_USER_PREF_DIR") };

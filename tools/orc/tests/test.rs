@@ -1,7 +1,8 @@
 use std::path::PathBuf;
+use std::sync::LazyLock;
+use std::vec;
 
 use assert_cmd::Command;
-use path_slash::PathExt;
 use rstest::rstest;
 
 fn env_path() -> String {
@@ -9,7 +10,7 @@ fn env_path() -> String {
         .join(".pixi")
         .join("envs")
         .join("default")
-        .to_slash_lossy()
+        .to_string_lossy()
         .to_string()
 }
 
@@ -23,8 +24,8 @@ fn test_file() -> String {
             .join("Library")
             .join("bin")
             .join("raw_r.dll")
-            .to_slash_lossy()
-            .to_string()
+            .into_string()
+            .unwrap()
     }
     #[cfg(target_os = "linux")]
     {
@@ -34,8 +35,8 @@ fn test_file() -> String {
             .join("default")
             .join("lib")
             .join("libraw.so")
-            .to_slash_lossy()
-            .to_string()
+            .into_string()
+            .unwrap()
     }
 }
 fn os() -> &'static str {
@@ -49,22 +50,20 @@ fn os() -> &'static str {
         "linux"
     }
 }
-macro_rules! filter {
-    () => {
-        vec![
-            (
-                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                    .to_slash_lossy()
-                    .to_string()
-                    .as_str(),
-                "[CARGO_MANIFEST_DIR]",
-            ),
-            (r".\[31m", "[RED]"),
-            (r".\[32m", "[GREEN]"),
-            (r".\[34m", "[BLUE]"),
-            (r".\[39m", ""),
-        ]
-    };
+fn filter() -> Vec<(&'static str, &'static str)> {
+    static MANIFEST: LazyLock<String> = LazyLock::new(|| {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .into_string()
+            .unwrap()
+            .replace("\\", "\\\\")
+    });
+    vec![
+        (&MANIFEST, "[CARGO_MANIFEST_DIR]"),
+        (r".\[31m", "[RED]"),
+        (r".\[32m", "[GREEN]"),
+        (r".\[34m", "[BLUE]"),
+        (r".\[39m", ""),
+    ]
 }
 
 #[rstest]
@@ -83,7 +82,7 @@ fn test_limit(#[case] limit: usize) {
         "{}",
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
-    insta::with_settings!({filters => filter!()}, {
+    insta::with_settings!({filters => filter()}, {
         insta::assert_snapshot!(
             format!("test_limit-{}-{}", limit, os()),
             String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
@@ -108,7 +107,7 @@ fn test_limit_missing(#[case] limit: usize) {
         "{}",
         String::from_utf8_lossy(cmd.get_output().stdout.as_slice())
     );
-    insta::with_settings!({filters => filter!()
+    insta::with_settings!({filters => filter()
     }, {
         insta::assert_snapshot!(
             format!("test_limit_missing-{}-{}", limit, os()),

@@ -17,7 +17,6 @@ hou-variable.workspace = true
 hou-where.workspace = true
 mischief.workspace = true
 owo-colors.workspace = true
-path-slash.workspace = true
 sidefx-web.workspace = true
 tokio.workspace = true
 

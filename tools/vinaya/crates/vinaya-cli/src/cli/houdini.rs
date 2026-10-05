@@ -3,7 +3,6 @@ mod latest;
 use clap::{Parser, Subcommand};
 use hou_variable::HoudiniVersion;
 use hou_where::HoudiniInstance;
-use path_slash::PathBufExt;
 
 use crate::cli::HOUDINI_OPTIONS;
 use crate::cli::custom_parser::parse_generic;
@@ -39,7 +38,7 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
                     mischief::bail!("Either version or latest must be specified.")
                 }
             };
-            println!("{}", instance.hfs()?.to_slash_lossy());
+            println!("{}", instance.hfs()?.to_string_lossy());
             Ok(())
         }
         Commands::Latest(cmd) => latest::execute(cmd),

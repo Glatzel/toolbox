@@ -5,7 +5,6 @@ use comfy_table::{Attribute, Cell, Color, Table};
 use hou_variable::HoudiniVersionShort;
 use hou_where::HoudiniPackageManager;
 use owo_colors::OwoColorize;
-use path_slash::PathExt;
 
 use super::HOUDINI_OPTIONS;
 use crate::cli::custom_parser::parse_generic;
@@ -41,7 +40,7 @@ pub fn execute(args: &Args) -> mischief::Result<()> {
     let mut manager = HoudiniPackageManager::from_version(&args.version)?;
 
     match &args.command {
-        Commands::Dir => println!("{}", manager.package_dir.to_slash_lossy()),
+        Commands::Dir => println!("{}", manager.package_dir.to_string_lossy()),
         Commands::Disable { names } => {
             manager.check_is_existed()?;
             manager.switch_packages(names, false)?;

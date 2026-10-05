@@ -1,5 +1,4 @@
 use mischief::IntoMischief;
-use path_slash::PathExt;
 use rstest::rstest;
 
 #[rstest]
@@ -18,8 +17,9 @@ fn test_cli(#[case] args: &[&str]) -> mischief::Result<()> {
     name.push_str(&args.join("-"));
     let home = dirs::home_dir()
         .ok_or_else(|| mischief::mischief!(""))?
-        .to_slash_lossy()
-        .to_string();
+        .into_string()
+        .unwrap()
+        .replace("\\", "\\\\");
     insta::with_settings!({filters => [(home.as_str(),"[HOME]")]
     }, { insta::assert_snapshot!(
         name,

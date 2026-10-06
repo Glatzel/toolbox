@@ -7,6 +7,7 @@ use clap::{Parser, ValueEnum};
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer};
+use path_slash::PathExt;
 use strum::Display;
 
 use crate::dep_tree::DepTree;
@@ -40,8 +41,11 @@ pub static LIMIT: OnceLock<usize> = OnceLock::new();
 pub static SHOW_OPTION: OnceLock<ShowOption> = OnceLock::new();
 
 fn execute(args: &Args) -> mischief::Result<()> {
-    let abs_path = dunce::canonicalize(&args.input)?;
-    clerk::info!("Scanning executable: {}", abs_path.to_string_lossy());
+    let abs_path = std::path::absolute(&args.input)?;
+    clerk::info!(
+        "Scanning executable: {}",
+        abs_path.to_slash_lossy().to_string()
+    );
     LIMIT.set(args.limit).unwrap();
     SHOW_OPTION.set(args.show_option).unwrap();
     let tree = DepTree::new(

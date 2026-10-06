@@ -11,7 +11,6 @@ mischief = { path = "../../rust/crates/mischief" }
 
 clap = { version = "4.6.7", features = ["derive"] }
 clap-verbosity-flag = "3.0.4"
-dunce = "1.0.5"
 goblin = "0.10.7"
 owo-colors = "4.4.0"
 path-slash = "0.2.1"

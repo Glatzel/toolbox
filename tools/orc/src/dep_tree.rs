@@ -171,7 +171,7 @@ impl DepTree {
     pub fn find_link_target(link: &Path) -> Option<PathBuf> {
         match read_link(link) {
             Ok(target) if target.is_absolute() => Some(target),
-            Ok(target) => Some(dunce::canonicalize(link.parent()?).unwrap().join(target)),
+            Ok(target) => Some(std::path::absolute(link.parent()?).unwrap().join(target)),
             Err(_) => None,
         }
     }

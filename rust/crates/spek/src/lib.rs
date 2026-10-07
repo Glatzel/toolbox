@@ -4,6 +4,7 @@ pub mod fft_backend;
 pub mod frequency_range;
 pub mod harmonics;
 pub mod notation;
+pub mod onset;
 pub mod pad;
 pub mod spectrum;
 pub mod weighting;

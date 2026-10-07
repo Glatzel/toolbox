@@ -108,7 +108,10 @@ where
             self.bin_count,
         )
     }
-    pub fn db(&self, reference: impl Fn(&[T]) -> T, amin: T, top_db: T) -> Spectrogram<T> {
+    pub fn db<R>(&self, reference: R, amin: T, top_db: T) -> Spectrogram<T>
+    where
+        R: Fn(&[T]) -> T,
+    {
         let power: Vec<_> = self
             .iter()
             .map(|(r, i)| spectrum_to_power(*r, *i))
@@ -197,7 +200,10 @@ where
             self.bin_count,
         )
     }
-    pub fn db_par(&self, reference: impl Fn(&[T]) -> T, amin: T, top_db: T) -> Spectrogram<T> {
+    pub fn db_par<R>(&self, reference: R, amin: T, top_db: T) -> Spectrogram<T>
+    where
+        R: Fn(&[T]) -> T,
+    {
         let power: Vec<_> = self
             .par_iter()
             .map(|(r, i)| spectrum_to_power(*r, *i))

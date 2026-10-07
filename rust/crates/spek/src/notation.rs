@@ -1,0 +1,10 @@
+pub fn key_to_notes() { todo!() }
+pub fn key_to_degrees() { todo!() }
+pub fn mela_to_svara() { todo!() }
+pub fn mela_to_degrees() { todo!() }
+pub fn thaat_to_degrees() { todo!() }
+pub fn list_mela() { todo!() }
+pub fn list_thaat() { todo!() }
+pub fn fifths_to_note() { todo!() }
+pub fn interval_to_fjs() { todo!() }
+pub fn interval_frequencies() { todo!() }

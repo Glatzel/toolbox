@@ -22,7 +22,7 @@ defmt = "1.1.1"
 derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 float-cmp = "0.10.0"
 insta = "1.49.0"
-jiff = { version = "0.2.37", default-features = false, features = ["perf-inline"] }
+jiff = { version = "0.2.38", default-features = false, features = ["perf-inline"] }
 num-traits = "0.2.19"
 owo-colors = "4.4.0"
 parking_lot = "0.12.5"

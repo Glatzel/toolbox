@@ -1,2 +1,2 @@
 [default]
-extend-ignore-identifiers-re = ["numer","thaat"]
+extend-ignore-identifiers-re = ["numer", "thaat"]

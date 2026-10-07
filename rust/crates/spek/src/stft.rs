@@ -146,7 +146,7 @@ where
     }
 
     pub fn stft_frame(&self, input: &[T]) -> (Vec<T>, Vec<T>) {
-        let mut frame = self.frame(input);
+        let frame = self.frame(input);
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
         self.fft_backend.fft(&frame, &mut real, &mut imag);
         (real, imag)
@@ -174,7 +174,7 @@ where
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let mut frame = self.frame(&signal[start..start + self.win_size]);
+                let frame = self.frame(&signal[start..start + self.win_size]);
                 self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
             });
 
@@ -189,7 +189,7 @@ where
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let mut frame = self.frame(&signal[start..start + self.win_size]);
+                let frame = self.frame(&signal[start..start + self.win_size]);
                 self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
             });
 

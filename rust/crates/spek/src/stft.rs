@@ -8,7 +8,6 @@ use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
 use thiserror::Error;
 
-use crate::Dtype;
 use crate::fft_backend::IFftBackend;
 use crate::pad::PadError;
 #[cfg(feature = "parallel")]
@@ -40,16 +39,17 @@ pub enum StftError {
 /// # STFT Parameters
 ///
 /// ```text
-/// signal    #####################################################•••
-///                  win_size
-///          |<--------------------->|
-///                      fft_size
+/// signal   |#####################################################•••
+///          |           fft_size            |
 ///          |<----------------------------->|
-/// frame 0   ########################00000000
-///          |
-///          |<-- hop_size -->|
-///                           |
-/// frame 1                   ########################00000000
+///          |       win_size        |       |
+///          |<--------------------->|       |
+/// frame 0  |#######################00000000|
+///          |<-- hop_size -->|           fft_size            |
+///          |                |<----------------------------->|
+///          |                |       win_size        |       |
+///          |                |<--------------------->|       |
+/// frame 1  |                |#######################00000000|
 /// ```
 pub struct Stft<T, FftBackend>
 where
@@ -145,11 +145,11 @@ where
         frame
     }
 
-    pub fn stft_frame(&self, input: &[T], scratch: &mut [Dtype<T>]) -> Vec<Dtype<T>> {
-        let mut frame = self.frame(input);
-        let mut spectrum = self.fft_backend.new_spectrum();
-        self.fft_backend.fft(&mut frame, &mut spectrum, scratch);
-        spectrum
+    pub fn stft_frame(&self, input: &[T]) -> (Vec<T>, Vec<T>) {
+        let frame = self.frame(input);
+        let (mut real, mut imag) = self.fft_backend.new_spectrum();
+        self.fft_backend.fft(&frame, &mut real, &mut imag);
+        (real, imag)
     }
 
     #[cfg(feature = "parallel")]
@@ -157,7 +157,6 @@ where
     where
         T: Sync + Send,
         FftBackend: Sync,
-        Dtype<T>: Send,
     {
         // ASSUMPTION: `Spectrogram` exposes `frames_mut_unchecked(&mut self)
         // -> impl IndexedParallelIterator<Item = &mut Vec<SP>>` (a rayon
@@ -171,13 +170,12 @@ where
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
         result
-            .par_iter_frame_mut()
+            .frames_par_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let mut frame = self.frame(&signal[start..start + self.win_size]);
-                let mut scratch = self.fft_backend.new_forward_scratch();
-                self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
+                let frame = self.frame(&signal[start..start + self.win_size]);
+                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
             });
 
         result
@@ -186,14 +184,13 @@ where
     pub fn stft(&self, signal: &[T]) -> Spectrum2D<T> {
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
-        let mut scratch = self.fft_backend.new_forward_scratch();
         spectrogram
-            .iter_frame_mut()
+            .frames_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let mut frame = self.frame(&signal[start..start + self.win_size]);
-                self.fft_backend.fft(&mut frame, spectrum, &mut scratch);
+                let frame = self.frame(&signal[start..start + self.win_size]);
+                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
             });
 
         spectrogram
@@ -257,16 +254,21 @@ where
         let norm = self.normalization(frame_count);
 
         let mut output = vec![T::zero(); out_len];
-        let mut scratch = self.fft_backend.new_inverse_scratch();
+        let (mut scratch_real, mut scratch_imag) = self.fft_backend.new_scratch();
         let mut time_frame = vec![T::zero(); fft_size]; // reused, not reallocated per frame
 
         spectrum
-            .iter_frame_mut()
+            .frames_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                self.fft_backend
-                    .ifft(spectrum, &mut time_frame, &mut scratch);
+                self.fft_backend.ifft(
+                    spectrum.0,
+                    spectrum.1,
+                    &mut time_frame,
+                    &mut scratch_real,
+                    &mut scratch_imag,
+                );
 
                 for ((o, w), t) in output[start..start + self.win_size]
                     .iter_mut()
@@ -300,12 +302,18 @@ where
         let mut windowed = vec![T::zero(); frame_count * fft_size];
 
         spectrogram
-            .par_iter_frame_mut()
+            .frames_par_iter_mut()
             .zip(windowed.par_chunks_mut(fft_size))
             .for_each_init(
-                || self.fft_backend.new_inverse_scratch(), // once per worker thread
-                |scratch, (spectrum, time_frame)| {
-                    self.fft_backend.ifft(spectrum, time_frame, scratch);
+                || self.fft_backend.new_scratch(), // once per worker thread
+                |(scratch_real, scratch_imag), (spectrum, time_frame)| {
+                    self.fft_backend.ifft(
+                        spectrum.0,
+                        spectrum.1,
+                        time_frame,
+                        scratch_real,
+                        scratch_imag,
+                    );
                     for (t, w) in time_frame
                         .iter_mut()
                         .zip(self.window.iter())
@@ -340,21 +348,16 @@ mod tests {
     use core::fmt::{Debug, Display};
 
     use float_cmp::ApproxEq;
-    #[cfg(feature = "backend-phastft")]
     use phastft::planner::{PlannerR2c32, PlannerR2c64};
     use rstest::rstest;
 
     use super::*;
-    use crate::conversion::spectrum_to_magnitude;
-    #[cfg(feature = "backend-phastft")]
     use crate::fft_backend::phastft::PhastftBackend;
-    #[cfg(feature = "backend-realfft")]
-    use crate::fft_backend::realfft::RealfftBackend;
     use crate::windows::Window;
     #[rstest]
-    #[cfg_attr(feature = "split",case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49))]
-    #[cfg_attr(feature = "split",case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50))]
-    #[cfg_attr(feature = "complex",case("f32.hop4.win7.window_hann.backend_realfft.49" ,4, 7, Window::Hann,  RealfftBackend::<f32>::new(8), 49))]
+    #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
+    #[case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50)]
+
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -366,7 +369,6 @@ mod tests {
     where
         T: Debug + Float + Display + ApproxEq + Sync + Send,
         FftBackend: Sync,
-        Dtype<T>: Send,
     {
         use generic_num::num;
 
@@ -377,104 +379,73 @@ mod tests {
         insta::assert_debug_snapshot!(
             format!("{name}.spectogram"),
             spectrum
-                .data()
+                .real()
                 .iter()
-                .map(|i| format!("{i:.6}"))
+                .zip(spectrum.imag())
+                .map(|(r, i)| (format!("{r:.6}"), format!("{i:.6}")))
                 .collect::<Vec<_>>()
         );
 
         {
             let spectrum_parallel = stft.par_stft(&mut signal.clone());
             spectrum_parallel
-                .magnitude()
+                .power()
                 .data()
                 .iter()
-                .zip(spectrum.magnitude().data().iter())
+                .zip(spectrum.power().data().iter())
                 .for_each(|(p, s)| {
                     float_cmp::assert_approx_eq!(T, *p, *s);
                 });
         }
 
         {
-            let magnitude = spectrum.magnitude();
-            let frame = stft.stft_frame(
-                &signal[0..win_size],
-                &mut Vec::with_capacity(spectrum.bin_count()),
-            );
+            let power = spectrum.power();
+            let frame = stft.stft_frame(&signal[0..win_size]);
             let mut frame_result = Spectrum2D::new(1, spectrum.bin_count());
             frame_result
-                .frame_mut(0)
-                .iter_mut()
+                .frame_iter_mut(0)
                 .enumerate()
                 .for_each(|(i, v)| {
-                    *v = frame[i];
+                    *v.0 = frame.0[i];
+                    *v.1 = frame.1[i];
                 });
-            let frame_magnitude = frame_result.magnitude();
+            let frame_magnitude = frame_result.power();
 
             (0..spectrum.bin_count()).for_each(|i| {
-                #[cfg(feature = "split")]
-                let v = spectrum_to_magnitude(
-                    spectrum.data()[i],
-                    spectrum.data()[spectrum.bin_count() + i],
-                );
-                #[cfg(feature = "complex")]
-                let v = spectrum_to_magnitude(spectrum.data()[i].re, spectrum.data()[i].im);
-                float_cmp::assert_approx_eq!(T, v, magnitude.data()[i]);
+                use crate::conversion::spectrum_to_power;
+
+                let v = spectrum_to_power(spectrum.real()[i], spectrum.imag()[i]);
+                float_cmp::assert_approx_eq!(T, v, power.data()[i]);
                 float_cmp::assert_approx_eq!(T, v, frame_magnitude.data()[i]);
             });
             {
-                let par_magnitude = spectrum.par_magnitude();
-                magnitude
+                let par_power = spectrum.power_par();
+                power
                     .data()
                     .iter()
-                    .zip(par_magnitude.data().iter())
-                    .for_each(|(m, p)| {
-                        float_cmp::assert_approx_eq!(T, *m, *p);
+                    .zip(par_power.data().iter())
+                    .for_each(|(p, a)| {
+                        float_cmp::assert_approx_eq!(T, *p, *a);
                     });
             }
             {
-                let amplitude = spectrum.amplitude(num!(2.0));
-                magnitude
+                let amplitude = spectrum.amplitude();
+                power
                     .data()
                     .iter()
                     .zip(amplitude.data().iter())
-                    .for_each(|(m, a)| {
-                        float_cmp::assert_approx_eq!(T, *m * num!(2.0), *a);
+                    .for_each(|(p, a)| {
+                        float_cmp::assert_approx_eq!(T, *p, *a * *a);
                     });
             }
             {
-                let par_amplitude = spectrum.par_amplitude(num!(2.0));
-                magnitude
+                let par_amplitude = spectrum.amplitude_par();
+                power
                     .data()
                     .iter()
                     .zip(par_amplitude.data().iter())
-                    .for_each(|(m, a)| {
-                        float_cmp::assert_approx_eq!(T, *m * num!(2.0), *a);
-                    });
-            }
-        }
-        {
-            let amplitude = spectrum.amplitude(num!(1.0));
-            {
-                let db = spectrum.db(num!(2.0));
-                amplitude
-                    .data()
-                    .iter()
-                    .zip(db.data().iter())
-                    .for_each(|(m, d)| {
-                        use crate::conversion::amplitude_to_db;
-                        float_cmp::assert_approx_eq!(T, amplitude_to_db(*m, num!(2.0)), *d);
-                    });
-            }
-            {
-                let par_db = spectrum.par_db(num!(2.0));
-                amplitude
-                    .data()
-                    .iter()
-                    .zip(par_db.data().iter())
-                    .for_each(|(m, d)| {
-                        use crate::conversion::amplitude_to_db;
-                        float_cmp::assert_approx_eq!(T, amplitude_to_db(*m, num!(2.0)), *d);
+                    .for_each(|(p, a)| {
+                        float_cmp::assert_approx_eq!(T, *p, *a * *a);
                     });
             }
         }

@@ -34,10 +34,10 @@ impl<T> Spectrogram<T> {
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> + '_ { self.data.iter_mut() }
 
-    pub fn iter_frame(&self) -> impl Iterator<Item = &[T]> + '_ {
+    pub fn frames_iter(&self) -> impl Iterator<Item = &[T]> + '_ {
         self.data.chunks_exact(self.bin_count)
     }
-    pub fn iter_frame_mut(&mut self) -> ChunksExactMut<'_, T> {
+    pub fn frames_iter_mut(&mut self) -> ChunksExactMut<'_, T> {
         self.data.chunks_exact_mut(self.bin_count)
     }
 
@@ -64,11 +64,11 @@ where
         use rayon::prelude::*;
         self.data.par_iter_mut()
     }
-    pub fn par_iter_frame(&self) -> impl rayon::iter::IndexedParallelIterator<Item = &[T]> + '_ {
+    pub fn frames_par_iter(&self) -> impl rayon::iter::IndexedParallelIterator<Item = &[T]> + '_ {
         use rayon::prelude::*;
         self.data.par_chunks_exact(self.bin_count)
     }
-    pub fn par_iter_frame_mut(
+    pub fn frames_par_iter_mut(
         &mut self,
     ) -> impl rayon::iter::IndexedParallelIterator<Item = &mut [T]> + '_ {
         use rayon::prelude::*;

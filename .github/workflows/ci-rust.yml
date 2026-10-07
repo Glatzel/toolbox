@@ -22,25 +22,25 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
             with:
               toolchain: nightly
               components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         with:
           working-directory: ${{env.WORKDIR}}
           options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         if: ${{!cancelled()}}
         with:
           working-directory: ${{env.WORKDIR}}
           options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         if: ${{!cancelled()}}
         with:
           working-directory: ${{env.WORKDIR}}
           global-options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/common/codecov@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/common/codecov@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         if: ${{!cancelled()}}
         with:
           flags: ci-rust
@@ -54,11 +54,11 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
             with:
               toolchain: nightly
               components: "miri"
-      - uses: Glatzel/template/.github/actions/rust/cargo-miri@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-miri@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         with:
           working-directory: ${{env.WORKDIR}}
           options: -p envoy

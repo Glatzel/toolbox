@@ -16,8 +16,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         with:
           working-directory: ./rust
           options: ${{ matrix.options }}

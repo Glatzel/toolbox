@@ -18,15 +18,15 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
             with:
               toolchain: nightly
               components: llvm-tools-preview
-      - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         with:
           working-directory: ${{matrix.pwd}}
           target: ${{matrix.target}}
-      - uses: Glatzel/template/.github/actions/common/codecov@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/common/codecov@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
         if: ${{!cancelled()}}
         with:
           flags: ${{matrix.target}}

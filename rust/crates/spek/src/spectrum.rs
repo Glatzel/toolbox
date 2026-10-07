@@ -68,11 +68,11 @@ where
         real.iter_mut().zip(imag.iter_mut())
     }
     pub fn iter(&self) -> impl Iterator<Item = (&T, &T)> + '_ {
-        self.real.iter().zip(self.imag.iter()).map(|c| c)
+        self.real.iter().zip(self.imag.iter())
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&mut T, &mut T)> + '_ {
-        self.real.iter_mut().zip(self.imag.iter_mut()).map(|c| c)
+        self.real.iter_mut().zip(self.imag.iter_mut())
     }
 
     pub fn frames_iter(&self) -> std::iter::Zip<ChunksExact<'_, T>, ChunksExact<'_, T>> {

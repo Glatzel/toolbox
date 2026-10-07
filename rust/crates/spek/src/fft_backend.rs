@@ -2,12 +2,6 @@ pub mod phastft;
 
 use crate::spectrum::Spectrum2D;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum FftDirection {
-    Forward,
-    Inverse,
-}
-
 pub trait IFftBackend<T> {
     fn fft_size(&self) -> usize;
     fn signal_size(&self) -> usize;

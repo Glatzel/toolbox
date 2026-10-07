@@ -1,5 +1,3 @@
-use std::f64;
-
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 

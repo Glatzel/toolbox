@@ -27,6 +27,6 @@ jobs:
           working-directory: ${{matrix.pwd}}
           target: ${{matrix.target}}
       - uses: Glatzel/template/.github/actions/common/codecov@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
-        if: ${{!cancelled()}}
+        if: ${{ !cancelled() }}
         with:
           flags: ${{matrix.target}}

@@ -1,7 +1,8 @@
-pub mod conversion;
+pub mod convert;
 pub mod fft_backend;
+pub mod frequency_range;
+pub mod harmonics;
 pub mod pad;
-pub mod spectrogram;
 pub mod spectrum;
-pub mod stft;
+pub mod weighting;
 pub mod windows;

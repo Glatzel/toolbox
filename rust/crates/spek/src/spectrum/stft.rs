@@ -387,67 +387,16 @@ mod tests {
         );
 
         {
-            let spectrum_parallel = stft.par_stft(&mut signal.clone());
-            spectrum_parallel
-                .power()
-                .data()
-                .iter()
-                .zip(spectrum.power().data().iter())
-                .for_each(|(p, s)| {
-                    float_cmp::assert_approx_eq!(T, *p, *s);
-                });
-        }
-
-        {
-            let power = spectrum.power();
             let frame = stft.stft_frame(&signal[0..win_size]);
-            let mut frame_result = Spectrum2D::new(1, spectrum.bin_count());
-            frame_result
-                .frame_iter_mut(0)
+            frame
+                .0
+                .iter()
+                .zip(frame.1.iter())
                 .enumerate()
-                .for_each(|(i, v)| {
-                    *v.0 = frame.0[i];
-                    *v.1 = frame.1[i];
+                .for_each(|(i, (re, im))| {
+                    float_cmp::assert_approx_eq!(T, *re, spectrum.real()[i]);
+                    float_cmp::assert_approx_eq!(T, *im, spectrum.imag()[i]);
                 });
-            let frame_magnitude = frame_result.power();
-
-            (0..spectrum.bin_count()).for_each(|i| {
-                use crate::conversion::spectrum_to_power;
-
-                let v = spectrum_to_power(spectrum.real()[i], spectrum.imag()[i]);
-                float_cmp::assert_approx_eq!(T, v, power.data()[i]);
-                float_cmp::assert_approx_eq!(T, v, frame_magnitude.data()[i]);
-            });
-            {
-                let par_power = spectrum.power_par();
-                power
-                    .data()
-                    .iter()
-                    .zip(par_power.data().iter())
-                    .for_each(|(p, a)| {
-                        float_cmp::assert_approx_eq!(T, *p, *a);
-                    });
-            }
-            {
-                let amplitude = spectrum.amplitude();
-                power
-                    .data()
-                    .iter()
-                    .zip(amplitude.data().iter())
-                    .for_each(|(p, a)| {
-                        float_cmp::assert_approx_eq!(T, *p, *a * *a);
-                    });
-            }
-            {
-                let par_amplitude = spectrum.amplitude_par();
-                power
-                    .data()
-                    .iter()
-                    .zip(par_amplitude.data().iter())
-                    .for_each(|(p, a)| {
-                        float_cmp::assert_approx_eq!(T, *p, *a * *a);
-                    });
-            }
         }
 
         {

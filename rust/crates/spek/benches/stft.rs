@@ -5,7 +5,7 @@ use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
-use spek::stft::Stft;
+use spek::spectrum::Stft;
 use spek::windows::Window::Hann;
 
 const SIZE: [usize; 1] = [7];

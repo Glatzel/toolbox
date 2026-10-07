@@ -1,13 +1,13 @@
-//! Spectrum / amplitude / power / decibel conversions.
-//!
-//! These functions are scalar ports of the equivalents in
-//! [librosa](https://librosa.org/doc/latest/core.html#spectral-representations)
-//! (`power_to_db`, `amplitude_to_db`, `db_to_power`, `db_to_amplitude`).
-//! All functions are generic over any [`Float`] type.
-
 use generic_num::num;
 use num_traits::Float;
-
+pub fn phase<T>(real: T, imag: T, magnitude: T) -> (T, T)
+where
+    T: Float,
+{
+    let phase_real = real / magnitude;
+    let phase_imag = imag / magnitude;
+    (phase_real, phase_imag)
+}
 /// Converts a complex spectrum bin to power: `re² + im²`.
 ///
 /// This is the squared magnitude `|z|²`.
@@ -110,7 +110,9 @@ where
 {
     reference * num!(10.0).powf(db / num!(10))
 }
-
+pub fn pcen() { todo!() }
+pub fn mu_compress() { todo!() }
+pub fn mu_expand() { todo!() }
 #[cfg(test)]
 mod tests {
     use float_cmp::assert_approx_eq;

@@ -1,16 +1,18 @@
 extern crate alloc;
 use alloc::vec;
-use core::slice::ChunksExactMut;
+use core::slice::{ChunksExact, ChunksExactMut};
 
 use num_traits::Float;
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
-use crate::conversion::{spectrum_to_amplitude, spectrum_to_db, spectrum_to_magnitude};
+use crate::conversion::{power_to_db, spectrum_to_amplitude, spectrum_to_power};
 use crate::spectrogram::Spectrogram;
-use crate::{Data, Dtype};
 
 #[derive(Debug, Clone)]
 pub struct Spectrum2D<T> {
-    data: Data<T>,
+    real: Vec<T>,
+    imag: Vec<T>,
     frame_count: usize,
     bin_count: usize,
 }
@@ -22,146 +24,100 @@ where
     T: Float,
 {
     pub fn new(frame_count: usize, bin_count: usize) -> Self {
-        #[cfg(feature = "complex")]
-        {
-            Self {
-                data: vec![
-                    num_complex::Complex {
-                        re: T::zero(),
-                        im: T::zero()
-                    };
-                    frame_count * bin_count
-                ],
-                frame_count,
-                bin_count,
-            }
-        }
-
-        #[cfg(feature = "split")]
-        {
-            Self {
-                data: vec![T::zero(); frame_count * bin_count * 2],
-                frame_count,
-                bin_count,
-            }
+        Self {
+            real: vec![T::zero(); frame_count * bin_count],
+            imag: vec![T::zero(); frame_count * bin_count],
+            frame_count,
+            bin_count,
         }
     }
-    pub fn data(&self) -> &[Dtype<T>] { &self.data }
+    pub fn real(&self) -> &[T] { &self.real }
+    pub fn imag(&self) -> &[T] { &self.imag }
     pub const fn bin_count(&self) -> usize { self.bin_count }
     pub const fn frame_count(&self) -> usize { self.frame_count }
 
-    /// FIX: previously missing the `split`-aware stride that `frame_mut`
-    /// already had. Under `split`, each frame occupies `bin_count * 2`
-    /// elements (a real block followed by an imag block), so the flat
-    /// `complex`-style stride silently read the wrong window.
-    pub fn frame(&self, index: usize) -> &[Dtype<T>] {
-        #[cfg(feature = "complex")]
+    pub fn frame(&self, index: usize) -> (&[T], &[T]) {
         let start = index * self.bin_count;
-        #[cfg(feature = "complex")]
-        let end = start + self.bin_count;
-        #[cfg(feature = "split")]
-        let start = index * self.bin_count * 2;
-        #[cfg(feature = "split")]
-        let end = start + self.bin_count * 2;
 
-        unsafe { self.data.get_unchecked(start..end) }
+        let end = start + self.bin_count;
+
+        unsafe {
+            (
+                self.real.get_unchecked(start..end),
+                self.imag.get_unchecked(start..end),
+            )
+        }
     }
-    pub fn frame_mut(&mut self, index: usize) -> &mut [Dtype<T>] {
-        #[cfg(feature = "complex")]
+    pub fn frame_mut(&mut self, index: usize) -> (&mut [T], &mut [T]) {
         let start = index * self.bin_count;
-        #[cfg(feature = "complex")]
         let end = start + self.bin_count;
-        #[cfg(feature = "split")]
-        let start = index * self.bin_count * 2;
-        #[cfg(feature = "split")]
-        let end = start + self.bin_count * 2;
+        unsafe {
+            (
+                self.real.get_unchecked_mut(start..end),
+                self.imag.get_unchecked_mut(start..end),
+            )
+        }
+    }
+    pub fn frame_iter(&self, index: usize) -> impl Iterator<Item = (&T, &T)> {
+        let (real, imag) = self.frame(index);
+        real.iter().zip(imag.iter())
+    }
 
-        unsafe { self.data.get_unchecked_mut(start..end) }
+    pub fn frame_iter_mut(&mut self, index: usize) -> impl Iterator<Item = (&mut T, &mut T)> {
+        let (real, imag) = self.frame_mut(index);
+        real.iter_mut().zip(imag.iter_mut())
     }
     pub fn iter(&self) -> impl Iterator<Item = (&T, &T)> + '_ {
-        #[cfg(feature = "complex")]
-        {
-            self.data.iter().map(|c| (&c.re, &c.im))
-        }
-
-        #[cfg(feature = "split")]
-        {
-            self.data
-                .chunks_exact(self.bin_count * 2)
-                .flat_map(|frame| {
-                    let (real, imag) = unsafe { frame.split_at_unchecked(self.bin_count) };
-                    real.iter().zip(imag.iter())
-                })
-        }
+        self.real.iter().zip(self.imag.iter()).map(|c| c)
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&mut T, &mut T)> + '_ {
-        #[cfg(feature = "complex")]
-        {
-            self.data.iter_mut().map(|c| (&mut c.re, &mut c.im))
-        }
-        #[cfg(feature = "split")]
-        {
-            self.data
-                .chunks_exact_mut(self.bin_count * 2)
-                .flat_map(|frame| {
-                    let (real, imag) = unsafe { frame.split_at_mut_unchecked(self.bin_count) };
-                    real.iter_mut().zip(imag.iter_mut())
-                })
-        }
+        self.real.iter_mut().zip(self.imag.iter_mut()).map(|c| c)
     }
 
-    pub fn iter_frame(&self) -> impl Iterator<Item = &[Dtype<T>]> + '_ {
-        #[cfg(feature = "complex")]
-        {
-            self.data.chunks_exact(self.bin_count)
-        }
-
-        #[cfg(feature = "split")]
-        {
-            self.data.chunks_exact(self.bin_count * 2)
-        }
+    pub fn frames_iter(&self) -> std::iter::Zip<ChunksExact<'_, T>, ChunksExact<'_, T>> {
+        self.real
+            .chunks_exact(self.bin_count)
+            .zip(self.imag.chunks_exact(self.bin_count))
     }
-    pub fn iter_frame_mut(&mut self) -> ChunksExactMut<'_, Dtype<T>> {
-        #[cfg(feature = "complex")]
-        {
-            self.data.chunks_exact_mut(self.bin_count)
-        }
-
-        #[cfg(feature = "split")]
-        {
-            self.data.chunks_exact_mut(self.bin_count * 2)
-        }
+    pub fn frames_iter_mut(
+        &mut self,
+    ) -> std::iter::Zip<ChunksExactMut<'_, T>, ChunksExactMut<'_, T>> {
+        self.real
+            .chunks_exact_mut(self.bin_count)
+            .zip(self.imag.chunks_exact_mut(self.bin_count))
     }
 
-    /// Transpose of `iter_frame`: outer axis over bins, inner axis over
-    /// frames. Storage is frame-major, so a bin's values across frames are
-    /// strided rather than contiguous — hence the nested-iterator shape
-    /// instead of a slice.
     pub fn iter_bin(&self) { todo!() }
     pub fn iter_bin_mut(&mut self) { todo!() }
-    pub fn magnitude(&self) -> Spectrogram<T> {
+    pub fn power(&self) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter()
-                .map(|(r, i)| spectrum_to_magnitude(*r, *i))
+                .map(|(r, i)| spectrum_to_power(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
         )
     }
-    pub fn amplitude(&self, scale: T) -> Spectrogram<T> {
+    pub fn amplitude(&self) -> Spectrogram<T> {
         Spectrogram::new(
             self.iter()
-                .map(|(r, i)| spectrum_to_amplitude(*r, *i, scale))
+                .map(|(r, i)| spectrum_to_amplitude(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
         )
     }
-    pub fn db(&self, reference: T) -> Spectrogram<T> {
+    pub fn db(&self, reference: impl Fn(&[T]) -> T, amin: T, top_db: T) -> Spectrogram<T> {
+        let power: Vec<_> = self
+            .iter()
+            .map(|(r, i)| spectrum_to_power(*r, *i))
+            .collect();
+        let reference_value = reference(&power);
         Spectrogram::new(
-            self.iter()
-                .map(|(r, i)| spectrum_to_db(*r, *i, reference))
+            power
+                .into_iter()
+                .map(|p| power_to_db(p, reference_value, amin, top_db))
                 .collect(),
             self.frame_count,
             self.bin_count,
@@ -182,108 +138,84 @@ where
 impl<T> Spectrum2D<T>
 where
     T: Float + Sync + Send,
-    Dtype<T>: Send + Sync,
 {
     pub fn par_iter(&self) -> impl rayon::iter::ParallelIterator<Item = (&T, &T)> + '_ {
         use rayon::prelude::*;
-        #[cfg(feature = "complex")]
-        {
-            self.data.par_iter().map(|c| (&c.re, &c.im))
-        }
-        #[cfg(feature = "split")]
-        {
-            self.data
-                .par_chunks_exact(self.bin_count * 2)
-                .flat_map_iter(|frame| {
-                    let (real, imag) = unsafe { frame.split_at_unchecked(self.bin_count) };
-                    real.iter().zip(imag.iter())
-                })
-        }
+        self.real.par_iter().zip(self.imag.par_iter()).map(|c| c)
     }
 
-    pub fn par_iter_mut(
-        &mut self,
-    ) -> impl rayon::iter::ParallelIterator<Item = (&mut T, &mut T)> + '_ {
-        use rayon::prelude::*;
-        #[cfg(feature = "complex")]
-        {
-            self.data.par_iter_mut().map(|c| (&mut c.re, &mut c.im))
-        }
-        #[cfg(feature = "split")]
-        {
-            self.data
-                .par_chunks_exact_mut(self.bin_count * 2)
-                .flat_map_iter(|frame| {
-                    let (real, imag) = unsafe { frame.split_at_mut_unchecked(self.bin_count) };
-                    real.iter_mut().zip(imag.iter_mut())
-                })
-        }
+    pub fn par_iter_mut(&mut self) -> impl ParallelIterator<Item = (&mut T, &mut T)> + '_ {
+        self.real
+            .par_iter_mut()
+            .zip(self.imag.par_iter_mut())
+            .map(|c| c)
     }
-    pub fn par_iter_frame(
+    pub fn frame_par_iter(&self, index: usize) -> impl ParallelIterator<Item = (&T, &T)> {
+        let (real, imag) = self.frame(index);
+        real.par_iter().zip(imag.par_iter())
+    }
+
+    pub fn frame_par_iter_mut(
+        &mut self,
+        index: usize,
+    ) -> impl ParallelIterator<Item = (&mut T, &mut T)> {
+        let (real, imag) = self.frame_mut(index);
+        real.par_iter_mut().zip(imag.par_iter_mut())
+    }
+    pub fn frames_par_iter(
         &self,
-    ) -> impl rayon::iter::IndexedParallelIterator<Item = &[Dtype<T>]> + '_ {
-        use rayon::prelude::*;
-        #[cfg(feature = "complex")]
-        {
-            self.data.par_chunks_exact(self.bin_count)
-        }
-
-        #[cfg(feature = "split")]
-        {
-            self.data.par_chunks_exact(self.bin_count * 2)
-        }
+    ) -> rayon::iter::Zip<rayon::slice::ChunksExact<'_, T>, rayon::slice::ChunksExact<'_, T>> {
+        self.real
+            .par_chunks_exact(self.bin_count)
+            .zip(self.imag.par_chunks_exact(self.bin_count))
     }
-    pub fn par_iter_frame_mut(
+    pub fn frames_par_iter_mut(
         &mut self,
-    ) -> impl rayon::iter::IndexedParallelIterator<Item = &mut [Dtype<T>]> + '_ {
-        use rayon::prelude::*;
-        #[cfg(feature = "complex")]
-        {
-            self.data.par_chunks_exact_mut(self.bin_count)
-        }
-
-        #[cfg(feature = "split")]
-        {
-            self.data.par_chunks_exact_mut(self.bin_count * 2)
-        }
+    ) -> rayon::iter::Zip<rayon::slice::ChunksExactMut<'_, T>, rayon::slice::ChunksExactMut<'_, T>>
+    {
+        self.real
+            .par_chunks_exact_mut(self.bin_count)
+            .zip(self.imag.par_chunks_exact_mut(self.bin_count))
     }
     pub fn par_iter_bin(&self) { todo!() }
     pub fn par_iter_bin_mut(&self) { todo!() }
-    pub fn par_magnitude(&self) -> Spectrogram<T> {
-        use rayon::prelude::*;
+    pub fn power_par(&self) -> Spectrogram<T> {
         Spectrogram::new(
             self.par_iter()
-                .map(|(r, i)| spectrum_to_magnitude(*r, *i))
+                .map(|(r, i)| spectrum_to_power(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
         )
     }
-    pub fn par_amplitude(&self, scale: T) -> Spectrogram<T> {
-        use rayon::prelude::*;
+    pub fn amplitude_par(&self) -> Spectrogram<T> {
         Spectrogram::new(
             self.par_iter()
-                .map(|(r, i)| spectrum_to_amplitude(*r, *i, scale))
+                .map(|(r, i)| spectrum_to_amplitude(*r, *i))
                 .collect(),
             self.frame_count,
             self.bin_count,
         )
     }
-    pub fn par_db(&self, reference: T) -> Spectrogram<T> {
-        use rayon::prelude::*;
+    pub fn db_par(&self, reference: impl Fn(&[T]) -> T, amin: T, top_db: T) -> Spectrogram<T> {
+        let power: Vec<_> = self
+            .par_iter()
+            .map(|(r, i)| spectrum_to_power(*r, *i))
+            .collect();
+        let reference_value = reference(&power);
         Spectrogram::new(
-            self.par_iter()
-                .map(|(r, i)| spectrum_to_db(*r, *i, reference))
+            power
+                .into_par_iter()
+                .map(|p| power_to_db(p, reference_value, amin, top_db))
                 .collect(),
             self.frame_count,
             self.bin_count,
         )
     }
-    pub fn par_to_spectrogram<F>(&self, process: F) -> Spectrogram<T>
+    pub fn to_spectrogram_par<F>(&self, process: F) -> Spectrogram<T>
     where
         F: Fn(T, T) -> T + Sync + Send,
     {
-        use rayon::prelude::*;
         Spectrogram::new(
             self.par_iter().map(|(r, i)| process(*r, *i)).collect(),
             self.frame_count,

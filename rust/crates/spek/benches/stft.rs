@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::marker::{Send, Sync};
 
-use criterion::{BatchSize, BenchmarkId, criterion_group, criterion_main};
+use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::fft_backend::IFftBackend;
@@ -25,49 +25,29 @@ fn bench_wrapper<T, B>(
     let mut data = (0..10usize.pow(size as u32))
         .map(|i| num!(i))
         .collect::<Vec<_>>();
-    let spectrum = stft.stft(&mut data);
+    let mut spectrum = stft.stft(&mut data);
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_{}_10^", name, fft_size), size),
         &size,
-        |b, _| {
-            b.iter(|| {
-                stft.stft(&mut data);
-            })
-        },
+        |b, _| b.iter(|| stft.stft(&mut data)),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_parallel_{}_10^", name, fft_size), size),
         &size,
-        |b, _| {
-            b.iter(|| {
-                stft.par_stft(&mut data);
-            })
-        },
+        |b, _| b.iter(|| stft.par_stft(&mut data)),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_istft_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
-            b.iter_batched(
-                || spectrum.clone(),
-                |mut spectrum| {
-                    stft.istft(&mut spectrum);
-                },
-                BatchSize::SmallInput,
-            );
+            b.iter(|| stft.istft(&mut spectrum));
         },
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_istft_parallel_{}_10^", name, fft_size), size),
         &size,
         |b, _| {
-            b.iter_batched(
-                || spectrum.clone(),
-                |mut spectrum| {
-                    stft.par_istft(&mut spectrum);
-                },
-                BatchSize::SmallInput,
-            );
+            b.iter(|| stft.par_istft(&mut spectrum));
         },
     );
 }
@@ -75,33 +55,12 @@ fn bench_f32(c: &mut criterion::Criterion) {
     let mut group = c.benchmark_group("f32");
     for size in SIZE {
         for fft_size in FFT_SIZE {
-            #[cfg(feature = "phastft")]
             bench_wrapper::<f32, _>(
                 &mut group,
                 "phastft",
                 spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
                     fft_size,
                 ),
-                size,
-            );
-            #[cfg(feature = "realfft")]
-            bench_wrapper::<f32, _>(
-                &mut group,
-                "realfft",
-                spek::fft_backend::realfft::RealfftBackend::new(fft_size),
-                size,
-            );
-            #[cfg(feature = "rustfft")]
-            let mut planner = rustfft::FftPlanner::new();
-            #[cfg(feature = "rustfft")]
-            bench_wrapper::<f32, _>(
-                &mut group,
-                "rustfft",
-                spek::fft_backend::rustfft::RustfftBackend::new(
-                    planner.plan_fft_forward(fft_size),
-                    planner.plan_fft_inverse(fft_size),
-                )
-                .unwrap(),
                 size,
             );
         }
@@ -111,33 +70,12 @@ fn bench_f64(c: &mut criterion::Criterion) {
     let mut group = c.benchmark_group("f64");
     for size in SIZE {
         for fft_size in FFT_SIZE {
-            #[cfg(feature = "phastft")]
             bench_wrapper::<f64, _>(
                 &mut group,
                 "phastft",
                 spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
                     fft_size,
                 ),
-                size,
-            );
-            #[cfg(feature = "realfft")]
-            bench_wrapper::<f64, _>(
-                &mut group,
-                "realfft",
-                spek::fft_backend::realfft::RealfftBackend::new(fft_size),
-                size,
-            );
-            #[cfg(feature = "rustfft")]
-            let mut planner = rustfft::FftPlanner::new();
-            #[cfg(feature = "rustfft")]
-            bench_wrapper::<f64, _>(
-                &mut group,
-                "rustfft",
-                spek::fft_backend::rustfft::RustfftBackend::new(
-                    planner.plan_fft_forward(fft_size),
-                    planner.plan_fft_inverse(fft_size),
-                )
-                .unwrap(),
                 size,
             );
         }

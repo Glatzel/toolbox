@@ -1,3 +1,4 @@
+pub mod beat;
 pub mod convert;
 pub mod fft_backend;
 pub mod frequency_range;

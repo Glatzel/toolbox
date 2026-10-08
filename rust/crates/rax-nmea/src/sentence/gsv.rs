@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{ StrParser};
+use rax::text::StrParser;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

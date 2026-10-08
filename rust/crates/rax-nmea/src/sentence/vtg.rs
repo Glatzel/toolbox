@@ -1,7 +1,7 @@
 use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{ StrParser};
+use rax::text::StrParser;
 
 use crate::RaxNmeaError;
 use crate::common::FaaMode;
@@ -27,7 +27,8 @@ pub struct Vtg {
     pos_mode: Option<FaaMode>,
 }
 
-impl FromStr for  Vtg {   type Err = RaxNmeaError;
+impl FromStr for Vtg {
+    type Err = RaxNmeaError;
     fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let cogt = parser

@@ -9,13 +9,13 @@ name = "stft"
 
 [dependencies]
 generic-num.workspace = true
+num_enum.workspace = true
 num-traits.workspace = true
 parking_lot.workspace = true
 phastft.workspace = true
 rayon = { workspace = true, optional = true }
-thiserror.workspace = true
 strum.workspace = true
-num_enum.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

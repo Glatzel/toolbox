@@ -2,7 +2,7 @@ use core::str::FromStr;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{ StrParser};
+use rax::text::StrParser;
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};

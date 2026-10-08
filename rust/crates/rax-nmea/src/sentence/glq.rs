@@ -3,7 +3,7 @@ use alloc::string::String;
 use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{ StrParser};
+use rax::text::StrParser;
 
 use crate::RaxNmeaError;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};

@@ -1,6 +1,7 @@
 ---
 source: crates/spek/src/notation.rs
-expression: "format!(\"{input}\\n{result:?}\")"
+expression: "format!(\"{input}\\n{result:?}\\n{result}\")"
 ---
 c
 Note { pitch: c, accs: [], octave: None, cents: None }
+c

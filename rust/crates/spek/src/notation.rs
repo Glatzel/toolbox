@@ -350,7 +350,7 @@ mod tests {
         let result: Result<Note, NoteError> = input.parse();
         if valid {
             let result = result.unwrap();
-            insta::assert_snapshot!(name, format!("{input}\n{result:?}"));
+            insta::assert_snapshot!(name, format!("{input}\n{result:?}\n{result}"));
             let display = result.to_string();
             let reparse: Note = display.parse().unwrap();
             assert_eq!(reparse, result);

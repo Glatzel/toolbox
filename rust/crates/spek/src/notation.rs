@@ -48,10 +48,7 @@ impl Note {
     where
         T: Float + Sum,
     {
-        let cents = match self.cents {
-            Some(c) => num!(c) / num!(100),
-            None => T::zero(),
-        };
+        let cents = self.cents.map_or_else(T::zero, |c| num!(c) / num!(100));
         let offset: T = self.accs.iter().map(|a| num!(*a as u8)).sum();
         num!(12) * (num!(self.octave.unwrap_or_default()) + T::one())
             + num!(self.pitch as u8)

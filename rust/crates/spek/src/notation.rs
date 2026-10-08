@@ -33,7 +33,7 @@ pub enum NoteError {
     InvalidNote(String),
 }
 
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, reason = "pitch has lower case signal.")]
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
 pub enum Pitch {
     #[strum(serialize = "c")]

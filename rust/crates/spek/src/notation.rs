@@ -184,25 +184,26 @@ impl FromStr for Note {
         const PITCH_FILTER: AsciiCharSetFilter<14> = AsciiCharSetFilter::new([
             'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C', 'D', 'E', 'F', 'G', 'A', 'B',
         ]);
-        const PITCH_RULE: OneOfCharSet<true, 14, AsciiCharSetFilter<14>> =
+        const PITCH_RULE: OneOfCharSet<'_, true, 14, AsciiCharSetFilter<14>> =
             OneOfCharSet(&PITCH_FILTER);
         const ACCIDENTAL_FILTER: CharSetFilter<9> =
             CharSetFilter::new(['♯', '#', '♭', 'b', '!', '𝄪', '𝄫', '♮', 'n']);
-        const ACCIDENTAL_RULE: UntilNotInCharSet<false, 9, CharSetFilter<9>> = UntilNotInCharSet {
-            filter: &ACCIDENTAL_FILTER,
-            mode: UntilMode::KeepInRest,
-        };
+        const ACCIDENTAL_RULE: UntilNotInCharSet<'_, false, 9, CharSetFilter<9>> =
+            UntilNotInCharSet {
+                filter: &ACCIDENTAL_FILTER,
+                mode: UntilMode::KeepInRest,
+            };
         pub const CHAR_SET_NUMBER: AsciiCharSetFilter<12> =
             AsciiCharSetFilter::new(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '+']);
-        const OCTAVE_FIRST_RULE: OneOfCharSet<true, 12, AsciiCharSetFilter<12>> =
+        const OCTAVE_FIRST_RULE: OneOfCharSet<'_, true, 12, AsciiCharSetFilter<12>> =
             OneOfCharSet(&CHAR_SET_NUMBER);
-        const NUMBER_RULE: UntilNotInCharSet<true, 10, AsciiCharSetFilter<10>> =
+        const NUMBER_RULE: UntilNotInCharSet<'_, true, 10, AsciiCharSetFilter<10>> =
             UntilNotInCharSet {
                 filter: &CHAR_SET_DIGITS,
                 mode: UntilMode::KeepInRest,
             };
         pub const CENTS_SIGNAL: AsciiCharSetFilter<2> = AsciiCharSetFilter::new(['-', '+']);
-        const CENTS_SIGNAL_RULE: OneOfCharSet<true, 2, AsciiCharSetFilter<2>> =
+        const CENTS_SIGNAL_RULE: OneOfCharSet<'_, true, 2, AsciiCharSetFilter<2>> =
             OneOfCharSet(&CENTS_SIGNAL);
 
         let mut parser = StrParser::new(s);

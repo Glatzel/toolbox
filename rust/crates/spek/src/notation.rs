@@ -83,20 +83,20 @@ impl TryFrom<char> for Pitch {
 
     fn try_from(value: char) -> Result<Self, Self::Error> {
         let result = match value {
-            'c' => Pitch::c,
-            'd' => Pitch::d,
-            'e' => Pitch::e,
-            'f' => Pitch::f,
-            'g' => Pitch::g,
-            'a' => Pitch::a,
-            'b' => Pitch::b,
-            'C' => Pitch::C,
-            'D' => Pitch::D,
-            'E' => Pitch::E,
-            'F' => Pitch::F,
-            'G' => Pitch::G,
-            'A' => Pitch::A,
-            'B' => Pitch::B,
+            'c' => Self::c,
+            'd' => Self::d,
+            'e' => Self::e,
+            'f' => Self::f,
+            'g' => Self::g,
+            'a' => Self::a,
+            'b' => Self::b,
+            'C' => Self::C,
+            'D' => Self::D,
+            'E' => Self::E,
+            'F' => Self::F,
+            'G' => Self::G,
+            'A' => Self::A,
+            'B' => Self::B,
             c => return Err(NoteError::UnknownPitch(c)),
         };
         Ok(result)
@@ -165,7 +165,7 @@ impl Note {
 impl Display for Note {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.pitch.as_ref())?;
-        for a in self.accs.iter() {
+        for a in &self.accs {
             f.write_str(a.as_ref())?;
         }
         if let Some(octave) = self.octave {
@@ -206,14 +206,14 @@ impl FromStr for Note {
             OneOfCharSet(&CENTS_SIGNAL);
 
         let mut parser = StrParser::new(s);
-        let pitch = parser.take(&PITCH_RULE).map(|p| Pitch::try_from(p))??;
+        let pitch = parser.take(&PITCH_RULE).map(Pitch::try_from)??;
         let accs = parser.take(&ACCIDENTAL_RULE).map(|a| {
             a.chars()
-                .map(|c| Accidental::try_from(c))
+                .map(Accidental::try_from)
                 .collect::<Result<Vec<_>, NoteError>>()
         })??;
         if parser.rest_str().is_empty() {
-            return Ok(Note {
+            return Ok(Self {
                 pitch,
                 accs,
                 octave: None,
@@ -227,7 +227,7 @@ impl FromStr for Note {
             Err(_) => return Err(NoteError::InvalidOctave(parser.full_str().into())),
         };
         if parser.rest_str().is_empty() {
-            return Ok(Note {
+            return Ok(Self {
                 pitch,
                 accs,
                 octave: Some(octave),
@@ -243,7 +243,7 @@ impl FromStr for Note {
         if !parser.rest_str().is_empty() {
             return Err(NoteError::InvalidNote(parser.full_str().into()));
         }
-        Ok(Note {
+        Ok(Self {
             pitch,
             accs,
             octave: Some(octave),

@@ -1,2 +1,2 @@
-pub fn beat_track() { todo!() }
-pub fn plp() { todo!() }
+fn _beat_track() { todo!() }
+fn _plp() { todo!() }

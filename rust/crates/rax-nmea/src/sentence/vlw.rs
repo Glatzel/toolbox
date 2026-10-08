@@ -1,5 +1,7 @@
+use core::str::FromStr;
+
 use derive_getters::Getters;
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 
 use crate::RaxNmeaError;
 use crate::rules::UNTIL_COMMA_DISCARD;
@@ -22,8 +24,9 @@ pub struct Vlw {
     gd: Option<f64>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Vlw {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Vlw {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let twd = parser
             .skip(&UNTIL_COMMA_DISCARD)?

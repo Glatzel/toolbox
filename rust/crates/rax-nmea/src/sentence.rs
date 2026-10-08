@@ -49,9 +49,9 @@ macro_rules! test_sentence {
             extern crate std;
             use std::println;
 
-            let dhv = $identifier::parse_str($input)?;
-            println!("{dhv:?}");
-            insta::assert_json_snapshot!(stringify!($index), dhv);
+            let result = $identifier::from_str($input)?;
+            println!("{result:?}");
+            insta::assert_json_snapshot!(stringify!($index), result);
             Ok(())
         }
     };

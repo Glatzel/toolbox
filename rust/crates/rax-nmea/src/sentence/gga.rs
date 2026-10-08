@@ -1,6 +1,8 @@
+use core::str::FromStr;
+
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{IParseStr, StrParser};
+use rax::text::{ StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -72,8 +74,9 @@ pub struct Gga {
     /// Differential reference station ID, 0000-1023
     diff_station: Option<u16>,
 }
-impl IParseStr<RaxNmeaError, true> for Gga {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gga {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
 
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;

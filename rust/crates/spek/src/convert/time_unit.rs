@@ -1,11 +1,11 @@
-pub fn frames_to_samples() { todo!() }
-pub fn frames_to_time() { todo!() }
-pub fn samples_to_frames() { todo!() }
-pub fn samples_to_time() { todo!() }
-pub fn time_to_frames() { todo!() }
-pub fn time_to_samples() { todo!() }
-pub fn blocks_to_frames() { todo!() }
-pub fn blocks_to_samples() { todo!() }
-pub fn blocks_to_time() { todo!() }
-pub fn samples_like() { todo!() }
-pub fn times_like() { todo!() }
+fn _frames_to_samples() { todo!() }
+fn _frames_to_time() { todo!() }
+fn _samples_to_frames() { todo!() }
+fn _samples_to_time() { todo!() }
+fn _time_to_frames() { todo!() }
+fn _time_to_samples() { todo!() }
+fn _blocks_to_frames() { todo!() }
+fn _blocks_to_samples() { todo!() }
+fn _blocks_to_time() { todo!() }
+fn _samples_like() { todo!() }
+fn _times_like() { todo!() }

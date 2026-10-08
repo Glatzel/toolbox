@@ -1,10 +1,11 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use core::str::FromStr;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{IParseStr, StrParser};
+use rax::text::{ StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::SystemId;
@@ -42,8 +43,9 @@ pub struct Grs {
     /// Signal ID
     signal_id: Option<u16>,
 }
-impl IParseStr<RaxNmeaError, true> for Grs {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Grs {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
 

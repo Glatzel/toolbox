@@ -10,10 +10,6 @@ pub enum Verb {
     Global,
 }
 
-pub trait IParseStr<E, const IS_ASCII: bool>: Sized {
-    fn parse_str(input: &str) -> Result<Self, E>;
-}
-
 /// Maintains parsing state for string-based parsers.
 ///
 /// [`StrParser`] stores the full input string and a pointer
@@ -27,15 +23,6 @@ pub struct StrParser<'a, const IS_ASCII: bool> {
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
     cursor: usize,
-}
-
-impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
-    pub fn parse<D, E>(&'a mut self) -> Result<D, E>
-    where
-        D: IParseStr<E, IS_ASCII>,
-    {
-        D::parse_str(self.rest_str())
-    }
 }
 
 impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {

@@ -1,9 +1,10 @@
 extern crate alloc;
 use alloc::string::ToString;
 use alloc::vec::Vec;
+use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{IParseStr, StrParser};
+use rax::text::{ StrParser};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -41,8 +42,9 @@ pub struct Gsv {
     signal_id: Option<u16>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Gsv {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gsv {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
 
         // Count the number of lines and satellites

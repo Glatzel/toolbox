@@ -1,6 +1,8 @@
+use core::str::FromStr;
+
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{IParseStr, StrParser};
+use rax::text::{ StrParser};
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -28,8 +30,9 @@ pub struct Gll {
     /// FAA mode
     pos_mode: Option<FaaMode>,
 }
-impl IParseStr<RaxNmeaError, true> for Gll {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gll {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut ctx = StrParser::new(input);
 
         let lat = ctx.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaCoord)?;

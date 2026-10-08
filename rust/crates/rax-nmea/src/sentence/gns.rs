@@ -2,10 +2,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use core::str::FromStr;
 
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -59,8 +60,9 @@ pub struct Gns {
     nav_status: Option<GnsNavigationStatus>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Gns {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gns {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
 
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;

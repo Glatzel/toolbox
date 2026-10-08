@@ -1,6 +1,8 @@
+use core::str::FromStr;
+
 use derive_getters::Getters;
 use jiff::civil::Time;
-use rax::text::{IParseStr, StrParser};
+use rax::text::{ StrParser};
 
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
@@ -33,8 +35,9 @@ pub struct Gst {
     /// Standard deviation semi-altitude
     std_alt: Option<f64>,
 }
-impl IParseStr<RaxNmeaError, true> for Gst {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gst {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let rms = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

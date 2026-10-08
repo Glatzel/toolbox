@@ -1525,6 +1525,7 @@ dependencies = [
  "num_enum",
  "parking_lot",
  "phastft",
+ "rax",
  "rayon",
  "rstest",
  "strum",

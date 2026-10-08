@@ -16,6 +16,7 @@ phastft.workspace = true
 rayon = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
+rax.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

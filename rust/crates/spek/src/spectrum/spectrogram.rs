@@ -1,4 +1,5 @@
 use core::slice::ChunksExactMut;
+use std::slice::ChunksExact;
 
 #[cfg(feature = "parallel")]
 use num_traits::Float;
@@ -30,13 +31,13 @@ impl<T> Spectrogram<T> {
         let end = start + self.bin_count;
         unsafe { self.data.get_unchecked_mut(start..end) }
     }
-    pub fn iter(&self) -> impl Iterator<Item = &T> + '_ { self.data.iter() }
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = &T> + '_ { self.data.iter() }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> + '_ { self.data.iter_mut() }
-
-    pub fn frames_iter(&self) -> impl Iterator<Item = &[T]> + '_ {
-        self.data.chunks_exact(self.bin_count)
+    pub fn iter_mut(&mut self) -> impl ExactSizeIterator<Item = &mut T> + '_ {
+        self.data.iter_mut()
     }
+
+    pub fn frames_iter(&self) -> ChunksExact<'_, T> { self.data.chunks_exact(self.bin_count) }
     pub fn frames_iter_mut(&mut self) -> ChunksExactMut<'_, T> {
         self.data.chunks_exact_mut(self.bin_count)
     }
@@ -45,8 +46,8 @@ impl<T> Spectrogram<T> {
     /// frames. Storage is frame-major, so a bin's values across frames are
     /// strided rather than contiguous — hence the nested-iterator shape
     /// instead of a slice.
-    pub fn iter_bin(&self) { todo!() }
-    pub fn iter_bin_mut(&mut self) { todo!() }
+    fn _iter_bin(&self) { todo!() }
+    fn _iter_bin_mut(&mut self) { todo!() }
 }
 #[cfg(feature = "parallel")]
 impl<T> Spectrogram<T>
@@ -74,6 +75,6 @@ where
         use rayon::prelude::*;
         self.data.par_chunks_exact_mut(self.bin_count)
     }
-    pub fn par_iter_bin(&self) { todo!() }
-    pub fn par_iter_bin_mut(&self) { todo!() }
+    fn _par_iter_bin(&self) { todo!() }
+    fn _par_iter_bin_mut(&self) { todo!() }
 }

@@ -1502,8 +1502,10 @@ dependencies = [
  "num-traits",
  "parking_lot",
  "phastft",
+ "rax",
  "rayon",
  "rstest",
+ "strum",
  "thiserror",
 ]
 

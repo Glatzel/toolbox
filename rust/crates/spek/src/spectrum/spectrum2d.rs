@@ -4,7 +4,7 @@ use core::slice::{ChunksExact, ChunksExactMut};
 
 use num_traits::Float;
 #[cfg(feature = "parallel")]
-use rayon::prelude::*;
+use rayon::{iter::IndexedParallelIterator, prelude::*};
 
 #[derive(Debug, Clone)]
 pub struct Spectrum2D<T> {
@@ -55,20 +55,23 @@ where
             )
         }
     }
-    pub fn frame_iter(&self, index: usize) -> impl Iterator<Item = (&T, &T)> {
+    pub fn frame_iter(&self, index: usize) -> impl ExactSizeIterator<Item = (&T, &T)> {
         let (real, imag) = self.frame(index);
         real.iter().zip(imag.iter())
     }
 
-    pub fn frame_iter_mut(&mut self, index: usize) -> impl Iterator<Item = (&mut T, &mut T)> {
+    pub fn frame_iter_mut(
+        &mut self,
+        index: usize,
+    ) -> impl ExactSizeIterator<Item = (&mut T, &mut T)> {
         let (real, imag) = self.frame_mut(index);
         real.iter_mut().zip(imag.iter_mut())
     }
-    pub fn iter(&self) -> impl Iterator<Item = (&T, &T)> + '_ {
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = (&T, &T)> + '_ {
         self.real.iter().zip(self.imag.iter())
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&mut T, &mut T)> + '_ {
+    pub fn iter_mut(&mut self) -> impl ExactSizeIterator<Item = (&mut T, &mut T)> + '_ {
         self.real.iter_mut().zip(self.imag.iter_mut())
     }
 
@@ -85,26 +88,27 @@ where
             .zip(self.imag.chunks_exact_mut(self.bin_count))
     }
 
-    pub fn iter_bin(&self) { todo!() }
-    pub fn iter_bin_mut(&mut self) { todo!() }
+    fn _iter_bin(&self) { todo!() }
+    fn _iter_bin_mut(&mut self) { todo!() }
 }
 #[cfg(feature = "parallel")]
 impl<T> Spectrum2D<T>
 where
     T: Float + Sync + Send,
 {
-    pub fn par_iter(&self) -> impl rayon::iter::ParallelIterator<Item = (&T, &T)> + '_ {
+    pub fn par_iter(&self) -> impl IndexedParallelIterator<Item = (&T, &T)> + '_ {
         use rayon::prelude::*;
         self.real.par_iter().zip(self.imag.par_iter()).map(|c| c)
     }
 
-    pub fn par_iter_mut(&mut self) -> impl ParallelIterator<Item = (&mut T, &mut T)> + '_ {
+    pub fn par_iter_mut(&mut self) -> impl IndexedParallelIterator<Item = (&mut T, &mut T)> + '_ {
         self.real
             .par_iter_mut()
             .zip(self.imag.par_iter_mut())
             .map(|c| c)
     }
-    pub fn frame_par_iter(&self, index: usize) -> impl ParallelIterator<Item = (&T, &T)> {
+
+    pub fn frame_par_iter(&self, index: usize) -> impl IndexedParallelIterator<Item = (&T, &T)> {
         let (real, imag) = self.frame(index);
         real.par_iter().zip(imag.par_iter())
     }
@@ -131,6 +135,6 @@ where
             .par_chunks_exact_mut(self.bin_count)
             .zip(self.imag.par_chunks_exact_mut(self.bin_count))
     }
-    pub fn par_iter_bin(&self) { todo!() }
-    pub fn par_iter_bin_mut(&self) { todo!() }
+    fn _par_iter_bin(&self) { todo!() }
+    fn _par_iter_bin_mut(&self) { todo!() }
 }

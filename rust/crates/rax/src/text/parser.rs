@@ -10,10 +10,6 @@ pub enum Verb {
     Global,
 }
 
-pub trait IParseStr<E, const IS_ASCII: bool>: Sized {
-    fn parse_str(input: &str) -> Result<Self, E>;
-}
-
 /// Maintains parsing state for string-based parsers.
 ///
 /// [`StrParser`] stores the full input string and a pointer
@@ -22,23 +18,14 @@ pub trait IParseStr<E, const IS_ASCII: bool>: Sized {
 ///
 /// The lifetime `'a` is tied to the input string reference.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct StrParser<'a, const IS_ASCII: bool> {
+pub struct StrParser<'a> {
     /// The full input string.
     full: &'a str,
     /// Pointer to the remaining unconsumed portion of the input.
     cursor: usize,
 }
 
-impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
-    pub fn parse<D, E>(&'a mut self) -> Result<D, E>
-    where
-        D: IParseStr<E, IS_ASCII>,
-    {
-        D::parse_str(self.rest_str())
-    }
-}
-
-impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
+impl<'a> StrParser<'a> {
     pub fn new<S>(input: &'a S) -> Self
     where
         S: AsRef<str> + ?Sized,
@@ -70,15 +57,15 @@ impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     }
 }
 
-impl<const IS_ASCII: bool> Default for StrParser<'_, IS_ASCII> {
+impl Default for StrParser<'_> {
     fn default() -> Self { Self::new("") }
 }
 
-impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
+impl<'a> StrParser<'a> {
     /// Strictly takes a value using a flow rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn take<R>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
+    pub fn take<R, const IS_ASCII: bool>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
         R: IFlowRule<IS_ASCII>,
     {
@@ -94,7 +81,7 @@ impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     /// Strictly skips input matching a rule.
     ///
     /// Returns an error if the rule does not match.
-    pub fn skip<R>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
+    pub fn skip<R, const IS_ASCII: bool>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
         R: IFlowRule<IS_ASCII>,
     {
@@ -111,7 +98,10 @@ impl<'a, const IS_ASCII: bool> StrParser<'a, IS_ASCII> {
     ///
     /// Unlike flow rules, global rules operate on the entire input
     /// and do not modify the parser's `rest` pointer.
-    pub fn global<R>(input: &'a str, rule: &R) -> Result<R::Output<'a>, VerbError>
+    pub fn global<R, const IS_ASCII: bool>(
+        input: &'a str,
+        rule: &R,
+    ) -> Result<R::Output<'a>, VerbError>
     where
         R: IGlobalRule<IS_ASCII>,
     {

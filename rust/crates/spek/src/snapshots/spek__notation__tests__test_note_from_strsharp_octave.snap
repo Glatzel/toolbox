@@ -1,0 +1,7 @@
+---
+source: crates/spek/src/notation.rs
+expression: "format!(\"input:{input}\\n{result:?}\\ndisplay:{result}\")"
+---
+input:C#4
+Note { pitch: C, accs: [Sharp], octave: Some(4), cents: None }
+display:C♯4

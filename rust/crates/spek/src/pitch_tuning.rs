@@ -1,5 +1,5 @@
-pub fn pyin() { todo!() }
-pub fn yin() { todo!() }
-pub fn estimate_tuning() { todo!() }
-pub fn pitch_tuning() { todo!() }
-pub fn piptrack() { todo!() }
+fn _pyin() { todo!() }
+fn _yin() { todo!() }
+fn _estimate_tuning() { todo!() }
+fn _pitch_tuning() { todo!() }
+fn _piptrack() { todo!() }

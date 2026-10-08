@@ -1,9 +1,10 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -58,8 +59,9 @@ pub struct Gsa {
     system_id: Option<SystemId>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Gsa {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Gsa {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let op_mode = parser
             .skip(&UNTIL_COMMA_DISCARD)?

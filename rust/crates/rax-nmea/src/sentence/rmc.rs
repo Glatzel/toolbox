@@ -1,6 +1,8 @@
+use core::str::FromStr;
+
 use derive_getters::Getters;
 use jiff::civil::{Date, Time};
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 
 use crate::RaxNmeaError;
 use crate::common::{FaaMode, Status};
@@ -62,8 +64,9 @@ pub struct Rmc {
     nav_status: Option<RmcNavigationStatus>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Rmc {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Rmc {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let time = parser.skip(&UNTIL_COMMA_DISCARD)?.take(&NmeaTime)?;
         let status = parser.take(&UNTIL_COMMA_DISCARD)?.parse_option()?;

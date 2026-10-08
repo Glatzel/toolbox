@@ -60,28 +60,28 @@ fn wrapper(f: &str) -> mischief::Result<Vec<Dispatcher>> {
         }
 
         StrParser::global(&buf, &NmeaValidateMultiLine)?;
-        let mut parser = StrParser::new(&buf);
+
         match identifier {
-            Identifier::DHV => collector.push(Dispatcher::DHV(talker, parser.parse()?)),
-            Identifier::DTM => collector.push(Dispatcher::DTM(talker, parser.parse()?)),
-            Identifier::GBQ => collector.push(Dispatcher::GBQ(talker, parser.parse()?)),
-            Identifier::GBS => collector.push(Dispatcher::GBS(talker, parser.parse()?)),
-            Identifier::GGA => collector.push(Dispatcher::GGA(talker, parser.parse()?)),
-            Identifier::GLL => collector.push(Dispatcher::GLL(talker, parser.parse()?)),
-            Identifier::GLQ => collector.push(Dispatcher::GLQ(talker, parser.parse()?)),
-            Identifier::GNQ => collector.push(Dispatcher::GNQ(talker, parser.parse()?)),
-            Identifier::GNS => collector.push(Dispatcher::GNS(talker, parser.parse()?)),
-            Identifier::GPQ => collector.push(Dispatcher::GPQ(talker, parser.parse()?)),
-            Identifier::GRS => collector.push(Dispatcher::GRS(talker, parser.parse()?)),
-            Identifier::GSA => collector.push(Dispatcher::GSA(talker, parser.parse()?)),
-            Identifier::GST => collector.push(Dispatcher::GST(talker, parser.parse()?)),
-            Identifier::GSV => collector.push(Dispatcher::GSV(talker, parser.parse()?)),
-            Identifier::RMC => collector.push(Dispatcher::RMC(talker, parser.parse()?)),
-            Identifier::THS => collector.push(Dispatcher::THS(talker, parser.parse()?)),
-            Identifier::TXT => collector.push(Dispatcher::TXT(talker, parser.parse()?)),
-            Identifier::VLW => collector.push(Dispatcher::VLW(talker, parser.parse()?)),
-            Identifier::VTG => collector.push(Dispatcher::VTG(talker, parser.parse()?)),
-            Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, parser.parse()?)),
+            Identifier::DHV => collector.push(Dispatcher::DHV(talker, (&buf).parse()?)),
+            Identifier::DTM => collector.push(Dispatcher::DTM(talker, (&buf).parse()?)),
+            Identifier::GBQ => collector.push(Dispatcher::GBQ(talker, (&buf).parse()?)),
+            Identifier::GBS => collector.push(Dispatcher::GBS(talker, (&buf).parse()?)),
+            Identifier::GGA => collector.push(Dispatcher::GGA(talker, (&buf).parse()?)),
+            Identifier::GLL => collector.push(Dispatcher::GLL(talker, (&buf).parse()?)),
+            Identifier::GLQ => collector.push(Dispatcher::GLQ(talker, (&buf).parse()?)),
+            Identifier::GNQ => collector.push(Dispatcher::GNQ(talker, (&buf).parse()?)),
+            Identifier::GNS => collector.push(Dispatcher::GNS(talker, (&buf).parse()?)),
+            Identifier::GPQ => collector.push(Dispatcher::GPQ(talker, (&buf).parse()?)),
+            Identifier::GRS => collector.push(Dispatcher::GRS(talker, (&buf).parse()?)),
+            Identifier::GSA => collector.push(Dispatcher::GSA(talker, (&buf).parse()?)),
+            Identifier::GST => collector.push(Dispatcher::GST(talker, (&buf).parse()?)),
+            Identifier::GSV => collector.push(Dispatcher::GSV(talker, (&buf).parse()?)),
+            Identifier::RMC => collector.push(Dispatcher::RMC(talker, (&buf).parse()?)),
+            Identifier::THS => collector.push(Dispatcher::THS(talker, (&buf).parse()?)),
+            Identifier::TXT => collector.push(Dispatcher::TXT(talker, (&buf).parse()?)),
+            Identifier::VLW => collector.push(Dispatcher::VLW(talker, (&buf).parse()?)),
+            Identifier::VTG => collector.push(Dispatcher::VTG(talker, (&buf).parse()?)),
+            Identifier::ZDA => collector.push(Dispatcher::ZDA(talker, (&buf).parse()?)),
         }
         buf.clear();
     }

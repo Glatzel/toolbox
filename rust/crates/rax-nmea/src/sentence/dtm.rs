@@ -1,9 +1,10 @@
 extern crate alloc;
 
 use alloc::string::String;
+use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -40,8 +41,9 @@ pub struct Dtm {
     /// Offset in altitude
     alt: Option<f64>,
 }
-impl IParseStr<RaxNmeaError, true> for Dtm {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Dtm {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
         let datum = parser
             .skip(&UNTIL_COMMA_DISCARD)?

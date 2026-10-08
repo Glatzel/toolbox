@@ -1,9 +1,10 @@
 extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use core::str::FromStr;
 
 use derive_getters::Getters;
-use rax::text::{IParseStr, StrParser};
+use rax::text::StrParser;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -31,8 +32,9 @@ pub struct Txt {
     message: Vec<(TxtType, String)>,
 }
 
-impl IParseStr<RaxNmeaError, true> for Txt {
-    fn parse_str(input: &str) -> Result<Self, RaxNmeaError> {
+impl FromStr for Txt {
+    type Err = RaxNmeaError;
+    fn from_str(input: &str) -> Result<Self, RaxNmeaError> {
         let mut parser = StrParser::new(input);
 
         let mut infos = Vec::new();

@@ -1,7 +1,7 @@
-pub fn perceptual_weighting() { todo!() }
-pub fn frequency_weighting() { todo!() }
-pub fn multi_frequency_weighting() { todo!() }
-pub fn a_weighting() { todo!() }
-pub fn b_weighting() { todo!() }
-pub fn c_weighting() { todo!() }
-pub fn d_weighting() { todo!() }
+fn _perceptual_weighting() { todo!() }
+fn _frequency_weighting() { todo!() }
+fn _multi_frequency_weighting() { todo!() }
+fn _a_weighting() { todo!() }
+fn _b_weighting() { todo!() }
+fn _c_weighting() { todo!() }
+fn _d_weighting() { todo!() }

@@ -110,9 +110,10 @@ where
 {
     reference * num!(10.0).powf(db / num!(10))
 }
-pub fn pcen() { todo!() }
-pub fn mu_compress() { todo!() }
-pub fn mu_expand() { todo!() }
+fn _pcen() { todo!() }
+fn _mu_compress() { todo!() }
+fn _mu_expand() { todo!() }
+
 #[cfg(test)]
 mod tests {
     use float_cmp::assert_approx_eq;

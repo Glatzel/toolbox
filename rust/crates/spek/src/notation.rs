@@ -66,16 +66,16 @@ impl Note {
     }
 }
 
-pub fn key_to_notes() { todo!() }
-pub fn key_to_degrees() { todo!() }
-pub fn mela_to_svara() { todo!() }
-pub fn mela_to_degrees() { todo!() }
-pub fn thaat_to_degrees() { todo!() }
-pub fn list_mela() { todo!() }
-pub fn list_thaat() { todo!() }
-pub fn fifths_to_note() { todo!() }
-pub fn interval_to_fjs() { todo!() }
-pub fn interval_frequencies() { todo!() }
+fn _key_to_notes() { todo!() }
+fn _key_to_degrees() { todo!() }
+fn _mela_to_svara() { todo!() }
+fn _mela_to_degrees() { todo!() }
+fn _thaat_to_degrees() { todo!() }
+fn _list_mela() { todo!() }
+fn _list_thaat() { todo!() }
+fn _fifths_to_note() { todo!() }
+fn _interval_to_fjs() { todo!() }
+fn _interval_frequencies() { todo!() }
 #[cfg(test)]
 mod tests {
     use rstest::rstest;

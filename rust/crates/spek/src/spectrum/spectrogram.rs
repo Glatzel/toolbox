@@ -46,8 +46,8 @@ impl<T> Spectrogram<T> {
     /// frames. Storage is frame-major, so a bin's values across frames are
     /// strided rather than contiguous — hence the nested-iterator shape
     /// instead of a slice.
-    pub fn iter_bin(&self) { todo!() }
-    pub fn iter_bin_mut(&mut self) { todo!() }
+    fn _iter_bin(&self) { todo!() }
+    fn _iter_bin_mut(&mut self) { todo!() }
 }
 #[cfg(feature = "parallel")]
 impl<T> Spectrogram<T>
@@ -75,6 +75,6 @@ where
         use rayon::prelude::*;
         self.data.par_chunks_exact_mut(self.bin_count)
     }
-    pub fn par_iter_bin(&self) { todo!() }
-    pub fn par_iter_bin_mut(&self) { todo!() }
+    fn _par_iter_bin(&self) { todo!() }
+    fn _par_iter_bin_mut(&self) { todo!() }
 }

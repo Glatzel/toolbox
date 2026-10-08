@@ -88,8 +88,8 @@ where
             .zip(self.imag.chunks_exact_mut(self.bin_count))
     }
 
-    pub fn iter_bin(&self) { todo!() }
-    pub fn iter_bin_mut(&mut self) { todo!() }
+    fn _iter_bin(&self) { todo!() }
+    fn _iter_bin_mut(&mut self) { todo!() }
 }
 #[cfg(feature = "parallel")]
 impl<T> Spectrum2D<T>
@@ -135,6 +135,6 @@ where
             .par_chunks_exact_mut(self.bin_count)
             .zip(self.imag.par_chunks_exact_mut(self.bin_count))
     }
-    pub fn par_iter_bin(&self) { todo!() }
-    pub fn par_iter_bin_mut(&self) { todo!() }
+    fn _par_iter_bin(&self) { todo!() }
+    fn _par_iter_bin_mut(&self) { todo!() }
 }

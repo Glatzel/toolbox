@@ -16,10 +16,10 @@ where
 {
     num!(440.0) * (num!(2.0).powf((midi - num!(69.0)) / num!(12.0)))
 }
-pub fn midi_to_note() { todo!() }
-pub fn midi_to_svara_h() { todo!() }
-pub fn midi_to_svara_c() { todo!() }
-pub fn note_to_hz<T>(note: &Note) -> T
+fn _midi_to_note() { todo!() }
+fn _midi_to_svara_h() { todo!() }
+fn _midi_to_svara_c() { todo!() }
+fn _note_to_hz<T>(note: &Note) -> T
 where
     T: Float + Sum,
 {

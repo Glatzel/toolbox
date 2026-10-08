@@ -350,7 +350,10 @@ mod tests {
         let result: Result<Note, NoteError> = input.parse();
         if valid {
             let result = result.unwrap();
-            insta::assert_snapshot!(name, format!("{input}\n{result:?}\n{result}"));
+            insta::assert_snapshot!(
+                format!("test_note_from_str{name}"),
+                format!("{input}\n{result:?}\n{result}")
+            );
             let display = result.to_string();
             let reparse: Note = display.parse().unwrap();
             assert_eq!(reparse, result);
@@ -365,6 +368,9 @@ mod tests {
     #[case("C_sharp_3",Note{ pitch: Pitch::C, accs: vec![Accidental::Sharp], octave: Some(3), cents: None })]
     fn test_to_midi(#[case] name: &str, #[case] note: Note) {
         let result: f32 = note.to_midi();
-        insta::assert_snapshot!(name, format!("{note:?}{result:.0}"))
+        insta::assert_snapshot!(
+            format!("test_to_midi{name}"),
+            format!("{note:?}{result:.0}")
+        )
     }
 }

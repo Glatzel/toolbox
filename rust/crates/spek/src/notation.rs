@@ -352,7 +352,7 @@ mod tests {
             let result = result.unwrap();
             insta::assert_snapshot!(
                 format!("test_note_from_str{name}"),
-                format!("{input}\n{result:?}\n{result}")
+                format!("input:{input}\n{result:?}\ndisplay:{result}")
             );
             let display = result.to_string();
             let reparse: Note = display.parse().unwrap();

@@ -12,14 +12,14 @@ where
 {
     /// Converts decibels back to amplitude: `reference * 10^(db / 20)`.
     ///
-    /// Inverse of [`amplitude_to_db`] (with `top_db = 0` and no `amin`
+    /// Inverse of [`Amplitude::to_db`] (with `top_db = 0` and no `amin`
     /// clamping).
     pub fn to_amplitude(&self, reference: T) -> Amplitude<T> {
         Amplitude(reference * num!(10.0).powf(self.0 / num!(20)))
     }
     /// Converts decibels back to power: `reference * 10^(db / 10)`.
     ///
-    /// Inverse of [`power_to_db`] (with `top_db = 0` and no `amin` clamping).
+    /// Inverse of [`Power::to_db`] (with `top_db = 0` and no `amin` clamping).
     pub fn to_power(&self, reference: T) -> Power<T>
     where
         T: Float,
@@ -41,9 +41,10 @@ where
     }
     /// Converts a complex spectrum bin directly to decibels (power scale).
     ///
-    /// Equivalent to [`spectrum_to_power`] followed by [`power_to_db`].
+    /// Equivalent to [`Self::to_power`] followed by [`Power::to_db`].
     ///
-    /// See [`power_to_db`] for the meaning of `reference`, `amin` and `top_db`.
+    /// See [`Power::to_db`] for the meaning of `reference`, `amin` and
+    /// `top_db`.
     pub fn from_spectrum<I, I1>(real: T, imag: T, reference: T, amin: I1, top_db: I) -> Self
     where
         I: Into<Self>,

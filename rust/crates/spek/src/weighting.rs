@@ -45,7 +45,7 @@ pub enum WeightingKind {
 /// - `frequency`: Frequency of the bin in Hz.
 /// - `reference`: Reference power for the dB conversion (`ref` in librosa).
 /// - `amin`: Minimum power threshold, used to avoid `log(0)`.
-/// - `top_db`: Dynamic range threshold passed to [`power_to_db`].
+/// - `top_db`: Dynamic range threshold passed to [`Power::to_db`].
 /// - `kind`: Weighting curve, see [`WeightingKind`].
 /// - `min_db`: Optional lower bound for the weighting curve in dB.
 ///

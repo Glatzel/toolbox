@@ -1,7 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-pub fn fft_frequencies<T>(sr: usize, n_fft: usize) -> impl ExactSizeIterator<Item = T>
+use crate::convert::frequency_unit::{hz_to_mel, mel_to_hz};
+use crate::utils::linspace;
+
+pub fn fft_frequencies<T>(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = T>
 where
     T: Float,
 {
@@ -9,7 +12,7 @@ where
         clippy::range_plus_one,
         reason = "After fix, throw trait `std::iter::ExactSizeIterator` is not implemented for `std::ops::RangeInclusive<usize>`."
     )]
-    (0..(1 + n_fft / 2)).map(move |n| num!(sr * n / n_fft))
+    (0..(1 + n_fft / 2)).map(move |n| num!(n) * sr / num!(n_fft))
 }
 
 pub fn cqt_frequencies<T>(
@@ -25,9 +28,36 @@ where
     (0..n_bins).map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
 }
 
-fn _mel_frequencies() { todo!() }
-fn _tempo_frequencies() { todo!() }
-fn _fourier_tempo_frequencies() { todo!() }
+pub fn mel_frequencies<T>(
+    n_mels: usize,
+    fmin: T,
+    fmax: T,
+    htk: bool,
+) -> impl ExactSizeIterator<Item = T>
+where
+    T: Float,
+{
+    let min_mel = hz_to_mel(fmin, htk);
+    let max_mel = hz_to_mel(fmax, htk);
+    linspace(min_mel, max_mel, n_mels).map(move |mel| mel_to_hz(mel, htk))
+}
+pub fn tempo_frequencies<T>(n_bins: usize, hop_length: usize, sr: T) -> impl Iterator<Item = T>
+where
+    T: Float,
+{
+    std::iter::once(T::infinity())
+        .chain((1..n_bins).map(move |n| num!(60.0) * sr / (num!(hop_length) * num!(n))))
+}
+pub fn fourier_tempo_frequencies<T>(
+    sr: T,
+    win_length: usize,
+    hop_length: usize,
+) -> impl ExactSizeIterator<Item = T>
+where
+    T: Float,
+{
+    fft_frequencies(sr * num!(60) / num!(hop_length), win_length)
+}
 
 #[cfg(test)]
 mod tests {
@@ -37,7 +67,7 @@ mod tests {
     use crate::notation::Note;
     #[test]
     fn test_fft_frequencies() {
-        let result: Vec<_> = fft_frequencies::<f64>(22050, 16)
+        let result: Vec<_> = fft_frequencies::<f64>(22050.0, 16)
             .map(|i| i.to_u16().unwrap())
             .collect();
         insta::assert_debug_snapshot!(result,@"
@@ -92,6 +122,59 @@ mod tests {
             "220.000",
             "233.082",
             "246.942",
+        ]
+        "#)
+    }
+    #[test]
+    fn test_mel_frequencies() {
+        let result: Vec<_> = mel_frequencies::<f64>(40, 0.0, 11025.0, false)
+            .take(10)
+            .map(|i| format!("{i:.3}"))
+            .collect();
+        insta::assert_debug_snapshot!(result,@r#"
+        [
+            "0.000",
+            "85.317",
+            "170.635",
+            "255.952",
+            "341.269",
+            "426.586",
+            "511.904",
+            "597.221",
+            "682.538",
+            "767.855",
+        ]
+        "#)
+    }
+    #[test]
+    fn test_tempo_frequencies() {
+        let result: Vec<_> = tempo_frequencies::<f64>(384, 512, 22050.0)
+            .take(5)
+            .map(|i| format!("{i:.3}"))
+            .collect();
+        insta::assert_debug_snapshot!(result,@r#"
+        [
+            "inf",
+            "2583.984",
+            "1291.992",
+            "861.328",
+            "645.996",
+        ]
+        "#)
+    }
+    #[test]
+    fn test_fourier_tempo_frequencies() {
+        let result: Vec<_> = fourier_tempo_frequencies::<f64>(22050.0, 384, 512)
+            .take(5)
+            .map(|i| format!("{i:.3}"))
+            .collect();
+        insta::assert_debug_snapshot!(result,@r#"
+        [
+            "0.000",
+            "6.729",
+            "13.458",
+            "20.187",
+            "26.917",
         ]
         "#)
     }

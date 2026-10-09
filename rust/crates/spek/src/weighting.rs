@@ -6,12 +6,12 @@ use crate::spectrum::power_to_db;
 /// Frequency weighting curve to apply.
 /// # References
 ///
-/// - [librosa.frequency_weighting](https://librosa.org/doc/latest/generated/librosa.frequency_weighting.html)
-/// - [librosa.A_weighting](https://librosa.org/doc/latest/generated/librosa.A_weighting.html)
-/// - [librosa.B_weighting](https://librosa.org/doc/latest/generated/librosa.B_weighting.html)
-/// - [librosa.C_weighting](https://librosa.org/doc/latest/generated/librosa.C_weighting.html)
-/// - [librosa.D_weighting](https://librosa.org/doc/latest/generated/librosa.D_weighting.html)
-/// - [librosa.Z_weighting](https://librosa.org/doc/latest/generated/librosa.Z_weighting.html)
+/// - [librosa.frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.frequency_weighting.html)
+/// - [librosa.A_weighting](https://librosa.org/doc/latest/api/generated/librosa.A_weighting.html)
+/// - [librosa.B_weighting](https://librosa.org/doc/latest/api/generated/librosa.B_weighting.html)
+/// - [librosa.C_weighting](https://librosa.org/doc/latest/api/generated/librosa.C_weighting.html)
+/// - [librosa.D_weighting](https://librosa.org/doc/latest/api/generated/librosa.D_weighting.html)
+/// - [librosa.Z_weighting](https://librosa.org/doc/latest/api/generated/librosa.Z_weighting.html)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WeightingKind {
     /// A-weighting, the most common curve for general loudness.
@@ -63,7 +63,7 @@ pub enum WeightingKind {
 ///
 /// # References
 ///
-/// - [librosa.perceptual_weighting](https://librosa.org/doc/latest/generated/librosa.perceptual_weighting.html)
+/// - [librosa.perceptual_weighting](https://librosa.org/doc/latest/api/generated/librosa.perceptual_weighting.html)
 pub fn perceptual_weighting<T>(
     power: T,
     frequency: T,
@@ -98,8 +98,8 @@ where
 ///
 /// # References
 ///
-/// - [librosa.frequency_weighting](https://librosa.org/doc/latest/generated/librosa.frequency_weighting.html)
-/// - [librosa.Z_weighting](https://librosa.org/doc/latest/generated/librosa.Z_weighting.html)
+/// - [librosa.frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.frequency_weighting.html)
+/// - [librosa.Z_weighting](https://librosa.org/doc/latest/api/generated/librosa.Z_weighting.html)
 pub fn frequency_weighting<T>(frequency: T, kind: WeightingKind, min_db: Option<T>) -> T
 where
     T: Float,
@@ -132,7 +132,7 @@ where
 ///
 /// # References
 ///
-/// - [librosa.multi_frequency_weighting](https://librosa.org/doc/latest/generated/librosa.multi_frequency_weighting.html)
+/// - [librosa.multi_frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.multi_frequency_weighting.html)
 pub fn multi_frequency_weighting<'a, T, I>(
     frequencies: &'a [T],
     kinds: I,
@@ -168,7 +168,7 @@ where
 ///
 /// # References
 ///
-/// - [librosa.A_weighting](https://librosa.org/doc/latest/generated/librosa.A_weighting.html)
+/// - [librosa.A_weighting](https://librosa.org/doc/latest/api/generated/librosa.A_weighting.html)
 pub fn a_weighting<T>(frequency: T, min_db: Option<T>) -> T
 where
     T: Float,
@@ -211,7 +211,7 @@ where
 ///
 /// # References
 ///
-/// - [librosa.B_weighting](https://librosa.org/doc/latest/generated/librosa.B_weighting.html)
+/// - [librosa.B_weighting](https://librosa.org/doc/latest/api/generated/librosa.B_weighting.html)
 pub fn b_weighting<T>(frequency: T, min_db: Option<T>) -> T
 where
     T: Float,
@@ -252,7 +252,7 @@ where
 ///
 /// # References
 ///
-/// - [librosa.C_weighting](https://librosa.org/doc/latest/generated/librosa.C_weighting.html)
+/// - [librosa.C_weighting](https://librosa.org/doc/latest/api/generated/librosa.C_weighting.html)
 pub fn c_weighting<T>(frequency: T, min_db: Option<T>) -> T
 where
     T: Float,
@@ -291,7 +291,7 @@ where
 ///
 /// # References
 ///
-/// - [librosa.D_weighting](https://librosa.org/doc/latest/generated/librosa.D_weighting.html)
+/// - [librosa.D_weighting](https://librosa.org/doc/latest/api/generated/librosa.D_weighting.html)
 pub fn d_weighting<T>(frequency: T, min_db: Option<T>) -> T
 where
     T: Float,

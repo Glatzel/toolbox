@@ -30,15 +30,15 @@ pub enum KeyKindMode {
 }
 
 impl KeyKindMode {
-    pub fn offset(&self) -> u8 {
+    pub const fn offset(&self) -> u8 {
         match self {
-            KeyKindMode::Ionian => 0,
-            KeyKindMode::Dorian => 1,
-            KeyKindMode::Phrygian => 2,
-            KeyKindMode::Lydian => 3,
-            KeyKindMode::Mixolydian => 4,
-            KeyKindMode::Aeolian => 5,
-            KeyKindMode::Locrian => 6,
+            Self::Ionian => 0,
+            Self::Dorian => 1,
+            Self::Phrygian => 2,
+            Self::Lydian => 3,
+            Self::Mixolydian => 4,
+            Self::Aeolian => 5,
+            Self::Locrian => 6,
         }
     }
 }
@@ -104,7 +104,7 @@ impl FromStr for Key {
                         .map(Accidental::try_from)
                         .collect::<Result<Vec<_>, NotationError>>()?;
                     let key = s_key.parse()?;
-                    Ok(Key { pitch, accs, key })
+                    Ok(Self { pitch, accs, key })
                 }
                 None => Err(NotationError::InvalidKey(s.into())),
             }

@@ -69,7 +69,7 @@ where
         let logstep = num!(6.4).ln() / num!(27.0);
 
         if mel >= min_log_mel {
-            freq = min_log_hz * (logstep * (mel - min_log_mel)).exp()
+            freq = min_log_hz * (logstep * (mel - min_log_mel)).exp();
         }
 
         freq

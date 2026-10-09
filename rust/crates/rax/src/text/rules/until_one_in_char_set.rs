@@ -56,8 +56,8 @@ impl<const N: usize> IFlowRule<false> for UntilOneInCharSet<'_, false, N, CharSe
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a matching character is found,
-    ///   with the split determined by the selected mode.
+    /// - `Ok((prefix, consumed_bytes))` if a matching character is found, with
+    ///   the split determined by the selected mode.
     /// - `Err(RuleError)` if no matching character is found.
     ///
     /// The consumed byte count depends on the selected mode and the UTF-8
@@ -75,17 +75,15 @@ impl<const N: usize> IFlowRule<false> for UntilOneInCharSet<'_, false, N, CharSe
     }
 }
 
-impl<const N: usize> IFlowRule<true>
-    for UntilOneInCharSet<'_, true, N, AsciiCharSetFilter<N>>
-{
+impl<const N: usize> IFlowRule<true> for UntilOneInCharSet<'_, true, N, AsciiCharSetFilter<N>> {
     type Output<'a> = &'a str;
 
     /// Applies the rule using byte scanning and an ASCII character set.
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a matching byte is found,
-    ///   with the split determined by the selected mode.
+    /// - `Ok((prefix, consumed_bytes))` if a matching byte is found, with the
+    ///   split determined by the selected mode.
     /// - `Err(RuleError)` if no matching byte is found.
     ///
     /// The input must contain only ASCII characters for byte-based matching

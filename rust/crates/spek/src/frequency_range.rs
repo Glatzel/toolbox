@@ -176,7 +176,7 @@ mod tests {
     use num_traits::ToPrimitive;
 
     use super::*;
-    use crate::notation::Note;
+    use crate::data_types::notation::Note;
     #[test]
     fn test_fft_frequencies() {
         let result: Vec<_> = fft_frequencies::<f64>(22050.0, 16)
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn test_cqt_frequencies() {
         let fmin = Note {
-            pitch: crate::notation::Pitch::C,
+            pitch: crate::data_types::notation::Pitch::C,
             accs: Vec::new(),
             octave: Some(2),
             cents: None,

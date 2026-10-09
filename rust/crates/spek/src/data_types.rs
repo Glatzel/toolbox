@@ -4,6 +4,7 @@ mod db;
 mod frequency;
 mod mel;
 mod midi;
+pub mod notation;
 mod octs;
 mod phase;
 mod power;

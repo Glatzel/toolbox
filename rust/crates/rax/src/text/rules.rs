@@ -11,17 +11,17 @@ mod until_not_in_char_set;
 mod until_one_in_char_set;
 mod until_str;
 
-pub use byte_count::*;
-pub use char_count::*;
-pub use n_in_char_set::*;
-pub use one_in_char_set::*;
-pub use until_char::*;
-pub use until_n_in_char_set::*;
-pub use until_not_in_char_set::*;
-pub use until_one_in_char_set::*;
-pub use until_str::*;
+pub use byte_count::ByteCount;
+pub use char_count::CharCount;
+pub use n_in_char_set::NInCharSet;
+pub use one_in_char_set::OneOfCharSet;
+pub use until_char::UntilChar;
+pub use until_n_in_char_set::UntilNInCharSet;
+pub use until_not_in_char_set::UntilNotInCharSet;
+pub use until_one_in_char_set::UntilOneInCharSet;
+pub use until_str::UntilStr;
 
-pub use self::char::*;
+pub use self::char::Char;
 use crate::error::RuleError;
 
 /// Determines how a parser should treat the delimiter when splitting strings.

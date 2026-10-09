@@ -1,6 +1,10 @@
 mod char_set;
 
-pub use self::char_set::*;
+pub use self::char_set::{
+    AsciiCharSetFilter, CHAR_SET_ASCII_LETTERS, CHAR_SET_ASCII_LETTERS_DIGITS,
+    CHAR_SET_ASCII_LETTERS_LOWER, CHAR_SET_ASCII_LETTERS_UPPER, CHAR_SET_DIGITS, CharSetFilter,
+    ICharSetFilter,
+};
 
 /// Trait representing a generic filter over some input type `I`.
 ///

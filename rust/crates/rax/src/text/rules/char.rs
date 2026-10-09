@@ -4,15 +4,25 @@ use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::rules::IRule;
 
-/// Rule that matches a specific character at the start of the input string.
+/// Rule that extracts a fixed number of bytes from the input string.
 ///
-/// `Char<C>` checks if the first character of the input string is equal to the
-/// expected character `C`. If the first character matches, it returns a tuple:
-/// `(Some(C), rest)` where `rest` is the remainder of the input after the
-/// matched character. Otherwise, it returns `(None, input)`.
+/// The `ByteCount<N, IS_ASCII>` rule attempts to extract the first `N` bytes
+/// of the input string.
 ///
-/// This rule respects UTF-8 character boundaries and only examines the first
-/// character of the input.
+/// If the input contains at least `N` bytes and the split occurs at a valid
+/// UTF-8 character boundary, the rule returns `Ok((prefix, N))`, where
+/// `prefix` is the extracted substring and `N` is its byte length.
+///
+/// If the input is shorter than `N` bytes or the split falls inside a UTF-8
+/// character, the rule returns a [`RuleError`].
+///
+/// The `IS_ASCII` const parameter specifies whether the input is assumed to
+/// contain only ASCII characters. The extraction itself uses [`str::get`],
+/// which checks UTF-8 character boundaries regardless of this parameter.
+///
+/// This rule is useful for parsing fixed-width fields in text-based protocols
+/// and other formats where field widths are measured in bytes.
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Char<const C: char, const IS_ASCII: bool>;
 

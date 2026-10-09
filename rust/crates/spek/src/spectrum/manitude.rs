@@ -1,5 +1,6 @@
 use generic_num::num;
 use num_traits::Float;
+
 pub fn phase<T>(real: T, imag: T, magnitude: T) -> (T, T)
 where
     T: Float,
@@ -8,6 +9,7 @@ where
     let phase_imag = imag / magnitude;
     (phase_real, phase_imag)
 }
+
 /// Converts a complex spectrum bin to power: `re² + im²`.
 ///
 /// This is the squared magnitude `|z|²`.

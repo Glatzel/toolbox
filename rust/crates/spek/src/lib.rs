@@ -7,5 +7,6 @@ pub mod notation;
 pub mod onset;
 pub mod pad;
 pub mod spectrum;
+mod utils;
 pub mod weighting;
 pub mod windows;

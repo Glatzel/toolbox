@@ -1,11 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::Frequency;
 
-pub struct Midi<T>(pub T);
-simple_structure_from_t!(Midi);
+simple_structure!(Midi);
 impl<T> Midi<T>
 where
     T: Float,

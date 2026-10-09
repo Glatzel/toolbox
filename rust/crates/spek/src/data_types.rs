@@ -24,8 +24,9 @@ pub use spectrogram::Spectrogram;
 pub use spectrum2d::Spectrum2D;
 pub use tuning::Tuning;
 
-macro_rules! simple_structure_from_t {
+macro_rules! simple_structure {
     ($name:ident) => {
+        pub struct $name<T>(pub T);
         impl<T> From<T> for $name<T>
         where
             T: num_traits::Float,
@@ -34,4 +35,4 @@ macro_rules! simple_structure_from_t {
         }
     };
 }
-use simple_structure_from_t;
+use simple_structure;

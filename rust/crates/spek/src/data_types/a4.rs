@@ -1,11 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::Tuning;
 
-pub struct A4<T>(pub T);
-simple_structure_from_t!(A4);
+simple_structure!(A4);
 
 impl<T> A4<T>
 where

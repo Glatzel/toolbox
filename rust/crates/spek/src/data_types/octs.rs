@@ -1,11 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::{Frequency, Tuning};
 
-pub struct Octs<T>(pub T);
-simple_structure_from_t!(Octs);
+simple_structure!(Octs);
 
 impl<T> Octs<T>
 where

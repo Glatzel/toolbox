@@ -1,10 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::{Amplitude, Db};
-pub struct Power<T>(pub T);
-simple_structure_from_t!(Power);
+
+simple_structure!(Power);
 impl<T> Power<T>
 where
     T: Float,

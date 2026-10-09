@@ -1,11 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::{Mel, Midi, Octs, Tuning};
 
-pub struct Frequency<T>(pub T);
-simple_structure_from_t!(Frequency);
+simple_structure!(Frequency);
 impl<T> Frequency<T>
 where
     T: Float,

@@ -1,11 +1,10 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure_from_t;
+use super::simple_structure;
 use crate::data_types::A4;
 
-pub struct Tuning<T>(pub T);
-simple_structure_from_t!(Tuning);
+simple_structure!(Tuning);
 
 impl<T> Tuning<T>
 where

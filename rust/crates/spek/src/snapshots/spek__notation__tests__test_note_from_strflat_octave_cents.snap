@@ -1,7 +1,0 @@
----
-source: crates/spek/src/notation.rs
-expression: "format!(\"input:{input}\\n{result:?}\\ndisplay:{result}\")"
----
-input:Cb+4+25
-Note { pitch: C, accs: [Flat], octave: Some(4), cents: Some(25) }
-display:C♭4+25

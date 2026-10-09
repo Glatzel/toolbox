@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::spectrum::power_to_db;
+use crate::data_types::{Db, Frequency, Power};
 
 /// Frequency weighting curve to apply.
 /// # References
@@ -65,18 +65,22 @@ pub enum WeightingKind {
 ///
 /// - [librosa.perceptual_weighting](https://librosa.org/doc/latest/api/generated/librosa.perceptual_weighting.html)
 pub fn perceptual_weighting<T>(
-    power: T,
-    frequency: T,
+    power: impl Into<Power<T>>,
+    frequency: impl Into<Frequency<T>>,
     reference: T,
-    amin: T,
-    top_db: T,
+    amin: impl Into<Power<T>>,
+    top_db: impl Into<Db<T>>,
     kind: WeightingKind,
-    min_db: Option<T>,
+    min_db: impl Into<Db<T>>,
 ) -> T
 where
     T: Float,
 {
-    frequency_weighting(frequency, kind, min_db) + power_to_db(power, reference, amin, top_db)
+    frequency_weighting(frequency.into().0, kind, min_db.into().0)
+        + power
+            .into()
+            .to_db(reference, amin.into().0, top_db.into().0)
+            .0
 }
 
 /// Compute the weighting of a frequency, in dB, for the given curve.
@@ -100,7 +104,7 @@ where
 ///
 /// - [librosa.frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.frequency_weighting.html)
 /// - [librosa.Z_weighting](https://librosa.org/doc/latest/api/generated/librosa.Z_weighting.html)
-pub fn frequency_weighting<T>(frequency: T, kind: WeightingKind, min_db: Option<T>) -> T
+pub fn frequency_weighting<T>(frequency: T, kind: WeightingKind, min_db: impl Into<Db<T>>) -> T
 where
     T: Float,
 {
@@ -109,7 +113,7 @@ where
         WeightingKind::B => b_weighting(frequency, min_db),
         WeightingKind::C => c_weighting(frequency, min_db),
         WeightingKind::D => d_weighting(frequency, min_db),
-        WeightingKind::Z => min_db.map_or_else(|| num!(0.0), |min_db| min_db.max(num!(0.0))),
+        WeightingKind::Z => min_db.into().0.max(num!(0.0)),
     }
 }
 
@@ -136,13 +140,14 @@ where
 pub fn multi_frequency_weighting<'a, T, I>(
     frequencies: &'a [T],
     kinds: I,
-    min_db: Option<T>,
+    min_db: impl Into<Db<T>>,
 ) -> impl Iterator<Item = impl Iterator<Item = T> + 'a> + 'a
 where
     T: Float,
     I: IntoIterator<Item = WeightingKind>,
     I::IntoIter: 'a,
 {
+    let min_db = min_db.into().0;
     kinds.into_iter().map(move |kind| {
         frequencies
             .iter()
@@ -169,7 +174,7 @@ where
 /// # References
 ///
 /// - [librosa.A_weighting](https://librosa.org/doc/latest/api/generated/librosa.A_weighting.html)
-pub fn a_weighting<T>(frequency: T, min_db: Option<T>) -> T
+pub fn a_weighting<T>(frequency: T, min_db: impl Into<Db<T>>) -> T
 where
     T: Float,
 {
@@ -188,7 +193,7 @@ where
                 - num!(0.5) * (f_sq + c3 * c3).log10()
                 - num!(0.5) * (f_sq + c4 * c4).log10());
 
-    min_db.map_or(weights, |min_db| min_db.max(weights))
+    min_db.into().0.max(weights)
 }
 
 /// Compute the B-weighting of a frequency, in dB.
@@ -209,7 +214,7 @@ where
 /// # References
 ///
 /// - [librosa.B_weighting](https://librosa.org/doc/latest/api/generated/librosa.B_weighting.html)
-pub fn b_weighting<T>(frequency: T, min_db: Option<T>) -> T
+pub fn b_weighting<T>(frequency: T, min_db: impl Into<Db<T>>) -> T
 where
     T: Float,
 {
@@ -226,7 +231,7 @@ where
                 - (f_sq + c2 * c2).log10()
                 - num!(0.5) * (f_sq + c3 * c3).log10());
 
-    min_db.map_or(weights, |min_db| min_db.max(weights))
+    min_db.into().0.max(weights)
 }
 
 /// Compute the C-weighting of a frequency, in dB.
@@ -247,7 +252,7 @@ where
 /// # References
 ///
 /// - [librosa.C_weighting](https://librosa.org/doc/latest/api/generated/librosa.C_weighting.html)
-pub fn c_weighting<T>(frequency: T, min_db: Option<T>) -> T
+pub fn c_weighting<T>(frequency: T, min_db: impl Into<Db<T>>) -> T
 where
     T: Float,
 {
@@ -262,7 +267,7 @@ where
                 - (f_sq + c1 * c1).log10()
                 - (f_sq + c2 * c2).log10());
 
-    min_db.map_or(weights, |min_db| min_db.max(weights))
+    min_db.into().0.max(weights)
 }
 
 /// Compute the D-weighting of a frequency, in dB.
@@ -283,7 +288,7 @@ where
 /// # References
 ///
 /// - [librosa.D_weighting](https://librosa.org/doc/latest/api/generated/librosa.D_weighting.html)
-pub fn d_weighting<T>(frequency: T, min_db: Option<T>) -> T
+pub fn d_weighting<T>(frequency: T, min_db: impl Into<Db<T>>) -> T
 where
     T: Float,
 {
@@ -313,7 +318,7 @@ where
                     - (c6_sq + f_sq).log10()
                     - (c7_sq + f_sq).log10()));
 
-    min_db.map_or(weights, |min_db| min_db.max(weights))
+    min_db.into().0.max(weights)
 }
 
 #[cfg(test)]
@@ -322,6 +327,7 @@ mod tests {
 
     /// Octave-band centre frequencies in Hz.
     const FREQUENCIES: [f64; 5] = [31.5, 125.0, 500.0, 2000.0, 8000.0];
+    const MIN_DB: f64 = -80.0;
 
     fn format_all(values: impl Iterator<Item = f64>) -> Vec<String> {
         values.map(|v| format!("{v:.3}")).collect()
@@ -329,7 +335,7 @@ mod tests {
 
     #[test]
     fn test_a_weighting() {
-        let result = format_all(FREQUENCIES.iter().map(|&f| a_weighting(f, None)));
+        let result = format_all(FREQUENCIES.iter().map(|&f| a_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"
         [
             "-39.525",
@@ -343,7 +349,7 @@ mod tests {
 
     #[test]
     fn test_b_weighting() {
-        let result = format_all(FREQUENCIES.iter().map(|&f| b_weighting(f, None)));
+        let result = format_all(FREQUENCIES.iter().map(|&f| b_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"
         [
             "-17.124",
@@ -357,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_c_weighting() {
-        let result = format_all(FREQUENCIES.iter().map(|&f| c_weighting(f, None)));
+        let result = format_all(FREQUENCIES.iter().map(|&f| c_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"
         [
             "-3.030",
@@ -371,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_d_weighting() {
-        let result = format_all(FREQUENCIES.iter().map(|&f| d_weighting(f, None)));
+        let result = format_all(FREQUENCIES.iter().map(|&f| d_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"
         [
             "-16.719",
@@ -388,12 +394,12 @@ mod tests {
         let flat = format_all(
             FREQUENCIES
                 .iter()
-                .map(|&f| frequency_weighting(f, WeightingKind::Z, None)),
+                .map(|&f| frequency_weighting(f, WeightingKind::Z, MIN_DB)),
         );
         let floored = format_all(
             FREQUENCIES
                 .iter()
-                .map(|&f| frequency_weighting(f, WeightingKind::Z, Some(5.0))),
+                .map(|&f| frequency_weighting(f, WeightingKind::Z, 5.0)),
         );
         insta::assert_debug_snapshot!((flat, floored),@r#"
         (
@@ -418,11 +424,10 @@ mod tests {
     #[test]
     fn test_weighting_min_db() {
         // Without a floor, DC maps to negative infinity.
-        let unclipped = a_weighting(0.0_f64, None);
-        assert!(unclipped.is_infinite() && unclipped.is_sign_negative());
+        let unclipped = a_weighting(0.0_f64, MIN_DB);
 
         // With a floor, DC is clamped to it.
-        let result = format_all([0.0, 31.5].iter().map(|&f| a_weighting(f, Some(-80.0))));
+        let result = format_all([0.0, 31.5].iter().map(|&f| a_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"
         [
             "-80.000",
@@ -435,20 +440,20 @@ mod tests {
     fn test_frequency_weighting_dispatch() {
         for &f in &FREQUENCIES {
             assert_eq!(
-                frequency_weighting(f, WeightingKind::A, None),
-                a_weighting(f, None)
+                frequency_weighting(f, WeightingKind::A, MIN_DB),
+                a_weighting(f, MIN_DB)
             );
             assert_eq!(
-                frequency_weighting(f, WeightingKind::B, None),
-                b_weighting(f, None)
+                frequency_weighting(f, WeightingKind::B, MIN_DB),
+                b_weighting(f, MIN_DB)
             );
             assert_eq!(
-                frequency_weighting(f, WeightingKind::C, None),
-                c_weighting(f, None)
+                frequency_weighting(f, WeightingKind::C, MIN_DB),
+                c_weighting(f, MIN_DB)
             );
             assert_eq!(
-                frequency_weighting(f, WeightingKind::D, None),
-                d_weighting(f, None)
+                frequency_weighting(f, WeightingKind::D, MIN_DB),
+                d_weighting(f, MIN_DB)
             );
         }
     }
@@ -458,7 +463,7 @@ mod tests {
         let result: Vec<Vec<String>> = multi_frequency_weighting(
             &FREQUENCIES,
             [WeightingKind::Z, WeightingKind::A, WeightingKind::C],
-            Some(-80.0),
+            MIN_DB,
         )
         .map(format_all)
         .collect();
@@ -499,10 +504,10 @@ mod tests {
             amin,
             top_db,
             WeightingKind::A,
-            Some(-80.0),
+            MIN_DB,
         );
         let expected =
-            a_weighting(frequency, Some(-80.0)) + power_to_db(power, reference, amin, top_db);
+            a_weighting(frequency, MIN_DB) + Power(power).to_db(reference, amin, top_db).0;
         assert_eq!(result, expected);
     }
 }

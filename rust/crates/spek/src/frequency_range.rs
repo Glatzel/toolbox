@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::convert::frequency_unit::{hz_to_mel, mel_to_hz};
+use crate::data_types::{Frequency, Mel, Tuning};
 use crate::utils::linspace;
 
 /// Compute the center frequencies of the non-negative FFT bins.
@@ -58,15 +58,17 @@ where
 /// - [librosa.cqt_frequencies](https://librosa.org/doc/latest/generated/librosa.cqt_frequencies.html)
 pub fn cqt_frequencies<T>(
     n_bins: usize,
-    fmin: T,
+    fmin: impl Into<Frequency<T>>,
     bins_per_octave: usize,
-    tuning: T,
+    tuning: impl Into<Tuning<T>>,
 ) -> impl ExactSizeIterator<Item = T>
 where
     T: Float,
 {
-    let correction = num!(2.0).powf(tuning / num!(bins_per_octave));
-    (0..n_bins).map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
+    let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
+    let fmin = fmin.into().0;
+    (0..n_bins)
+        .map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
 }
 
 /// Compute frequencies uniformly spaced on the Mel scale.
@@ -94,16 +96,16 @@ where
 /// - [librosa.mel_frequencies](https://librosa.org/doc/latest/generated/librosa.mel_frequencies.html)
 pub fn mel_frequencies<T>(
     n_mels: usize,
-    fmin: T,
-    fmax: T,
+    fmin: Frequency<T>,
+    fmax: Frequency<T>,
     htk: bool,
-) -> impl ExactSizeIterator<Item = T>
+) -> impl ExactSizeIterator<Item = Frequency<T>>
 where
     T: Float,
 {
-    let min_mel = hz_to_mel(fmin, htk);
-    let max_mel = hz_to_mel(fmax, htk);
-    linspace(min_mel, max_mel, n_mels).map(move |mel| mel_to_hz(mel, htk))
+    let min_mel = fmin.to_mel(htk);
+    let max_mel = fmax.to_mel(htk);
+    linspace(min_mel.0, max_mel.0, n_mels).map(move |mel| Mel(mel).to_frequency(htk))
 }
 
 /// Compute tempo frequencies corresponding to the lag bins of a tempogram.
@@ -201,7 +203,7 @@ mod tests {
             octave: Some(2),
             cents: None,
         }
-        .to_hz();
+        .to_frequency();
         let result: Vec<_> = cqt_frequencies::<f64>(24, fmin, 12, 0.0)
             .map(|i| format!("{i:.3}"))
             .collect();
@@ -236,9 +238,9 @@ mod tests {
     }
     #[test]
     fn test_mel_frequencies() {
-        let result: Vec<_> = mel_frequencies::<f64>(40, 0.0, 11025.0, false)
+        let result: Vec<_> = mel_frequencies::<f64>(40, 0.0.into(), 11025.0.into(), false)
             .take(10)
-            .map(|i| format!("{i:.3}"))
+            .map(|i| format!("{:.3}", i.0))
             .collect();
         insta::assert_debug_snapshot!(result,@r#"
         [

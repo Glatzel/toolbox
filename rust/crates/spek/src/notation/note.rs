@@ -7,7 +7,7 @@ use num_traits::Float;
 use rax::text::filters::{AsciiCharSetFilter, CHAR_SET_DIGITS, CharSetFilter};
 use rax::text::{OneOfCharSet, StrParser, UntilMode, UntilNotInCharSet};
 
-use crate::convert::frequency_unit::midi_to_hz;
+use crate::data_types::{Frequency, Midi};
 use crate::notation::{Accidental, NotationError, Pitch};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -109,22 +109,24 @@ impl FromStr for Note {
     }
 }
 impl Note {
-    pub fn to_midi<T>(&self) -> T
+    pub fn to_midi<T>(&self) -> Midi<T>
     where
         T: Float + Sum,
     {
         let cents = self.cents.map_or_else(T::zero, |c| num!(c) / num!(100));
         let offset: T = self.accs.iter().map(|a| num!(*a as u8)).sum();
-        num!(12) * (num!(self.octave.unwrap_or_default()) + T::one())
-            + num!(u8::from(self.pitch))
-            + offset
-            + cents
+        Midi(
+            num!(12) * (num!(self.octave.unwrap_or_default()) + T::one())
+                + num!(u8::from(self.pitch))
+                + offset
+                + cents,
+        )
     }
-    pub fn to_hz<T>(&self) -> T
+    pub fn to_frequency<T>(&self) -> Frequency<T>
     where
         T: Float + Sum,
     {
-        midi_to_hz(self.to_midi())
+        self.to_midi().to_frequency()
     }
 }
 impl Note {
@@ -246,7 +248,7 @@ mod tests {
     #[case("C",Note{ pitch: Pitch::C, accs: vec![], octave: None, cents: None })]
     #[case("C_sharp_3",Note{ pitch: Pitch::C, accs: vec![Accidental::Sharp], octave: Some(3), cents: None })]
     fn test_to_midi(#[case] name: &str, #[case] note: Note) {
-        let result: f32 = note.to_midi();
+        let result: f32 = note.to_midi().0;
         insta::assert_snapshot!(
             format!("test_to_midi{name}"),
             format!("{note:?}{result:.0}")

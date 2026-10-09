@@ -26,6 +26,7 @@ pub use tuning::Tuning;
 
 macro_rules! simple_structure {
     ($name:ident) => {
+        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
         pub struct $name<T>(pub T);
         impl<T> From<T> for $name<T>
         where

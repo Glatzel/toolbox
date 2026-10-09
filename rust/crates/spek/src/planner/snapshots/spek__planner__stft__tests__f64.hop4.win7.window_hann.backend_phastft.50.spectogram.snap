@@ -1,5 +1,5 @@
 ---
-source: crates/spek/src/spectrum/stft.rs
+source: crates/spek/src/planner/stft.rs
 expression: "spectrum.real().iter().zip(spectrum.imag()).map(|(r, i)|\n(format!(\"{r:.6}\"), format!(\"{i:.6}\"))).collect::<Vec<_>>()"
 ---
 [

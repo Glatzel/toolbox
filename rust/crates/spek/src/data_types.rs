@@ -7,6 +7,8 @@ mod midi;
 mod octs;
 mod phase;
 mod power;
+mod spectrogram;
+mod spectrum2d;
 mod tuning;
 
 pub use a4::A4;
@@ -18,6 +20,8 @@ pub use midi::Midi;
 pub use octs::Octs;
 pub use phase::Phase;
 pub use power::Power;
+pub use spectrogram::Spectrogram;
+pub use spectrum2d::Spectrum2D;
 pub use tuning::Tuning;
 
 macro_rules! simple_structure_from_t {

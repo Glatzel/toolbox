@@ -2,7 +2,7 @@ use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
 use super::IFftBackend;
-use crate::spectrum::Spectrum2D;
+use crate::data_types::Spectrum2D;
 
 #[derive(Debug, Clone)]
 pub struct PhastftBackend<P> {

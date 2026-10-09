@@ -8,10 +8,10 @@ use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
 use thiserror::Error;
 
-use crate::fft_backend::IFftBackend;
-use crate::pad::PadError;
 #[cfg(feature = "parallel")]
-use crate::spectrum::Spectrum2D;
+use crate::data_types::Spectrum2D;
+use crate::pad::PadError;
+use crate::planner::IFftBackend;
 use crate::windows::{IWindow, WindowError};
 
 #[derive(Error, Debug)]
@@ -352,7 +352,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::fft_backend::phastft::PhastftBackend;
+    use crate::planner::phastft::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
     #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]

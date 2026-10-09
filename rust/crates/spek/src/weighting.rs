@@ -423,9 +423,6 @@ mod tests {
 
     #[test]
     fn test_weighting_min_db() {
-        // Without a floor, DC maps to negative infinity.
-        let unclipped = a_weighting(0.0_f64, MIN_DB);
-
         // With a floor, DC is clamped to it.
         let result = format_all([0.0, 31.5].iter().map(|&f| a_weighting(f, MIN_DB)));
         insta::assert_debug_snapshot!(result,@r#"

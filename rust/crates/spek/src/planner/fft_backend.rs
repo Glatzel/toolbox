@@ -1,6 +1,6 @@
 pub mod phastft;
 
-use crate::spectrum::Spectrum2D;
+use crate::data_types::Spectrum2D;
 
 pub trait IFftBackend<T> {
     fn fft_size(&self) -> usize;

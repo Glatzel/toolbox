@@ -7,8 +7,8 @@ use num_traits::Float;
 use rax::text::filters::{AsciiCharSetFilter, CHAR_SET_DIGITS, CharSetFilter};
 use rax::text::{OneOfCharSet, StrParser, UntilMode, UntilNotInCharSet};
 
-use crate::data_types::{Frequency, Midi};
 use crate::data_types::notation::{Accidental, NotationError, Pitch};
+use crate::data_types::{Frequency, Midi};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Note {

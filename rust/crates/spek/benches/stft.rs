@@ -4,7 +4,7 @@ use std::marker::{Send, Sync};
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
-use spek::planner::{IFftBackend, Stft};
+use spek::spectrum::{IFftBackend, Stft};
 use spek::windows::Window::Hann;
 
 const SIZE: [usize; 1] = [7];
@@ -57,7 +57,7 @@ fn bench_f32(c: &mut criterion::Criterion) {
             bench_wrapper::<f32, _>(
                 &mut group,
                 "phastft",
-                spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
+                spek::spectrum::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
                     fft_size,
                 ),
                 size,
@@ -72,7 +72,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
             bench_wrapper::<f64, _>(
                 &mut group,
                 "phastft",
-                spek::fft_backend::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
+                spek::spectrum::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
                     fft_size,
                 ),
                 size,

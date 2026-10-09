@@ -205,7 +205,7 @@ mod tests {
             cents: None,
         }
         .to_frequency();
-        let result: Vec<_> = cqt_frequencies::<f64>(24, fmin, 12, 0.0)
+        let result: Vec<_> = cqt_frequencies::<f64, _, _>(24, fmin, 12, 0.0)
             .map(|i| format!("{i:.3}"))
             .collect();
         insta::assert_debug_snapshot!(result,@r#"

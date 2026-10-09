@@ -32,12 +32,12 @@ impl<T> Db<T>
 where
     T: Float,
 {
-    pub fn from_power(
+    pub fn from_power<I, I1>(
         power: Power<T>,
         reference: T,
-        amin: impl Into<Power<T>>,
-        top_db: impl Into<Self>,
-    ) -> Self {
+        amin: I1,
+        top_db: I,
+    ) -> Self where I: Into<Self>, I1: Into<Power<T>> {
         power.to_db(reference, amin, top_db)
     }
     /// Converts a complex spectrum bin directly to decibels (power scale).
@@ -45,13 +45,11 @@ where
     /// Equivalent to [`spectrum_to_power`] followed by [`power_to_db`].
     ///
     /// See [`power_to_db`] for the meaning of `reference`, `amin` and `top_db`.
-    pub fn from_spectrum(
-        real: T,
-        imag: T,
-        reference: T,
-        amin: impl Into<Power<T>>,
-        top_db: impl Into<Self>,
-    ) -> Self {
+    pub fn from_spectrum<I, I1>(real: T, imag: T, reference: T, amin: I1, top_db: I) -> Self
+    where
+        I: Into<Self>,
+        I1: Into<Power<T>>,
+    {
         Power::from_spectrum(real, imag).to_db(reference, amin, top_db)
     }
 }

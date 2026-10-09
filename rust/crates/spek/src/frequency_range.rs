@@ -56,14 +56,14 @@ where
 /// # References
 ///
 /// - [librosa.cqt_frequencies](https://librosa.org/doc/latest/generated/librosa.cqt_frequencies.html)
-pub fn cqt_frequencies<T>(
+pub fn cqt_frequencies<T, I, I1>(
     n_bins: usize,
-    fmin: impl Into<Frequency<T>>,
+    fmin: I,
     bins_per_octave: usize,
-    tuning: impl Into<Tuning<T>>,
+    tuning: I1,
 ) -> impl ExactSizeIterator<Item = T>
 where
-    T: Float,
+    T: Float, I: Into<Frequency<T>>, I1: Into<Tuning<T>>,
 {
     let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
     let fmin = fmin.into().0;

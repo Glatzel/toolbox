@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-pub(crate) fn linspace<T>(start: T, stop: T, count: usize) -> impl ExactSizeIterator<Item = T>
+pub fn linspace<T>(start: T, stop: T, count: usize) -> impl ExactSizeIterator<Item = T>
 where
     T: Float,
 {

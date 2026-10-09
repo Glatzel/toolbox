@@ -8,8 +8,8 @@ use crate::text::IRule;
 /// The `UntilChar<C, IS_ASCII>` rule searches for the first occurrence of
 /// the delimiter `C` in the input string.
 ///
-/// If the delimiter is found, the rule uses [`UntilMode`] to determine how
-/// the input is split and returns `Ok((prefix, consumed_bytes))`, where
+/// If the delimiter is found, the rule uses [`super::UntilMode`] to determine
+/// how the input is split and returns `Ok((prefix, consumed_bytes))`, where
 /// `prefix` is the extracted substring and `consumed_bytes` is the number
 /// of bytes consumed, as determined by the selected mode.
 ///
@@ -78,8 +78,8 @@ impl<const C: char> IFlowRule<false> for UntilChar<C, false> {
     ///   selected mode can split the input.
     /// - `Err(RuleError)` if the delimiter is not found.
     ///
-    /// The consumed byte count depends on the selected [`UntilMode`] and the
-    /// UTF-8 length of the delimiter.
+    /// The consumed byte count depends on the selected [`super::UntilMode`] and
+    /// the UTF-8 length of the delimiter.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (idx, ch) in input.char_indices() {
             if ch == C {

@@ -3,35 +3,44 @@ use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{AsciiCharSetFilter, CharSetFilter, ICharSetFilter, IFilter};
 use crate::text::rules::UntilMode;
+
 /// Rule that extracts a prefix from the input string until the N-th character
-/// matching a given character set is reached.
+/// matching a specified character set is encountered.
 ///
-/// `UntilNInCharSet<N, M>` scans the input string from the start, counting
-/// how many characters belong to the specified character set (defined by
-/// `filter`).
+/// `UntilNInCharSet<N, IS_ASCII>` scans the input from the start and counts
+/// characters that belong to the character set defined by `filter`.
+///
+/// When the N-th matching character is found, the rule uses `mode` to
+/// determine how the input is split and returns
+/// `Ok((prefix, consumed_bytes))`, where `prefix` is the extracted substring
+/// and `consumed_bytes` is the number of bytes consumed according to the
+/// selected mode.
+///
+/// If fewer than `N` matching characters are found, the rule returns a
+/// [`RuleError`]. When `N` is zero, the rule succeeds with an empty prefix
+/// and consumes zero bytes.
 ///
 /// # Fields
 ///
-/// - `filter`: The [`CharSetFilter`] that defines the set of valid characters.
-/// - `mode`: Determines how the N-th matched character is treated:
-///   - [`UntilMode::Discard`]: The N-th character is excluded from the prefix
-///     and removed from the rest.
-///   - [`UntilMode::KeepInOutput`]: The N-th character is included at the end
+/// - `filter`: The character set filter that defines which characters match.
+/// - `mode`: Determines how the N-th matching character is handled:
+///   - [`UntilMode::Discard`]: Excludes the matching character from the prefix
+///     and consumes it.
+///   - [`UntilMode::KeepInOutput`]: Includes the matching character at the end
 ///     of the prefix.
-///   - [`UntilMode::KeepInRest`]: The N-th character is included at the start
-///     of the rest.
+///   - [`UntilMode::KeepInRest`]: Leaves the matching character at the
+///     beginning of the remainder.
 ///
 /// # Type Parameters
 ///
-/// - `N`: The number of matches required to stop scanning.
-/// - `M`: The size of the character set (`CharSetFilter<M>`).
+/// - `'f`: Lifetime of the character set filter reference.
+/// - `N`: Number of matching characters required to stop scanning.
+/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
+/// - `F`: Character set filter implementing [`ICharSetFilter`].
+/// - `N_CHAR_SET`: Capacity or size parameter of the character set filter.
 ///
-/// # Behavior
-///
-/// - Returns `(Some(prefix), rest)` when N characters in the set have been
-///   seen, split according to `mode`.
-/// - Returns `(None, input)` if fewer than N characters in the set are found.
-/// - Respects UTF-8 character boundaries and logs trace/debug information.
+/// The ASCII implementation scans bytes using a bitmask, while the Unicode
+/// implementation scans Unicode scalar values and respects UTF-8 boundaries.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNInCharSet<
     'f,
@@ -54,6 +63,17 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
 {
     type Output<'a> = &'a str;
 
+    /// Applies the rule using byte-based scanning and an ASCII character set.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((prefix, consumed_bytes))` if the N-th matching byte is found.
+    /// - `Err(RuleError)` if fewer than `N` matching bytes are found.
+    ///
+    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    ///
+    /// The input must contain only ASCII characters for byte-based matching
+    /// to correspond to character-based matching.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
@@ -64,6 +84,7 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
         for (idx, &b) in input.as_bytes().iter().enumerate() {
             if self.filter.mask() & (1_u128 << u32::from(b)) != 0 {
                 remaining -= 1;
+
                 if remaining == 0 {
                     return Ok(self.mode.split_str(input, idx, 1));
                 }
@@ -81,17 +102,30 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
 {
     type Output<'a> = &'a str;
 
+    /// Applies the rule using Unicode character scanning.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((prefix, consumed_bytes))` if the N-th matching character is
+    ///   found.
+    /// - `Err(RuleError)` if fewer than `N` matching characters are found.
+    ///
+    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    ///
+    /// Matching is performed on Unicode scalar values rather than grapheme
+    /// clusters. The consumed byte count depends on the selected mode and
+    /// the UTF-8 length of the N-th matching character.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
         }
 
-        // UTF-8 path
         let mut remaining = N;
 
         for (idx, ch) in input.char_indices() {
             if self.filter.filter(&ch) {
                 remaining -= 1;
+
                 if remaining == 0 {
                     return Ok(self.mode.split_str(input, idx, ch.len_utf8()));
                 }

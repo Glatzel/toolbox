@@ -3,28 +3,44 @@ use crate::error::RuleError;
 use crate::text::IRule;
 use crate::text::filters::{AsciiCharSetFilter, CharSetFilter, ICharSetFilter, IFilter};
 use crate::text::rules::UntilMode;
-/// Rule that extracts a prefix from the input string consisting of consecutive
-/// characters that are in the provided character set, stopping at the first
-/// character not in the set.
+
+/// Rule that extracts a prefix from the input string until the first
+/// character that does not belong to the specified character set.
+///
+/// `UntilNotInCharSet` scans the input from the start, consuming consecutive
+/// characters that belong to the set defined by `filter`.
+///
+/// When the first non-matching character is found, the rule uses `mode` to
+/// determine how the input is split and returns
+/// `Ok((prefix, consumed_bytes))`, where `prefix` is the extracted substring
+/// and `consumed_bytes` is the number of bytes consumed according to the
+/// selected mode.
+///
+/// If every character belongs to the set, the rule returns
+/// `Ok((input, input.len()))`, consuming the entire input. An empty input
+/// also succeeds, returning an empty prefix and consuming zero bytes.
 ///
 /// # Fields
 ///
-/// - `filter`: A [`CharSetFilter`] that defines the allowed characters.
-/// - `mode`: Determines how the first character *not* in the set is treated:
-///   - [`UntilMode::Discard`]: Exclude the first non-matching character from
-///     the prefix and remove it from the rest.
-///   - [`UntilMode::KeepInOutput`]: Include the first non-matching character at
-///     the end of the prefix.
-///   - [`UntilMode::KeepInRest`]: Keep the first non-matching character at the
-///     start of the rest.
+/// - `filter`: The character set filter that defines which characters match.
+/// - `mode`: Determines how the first non-matching character is handled:
+///   - [`UntilMode::Discard`]: Excludes the character from the prefix and
+///     consumes it.
+///   - [`UntilMode::KeepInOutput`]: Includes the character at the end of the
+///     prefix.
+///   - [`UntilMode::KeepInRest`]: Leaves the character at the beginning of the
+///     remainder.
 ///
-/// # Behavior
+/// # Type Parameters
 ///
-/// - Returns `(Some(prefix), rest)` when a non-matching character is found,
-///   split according to `mode`.
-/// - Returns `(None, input)` if all characters in the input are in the set.
-/// - Respects UTF-8 character boundaries.
-/// - Logs debug information at each split or if all characters are in the set.
+/// - `'f`: Lifetime of the character set filter reference.
+/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
+/// - `N`: Capacity or size parameter of the character set filter.
+/// - `F`: Character set filter implementing [`ICharSetFilter`].
+///
+/// The Unicode implementation scans Unicode scalar values and respects UTF-8
+/// character boundaries. The ASCII implementations scan bytes for efficiency
+/// and assume that the input contains only ASCII characters.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNotInCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>> {
     pub filter: &'f F,
@@ -39,6 +55,17 @@ impl<const N: usize, const IS_ASCII: bool, F: ICharSetFilter<N>> IRule
 impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for UntilNotInCharSet<'_, false, N, F> {
     type Output<'a> = &'a str;
 
+    /// Applies the rule using Unicode character scanning.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((prefix, consumed_bytes))` if a non-matching character is found,
+    ///   with the split determined by the selected mode.
+    /// - `Ok((input, input.len()))` if every character belongs to the set.
+    ///
+    /// An empty input succeeds with an empty prefix and consumes zero bytes.
+    /// The consumed byte count depends on the selected mode and the UTF-8
+    /// length of the first non-matching character.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
@@ -49,28 +76,54 @@ impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for UntilNotInCharSe
         Ok((input, input.len()))
     }
 }
+
 impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, AsciiCharSetFilter<N>> {
     type Output<'a> = &'a str;
 
+    /// Applies the rule using byte scanning and an ASCII character set.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((prefix, consumed_bytes))` if a non-matching byte is found, with
+    ///   the split determined by the selected mode.
+    /// - `Ok((input, input.len()))` if every byte belongs to the set.
+    ///
+    /// The input must contain only ASCII characters for byte-based matching
+    /// to correspond to character-based matching.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, &b) in input.as_bytes().iter().enumerate() {
             if self.filter.mask() & (1_u128 << u32::from(b)) == 0 {
                 return Ok(self.mode.split_str(input, i, 1));
             }
         }
+
         Ok((input, input.len()))
     }
 }
+
 impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, CharSetFilter<N>> {
     type Output<'a> = &'a str;
 
+    /// Applies the rule using byte scanning with a general character set
+    /// filter.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((prefix, consumed_bytes))` if a non-matching byte is found, with
+    ///   the split determined by the selected mode.
+    /// - `Ok((input, input.len()))` if every byte belongs to the set.
+    ///
+    /// The input must contain only ASCII characters because each byte is
+    /// converted directly to a `char` before filtering.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, &b) in input.as_bytes().iter().enumerate() {
             let c = b as char;
+
             if !self.filter.filter(&c) {
                 return Ok(self.mode.split_str(input, i, 1));
             }
         }
+
         Ok((input, input.len()))
     }
 }

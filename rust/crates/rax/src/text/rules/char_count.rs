@@ -7,18 +7,25 @@ use crate::text::rules::IRule;
 
 /// Rule that extracts a fixed number of characters from the input string.
 ///
-/// The `CharCount<N>` rule attempts to split the input string at exactly `N`
-/// characters. If the input contains at least `N` characters, it returns a
-/// tuple `(Some(prefix), rest)` where:
+/// The `CharCount<N, IS_ASCII>` rule attempts to extract the first `N`
+/// characters from the input string.
+///
+/// For `CharCount<N, false>`, characters are counted as Unicode scalar values,
+/// so multi-byte UTF-8 characters are handled correctly. For
+/// `CharCount<N, true>`, the input is assumed to contain only ASCII characters,
+/// and extraction is performed by [`ByteCount`].
+///
+/// If the input contains at least `N` characters, the rule returns
+/// `Ok((prefix, consumed_bytes))`, where:
 /// - `prefix` is the first `N` characters of the input,
-/// - `rest` is the remainder of the input.
+/// - `consumed_bytes` is the number of bytes consumed.
 ///
-/// If the input contains fewer than `N` characters, the rule returns `(None,
-/// input)`.
+/// If the input contains fewer than `N` characters, the rule returns a
+/// [`RuleError`]. When `N` is zero, the rule returns an empty prefix and
+/// consumes zero bytes.
 ///
-/// This rule operates on **character boundaries**, so it correctly handles
-/// multi-byte UTF-8 characters. It is useful for parsing fixed-length
-/// fields based on character count rather than byte count.
+/// This rule is useful for parsing fixed-width fields when field widths are
+/// measured in characters rather than bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CharCount<const N: usize, const IS_ASCII: bool>;
 
@@ -31,14 +38,11 @@ impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
     ///
     /// # Returns
     ///
-    /// - `(Some(prefix), rest)` if the input contains at least `N` characters.
-    /// - `(None, input)` if the input is shorter than `N` characters.
+    /// - `Ok((prefix, consumed_bytes))` if the input contains at least `N`
+    ///   Unicode scalar values.
+    /// - `Err(RuleError)` if the input contains fewer than `N` characters.
     ///
-    /// # Logging
-    ///
-    /// Logs trace messages showing the input and requested character count,
-    /// debug messages showing the split position, and warnings if the input
-    /// is too short.
+    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
@@ -49,10 +53,15 @@ impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
             .nth(N)
             .map(|(idx, _)| idx)
             .or_else(|| {
-                // exactly N chars: consume the whole string
+                // If the input contains exactly N characters, consume it
+                // entirely.
                 (input.chars().count() == N).then_some(input.len())
             })
-            .map(|idx| unsafe { (input.get_unchecked(..idx), idx) })
+            .map(|idx| {
+                // SAFETY: `idx` comes from `char_indices()` or `input.len()`,
+                // both of which are valid UTF-8 character boundaries.
+                unsafe { (input.get_unchecked(..idx), idx) }
+            })
             .ok_or_else(|| RuleError {
                 reason: "not enough chars in input".into(),
             })?;
@@ -60,6 +69,7 @@ impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
         Ok(result)
     }
 }
+
 impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
     type Output<'a> = &'a str;
 
@@ -67,18 +77,19 @@ impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
     ///
     /// # Returns
     ///
-    /// - `(Some(prefix), rest)` if the input contains at least `N` characters.
-    /// - `(None, input)` if the input is shorter than `N` characters.
+    /// - `Ok((prefix, consumed_bytes))` if the input contains at least `N`
+    ///   ASCII characters.
+    /// - `Err(RuleError)` if the input contains fewer than `N` bytes.
     ///
-    /// # Logging
+    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
     ///
-    /// Logs trace messages showing the input and requested character count,
-    /// debug messages showing the split position, and warnings if the input
-    /// is too short.
+    /// The input must contain only ASCII characters for the result to
+    /// correspond to a character count.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
         }
+
         ByteCount::<N, true>.apply(input)
     }
 }

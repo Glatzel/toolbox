@@ -11,7 +11,7 @@ use thiserror::Error;
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
 use crate::pad::PadError;
-use crate::planner::IFftBackend;
+use crate::spectrum::IFftBackend;
 use crate::windows::{IWindow, WindowError};
 
 #[derive(Error, Debug)]
@@ -352,7 +352,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::planner::phastft::PhastftBackend;
+    use crate::spectrum::phastft::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
     #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]

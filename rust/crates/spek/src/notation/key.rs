@@ -63,15 +63,20 @@ impl FromStr for KeyKind {
     type Err = NotationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(key) = KeyKindScale::from_str(s) {
-            Ok(Self::Scale(key))
-        } else if let Ok(key) = KeyKindMode::from_str(s) {
-            Ok(Self::Mode(key))
-        } else if let Ok(key) = KeyKindMisc::from_str(s) {
-            Ok(Self::Misc(key))
-        } else {
-            Err(NotationError::InvalidKeyKind(s.into()))
-        }
+        KeyKindScale::from_str(s).map_or_else(
+            |_| {
+                KeyKindMode::from_str(s).map_or_else(
+                    |_| {
+                        KeyKindMisc::from_str(s).map_or_else(
+                            |_| Err(NotationError::InvalidKeyKind(s.into())),
+                            |key| Ok(Self::Misc(key)),
+                        )
+                    },
+                    |key| Ok(Self::Mode(key)),
+                )
+            },
+            |key| Ok(Self::Scale(key)),
+        )
     }
 }
 pub struct Key {

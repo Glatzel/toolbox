@@ -109,7 +109,7 @@ where
         WeightingKind::B => b_weighting(frequency, min_db),
         WeightingKind::C => c_weighting(frequency, min_db),
         WeightingKind::D => d_weighting(frequency, min_db),
-        WeightingKind::Z => min_db.map_or(num!(0.0), |min_db| min_db.max(num!(0.0))),
+        WeightingKind::Z => min_db.map_or_else(|| num!(0.0), |min_db| min_db.max(num!(0.0))),
     }
 }
 
@@ -188,10 +188,7 @@ where
                 - num!(0.5) * (f_sq + c3 * c3).log10()
                 - num!(0.5) * (f_sq + c4 * c4).log10());
 
-    match min_db {
-        Some(min_db) => min_db.max(weights),
-        None => weights,
-    }
+    min_db.map_or(weights, |min_db| min_db.max(weights))
 }
 
 /// Compute the B-weighting of a frequency, in dB.
@@ -229,10 +226,7 @@ where
                 - (f_sq + c2 * c2).log10()
                 - num!(0.5) * (f_sq + c3 * c3).log10());
 
-    match min_db {
-        Some(min_db) => min_db.max(weights),
-        None => weights,
-    }
+    min_db.map_or(weights, |min_db| min_db.max(weights))
 }
 
 /// Compute the C-weighting of a frequency, in dB.
@@ -268,10 +262,7 @@ where
                 - (f_sq + c1 * c1).log10()
                 - (f_sq + c2 * c2).log10());
 
-    match min_db {
-        Some(min_db) => min_db.max(weights),
-        None => weights,
-    }
+    min_db.map_or(weights, |min_db| min_db.max(weights))
 }
 
 /// Compute the D-weighting of a frequency, in dB.
@@ -322,10 +313,7 @@ where
                     - (c6_sq + f_sq).log10()
                     - (c7_sq + f_sq).log10()));
 
-    match min_db {
-        Some(min_db) => min_db.max(weights),
-        None => weights,
-    }
+    min_db.map_or(weights, |min_db| min_db.max(weights))
 }
 
 #[cfg(test)]

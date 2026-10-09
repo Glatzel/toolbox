@@ -63,12 +63,13 @@ pub fn cqt_frequencies<T, I, I1>(
     tuning: I1,
 ) -> impl ExactSizeIterator<Item = T>
 where
-    T: Float, I: Into<Frequency<T>>, I1: Into<Tuning<T>>,
+    T: Float,
+    I: Into<Frequency<T>>,
+    I1: Into<Tuning<T>>,
 {
     let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
     let fmin = fmin.into().0;
-    (0..n_bins)
-        .map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
+    (0..n_bins).map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
 }
 
 /// Compute frequencies uniformly spaced on the Mel scale.

@@ -1,6 +1,5 @@
 use num_traits::Float;
 
-
 use crate::data_types::Power;
 pub struct Phase<T> {
     pub re: T,

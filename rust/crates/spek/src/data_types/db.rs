@@ -32,12 +32,11 @@ impl<T> Db<T>
 where
     T: Float,
 {
-    pub fn from_power<I, I1>(
-        power: Power<T>,
-        reference: T,
-        amin: I1,
-        top_db: I,
-    ) -> Self where I: Into<Self>, I1: Into<Power<T>> {
+    pub fn from_power<I, I1>(power: Power<T>, reference: T, amin: I1, top_db: I) -> Self
+    where
+        I: Into<Self>,
+        I1: Into<Power<T>>,
+    {
         power.to_db(reference, amin, top_db)
     }
     /// Converts a complex spectrum bin directly to decibels (power scale).

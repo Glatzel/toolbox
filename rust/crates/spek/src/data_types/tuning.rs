@@ -1,9 +1,8 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::data_types::A4;
-
 use super::simple_structure_from_t;
+use crate::data_types::A4;
 
 pub struct Tuning<T>(pub T);
 simple_structure_from_t!(Tuning);

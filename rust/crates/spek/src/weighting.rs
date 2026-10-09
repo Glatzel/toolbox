@@ -111,7 +111,8 @@ where
 /// - [librosa.Z_weighting](https://librosa.org/doc/latest/api/generated/librosa.Z_weighting.html)
 pub fn frequency_weighting<T, I>(frequency: T, kind: WeightingKind, min_db: I) -> T
 where
-    T: Float, I: Into<Db<T>>,
+    T: Float,
+    I: Into<Db<T>>,
 {
     match kind {
         WeightingKind::A => a_weighting(frequency, min_db),

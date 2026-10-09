@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::convert::frequency_unit::{hz_to_mel, mel_to_hz};
+use crate::data_types::{Frequency, Mel, Tuning};
 use crate::utils::linspace;
 
 /// Compute the center frequencies of the non-negative FFT bins.
@@ -56,16 +56,19 @@ where
 /// # References
 ///
 /// - [librosa.cqt_frequencies](https://librosa.org/doc/latest/generated/librosa.cqt_frequencies.html)
-pub fn cqt_frequencies<T>(
+pub fn cqt_frequencies<T, I, I1>(
     n_bins: usize,
-    fmin: T,
+    fmin: I,
     bins_per_octave: usize,
-    tuning: T,
+    tuning: I1,
 ) -> impl ExactSizeIterator<Item = T>
 where
     T: Float,
+    I: Into<Frequency<T>>,
+    I1: Into<Tuning<T>>,
 {
-    let correction = num!(2.0).powf(tuning / num!(bins_per_octave));
+    let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
+    let fmin = fmin.into().0;
     (0..n_bins).map(move |n| num!(2.0).powf(num!(n) / num!(bins_per_octave)) * fmin * correction)
 }
 
@@ -94,16 +97,16 @@ where
 /// - [librosa.mel_frequencies](https://librosa.org/doc/latest/generated/librosa.mel_frequencies.html)
 pub fn mel_frequencies<T>(
     n_mels: usize,
-    fmin: T,
-    fmax: T,
+    fmin: Frequency<T>,
+    fmax: Frequency<T>,
     htk: bool,
-) -> impl ExactSizeIterator<Item = T>
+) -> impl ExactSizeIterator<Item = Frequency<T>>
 where
     T: Float,
 {
-    let min_mel = hz_to_mel(fmin, htk);
-    let max_mel = hz_to_mel(fmax, htk);
-    linspace(min_mel, max_mel, n_mels).map(move |mel| mel_to_hz(mel, htk))
+    let min_mel = fmin.to_mel(htk);
+    let max_mel = fmax.to_mel(htk);
+    linspace(min_mel.0, max_mel.0, n_mels).map(move |mel| Mel(mel).to_frequency(htk))
 }
 
 /// Compute tempo frequencies corresponding to the lag bins of a tempogram.
@@ -173,7 +176,7 @@ mod tests {
     use num_traits::ToPrimitive;
 
     use super::*;
-    use crate::notation::Note;
+    use crate::data_types::notation::Note;
     #[test]
     fn test_fft_frequencies() {
         let result: Vec<_> = fft_frequencies::<f64>(22050.0, 16)
@@ -196,13 +199,13 @@ mod tests {
     #[test]
     fn test_cqt_frequencies() {
         let fmin = Note {
-            pitch: crate::notation::Pitch::C,
+            pitch: crate::data_types::notation::Pitch::C,
             accs: Vec::new(),
             octave: Some(2),
             cents: None,
         }
-        .to_hz();
-        let result: Vec<_> = cqt_frequencies::<f64>(24, fmin, 12, 0.0)
+        .to_frequency();
+        let result: Vec<_> = cqt_frequencies::<f64, _, _>(24, fmin, 12, 0.0)
             .map(|i| format!("{i:.3}"))
             .collect();
         insta::assert_debug_snapshot!(result,@r#"
@@ -236,9 +239,9 @@ mod tests {
     }
     #[test]
     fn test_mel_frequencies() {
-        let result: Vec<_> = mel_frequencies::<f64>(40, 0.0, 11025.0, false)
+        let result: Vec<_> = mel_frequencies::<f64>(40, 0.0.into(), 11025.0.into(), false)
             .take(10)
-            .map(|i| format!("{i:.3}"))
+            .map(|i| format!("{:.3}", i.0))
             .collect();
         insta::assert_debug_snapshot!(result,@r#"
         [

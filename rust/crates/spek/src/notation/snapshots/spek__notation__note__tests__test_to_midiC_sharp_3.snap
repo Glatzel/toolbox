@@ -1,5 +1,0 @@
----
-source: crates/spek/src/notation/note.rs
-expression: "format!(\"{note:?}{result:.0}\")"
----
-Note { pitch: C, accs: [Sharp], octave: Some(3), cents: None }49

@@ -1,11 +1,11 @@
 mod key;
+mod midi;
 mod note;
 mod shared;
-mod midi;
 
 use std::num::ParseIntError;
 
-pub use key::{Key, KeyQuality, KeyKindMisc, KeyMode, KeyScale};
+pub use key::{Key, KeyMode, KeyQuality, KeyScale};
 pub use midi::Midi;
 pub use note::Note;
 use rax::error::VerbError;

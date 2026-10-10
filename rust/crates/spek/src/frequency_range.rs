@@ -22,7 +22,7 @@ use crate::utils::linspace;
 /// # References
 ///
 /// - [librosa.fft_frequencies](https://librosa.org/doc/latest/generated/librosa.fft_frequencies.html)
-pub fn fft_frequencies<T>(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = T>
+pub fn fft_frequencies<T>(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = Hz<T>>
 where
     T: Float,
 {
@@ -30,7 +30,7 @@ where
         clippy::range_plus_one,
         reason = "RangeInclusive does not implement ExactSizeIterator."
     )]
-    (0..(1 + n_fft / 2)).map(move |n| num!(n) * sr / num!(n_fft))
+    (0..(1 + n_fft / 2)).map(move |n| Hz(num!(n) * sr / num!(n_fft)))
 }
 
 /// Compute the center frequencies of Constant-Q Transform (CQT) bins.
@@ -164,7 +164,7 @@ pub fn fourier_tempo_frequencies<T>(
     sr: T,
     win_length: usize,
     hop_length: usize,
-) -> impl ExactSizeIterator<Item = T>
+) -> impl ExactSizeIterator<Item = Hz<T>>
 where
     T: Float,
 {
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn test_fft_frequencies() {
         let result: Vec<_> = fft_frequencies::<f64>(22050.0, 16)
-            .map(|i| i.to_u16().unwrap())
+            .map(|i| i.0.to_u16().unwrap())
             .collect();
         insta::assert_debug_snapshot!(result,@"
         [
@@ -278,7 +278,7 @@ mod tests {
     fn test_fourier_tempo_frequencies() {
         let result: Vec<_> = fourier_tempo_frequencies::<f64>(22050.0, 384, 512)
             .take(5)
-            .map(|i| format!("{i:.3}"))
+            .map(|i| format!("{:.3}", i.0))
             .collect();
         insta::assert_debug_snapshot!(result,@r#"
         [

@@ -78,5 +78,6 @@ fn bench_f64(c: &mut criterion::Criterion) {
         }
     }
 }
+
 criterion_group!(benches, bench_f32, bench_f64);
 criterion_main!(benches);

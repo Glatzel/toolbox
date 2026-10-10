@@ -11,19 +11,19 @@ use crate::windows::IWindow;
 pub struct SignalRefMut<'a, T>(&'a mut [T]);
 
 impl<'a, T> SignalRefMut<'a, T> {
-    pub fn new(data: &'a mut [T]) -> Self { Self(data) }
+    pub const fn new(data: &'a mut [T]) -> Self { Self(data) }
 
-    pub fn as_slice(&self) -> &[T] { self.0 }
+    pub const fn as_slice(&self) -> &[T] { self.0 }
 
     pub fn as_ref(&'a self) -> SignalRef<'a, T> { SignalRef::new(self.0) }
 
-    pub fn as_mut_slice(&mut self) -> &mut [T] { self.0 }
+    pub const fn as_mut_slice(&mut self) -> &mut [T] { self.0 }
 
-    pub fn into_slice(self) -> &'a mut [T] { self.0 }
+    pub const fn into_slice(self) -> &'a mut [T] { self.0 }
 
-    pub fn len(&self) -> usize { self.0.len() }
+    pub const fn len(&self) -> usize { self.0.len() }
 
-    pub fn is_empty(&self) -> bool { self.0.is_empty() }
+    pub const fn is_empty(&self) -> bool { self.0.is_empty() }
 
     pub fn get(&self, index: usize) -> Option<&T> { self.0.get(index) }
 
@@ -53,7 +53,7 @@ impl<T: Float> SignalRefMut<'_, T> {
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame_unchecked<P: IPad<T>, W: IWindow<T>>(
+    pub fn frame_unchecked<P, W>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -62,11 +62,11 @@ impl<T: Float> SignalRefMut<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Signal<T> where P: IPad<T>, W: IWindow<T> {
         self.as_ref()
             .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
-    pub fn frame<P: IPad<T>, W: IWindow<T>>(
+    pub fn frame<P, W>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -75,7 +75,7 @@ impl<T: Float> SignalRefMut<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Signal<T> where P: IPad<T>, W: IWindow<T> {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

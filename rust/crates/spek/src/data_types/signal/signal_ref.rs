@@ -10,13 +10,13 @@ use crate::pad::IPad;
 pub struct SignalRef<'a, T>(&'a [T]);
 
 impl<'a, T> SignalRef<'a, T> {
-    pub fn new(data: &'a [T]) -> Self { Self(data) }
+    pub const fn new(data: &'a [T]) -> Self { Self(data) }
 
-    pub fn as_slice(self) -> &'a [T] { self.0 }
+    pub const fn as_slice(self) -> &'a [T] { self.0 }
 
     pub const fn len(self) -> usize { self.0.len() }
 
-    pub fn is_empty(self) -> bool { self.0.is_empty() }
+    pub const fn is_empty(self) -> bool { self.0.is_empty() }
 
     pub fn get(self, index: usize) -> Option<&'a T> { self.0.get(index) }
 
@@ -63,7 +63,7 @@ impl<T: Float> SignalRef<'_, T> {
     ///
     /// Panics if the window or hop size is zero, if `fft_size < win_size`,
     /// or if `frame_idx` is outside the frame grid.
-    pub fn frame_unchecked<P: IPad<T>>(
+    pub fn frame_unchecked<P>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -72,7 +72,7 @@ impl<T: Float> SignalRef<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Signal<T> where P: IPad<T> {
         let start = frame_idx * hop_size;
         let frame: Signal<T> = self.0[start..(start + win_size).max(self.len())]
             .iter()
@@ -88,7 +88,7 @@ impl<T: Float> SignalRef<'_, T> {
         frame.pad(pad, pad_before, pad_after).unwrap()
     }
 
-    pub fn frame<P: IPad<T>>(
+    pub fn frame<P>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -97,7 +97,7 @@ impl<T: Float> SignalRef<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Signal<T> where P: IPad<T> {
         assert!(win_size > 0, "win_size must be greater than zero");
         assert!(hop_size > 0, "hop_size must be greater than zero");
         assert!(fft_size >= win_size, "fft_size must be >= win_size");

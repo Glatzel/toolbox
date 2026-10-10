@@ -18,7 +18,7 @@ where
         pad: &P,
         pad_before: usize,
         pad_after: usize,
-    ) -> Result<Signal<T>, SpekError>
+    ) -> Result<Self, SpekError>
     where
         P: IPad<T>,
     {

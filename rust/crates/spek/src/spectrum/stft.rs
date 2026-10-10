@@ -107,7 +107,7 @@ where
 
     fn frame(&self, input: &[T]) -> Signal<T> {
         let mut frame: Vec<T> = input
-            .into_iter()
+            .iter()
             .zip(self.window.iter())
             .map(|(i, w)| *i * *w)
             .collect();

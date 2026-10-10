@@ -10,7 +10,7 @@ use crate::pad::IPad;
 pub struct Signal<T>(Vec<T>);
 
 impl<T> Signal<T> {
-    pub fn new(data: Vec<T>) -> Self { Self(data) }
+    pub const fn new(data: Vec<T>) -> Self { Self(data) }
 
     pub fn with_capacity(capacity: usize) -> Self { Self(Vec::with_capacity(capacity)) }
 
@@ -24,11 +24,11 @@ impl<T> Signal<T> {
 
     pub fn into_inner(self) -> Vec<T> { self.0 }
 
-    pub fn len(&self) -> usize { self.0.len() }
+    pub const fn len(&self) -> usize { self.0.len() }
 
-    pub fn is_empty(&self) -> bool { self.0.is_empty() }
+    pub const fn is_empty(&self) -> bool { self.0.is_empty() }
 
-    pub fn capacity(&self) -> usize { self.0.capacity() }
+    pub const fn capacity(&self) -> usize { self.0.capacity() }
 
     pub fn reserve(&mut self, additional: usize) { self.0.reserve(additional); }
 
@@ -70,7 +70,7 @@ impl<T> From<Signal<T>> for Vec<T> {
 }
 
 impl<T> FromIterator<T> for Signal<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self { Self(iter.into_iter().collect()) }
+    fn from_iter<I>(iter: I) -> Self where I: IntoIterator<Item = T> { Self(iter.into_iter().collect()) }
 }
 
 impl<T> IntoIterator for Signal<T> {
@@ -98,7 +98,7 @@ impl<T: Float> Signal<T> {
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame_unchecked<P: IPad<T>>(
+    pub fn frame_unchecked<P>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -107,11 +107,11 @@ impl<T: Float> Signal<T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Self where P: IPad<T> {
         self.as_ref()
             .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
-    pub fn frame<P: IPad<T>>(
+    pub fn frame<P>(
         &self,
         frame_idx: usize,
         win_size: usize,
@@ -120,7 +120,7 @@ impl<T: Float> Signal<T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> {
+    ) -> Self where P: IPad<T> {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

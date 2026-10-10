@@ -62,8 +62,10 @@ impl<T: Float> SignalRefMut<'_, T> {
         window: &[T],
         pad: &Pad<T>,
         center: bool,
-    ) -> Signal<T>  where
-        T: Sum,{
+    ) -> Signal<T>
+    where
+        T: Sum,
+    {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

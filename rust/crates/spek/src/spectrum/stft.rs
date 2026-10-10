@@ -393,7 +393,16 @@ mod tests {
                 .map(|(r, i)| (format!("{r:.6}"), format!("{i:.6}")))
                 .collect::<Vec<_>>()
         );
-
+        {
+            let spectrum_par = stft.par_stft(signal.clone().as_ref());
+            spectrum_par
+                .iter()
+                .zip(spectrum.iter())
+                .for_each(|((rep, imp), (re, im))| {
+                    float_cmp::assert_approx_eq!(T, *rep, *re);
+                    float_cmp::assert_approx_eq!(T, *imp, *im);
+                });
+        }
         {
             let frame = stft.stft_frame(signal.as_slice()[..win_size].into());
             frame

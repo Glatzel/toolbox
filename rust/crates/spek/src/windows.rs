@@ -95,14 +95,14 @@ where
     FlatTop,
 
     /// Gaussian window with the given standard deviation.
-    Gaussian { standard_deviation: T },
+    Gaussian { sd: T },
 
     /// Generic weighted sum of cosine terms.
     GeneralCosine { coeffs: Vec<T> },
 
     /// Generalized Gaussian window with shape and standard-deviation
     /// parameters.
-    GeneralGaussian { shape: T, standard_deviation: T },
+    GeneralGaussian { shape: T, sd: T },
 
     /// Generalized Hamming window parameterized by `alpha`.
     GeneralHamming { alpha: T },
@@ -169,12 +169,9 @@ where
             Self::Dpss { nw } => dpss(size, symmetric, *nw),
             Self::Exponential { center, tau } => exponential(size, symmetric, *center, *tau)?,
             Self::FlatTop => flat_top(size, symmetric),
-            Self::Gaussian { standard_deviation } => gaussian(size, symmetric, *standard_deviation),
+            Self::Gaussian { sd } => gaussian(size, symmetric, *sd),
             Self::GeneralCosine { coeffs } => general_cosine(size, symmetric, coeffs),
-            Self::GeneralGaussian {
-                shape,
-                standard_deviation,
-            } => general_gaussian(size, symmetric, *shape, *standard_deviation),
+            Self::GeneralGaussian { shape, sd } => general_gaussian(size, symmetric, *shape, *sd),
             Self::GeneralHamming { alpha } => general_hamming(size, symmetric, *alpha),
             Self::Hamming => hamming(size, symmetric),
             Self::Hann => hann(size, symmetric),
@@ -1364,9 +1361,9 @@ mod tests {
     #[case(Window::Dpss{ nw: 3.0 }, "dpss")]
     #[case(Window::Exponential{ center: None, tau: None }, "exponential")]
     #[case(Window::FlatTop, "flattop")]
-    #[case(Window::Gaussian{ standard_deviation: 0.5 }, "gaussian")]
+    #[case(Window::Gaussian{ sd: 0.5 }, "gaussian")]
     #[case(Window::GeneralCosine{ coeffs: vec![1.0f64, 1.942604, 1.340318, 0.440811, 0.043097] }, "general_cosine")]
-    #[case(Window::GeneralGaussian{ shape: 0.6, standard_deviation: 0.5 }, "general_gaussian")]
+    #[case(Window::GeneralGaussian{ shape: 0.6, sd: 0.5 }, "general_gaussian")]
     #[case(Window::GeneralHamming{ alpha: 0.5 }, "general_hamming")]
     #[case(Window::Hamming, "hamming")]
     #[case(Window::Hann, "hann")]

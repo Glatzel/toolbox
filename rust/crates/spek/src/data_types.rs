@@ -14,7 +14,7 @@ mod tuning;
 pub use a4::A4;
 pub use amplitude::Amplitude;
 pub use db::Db;
-pub use frequency::Frequency;
+pub use frequency::{Frequency, Hz};
 pub use mel::Mel;
 pub use octs::Octs;
 pub use phase::Phase;

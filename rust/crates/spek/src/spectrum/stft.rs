@@ -128,16 +128,13 @@ where
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
-        result
-            .frames_par_iter_mut()
-            .enumerate()
-            .for_each_init(
-                || vec![T::zero(); fft_size],
-                |frame, (frame_idx, spectrum)| {
-                    signal.frame_into(frame, frame_idx, self.win_size, self.hop_size, &self.window);
-                    self.fft_backend.fft(frame, spectrum.0, spectrum.1);
-                },
-            );
+        result.frames_par_iter_mut().enumerate().for_each_init(
+            || vec![T::zero(); fft_size],
+            |frame, (frame_idx, spectrum)| {
+                signal.frame_into(frame, frame_idx, self.win_size, self.hop_size, &self.window);
+                self.fft_backend.fft(frame, spectrum.0, spectrum.1);
+            },
+        );
 
         result
     }

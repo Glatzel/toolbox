@@ -35,11 +35,27 @@ macro_rules! simple_structure {
         where
             T: num_traits::Float;
 
+        impl<T> $name<T>
+        where
+            T: num_traits::Float,
+        {
+            #[inline]
+            #[must_use]
+            pub fn into_inner(self) -> T { self.0 }
+        }
+
         impl<T> From<T> for $name<T>
         where
             T: num_traits::Float,
         {
             fn from(value: T) -> Self { $name(value) }
+        }
+
+        impl<T> AsRef<T> for $name<T>
+        where
+            T: num_traits::Float,
+        {
+            fn as_ref(&self) -> &T { &self.0 }
         }
     };
 }

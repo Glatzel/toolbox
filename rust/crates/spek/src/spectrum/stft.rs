@@ -8,9 +8,9 @@ use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
 use thiserror::Error;
 
-use crate::data_types::SignalRef;
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
+use crate::data_types::{Signal, SignalRef};
 use crate::pad::PadError;
 use crate::spectrum::IFftBackend;
 use crate::windows::{IWindow, WindowError};
@@ -136,25 +136,25 @@ where
         }
     }
 
-    fn frame(&self, input: SignalRef<'_, T>) -> Vec<T> {
+    fn frame(&self, input: &[T]) -> Signal<T> {
         let mut frame: Vec<T> = input
-            .iter()
+            .into_iter()
             .zip(self.window.iter())
             .map(|(i, w)| *i * *w)
             .collect();
         frame.resize(self.fft_backend.fft_size(), T::zero());
-        frame
+        frame.into()
     }
 
-    pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
-        let frame = self.frame(input);
+    pub fn stft_frame(&self, input: SignalRef<T>) -> (Vec<T>, Vec<T>) {
+        let frame = self.frame(input.as_slice());
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
-        self.fft_backend.fft(&frame, &mut real, &mut imag);
+        self.fft_backend.fft(frame.as_ref(), &mut real, &mut imag);
         (real, imag)
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T>
+    pub fn par_stft(&self, signal: SignalRef<T>) -> Spectrum2D<T>
     where
         T: Sync + Send,
         FftBackend: Sync,
@@ -175,14 +175,14 @@ where
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal[start..start + self.win_size]);
-                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
+                let frame = self.frame(&signal.as_slice()[start..start + self.win_size]);
+                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
         result
     }
 
-    pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
+    pub fn stft(&self, signal: SignalRef<T>) -> Spectrum2D<T> {
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         spectrogram
@@ -190,8 +190,8 @@ where
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
                 let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal[start..start + self.win_size]);
-                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
+                let frame = self.frame(&signal.as_slice()[start..start + self.win_size]);
+                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
         spectrogram
@@ -256,7 +256,7 @@ where
 
         let mut output = vec![T::zero(); out_len];
         let (mut scratch_real, mut scratch_imag) = self.fft_backend.new_scratch();
-        let mut time_frame = vec![T::zero(); fft_size]; // reused, not reallocated per frame
+        let mut time_frame = Signal::new(vec![T::zero(); fft_size]); // reused, not reallocated per frame
 
         spectrum
             .frames_iter_mut()
@@ -266,7 +266,7 @@ where
                 self.fft_backend.ifft(
                     spectrum.0,
                     spectrum.1,
-                    &mut time_frame,
+                    time_frame.as_mut(),
                     &mut scratch_real,
                     &mut scratch_imag,
                 );
@@ -308,10 +308,12 @@ where
             .for_each_init(
                 || self.fft_backend.new_scratch(), // once per worker thread
                 |(scratch_real, scratch_imag), (spectrum, time_frame)| {
+                    use crate::data_types::SignalRefMut;
+
                     self.fft_backend.ifft(
                         spectrum.0,
                         spectrum.1,
-                        time_frame,
+                        SignalRefMut::new(time_frame),
                         scratch_real,
                         scratch_imag,
                     );
@@ -372,11 +374,15 @@ mod tests {
         FftBackend: Sync,
     {
         use generic_num::num;
+        let fft_size = fft_backend.fft_size();
 
         let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
-        let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
+        let signal: Signal<T> = (0..signal_len)
+            .map(|i| num!(i * i))
+            .collect::<Vec<_>>()
+            .into();
 
-        let spectrum = stft.stft(&mut signal.clone());
+        let spectrum = stft.stft(signal.clone().as_ref());
         insta::assert_debug_snapshot!(
             format!("{name}.spectogram"),
             spectrum
@@ -388,7 +394,7 @@ mod tests {
         );
 
         {
-            let frame = stft.stft_frame(&signal[0..win_size]);
+            let frame = stft.stft_frame(signal.frame(0, win_size, hop_size, fft_size).as_ref());
             frame
                 .0
                 .iter()

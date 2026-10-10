@@ -30,7 +30,10 @@ pub use tuning::Tuning;
 macro_rules! simple_structure {
     ($name:ident) => {
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-        pub struct $name<T>(pub T);
+        pub struct $name<T>(pub T)
+        where
+            T: num_traits::Float;
+
         impl<T> From<T> for $name<T>
         where
             T: num_traits::Float,

@@ -6,48 +6,8 @@ use core::iter::Sum;
 use generic_num::num;
 use num_traits::Float;
 
-use crate::data_types::{Signal, SignalRef, SignalRefMut};
+use crate::data_types::{Signal, SignalRef};
 use crate::error::SpekError;
-
-impl<T> Signal<T>
-where
-    T: Float + Sum,
-{
-    pub fn pad(
-        &self,
-        pad: &Pad<T>,
-        pad_before: usize,
-        pad_after: usize,
-    ) -> Result<Self, SpekError> {
-        self.as_ref().pad(pad, pad_before, pad_after)
-    }
-}
-impl<T> SignalRef<'_, T>
-where
-    T: Float + Sum,
-{
-    pub fn pad(
-        &self,
-        pad: &Pad<T>,
-        pad_before: usize,
-        pad_after: usize,
-    ) -> Result<Signal<T>, SpekError> {
-        pad.pad(self.to_owned(), pad_before, pad_after)
-    }
-}
-impl<T> SignalRefMut<'_, T>
-where
-    T: Float + Sum,
-{
-    pub fn pad(
-        &self,
-        pad: &Pad<T>,
-        pad_before: usize,
-        pad_after: usize,
-    ) -> Result<Signal<T>, SpekError> {
-        self.as_ref().pad(pad, pad_before, pad_after)
-    }
-}
 
 pub enum Pad<T> {
     Constant(T),
@@ -72,7 +32,7 @@ impl<T> Pad<T>
 where
     T: Float + Sum,
 {
-    fn pad(
+    pub fn pad(
         &self,
         signal: SignalRef<'_, T>,
         pad_before: usize,

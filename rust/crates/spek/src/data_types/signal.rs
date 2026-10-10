@@ -5,7 +5,6 @@ pub type SignalRef<'a, T> = &'a [T];
 pub type SignalRefMut<'a, T> = &'a mut [T];
 
 pub trait ISignal<T> {
-    #[inline]
     fn frame_count(&self, win_size: usize, hop_size: usize) -> usize
     where
         Self: AsRef<[T]>,

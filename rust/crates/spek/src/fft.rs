@@ -45,7 +45,7 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
     fn signal_size(&self) -> usize { self.fft_size }
     fn spectrum_size(&self) -> usize { self.fft_size / 2 + 1 }
     fn scratch_size(&self) -> usize { self.fft_size / 2 }
-    fn new_signal(&self) -> Signal<f32> { vec![0_f32; self.signal_size()].into() }
+    fn new_signal(&self) -> Signal<f32> { vec![0_f32; self.signal_size()] }
 
     fn new_spectrum(&self) -> (Vec<f32>, Vec<f32>) {
         (
@@ -110,7 +110,7 @@ impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
     fn spectrum_size(&self) -> usize { self.fft_size / 2 + 1 }
 
     fn scratch_size(&self) -> usize { self.fft_size / 2 }
-    fn new_signal(&self) -> Signal<f64> { vec![0_f64; self.signal_size()].into() }
+    fn new_signal(&self) -> Signal<f64> { vec![0_f64; self.signal_size()] }
 
     fn new_spectrum(&self) -> (Vec<f64>, Vec<f64>) {
         (

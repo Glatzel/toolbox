@@ -175,7 +175,7 @@ where
             }
         }
 
-        Ok(padded.into())
+        Ok(padded)
     }
 }
 

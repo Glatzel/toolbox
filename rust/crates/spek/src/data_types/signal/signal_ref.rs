@@ -83,13 +83,10 @@ impl<T: Float> SignalRef<'_, T> {
             .collect::<Vec<_>>()
             .into();
         let (pad_before, pad_after) = if center {
-            let rest=fft_size - win_size;
-            let before=rest/2;
-                let after=rest-before;
-            (
-                before,
-                after,
-            )
+            let rest = fft_size - win_size;
+            let before = rest / 2;
+            let after = rest - before;
+            (before, after)
         } else {
             (0, fft_size - win_size)
         };

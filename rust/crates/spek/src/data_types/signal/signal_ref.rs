@@ -72,7 +72,10 @@ impl<T: Float> SignalRef<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> where P: IPad<T> {
+    ) -> Signal<T>
+    where
+        P: IPad<T>,
+    {
         let start = frame_idx * hop_size;
         let frame: Signal<T> = self.0[start..(start + win_size).max(self.len())]
             .iter()
@@ -97,7 +100,10 @@ impl<T: Float> SignalRef<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> where P: IPad<T> {
+    ) -> Signal<T>
+    where
+        P: IPad<T>,
+    {
         assert!(win_size > 0, "win_size must be greater than zero");
         assert!(hop_size > 0, "hop_size must be greater than zero");
         assert!(fft_size >= win_size, "fft_size must be >= win_size");

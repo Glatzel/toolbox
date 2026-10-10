@@ -70,7 +70,12 @@ impl<T> From<Signal<T>> for Vec<T> {
 }
 
 impl<T> FromIterator<T> for Signal<T> {
-    fn from_iter<I>(iter: I) -> Self where I: IntoIterator<Item = T> { Self(iter.into_iter().collect()) }
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        Self(iter.into_iter().collect())
+    }
 }
 
 impl<T> IntoIterator for Signal<T> {
@@ -107,7 +112,10 @@ impl<T: Float> Signal<T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Self where P: IPad<T> {
+    ) -> Self
+    where
+        P: IPad<T>,
+    {
         self.as_ref()
             .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
@@ -120,7 +128,10 @@ impl<T: Float> Signal<T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Self where P: IPad<T> {
+    ) -> Self
+    where
+        P: IPad<T>,
+    {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

@@ -13,12 +13,7 @@ impl<T> Signal<T>
 where
     T: Float,
 {
-    pub fn pad<P>(
-        &self,
-        pad: &P,
-        pad_before: usize,
-        pad_after: usize,
-    ) -> Result<Self, SpekError>
+    pub fn pad<P>(&self, pad: &P, pad_before: usize, pad_after: usize) -> Result<Self, SpekError>
     where
         P: IPad<T>,
     {

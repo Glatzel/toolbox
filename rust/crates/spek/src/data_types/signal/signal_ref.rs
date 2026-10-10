@@ -85,7 +85,7 @@ impl<T: Float> SignalRef<'_, T> {
         let (pad_before, pad_after) = if center {
             (
                 (fft_size - win_size) / 2,
-            fft_size - win_size-    (fft_size - win_size) / 2,
+                fft_size - win_size - (fft_size - win_size) / 2,
             )
         } else {
             (0, fft_size - win_size)

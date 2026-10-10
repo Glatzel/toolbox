@@ -115,7 +115,7 @@ where
         frame.into()
     }
 
-    pub fn stft_frame(&self, input: SignalRef<T>) -> (Vec<T>, Vec<T>) {
+    pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
         let frame = self.frame(input.as_slice());
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
         self.fft_backend.fft(frame.as_ref(), &mut real, &mut imag);
@@ -123,7 +123,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_stft(&self, signal: SignalRef<T>) -> Spectrum2D<T>
+    pub fn par_stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T>
     where
         T: Sync + Send,
         FftBackend: Sync,
@@ -151,7 +151,7 @@ where
         result
     }
 
-    pub fn stft(&self, signal: SignalRef<T>) -> Spectrum2D<T> {
+    pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         spectrogram

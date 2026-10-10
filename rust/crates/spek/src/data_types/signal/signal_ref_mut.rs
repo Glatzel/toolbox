@@ -15,7 +15,7 @@ impl<'a, T> SignalRefMut<'a, T> {
 
     pub const fn as_slice(&self) -> &[T] { self.0 }
 
-    pub fn as_ref(&'a self) -> SignalRef<'a, T> { SignalRef::new(self.0) }
+    pub const fn as_ref(&'a self) -> SignalRef<'a, T> { SignalRef::new(self.0) }
 
     pub const fn as_mut_slice(&mut self) -> &mut [T] { self.0 }
 
@@ -50,7 +50,7 @@ impl<'a, T> IntoIterator for SignalRefMut<'a, T> {
 }
 
 impl<T: Float> SignalRefMut<'_, T> {
-    pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
+    pub const fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
     pub fn frame_unchecked<P, W>(
@@ -62,7 +62,11 @@ impl<T: Float> SignalRefMut<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> where P: IPad<T>, W: IWindow<T> {
+    ) -> Signal<T>
+    where
+        P: IPad<T>,
+        W: IWindow<T>,
+    {
         self.as_ref()
             .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
@@ -75,7 +79,11 @@ impl<T: Float> SignalRefMut<'_, T> {
         window: &[T],
         pad: &P,
         center: bool,
-    ) -> Signal<T> where P: IPad<T>, W: IWindow<T> {
+    ) -> Signal<T>
+    where
+        P: IPad<T>,
+        W: IWindow<T>,
+    {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

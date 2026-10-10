@@ -66,34 +66,52 @@ where
     Boxcar,
 
     /// Dolph-Chebyshev window with the requested sidelobe attenuation in dB.
-    Chebwin { attenuation: T },
+    Chebwin {
+        attenuation: T,
+    },
+
+    Constant(T),
 
     /// Window with a simple cosine shape.
     Cosine,
 
     /// Discrete Prolate Spheroidal Sequence (DPSS) window with time-bandwidth
     /// product `nw`.
-    Dpss { nw: T },
+    Dpss {
+        nw: T,
+    },
 
     /// Exponential (Poisson) window, optionally specifying its center and decay
     /// `tau`.
-    Exponential { center: Option<T>, tau: Option<T> },
+    Exponential {
+        center: Option<T>,
+        tau: Option<T>,
+    },
 
     /// Flat-top window, designed for accurate amplitude measurements.
     FlatTop,
 
     /// Gaussian window with the given standard deviation.
-    Gaussian { sd: T },
+    Gaussian {
+        sd: T,
+    },
 
     /// Generic weighted sum of cosine terms.
-    GeneralCosine { coeffs: Vec<T> },
+    GeneralCosine {
+        coeffs: Vec<T>,
+    },
 
     /// Generalized Gaussian window with shape and standard-deviation
     /// parameters.
-    GeneralGaussian { shape: T, sd: T },
+    GeneralGaussian {
+        shape: T,
+        sd: T,
+    },
 
     /// Generalized Hamming window parameterized by `alpha`.
-    GeneralHamming { alpha: T },
+    GeneralHamming {
+        alpha: T,
+    },
 
     /// Hamming window.
     Hamming,
@@ -102,10 +120,14 @@ where
     Hann,
 
     /// Kaiser window with shape parameter `beta`.
-    Kaiser { beta: T },
+    Kaiser {
+        beta: T,
+    },
 
     /// Kaiser-Bessel derived window with shape parameter `beta`.
-    KaiserBesselDerived { beta: T },
+    KaiserBesselDerived {
+        beta: T,
+    },
 
     /// Lanczos (sinc) window.
     Lanczos,
@@ -118,13 +140,19 @@ where
 
     /// Taylor window with `nbar` near-invariant sidelobes, sidelobe level `sll`
     /// in dB, and optional normalization.
-    Taylor { nbar: usize, sll: T, norm: bool },
+    Taylor {
+        nbar: usize,
+        sll: T,
+        norm: bool,
+    },
 
     /// Triangular window.
     Triang,
 
     /// Tukey (tapered cosine) window with taper fraction `alpha`.
-    Tukey { alpha: T },
+    Tukey {
+        alpha: T,
+    },
 }
 impl<T> IWindow<T> for Window<T>
 where
@@ -153,6 +181,7 @@ where
             Self::Bohman => bohman(size, symmetric),
             Self::Boxcar => boxcar(size, symmetric),
             Self::Chebwin { attenuation } => chebwin(size, symmetric, *attenuation),
+            Self::Constant(n) => vec![*n; size],
             Self::Cosine => cosine(size, symmetric),
             Self::Dpss { nw } => dpss(size, symmetric, *nw),
             Self::Exponential { center, tau } => exponential(size, symmetric, *center, *tau)?,
@@ -164,7 +193,7 @@ where
             Self::Hamming => hamming(size, symmetric),
             Self::Hann => hann(size, symmetric),
             Self::Kaiser { beta } => kaiser(size, symmetric, *beta),
-            Self::KaiserBesselDerived { beta } => kaiser_bessel_derived(size, symmetric, *beta)?,
+            Self::KaiserBesselDerived { beta } => kaiser_bessel_derived(size, *beta)?,
             Self::Lanczos => lanczos(size, symmetric),
             Self::Nuttall => nuttall(size, symmetric),
             Self::Parzen => parzen(size, symmetric),
@@ -175,7 +204,12 @@ where
         Ok(result)
     }
 }
-
+impl<T> Default for Window<T>
+where
+    T: Float + FloatConst,
+{
+    fn default() -> Self { Window::Constant(T::one()) }
+}
 /// Return a modified Bartlett-Hann window.
 ///
 /// The window combines a linear term with a cosine term and is also known as
@@ -933,7 +967,7 @@ where
 /// The construction is based on a cumulative sum of a Kaiser window followed
 /// by square-root normalization. As in SciPy, this window is only defined here
 /// for an even `size` and `symmetric = true`.
-pub fn kaiser_bessel_derived<T>(size: usize, symmetric: bool, beta: T) -> Result<Vec<T>, SpekError>
+pub fn kaiser_bessel_derived<T>(size: usize, beta: T) -> Result<Vec<T>, SpekError>
 where
     T: Float + FloatConst,
 {
@@ -941,9 +975,6 @@ where
         return Ok(Vec::new());
     }
 
-    if !symmetric {
-        return Err(SpekError::KaiserBesselDerivedAsymmetric);
-    }
     if !size.is_multiple_of(2) {
         return Err(SpekError::KaiserBesselDerivedSize);
     }
@@ -1364,9 +1395,6 @@ mod tests {
         #[case] name: &str,
         #[values(true, false)] symmetric: bool,
     ) -> mischief::Result<()> {
-        if name == "kaiser_bessel_derived" && !symmetric {
-            return Ok(());
-        }
         let window = window
             .window(10, symmetric)?
             .iter()

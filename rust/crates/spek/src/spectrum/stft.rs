@@ -4,7 +4,6 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use std::iter::Sum;
-use std::ops::MulAssign;
 
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
@@ -14,7 +13,6 @@ use crate::data_types::Spectrum2D;
 use crate::data_types::{Signal, SignalRef};
 use crate::error::SpekError;
 use crate::fft::IFftBackend;
-use crate::pad::Pad;
 use crate::windows::Window;
 
 /// # STFT Parameters
@@ -40,23 +38,19 @@ where
     hop_size: usize,
     win_size: usize,
     window: Vec<T>,
-    pad: Pad<T>,
-    center: bool,
     fft_backend: FftBackend,
     norm_cache: Mutex<Option<(usize, alloc::sync::Arc<[T]>)>>,
 }
 
 impl<T, FftBackend> Stft<T, FftBackend>
 where
-    T: Float + FloatConst + Debug + Sum + MulAssign,
+    T: Float + FloatConst + Debug + Sum,
     FftBackend: IFftBackend<T>,
 {
     pub fn new(
         hop_size: usize,
         win_size: usize,
         window: Window<T>,
-        pad: Pad<T>,
-        center: bool,
         fft_backend: FftBackend,
     ) -> Result<Self, SpekError> {
         if hop_size == 0 {
@@ -104,8 +98,6 @@ where
             hop_size,
             win_size,
             window: window.window(win_size, false)?,
-            pad,
-            center,
             fft_backend,
             norm_cache: Mutex::new(None),
         })
@@ -118,8 +110,6 @@ where
             self.hop_size,
             self.fft_backend.fft_size(),
             &self.window,
-            &self.pad,
-            self.center,
         );
 
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
@@ -154,8 +144,6 @@ where
                     self.hop_size,
                     self.fft_backend.fft_size(),
                     &self.window,
-                    &self.pad,
-                    self.center,
                 );
                 self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
@@ -176,8 +164,6 @@ where
                     self.hop_size,
                     self.fft_backend.fft_size(),
                     &self.window,
-                    &self.pad,
-                    self.center,
                 );
                 self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
@@ -335,7 +321,6 @@ mod tests {
 
     use super::*;
     use crate::fft::PhastftBackend;
-    use crate::pad::Pad;
     use crate::windows::Window;
     #[rstest]
     #[case("f32.hop4.win7.window_hann.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
@@ -349,19 +334,12 @@ mod tests {
         #[case] signal_len: usize,
     ) -> mischief::Result<()>
     where
-        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum + MulAssign,
+        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum,
         FftBackend: Sync,
     {
         use generic_num::num;
 
-        let stft = Stft::new(
-            hop_size,
-            win_size,
-            window.clone(),
-            Pad::Constant(T::zero()),
-            false,
-            fft_backend,
-        )?;
+        let stft = Stft::new(hop_size, win_size, window.clone(), fft_backend)?;
         let signal: Signal<T> = (0..signal_len)
             .map(|i| num!(i * i))
             .collect::<Vec<_>>()

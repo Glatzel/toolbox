@@ -1,11 +1,9 @@
 use core::slice;
 use std::iter::{FromIterator, Sum};
-use std::ops::MulAssign;
 
 use num_traits::Float;
 
 use crate::data_types::signal::{SignalRef, SignalRefMut};
-use crate::pad::Pad;
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct Signal<T>(Vec<T>);
@@ -115,13 +113,11 @@ impl<T: Float> Signal<T> {
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        pad: &Pad<T>,
-        center: bool,
     ) -> Self
     where
-        T: Sum + MulAssign,
+        T: Sum,
     {
         self.as_ref()
-            .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
+            .frame(frame_idx, win_size, hop_size, fft_size, window)
     }
 }

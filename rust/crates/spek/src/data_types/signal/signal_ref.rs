@@ -63,11 +63,9 @@ impl<T: Float> SignalRef<'_, T> {
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        pad: &Pad<T>,
-        center: bool,
     ) -> Signal<T>
     where
-        T: Sum + MulAssign,
+        T: Sum,
     {
         debug_assert!(win_size > 0, "win_size must be greater than zero");
         debug_assert!(hop_size > 0, "hop_size must be greater than zero");
@@ -77,19 +75,19 @@ impl<T: Float> SignalRef<'_, T> {
             "frame_idx out of bounds"
         );
         let start = frame_idx * hop_size;
-        let frame = SignalRef(&self.0[start..(start + win_size).min(self.len())]);
-        let (pad_before, pad_after) = if center {
-            let rest = fft_size - win_size;
-            let before = rest / 2;
-            let after = rest - before;
-            (before, after)
-        } else {
-            (0, fft_size - win_size)
-        };
-        let mut frame = frame.pad(pad, pad_before, pad_after).unwrap().into_inner();
-        for i in 0..win_size {
-            frame[pad_before + i] *= window[i];
+        let available = self.len().saturating_sub(start).min(win_size);
+        let frame_start = (fft_size - available) / 2;
+
+        let mut frame = vec![T::zero(); fft_size];
+
+        for (i, (&sample, &weight)) in self.0[start..start + available]
+            .iter()
+            .zip(window.iter())
+            .enumerate()
+        {
+            frame[i + frame_start] = sample * weight;
         }
-        frame.into()
+
+        Signal::new(frame)
     }
 }

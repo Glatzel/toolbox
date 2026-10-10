@@ -8,7 +8,6 @@ use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::data_types::Signal;
 use spek::fft::IFftBackend;
-use spek::pad::Pad;
 use spek::spectrum::Stft;
 use spek::windows::Window::Hann;
 
@@ -21,11 +20,11 @@ fn bench_wrapper<T, B>(
     backend: B,
     size: usize,
 ) where
-    T: Float + Debug + FloatConst + Sync + Sum + Send + MulAssign,
+    T: Float + Debug + FloatConst + Sync + Sum + Send,
     B: IFftBackend<T> + Sync,
 {
     let fft_size = backend.fft_size();
-    let stft = Stft::new(fft_size, fft_size, Hann, Pad::default(), false, backend).unwrap();
+    let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
     let data: Signal<T> = (0..10usize.pow(size as u32))
         .map(|i| num!(i))
         .collect::<Vec<_>>()

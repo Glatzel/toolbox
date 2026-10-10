@@ -1,12 +1,10 @@
 use core::slice;
 use std::iter::Sum;
-use std::ops::MulAssign;
 
 use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRef;
-use crate::pad::Pad;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SignalRefMut<'a, T>(&'a mut [T]);
@@ -61,13 +59,11 @@ impl<T: Float> SignalRefMut<'_, T> {
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        pad: &Pad<T>,
-        center: bool,
     ) -> Signal<T>
     where
-        T: Sum + MulAssign,
+        T: Sum,
     {
         self.as_ref()
-            .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
+            .frame(frame_idx, win_size, hop_size, fft_size, window)
     }
 }

@@ -373,7 +373,7 @@ mod tests {
                         win_size,
                         hop_size,
                         fft_size,
-                        &window.window(win_size, false).unwrap(),
+                        &vec![num!(1.0); win_size],
                         &PadMode::Constant(T::zero()),
                         false,
                     )

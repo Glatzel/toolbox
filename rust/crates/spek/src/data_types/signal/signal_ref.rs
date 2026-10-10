@@ -61,25 +61,24 @@ impl<T: Float> SignalRef<'_, T> {
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
-        _window: &[T],
+        window: &[T],
         _pad: &Pad<T>,
         _center: bool,
     ) -> Signal<T>
     where
-        T: Sum,
+        T: Float,
     {
-        let frame_count = self.frame_count(win_size, hop_size);
-        assert!(frame_idx < frame_count, "frame_idx out of bounds");
-
-        let start = frame_idx
-            .checked_mul(hop_size)
-            .expect("frame start index overflow");
-
+        let start = frame_idx * hop_size;
         let available = self.len().saturating_sub(start).min(win_size);
+
         let mut frame = vec![T::zero(); fft_size];
 
-        if available > 0 {
-            frame[..available].copy_from_slice(&self.0[start..start + available]);
+        for (i, (&sample, &weight)) in self.0[start..start + available]
+            .iter()
+            .zip(window.iter())
+            .enumerate()
+        {
+            frame[i] = sample * weight;
         }
 
         Signal::new(frame)

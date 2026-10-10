@@ -25,12 +25,12 @@ where
     /// # References
     ///
     /// - [librosa.fft_frequencies](https://librosa.org/doc/latest/generated/librosa.fft_frequencies.html)
-    pub fn fft_frequencies(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = Hz<T>> {
+    pub fn fft_frequencies(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = Self> {
         #[allow(
             clippy::range_plus_one,
             reason = "RangeInclusive does not implement ExactSizeIterator."
         )]
-        (0..(1 + n_fft / 2)).map(move |n| Hz(num!(n) * sr / num!(n_fft)))
+        (0..(1 + n_fft / 2)).map(move |n| Self(num!(n) * sr / num!(n_fft)))
     }
 
     /// Compute the center frequencies of Constant-Q Transform (CQT) bins.
@@ -64,7 +64,7 @@ where
         tuning: I1,
     ) -> impl ExactSizeIterator<Item = T>
     where
-        I: Into<Hz<T>>,
+        I: Into<Self>,
         I1: Into<Tuning<T>>,
     {
         let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
@@ -98,10 +98,10 @@ where
     /// - [librosa.mel_frequencies](https://librosa.org/doc/latest/generated/librosa.mel_frequencies.html)
     pub fn mel_frequencies(
         n_mels: usize,
-        fmin: Hz<T>,
-        fmax: Hz<T>,
+        fmin: Self,
+        fmax: Self,
         htk: bool,
-    ) -> impl ExactSizeIterator<Item = Hz<T>> {
+    ) -> impl ExactSizeIterator<Item = Self> {
         let min_mel = fmin.to_mel(htk);
         let max_mel = fmax.to_mel(htk);
         linspace(min_mel.0, max_mel.0, n_mels).map(move |mel| Mel(mel).to_hz(htk))
@@ -133,9 +133,9 @@ where
         n_bins: usize,
         hop_length: usize,
         sr: T,
-    ) -> impl Iterator<Item = Hz<T>> {
-        std::iter::once(Hz(T::infinity()))
-            .chain((1..n_bins).map(move |n| Hz(num!(60.0) * sr / (num!(hop_length) * num!(n)))))
+    ) -> impl Iterator<Item = Self> {
+        std::iter::once(Self(T::infinity()))
+            .chain((1..n_bins).map(move |n| Self(num!(60.0) * sr / (num!(hop_length) * num!(n)))))
     }
 
     /// Compute tempo frequencies corresponding to the bins of a Fourier
@@ -165,8 +165,8 @@ where
         sr: T,
         win_length: usize,
         hop_length: usize,
-    ) -> impl ExactSizeIterator<Item = Hz<T>> {
-        Hz::fft_frequencies(sr * num!(60) / num!(hop_length), win_length)
+    ) -> impl ExactSizeIterator<Item = Self> {
+        Self::fft_frequencies(sr * num!(60) / num!(hop_length), win_length)
     }
 }
 #[cfg(test)]

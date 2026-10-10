@@ -7,7 +7,9 @@ pub mod notation;
 mod octs;
 mod phase;
 mod power;
+mod signal;
 mod spectrogram;
+mod spectrum;
 mod spectrum2d;
 mod tuning;
 
@@ -19,7 +21,9 @@ pub use mel::Mel;
 pub use octs::Octs;
 pub use phase::Phase;
 pub use power::Power;
+pub use signal::{Signal, SignalRef, SignalRefMut};
 pub use spectrogram::Spectrogram;
+pub use spectrum::{Scratch, ScratchRef, ScratchRefMut, Spectrum, SpectrumRef, SpectrumRefMut};
 pub use spectrum2d::Spectrum2D;
 pub use tuning::Tuning;
 

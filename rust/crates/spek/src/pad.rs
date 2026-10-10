@@ -7,6 +7,8 @@ use generic_num::num;
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
+use crate::data_types::SignalRef;
+
 #[derive(Error, Debug)]
 pub enum PadError {
     #[error("signal is empty")]
@@ -40,7 +42,12 @@ impl<T> IPad<T> for PadMode<T>
 where
     T: Float + FloatConst + Sum,
 {
-    fn pad(&self, signal: &[T], pad_before: usize, pad_after: usize) -> Result<Vec<T>, PadError> {
+    fn pad(
+        &self,
+        signal: SignalRef<'_, T>,
+        pad_before: usize,
+        pad_after: usize,
+    ) -> Result<Vec<T>, PadError> {
         if signal.is_empty() {
             return Err(PadError::EmptySignal);
         }

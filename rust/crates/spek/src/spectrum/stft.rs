@@ -8,6 +8,7 @@ use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
 use thiserror::Error;
 
+use crate::data_types::SignalRef;
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
 use crate::pad::PadError;
@@ -135,7 +136,7 @@ where
         }
     }
 
-    fn frame(&self, input: &[T]) -> Vec<T> {
+    fn frame(&self, input: SignalRef<'_, T>) -> Vec<T> {
         let mut frame: Vec<T> = input
             .iter()
             .zip(self.window.iter())
@@ -145,7 +146,7 @@ where
         frame
     }
 
-    pub fn stft_frame(&self, input: &[T]) -> (Vec<T>, Vec<T>) {
+    pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
         let frame = self.frame(input);
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
         self.fft_backend.fft(&frame, &mut real, &mut imag);
@@ -153,7 +154,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_stft(&self, signal: &[T]) -> Spectrum2D<T>
+    pub fn par_stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T>
     where
         T: Sync + Send,
         FftBackend: Sync,
@@ -181,7 +182,7 @@ where
         result
     }
 
-    pub fn stft(&self, signal: &[T]) -> Spectrum2D<T> {
+    pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
         let frame_count = self.frame_count(signal.len());
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         spectrogram
@@ -352,7 +353,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::spectrum::phastft::PhastftBackend;
+    use crate::spectrum::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
     #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]

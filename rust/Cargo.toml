@@ -48,3 +48,11 @@ uuid = "1.27.0"
 [profile.dev.package]
 insta.opt-level = 3
 similar.opt-level = 3
+
+[profile.bench]
+inherits = "release"
+opt-level = 3
+debug = false
+strip = "symbols"
+lto = "fat"
+codegen-units = 1

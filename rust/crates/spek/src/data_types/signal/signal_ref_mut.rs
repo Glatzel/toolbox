@@ -1,11 +1,11 @@
 use core::slice;
+use std::iter::Sum;
 
 use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRef;
-use crate::pad::IPad;
-use crate::windows::IWindow;
+use crate::pad::Pad;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SignalRefMut<'a, T>(&'a mut [T]);
@@ -53,20 +53,17 @@ impl<T: Float> SignalRefMut<'_, T> {
     pub const fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame<P, W>(
+    pub fn frame<P>(
         &self,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        pad: &P,
+        pad: &Pad<T>,
         center: bool,
-    ) -> Signal<T>
-    where
-        P: IPad<T>,
-        W: IWindow<T>,
-    {
+    ) -> Signal<T>  where
+        T: Sum,{
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }

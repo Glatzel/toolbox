@@ -1,10 +1,11 @@
 use core::slice;
+use std::iter::Sum;
 
 use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRefMut;
-use crate::pad::IPad;
+use crate::pad::Pad;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SignalRef<'a, T>(&'a [T]);
@@ -54,18 +55,18 @@ impl<T: Float> SignalRef<'_, T> {
         }
     }
 
-    pub fn frame<P>(
+    pub fn frame(
         &self,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        pad: &P,
+        pad: &Pad<T>,
         center: bool,
     ) -> Signal<T>
     where
-        P: IPad<T>,
+        T: Sum,
     {
         assert!(win_size > 0, "win_size must be greater than zero");
         assert!(hop_size > 0, "hop_size must be greater than zero");
@@ -82,7 +83,7 @@ impl<T: Float> SignalRef<'_, T> {
             .collect::<Vec<_>>()
             .into();
         let (pad_before, pad_after) = if center {
-            ((fft_size - win_size) / 2, (fft_size + win_size) / 2)
+            ((fft_size - win_size) / 2, usize::midpoint(fft_size, win_size))
         } else {
             (0, fft_size - win_size)
         };

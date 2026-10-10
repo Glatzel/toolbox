@@ -26,9 +26,6 @@ use num_traits::{Float, FloatConst};
 
 use crate::error::SpekError;
 
-pub trait IWindow<T> {
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError>;
-}
 /// A parameterized window function.
 ///
 /// The variants correspond to the window functions listed by
@@ -43,10 +40,7 @@ pub trait IWindow<T> {
 /// amplitude accuracy, while `Dpss` is designed for concentration of energy
 /// within a chosen bandwidth.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Window<T>
-where
-    T: Float + FloatConst,
-{
+pub enum Window<T> {
     /// Modified Bartlett-Hann window.
     Barthnn,
 
@@ -154,7 +148,7 @@ where
         alpha: T,
     },
 }
-impl<T> IWindow<T> for Window<T>
+impl<T> Window<T>
 where
     T: Float + FloatConst,
 {
@@ -172,7 +166,7 @@ where
     /// Returns an error when the selected window has parameter or size
     /// restrictions, such as a non-positive exponential `tau` or an
     /// asymmetric/odd-sized Kaiser-Bessel derived window.
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError> {
+    pub fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError> {
         let result = match self {
             Self::Barthnn => barthnn(size, symmetric),
             Self::Bartlett => bartlett(size, symmetric),
@@ -206,9 +200,9 @@ where
 }
 impl<T> Default for Window<T>
 where
-    T: Float + FloatConst,
+    T: Float,
 {
-    fn default() -> Self { Window::Constant(T::one()) }
+    fn default() -> Self { Self::Constant(T::one()) }
 }
 /// Return a modified Bartlett-Hann window.
 ///

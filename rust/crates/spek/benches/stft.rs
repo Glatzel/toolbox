@@ -5,7 +5,9 @@ use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
 use spek::data_types::Signal;
-use spek::spectrum::{IFftBackend, Stft};
+use spek::fft::IFftBackend;
+use spek::pad::Pad;
+use spek::spectrum::Stft;
 use spek::windows::Window::Hann;
 
 const SIZE: [usize; 1] = [7];
@@ -21,7 +23,7 @@ fn bench_wrapper<T, B>(
     B: IFftBackend<T> + Sync,
 {
     let fft_size = backend.fft_size();
-    let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
+    let stft = Stft::new(fft_size, fft_size, Hann, Pad::default(), true, backend).unwrap();
     let data: Signal<T> = (0..10usize.pow(size as u32))
         .map(|i| num!(i))
         .collect::<Vec<_>>()

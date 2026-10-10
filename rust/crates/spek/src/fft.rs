@@ -67,7 +67,7 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
 
     fn fft(&self, signal: SignalRef<'_, f32>, real: &mut [f32], imag: &mut [f32]) {
         phastft::r2c_fft_f32_with_planner_and_opts(
-            signal.as_slice(),
+            signal,
             real,
             imag,
             &self.planner,
@@ -78,14 +78,14 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
         &self,
         real: &[f32],
         imag: &[f32],
-        mut signal: SignalRefMut<'_, f32>,
+        signal: SignalRefMut<'_, f32>,
         scratch_real: &mut [f32],
         scratch_imag: &mut [f32],
     ) {
         phastft::c2r_fft_f32_with_planner_and_opts(
             real,
             imag,
-            signal.as_mut_slice(),
+            signal,
             &self.planner,
             &self.options,
             scratch_real,
@@ -131,26 +131,20 @@ impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
     }
 
     fn fft(&self, signal: SignalRef<'_, f64>, real: &mut [f64], imag: &mut [f64]) {
-        r2c_fft_f64_with_planner_and_opts(
-            signal.as_slice(),
-            real,
-            imag,
-            &self.planner,
-            &self.options,
-        );
+        r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options);
     }
     fn ifft(
         &self,
         real: &[f64],
         imag: &[f64],
-        mut signal: SignalRefMut<'_, f64>,
+        signal: SignalRefMut<'_, f64>,
         scratch_real: &mut [f64],
         scratch_imag: &mut [f64],
     ) {
         c2r_fft_f64_with_planner_and_opts(
             real,
             imag,
-            signal.as_mut_slice(),
+            signal,
             &self.planner,
             &self.options,
             scratch_real,

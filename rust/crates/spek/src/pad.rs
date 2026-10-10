@@ -41,7 +41,6 @@ where
         if signal.is_empty() {
             return Err(SpekError::EmptySignal);
         }
-        let signal = signal.as_slice();
         let mut padded = Vec::with_capacity(signal.len() + pad_before + pad_after);
 
         match self {

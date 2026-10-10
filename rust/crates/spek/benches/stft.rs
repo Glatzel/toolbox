@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::iter::Sum;
 use std::marker::{Send, Sync};
-use std::ops::MulAssign;
 
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;

@@ -10,7 +10,7 @@ use parking_lot::Mutex;
 
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
-use crate::data_types::{Signal, SignalRef};
+use crate::data_types::{ISignal, SignalRef};
 use crate::error::SpekError;
 use crate::fft::IFftBackend;
 use crate::windows::Window;
@@ -219,7 +219,7 @@ where
 
         let mut output = vec![T::zero(); out_len];
         let (mut scratch_real, mut scratch_imag) = self.fft_backend.new_scratch();
-        let mut time_frame = Signal::new(vec![T::zero(); fft_size]); // reused, not reallocated per frame
+        let mut time_frame = vec![T::zero(); fft_size]; // reused, not reallocated per frame
 
         spectrum
             .frames_iter_mut()
@@ -271,12 +271,10 @@ where
             .for_each_init(
                 || self.fft_backend.new_scratch(), // once per worker thread
                 |(scratch_real, scratch_imag), (spectrum, time_frame)| {
-                    use crate::data_types::SignalRefMut;
-
                     self.fft_backend.ifft(
                         spectrum.0,
                         spectrum.1,
-                        SignalRefMut::new(time_frame),
+                        time_frame,
                         scratch_real,
                         scratch_imag,
                     );
@@ -320,6 +318,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::data_types::Signal;
     use crate::fft::PhastftBackend;
     use crate::windows::Window;
     #[rstest]

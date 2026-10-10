@@ -21,7 +21,7 @@ pub use mel::Mel;
 pub use octs::Octs;
 pub use phase::Phase;
 pub use power::Power;
-pub use signal::{Signal, SignalRef, SignalRefMut};
+pub use signal::{ISignal, Signal, SignalRef, SignalRefMut};
 pub use spectrogram::Spectrogram;
 pub use spectrum::{Scratch, ScratchRef, ScratchRefMut, Spectrum, SpectrumRef, SpectrumRefMut};
 pub use spectrum2d::Spectrum2D;

@@ -5,14 +5,14 @@ use strum::{AsRefStr, EnumString};
 
 use crate::data_types::notation::{Accidental, NotationError, Pitch};
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindScale {
+pub enum KeyScale {
     #[strum(serialize = "major", serialize = "maj")]
     Major,
     #[strum(serialize = "minor", serialize = "min")]
     Minor,
 }
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindMode {
+pub enum KeyMode {
     #[strum(serialize = "ionian")]
     Ionian,
     #[strum(serialize = "dorian")]
@@ -29,7 +29,7 @@ pub enum KeyKindMode {
     Locrian,
 }
 
-impl KeyKindMode {
+impl KeyMode {
     pub const fn offset(&self) -> u8 {
         match self {
             Self::Ionian => 0,
@@ -42,36 +42,19 @@ impl KeyKindMode {
         }
     }
 }
-#[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindMisc {
-    #[strum(serialize = "phr")]
-    Phr,
-    #[strum(serialize = "mix")]
-    Mix,
-    #[strum(serialize = "aeo")]
-    Aeo,
-    #[strum(serialize = "loc")]
-    Loc,
-}
 #[derive(Debug, Clone, AsRefStr, PartialEq, Eq)]
-pub enum KeyKind {
-    Scale(KeyKindScale),
-    Mode(KeyKindMode),
-    Misc(KeyKindMisc),
+pub enum KeyQuality {
+    Scale(KeyScale),
+    Mode(KeyMode),
 }
-impl FromStr for KeyKind {
+impl FromStr for KeyQuality {
     type Err = NotationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        KeyKindScale::from_str(s).map_or_else(
+        KeyScale::from_str(s).map_or_else(
             |_| {
-                KeyKindMode::from_str(s).map_or_else(
-                    |_| {
-                        KeyKindMisc::from_str(s).map_or_else(
-                            |_| Err(NotationError::InvalidKeyKind(s.into())),
-                            |key| Ok(Self::Misc(key)),
-                        )
-                    },
+                KeyMode::from_str(s).map_or_else(
+                    |_| Err(NotationError::InvalidKeyKind(s.into())),
                     |key| Ok(Self::Mode(key)),
                 )
             },
@@ -82,7 +65,7 @@ impl FromStr for KeyKind {
 pub struct Key {
     pitch: Pitch,
     accs: Vec<Accidental>,
-    key: KeyKind,
+    key: KeyQuality,
 }
 
 impl Display for Key {

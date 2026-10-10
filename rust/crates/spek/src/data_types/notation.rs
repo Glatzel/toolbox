@@ -5,7 +5,7 @@ mod midi;
 
 use std::num::ParseIntError;
 
-pub use key::{Key, KeyKind, KeyKindMisc, KeyKindMode, KeyKindScale};
+pub use key::{Key, KeyQuality, KeyKindMisc, KeyMode, KeyScale};
 pub use midi::Midi;
 pub use note::Note;
 use rax::error::VerbError;

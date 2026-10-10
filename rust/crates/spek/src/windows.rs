@@ -23,23 +23,11 @@ use alloc::vec::Vec;
 
 use generic_num::num;
 use num_traits::{Float, FloatConst};
-use thiserror::Error;
 
-/// Errors that can occur while constructing a window.
-#[derive(Error, Debug)]
-pub enum WindowError {
-    /// The exponential window requires a strictly positive `tau`.
-    #[error("Tau must be positive")]
-    ExponentialTau,
-    /// Kaiser-Bessel derived windows are only supported in symmetric mode.
-    #[error("Kaiser-Bessel derived asymmetric window must be symmetric")]
-    KaiserBesselDerivedAsymmetric,
-    /// Kaiser-Bessel derived windows require an even number of samples.
-    #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
-    KaiserBesselDerivedSize,
-}
+use crate::error::SpekError;
+
 pub trait IWindow<T> {
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError>;
+    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError>;
 }
 /// A parameterized window function.
 ///
@@ -156,7 +144,7 @@ where
     /// Returns an error when the selected window has parameter or size
     /// restrictions, such as a non-positive exponential `tau` or an
     /// asymmetric/odd-sized Kaiser-Bessel derived window.
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError> {
+    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError> {
         let result = match self {
             Self::Barthnn => barthnn(size, symmetric),
             Self::Bartlett => bartlett(size, symmetric),
@@ -683,7 +671,7 @@ pub fn exponential<T>(
     symmetric: bool,
     center: Option<T>,
     tau: Option<T>,
-) -> Result<Vec<T>, WindowError>
+) -> Result<Vec<T>, SpekError>
 where
     T: Float + FloatConst,
 {
@@ -713,7 +701,7 @@ where
     // SciPy requires tau > 0.
     let tau = match tau.unwrap_or_else(|| T::one()) {
         tau if tau > T::zero() => tau,
-        _ => return Err(WindowError::ExponentialTau),
+        _ => return Err(SpekError::ExponentialTau),
     };
 
     let mut window = Vec::with_capacity(size);
@@ -945,11 +933,7 @@ where
 /// The construction is based on a cumulative sum of a Kaiser window followed
 /// by square-root normalization. As in SciPy, this window is only defined here
 /// for an even `size` and `symmetric = true`.
-pub fn kaiser_bessel_derived<T>(
-    size: usize,
-    symmetric: bool,
-    beta: T,
-) -> Result<Vec<T>, WindowError>
+pub fn kaiser_bessel_derived<T>(size: usize, symmetric: bool, beta: T) -> Result<Vec<T>, SpekError>
 where
     T: Float + FloatConst,
 {
@@ -958,10 +942,10 @@ where
     }
 
     if !symmetric {
-        return Err(WindowError::KaiserBesselDerivedAsymmetric);
+        return Err(SpekError::KaiserBesselDerivedAsymmetric);
     }
     if !size.is_multiple_of(2) {
-        return Err(WindowError::KaiserBesselDerivedSize);
+        return Err(SpekError::KaiserBesselDerivedSize);
     }
 
     // SciPy:

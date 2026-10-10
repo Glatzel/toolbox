@@ -4,6 +4,8 @@ use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRef;
+use crate::pad::IPad;
+use crate::windows::IWindow;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SignalRefMut<'a, T>(&'a mut [T]);
@@ -51,13 +53,30 @@ impl<T: Float> SignalRefMut<'_, T> {
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame(
+    pub fn frame_unchecked<P: IPad<T>, W: IWindow<T>>(
         &self,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
     ) -> Signal<T> {
-        self.as_ref().frame(frame_idx, win_size, hop_size, fft_size)
+        self.as_ref()
+            .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
+    }
+    pub fn frame<P: IPad<T>, W: IWindow<T>>(
+        &self,
+        frame_idx: usize,
+        win_size: usize,
+        hop_size: usize,
+        fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
+    ) -> Signal<T> {
+        self.as_ref()
+            .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
 }

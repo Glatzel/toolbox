@@ -4,6 +4,7 @@ use std::marker::{Send, Sync};
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
 use num_traits::{Float, FloatConst};
+use spek::data_types::Signal;
 use spek::spectrum::{IFftBackend, Stft};
 use spek::windows::Window::Hann;
 
@@ -21,19 +22,20 @@ fn bench_wrapper<T, B>(
 {
     let fft_size = backend.fft_size();
     let stft = Stft::new(fft_size, fft_size, Hann, backend).unwrap();
-    let mut data = (0..10usize.pow(size as u32))
+    let data: Signal<T> = (0..10usize.pow(size as u32))
         .map(|i| num!(i))
-        .collect::<Vec<_>>();
-    let mut spectrum = stft.stft(&mut data);
+        .collect::<Vec<_>>()
+        .into();
+    let mut spectrum = stft.stft(data.as_ref());
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_{}_10^", name, fft_size), size),
         &size,
-        |b, _| b.iter(|| stft.stft(&mut data)),
+        |b, _| b.iter(|| stft.stft(data.as_ref())),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_parallel_{}_10^", name, fft_size), size),
         &size,
-        |b, _| b.iter(|| stft.par_stft(&mut data)),
+        |b, _| b.iter(|| stft.par_stft(data.as_ref())),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_istft_{}_10^", name, fft_size), size),

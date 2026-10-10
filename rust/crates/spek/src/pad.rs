@@ -5,22 +5,20 @@ use core::iter::Sum;
 
 use generic_num::num;
 use num_traits::{Float, FloatConst};
-use thiserror::Error;
 
 use crate::data_types::{Signal, SignalRef, SignalRefMut};
+use crate::error::SpekError;
 
-#[derive(Error, Debug)]
-pub enum PadError {
-    #[error("signal is empty")]
-    EmptySignal,
-    #[error("signal size is too small, expected at least {min_size}, got {actual}")]
-    SignalSizeTooSmall { min_size: usize, actual: usize },
-}
 impl<T> Signal<T>
 where
     T: Float,
 {
-    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    pub fn pad<P>(
+        &self,
+        pad: &P,
+        pad_before: usize,
+        pad_after: usize,
+    ) -> Result<Signal<T>, SpekError>
     where
         P: IPad<T>,
     {
@@ -31,7 +29,12 @@ impl<T> SignalRef<'_, T>
 where
     T: Float,
 {
-    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    pub fn pad<P>(
+        &self,
+        pad: &P,
+        pad_before: usize,
+        pad_after: usize,
+    ) -> Result<Signal<T>, SpekError>
     where
         P: IPad<T>,
     {
@@ -42,7 +45,12 @@ impl<T> SignalRefMut<'_, T>
 where
     T: Float,
 {
-    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    pub fn pad<P>(
+        &self,
+        pad: &P,
+        pad_before: usize,
+        pad_after: usize,
+    ) -> Result<Signal<T>, SpekError>
     where
         P: IPad<T>,
     {
@@ -58,7 +66,7 @@ where
         signal: SignalRef<'_, T>,
         pad_before: usize,
         pad_after: usize,
-    ) -> Result<Signal<T>, PadError>;
+    ) -> Result<Signal<T>, SpekError>;
 }
 
 pub enum PadMode<T> {
@@ -84,9 +92,9 @@ where
         signal: SignalRef<'_, T>,
         pad_before: usize,
         pad_after: usize,
-    ) -> Result<Signal<T>, PadError> {
+    ) -> Result<Signal<T>, SpekError> {
         if signal.is_empty() {
-            return Err(PadError::EmptySignal);
+            return Err(SpekError::EmptySignal);
         }
         let signal = signal.as_slice();
         let mut padded = Vec::with_capacity(signal.len() + pad_before + pad_after);
@@ -115,7 +123,7 @@ where
             Self::Reflect => {
                 for i in (1..=pad_before).rev() {
                     if i >= signal.len() {
-                        return Err(PadError::SignalSizeTooSmall {
+                        return Err(SpekError::SignalSizeTooSmall {
                             min_size: pad_before,
                             actual: signal.len(),
                         });
@@ -127,7 +135,7 @@ where
 
                 for i in 0..pad_after {
                     if i + 1 >= signal.len() {
-                        return Err(PadError::SignalSizeTooSmall {
+                        return Err(SpekError::SignalSizeTooSmall {
                             min_size: pad_after,
                             actual: signal.len(),
                         });
@@ -242,7 +250,7 @@ mod tests {
     fn empty_signal_errors() {
         let signal: [f64; 0] = [];
         let err = PadMode::Edge.pad(signal.as_ref().into(), 1, 1).unwrap_err();
-        assert!(matches!(err, PadError::EmptySignal));
+        assert!(matches!(err, SpekError::EmptySignal));
     }
 
     #[test]
@@ -333,7 +341,7 @@ mod tests {
         let err = PadMode::Reflect
             .pad(signal.as_ref().into(), 5, 0)
             .unwrap_err();
-        assert!(matches!(err, PadError::SignalSizeTooSmall { .. }));
+        assert!(matches!(err, SpekError::SignalSizeTooSmall { .. }));
     }
 
     #[test]
@@ -342,7 +350,7 @@ mod tests {
         let err = PadMode::Reflect
             .pad(signal.as_ref().into(), 0, 5)
             .unwrap_err();
-        assert!(matches!(err, PadError::SignalSizeTooSmall { .. }));
+        assert!(matches!(err, SpekError::SignalSizeTooSmall { .. }));
     }
 
     #[test]

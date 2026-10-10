@@ -4,6 +4,7 @@ use std::iter::FromIterator;
 use num_traits::Float;
 
 use crate::data_types::signal::{SignalRef, SignalRefMut};
+use crate::pad::IPad;
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct Signal<T>(Vec<T>);
@@ -97,13 +98,30 @@ impl<T: Float> Signal<T> {
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame(
+    pub fn frame_unchecked<P: IPad<T>>(
         &self,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
     ) -> Signal<T> {
-        self.as_ref().frame(frame_idx, win_size, hop_size, fft_size)
+        self.as_ref()
+            .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
+    }
+    pub fn frame<P: IPad<T>>(
+        &self,
+        frame_idx: usize,
+        win_size: usize,
+        hop_size: usize,
+        fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
+    ) -> Signal<T> {
+        self.as_ref()
+            .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
 }

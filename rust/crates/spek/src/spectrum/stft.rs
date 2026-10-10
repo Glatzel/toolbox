@@ -6,37 +6,14 @@ use core::fmt::Debug;
 
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
-use thiserror::Error;
 
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
 use crate::data_types::{Signal, SignalRef};
-use crate::pad::PadError;
+use crate::error::SpekError;
 use crate::spectrum::IFftBackend;
-use crate::windows::{IWindow, WindowError};
+use crate::windows::IWindow;
 
-#[derive(Error, Debug)]
-pub enum StftError {
-    #[error(transparent)]
-    Pad(#[from] PadError),
-    #[error(transparent)]
-    Window(#[from] WindowError),
-
-    #[error("{name} size not correct, got {size} ({reason})")]
-    InvalidSize {
-        name: &'static str,
-        size: usize,
-        reason: &'static str,
-    },
-    #[error("size not correct, {name_a} got {size_a} and {name_b} got {size_b} ({reason})")]
-    Invalid2Size {
-        name_a: &'static str,
-        name_b: &'static str,
-        size_a: usize,
-        size_b: usize,
-        reason: &'static str,
-    },
-}
 /// # STFT Parameters
 ///
 /// ```text
@@ -74,33 +51,33 @@ where
         win_size: usize,
         window: W,
         fft_backend: FftBackend,
-    ) -> Result<Self, StftError>
+    ) -> Result<Self, SpekError>
     where
         W: IWindow<T>,
     {
         if hop_size == 0 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "hop_size",
                 size: 0,
                 reason: "must be greater than 0, got 0",
             });
         }
         if win_size == 0 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "win_size",
                 size: 0,
                 reason: "must be greater than 0, got 0",
             });
         }
         if fft_backend.fft_size() < 2 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "fft_size",
                 size: fft_backend.fft_size(),
                 reason: "must be greater than 1",
             });
         }
         if win_size > fft_backend.fft_size() {
-            return Err(StftError::Invalid2Size {
+            return Err(SpekError::Invalid2Size {
                 name_a: "win_size",
                 name_b: "fft_size",
                 size_a: win_size,
@@ -109,7 +86,7 @@ where
             });
         }
         if hop_size > win_size {
-            return Err(StftError::Invalid2Size {
+            return Err(SpekError::Invalid2Size {
                 name_a: "hop_size",
                 name_b: "win_size",
                 size_a: hop_size,
@@ -341,12 +318,15 @@ where
 #[cfg(test)]
 mod tests {
     use core::fmt::{Debug, Display};
+    #[cfg(test)]
+    use std::iter::Sum;
 
     use float_cmp::ApproxEq;
     use phastft::planner::{PlannerR2c32, PlannerR2c64};
     use rstest::rstest;
 
     use super::*;
+    use crate::pad::PadMode;
     use crate::spectrum::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
@@ -362,13 +342,13 @@ mod tests {
         #[case] signal_len: usize,
     ) -> mischief::Result<()>
     where
-        T: Debug + Float + Display + ApproxEq + Sync + Send,
+        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum,
         FftBackend: Sync,
     {
         use generic_num::num;
         let fft_size = fft_backend.fft_size();
 
-        let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
+        let stft = Stft::new(hop_size, win_size, window.clone(), fft_backend)?;
         let signal: Signal<T> = (0..signal_len)
             .map(|i| num!(i * i))
             .collect::<Vec<_>>()
@@ -386,7 +366,19 @@ mod tests {
         );
 
         {
-            let frame = stft.stft_frame(signal.frame(0, win_size, hop_size, fft_size).as_ref());
+            let frame = stft.stft_frame(
+                signal
+                    .frame(
+                        0,
+                        win_size,
+                        hop_size,
+                        fft_size,
+                        &window.window(win_size, false).unwrap(),
+                        &PadMode::Constant(T::zero()),
+                        false,
+                    )
+                    .as_ref(),
+            );
             frame
                 .0
                 .iter()

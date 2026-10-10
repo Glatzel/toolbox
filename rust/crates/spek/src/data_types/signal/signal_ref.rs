@@ -4,6 +4,7 @@ use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRefMut;
+use crate::pad::IPad;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SignalRef<'a, T>(&'a [T]);
@@ -13,7 +14,7 @@ impl<'a, T> SignalRef<'a, T> {
 
     pub fn as_slice(self) -> &'a [T] { self.0 }
 
-    pub fn len(self) -> usize { self.0.len() }
+    pub const fn len(self) -> usize { self.0.len() }
 
     pub fn is_empty(self) -> bool { self.0.is_empty() }
 
@@ -45,7 +46,7 @@ impl<T: Float> SignalRef<'_, T> {
     ///
     /// If the signal is shorter than the window, returns one frame.
     /// A zero-length window or hop size is invalid.
-    pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
+    pub const fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         if self.len() < win_size {
             1
         } else {
@@ -62,31 +63,60 @@ impl<T: Float> SignalRef<'_, T> {
     ///
     /// Panics if the window or hop size is zero, if `fft_size < win_size`,
     /// or if `frame_idx` is outside the frame grid.
-    pub fn frame(
+    pub fn frame_unchecked<P: IPad<T>>(
         &self,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
+    ) -> Signal<T> {
+        let start = frame_idx * hop_size;
+        let frame: Signal<T> = self.0[start..(start + win_size).max(self.len())]
+            .iter()
+            .zip(window.iter())
+            .map(|(i, w)| *i * *w)
+            .collect::<Vec<_>>()
+            .into();
+        let (pad_before, pad_after) = if center {
+            (fft_size / 2, fft_size - fft_size / 2)
+        } else {
+            (0, fft_size - hop_size)
+        };
+        frame.pad(pad, pad_before, pad_after).unwrap()
+    }
+
+    pub fn frame<P: IPad<T>>(
+        &self,
+        frame_idx: usize,
+        win_size: usize,
+        hop_size: usize,
+        fft_size: usize,
+        window: &[T],
+        pad: &P,
+        center: bool,
     ) -> Signal<T> {
         assert!(win_size > 0, "win_size must be greater than zero");
         assert!(hop_size > 0, "hop_size must be greater than zero");
         assert!(fft_size >= win_size, "fft_size must be >= win_size");
-
-        let frame_count = self.frame_count(win_size, hop_size);
-        assert!(frame_idx < frame_count, "frame_idx out of bounds");
-
-        let start = frame_idx
-            .checked_mul(hop_size)
-            .expect("frame start index overflow");
-
-        let available = self.len().saturating_sub(start).min(win_size);
-        let mut frame = vec![T::zero(); fft_size];
-
-        if available > 0 {
-            frame[..available].copy_from_slice(&self.0[start..start + available]);
-        }
-
-        Signal::new(frame)
+        assert!(
+            frame_idx < self.frame_count(win_size, hop_size),
+            "frame_idx out of bounds"
+        );
+        let start = frame_idx * hop_size;
+        let frame: Signal<T> = self.0[start..(start + win_size).max(self.len())]
+            .iter()
+            .zip(window.iter())
+            .map(|(i, w)| *i * *w)
+            .collect::<Vec<_>>()
+            .into();
+        let (pad_before, pad_after) = if center {
+            (fft_size / 2, fft_size - fft_size / 2)
+        } else {
+            (0, fft_size - hop_size)
+        };
+        frame.pad(pad, pad_before, pad_after).unwrap()
     }
 }

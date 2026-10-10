@@ -1,12 +1,10 @@
 use core::slice;
 use std::iter::Sum;
-use std::ops::MulAssign;
 
 use num_traits::Float;
 
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRefMut;
-use crate::pad::Pad;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SignalRef<'a, T>(&'a [T]);

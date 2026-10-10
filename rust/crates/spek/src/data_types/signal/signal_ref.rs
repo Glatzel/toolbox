@@ -77,7 +77,7 @@ impl<T: Float> SignalRef<'_, T> {
             "frame_idx out of bounds"
         );
         let start = frame_idx * hop_size;
-        let frame = SignalRef(&self.0[start..(start + win_size).max(self.len())]);
+        let frame = SignalRef(&self.0[start..(start + win_size).min(self.len())]);
         let (pad_before, pad_after) = if center {
             let rest = fft_size - win_size;
             let before = rest / 2;

@@ -70,5 +70,4 @@ impl<T: Float> SignalRefMut<'_, T> {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
- 
 }

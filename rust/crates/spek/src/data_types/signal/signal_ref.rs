@@ -54,43 +54,6 @@ impl<T: Float> SignalRef<'_, T> {
         }
     }
 
-    /// Extracts a frame and zero-pads it to `fft_size`.
-    ///
-    /// The final frame may contain fewer than `win_size` input samples;
-    /// those samples are zero-padded along with the FFT padding.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the window or hop size is zero, if `fft_size < win_size`,
-    /// or if `frame_idx` is outside the frame grid.
-    pub fn frame<P>(
-        &self,
-        frame_idx: usize,
-        win_size: usize,
-        hop_size: usize,
-        fft_size: usize,
-        window: &[T],
-        pad: &P,
-        center: bool,
-    ) -> Signal<T>
-    where
-        P: IPad<T>,
-    {
-        let start = frame_idx * hop_size;
-        let frame: Signal<T> = self.0[start..(start + win_size).max(self.len())]
-            .iter()
-            .zip(window.iter())
-            .map(|(i, w)| *i * *w)
-            .collect::<Vec<_>>()
-            .into();
-        let (pad_before, pad_after) = if center {
-            (fft_size / 2, fft_size - fft_size / 2)
-        } else {
-            (0, fft_size - hop_size)
-        };
-        frame.pad(pad, pad_before, pad_after).unwrap()
-    }
-
     pub fn frame<P>(
         &self,
         frame_idx: usize,

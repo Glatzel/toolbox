@@ -39,7 +39,7 @@ macro_rules! simple_structure {
         where
             T: num_traits::Float,
         {
-            pub fn into_inner(self) -> T { self.0 }
+            pub const fn into_inner(self) -> T { self.0 }
         }
 
         impl<T> From<T> for $name<T>

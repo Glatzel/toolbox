@@ -2,7 +2,7 @@ use generic_num::num;
 use num_traits::Float;
 
 use super::simple_structure;
-use crate::data_types::{Mel, Midi, Octs, Tuning};
+use crate::data_types::{Mel, Octs, Tuning, notation::Midi};
 
 simple_structure!(Frequency);
 impl<T> Frequency<T>

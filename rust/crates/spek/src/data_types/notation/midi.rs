@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use super::simple_structure;
+use super::super::simple_structure;
 use crate::data_types::Frequency;
 
 simple_structure!(Midi);

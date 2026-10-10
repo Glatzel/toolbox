@@ -24,7 +24,7 @@ pub use power::Power;
 pub use signal::{ISignal, Signal, SignalRef, SignalRefMut};
 pub use spectrogram::Spectrogram;
 pub use spectrum::{
-    Scratch, ScratchRef, ScratchRefMut, Spectrum1D, Spectrum2D, Spectrum1DRef, Spectrum1DRefMut,
+    Scratch, ScratchRef, ScratchRefMut, Spectrum1D, Spectrum1DRef, Spectrum1DRefMut, Spectrum2D,
 };
 pub use tuning::Tuning;
 

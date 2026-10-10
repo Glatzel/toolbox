@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::data_types::{Frequency, Mel, Tuning};
+use crate::data_types::{Hz, Mel, Tuning};
 use crate::utils::linspace;
 
 /// Compute the center frequencies of the non-negative FFT bins.
@@ -64,7 +64,7 @@ pub fn cqt_frequencies<T, I, I1>(
 ) -> impl ExactSizeIterator<Item = T>
 where
     T: Float,
-    I: Into<Frequency<T>>,
+    I: Into<Hz<T>>,
     I1: Into<Tuning<T>>,
 {
     let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
@@ -97,16 +97,16 @@ where
 /// - [librosa.mel_frequencies](https://librosa.org/doc/latest/generated/librosa.mel_frequencies.html)
 pub fn mel_frequencies<T>(
     n_mels: usize,
-    fmin: Frequency<T>,
-    fmax: Frequency<T>,
+    fmin: Hz<T>,
+    fmax: Hz<T>,
     htk: bool,
-) -> impl ExactSizeIterator<Item = Frequency<T>>
+) -> impl ExactSizeIterator<Item = Hz<T>>
 where
     T: Float,
 {
     let min_mel = fmin.to_mel(htk);
     let max_mel = fmax.to_mel(htk);
-    linspace(min_mel.0, max_mel.0, n_mels).map(move |mel| Mel(mel).to_frequency(htk))
+    linspace(min_mel.0, max_mel.0, n_mels).map(move |mel| Mel(mel).to_hz(htk))
 }
 
 /// Compute tempo frequencies corresponding to the lag bins of a tempogram.
@@ -204,7 +204,7 @@ mod tests {
             octave: Some(2),
             cents: None,
         }
-        .to_frequency();
+        .to_hz();
         let result: Vec<_> = cqt_frequencies::<f64, _, _>(24, fmin, 12, 0.0)
             .map(|i| format!("{i:.3}"))
             .collect();

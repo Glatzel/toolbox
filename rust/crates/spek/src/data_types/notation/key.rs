@@ -5,31 +5,31 @@ use strum::{AsRefStr, EnumString};
 
 use crate::data_types::notation::{Accidental, NotationError, Pitch};
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindScale {
+pub enum KeyScale {
     #[strum(serialize = "major", serialize = "maj")]
     Major,
     #[strum(serialize = "minor", serialize = "min")]
     Minor,
 }
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindMode {
-    #[strum(serialize = "ionian")]
+pub enum KeyMode {
+    #[strum(serialize = "ionian", serialize = "ion")]
     Ionian,
-    #[strum(serialize = "dorian")]
+    #[strum(serialize = "dorian", serialize = "dor")]
     Dorian,
-    #[strum(serialize = "phrygian")]
+    #[strum(serialize = "phrygian", serialize = "phryg", serialize = "phr")]
     Phrygian,
-    #[strum(serialize = "lydian")]
+    #[strum(serialize = "lydian", serialize = "lyd")]
     Lydian,
-    #[strum(serialize = "mixolydian")]
+    #[strum(serialize = "mixolydian", serialize = "mixolyd", serialize = "mix")]
     Mixolydian,
-    #[strum(serialize = "aeolian")]
+    #[strum(serialize = "aeolian", serialize = "aeol", serialize = "aeo")]
     Aeolian,
-    #[strum(serialize = "locrian")]
+    #[strum(serialize = "locrian", serialize = "locr", serialize = "loc")]
     Locrian,
 }
 
-impl KeyKindMode {
+impl KeyMode {
     pub const fn offset(&self) -> u8 {
         match self {
             Self::Ionian => 0,
@@ -42,36 +42,19 @@ impl KeyKindMode {
         }
     }
 }
-#[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
-pub enum KeyKindMisc {
-    #[strum(serialize = "phr")]
-    Phr,
-    #[strum(serialize = "mix")]
-    Mix,
-    #[strum(serialize = "aeo")]
-    Aeo,
-    #[strum(serialize = "loc")]
-    Loc,
-}
 #[derive(Debug, Clone, AsRefStr, PartialEq, Eq)]
-pub enum KeyKind {
-    Scale(KeyKindScale),
-    Mode(KeyKindMode),
-    Misc(KeyKindMisc),
+pub enum KeyQuality {
+    Scale(KeyScale),
+    Mode(KeyMode),
 }
-impl FromStr for KeyKind {
+impl FromStr for KeyQuality {
     type Err = NotationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        KeyKindScale::from_str(s).map_or_else(
+        KeyScale::from_str(s).map_or_else(
             |_| {
-                KeyKindMode::from_str(s).map_or_else(
-                    |_| {
-                        KeyKindMisc::from_str(s).map_or_else(
-                            |_| Err(NotationError::InvalidKeyKind(s.into())),
-                            |key| Ok(Self::Misc(key)),
-                        )
-                    },
+                KeyMode::from_str(s).map_or_else(
+                    |_| Err(NotationError::InvalidKeyKind(s.into())),
                     |key| Ok(Self::Mode(key)),
                 )
             },
@@ -82,7 +65,7 @@ impl FromStr for KeyKind {
 pub struct Key {
     pitch: Pitch,
     accs: Vec<Accidental>,
-    key: KeyKind,
+    key: KeyQuality,
 }
 
 impl Display for Key {

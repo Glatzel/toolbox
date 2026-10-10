@@ -7,8 +7,8 @@ use num_traits::Float;
 use rax::text::filters::{AsciiCharSetFilter, CHAR_SET_DIGITS, CharSetFilter};
 use rax::text::{OneOfCharSet, StrParser, UntilMode, UntilNotInCharSet};
 
-use crate::data_types::notation::{Accidental, NotationError, Pitch};
-use crate::data_types::{Frequency, Midi};
+use crate::data_types::Hz;
+use crate::data_types::notation::{Accidental, Midi, NotationError, Pitch};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Note {
@@ -122,11 +122,11 @@ impl Note {
                 + cents,
         )
     }
-    pub fn to_frequency<T>(&self) -> Frequency<T>
+    pub fn to_hz<T>(&self) -> Hz<T>
     where
         T: Float + Sum,
     {
-        self.to_midi().to_frequency()
+        self.to_midi().to_hz()
     }
 }
 impl Note {

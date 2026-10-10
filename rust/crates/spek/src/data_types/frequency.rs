@@ -2,10 +2,12 @@ use generic_num::num;
 use num_traits::Float;
 
 use super::simple_structure;
-use crate::data_types::{Mel, Midi, Octs, Tuning};
+use crate::data_types::notation::Midi;
+use crate::data_types::{Mel, Octs, Tuning};
 
-simple_structure!(Frequency);
-impl<T> Frequency<T>
+simple_structure!(Hz);
+pub type Frequency<T> = Hz<T>;
+impl<T> Hz<T>
 where
     T: Float,
 {
@@ -33,14 +35,14 @@ where
         Octs((self.0 / (a440 / num!(16))).log2())
     }
 }
-impl<T> Frequency<T>
+impl<T> Hz<T>
 where
     T: Float,
 {
-    pub fn from_mel(mel: Mel<T>, htk: bool) -> Self { mel.to_frequency(htk) }
-    pub fn from_midi(midi: Midi<T>) -> Self { midi.to_frequency() }
+    pub fn from_mel(mel: Mel<T>, htk: bool) -> Self { mel.to_hz(htk) }
+    pub fn from_midi(midi: Midi<T>) -> Self { midi.to_hz() }
     pub fn from_octs(octs: Octs<T>, tuning: Tuning<T>, bins_per_octave: usize) -> Self {
-        octs.to_frequency(tuning, bins_per_octave)
+        octs.to_hz(tuning, bins_per_octave)
     }
 }
 
@@ -50,18 +52,18 @@ mod tests {
 
     use super::*;
     #[test]
-    fn test_hz_to_mel() {
-        let result: Mel<f32> = Frequency(60.0).to_mel(false);
+    fn test_to_mel() {
+        let result: Mel<f32> = Hz(60.0).to_mel(false);
         assert_approx_eq!(f32, result.0, 0.9);
     }
     #[test]
     fn test_to_midi() {
-        let result: Midi<f32> = Frequency(60.0).to_midi();
+        let result: Midi<f32> = Hz(60.0).to_midi();
         assert_approx_eq!(f32, result.0, 34.50637);
     }
     #[test]
     fn test_to_octs() {
-        let result: Octs<f32> = Frequency(440.0).to_octs(0.0.into(), 12);
+        let result: Octs<f32> = Hz(440.0).to_octs(0.0.into(), 12);
         assert_approx_eq!(f32, result.0, 4.0);
     }
 }

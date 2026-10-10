@@ -2,16 +2,16 @@ use generic_num::num;
 use num_traits::Float;
 
 use super::simple_structure;
-use crate::data_types::Frequency;
+use crate::data_types::Hz;
 
 simple_structure!(Mel);
 impl<T> Mel<T>
 where
     T: Float,
 {
-    pub fn to_frequency(&self, htk: bool) -> Frequency<T> {
+    pub fn to_hz(&self, htk: bool) -> Hz<T> {
         if htk {
-            Frequency(num!(700.0) * (num!(10.0).powf(self.0 / num!(2595.0)) - T::one()))
+            Hz(num!(700.0) * (num!(10.0).powf(self.0 / num!(2595.0)) - T::one()))
         } else {
             let f_min = T::zero();
             let f_sp = num!(200.0 / 3.0);
@@ -25,7 +25,7 @@ where
                 freq = min_log_hz * (logstep * (self.0 - min_log_mel)).exp();
             }
 
-            Frequency(freq)
+            Hz(freq)
         }
     }
 }
@@ -34,7 +34,7 @@ impl<T> Mel<T>
 where
     T: Float,
 {
-    pub fn from_frequency(frequency: Frequency<T>, htk: bool) -> Self { frequency.to_mel(htk) }
+    pub fn from_hz(frequency: Hz<T>, htk: bool) -> Self { frequency.to_mel(htk) }
 }
 
 #[cfg(test)]
@@ -43,8 +43,8 @@ mod tests {
 
     use super::*;
     #[test]
-    fn test_to_frequency() {
-        let result: Frequency<f32> = Mel(3.0).to_frequency(false);
+    fn test_to_hz() {
+        let result: Hz<f32> = Mel(3.0).to_hz(false);
         assert_approx_eq!(f32, result.0, 200.0);
     }
 }

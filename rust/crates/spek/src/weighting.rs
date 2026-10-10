@@ -1,7 +1,7 @@
 use generic_num::num;
 use num_traits::Float;
 
-use crate::data_types::{Db, Frequency, Power};
+use crate::data_types::{Db, Hz, Power};
 
 /// Frequency weighting curve to apply.
 /// # References
@@ -76,7 +76,7 @@ pub fn perceptual_weighting<T, I, I1, I2, I3, I4>(
 where
     T: Float,
     I: Into<Power<T>>,
-    I1: Into<Frequency<T>>,
+    I1: Into<Hz<T>>,
     I2: Into<Power<T>>,
     I3: Into<Db<T>>,
     I4: Into<Db<T>>,

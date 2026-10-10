@@ -82,9 +82,9 @@ impl<T: Float> SignalRef<'_, T> {
             .collect::<Vec<_>>()
             .into();
         let (pad_before, pad_after) = if center {
-            (fft_size / 2, fft_size - fft_size / 2)
+            ((fft_size - win_size) / 2, (fft_size + win_size) / 2)
         } else {
-            (0, fft_size - hop_size)
+            (0, fft_size - win_size)
         };
         frame.pad(pad, pad_before, pad_after).unwrap()
     }

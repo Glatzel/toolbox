@@ -11,6 +11,7 @@ use parking_lot::Mutex;
 use crate::data_types::Spectrum2D;
 use crate::data_types::{Signal, SignalRef};
 use crate::error::SpekError;
+use crate::pad::IPad;
 use crate::spectrum::IFftBackend;
 use crate::windows::IWindow;
 
@@ -29,27 +30,33 @@ use crate::windows::IWindow;
 ///          |                |<--------------------->|       |
 /// frame 1  |                |#######################00000000|
 /// ```
-pub struct Stft<T, FftBackend>
+pub struct Stft<T, P, FftBackend>
 where
     T: Float + FloatConst,
     FftBackend: IFftBackend<T>,
+    P: IPad<T>,
 {
     hop_size: usize,
     win_size: usize,
     window: Vec<T>,
+    pad: P,
+    center: bool,
     fft_backend: FftBackend,
     norm_cache: Mutex<Option<(usize, alloc::sync::Arc<[T]>)>>,
 }
 
-impl<T, FftBackend> Stft<T, FftBackend>
+impl<P, T, FftBackend> Stft<T, P, FftBackend>
 where
     T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T>,
+    P: IPad<T>,
 {
     pub fn new<W>(
         hop_size: usize,
         win_size: usize,
         window: W,
+        pad: P,
+        center: bool,
         fft_backend: FftBackend,
     ) -> Result<Self, SpekError>
     where
@@ -100,23 +107,24 @@ where
             hop_size,
             win_size,
             window: window.window(win_size, false)?,
+            pad,
+            center,
             fft_backend,
             norm_cache: Mutex::new(None),
         })
     }
 
-    fn frame(&self, input: &[T]) -> Signal<T> {
-        let mut frame: Vec<T> = input
-            .iter()
-            .zip(self.window.iter())
-            .map(|(i, w)| *i * *w)
-            .collect();
-        frame.resize(self.fft_backend.fft_size(), T::zero());
-        frame.into()
-    }
-
     pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
-        let frame = self.frame(input.as_slice());
+        let frame = input.frame(
+            0,
+            self.win_size,
+            self.hop_size,
+            self.fft_backend.fft_size(),
+            &self.window,
+            &self.pad,
+            self.center,
+        );
+
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
         self.fft_backend.fft(frame.as_ref(), &mut real, &mut imag);
         (real, imag)
@@ -127,6 +135,7 @@ where
     where
         T: Sync + Send,
         FftBackend: Sync,
+        P: Sync,
     {
         // ASSUMPTION: `Spectrogram` exposes `frames_mut_unchecked(&mut self)
         // -> impl IndexedParallelIterator<Item = &mut Vec<SP>>` (a rayon
@@ -143,8 +152,15 @@ where
             .frames_par_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
-                let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal.as_slice()[start..start + self.win_size]);
+                let frame = signal.frame(
+                    frame_idx,
+                    self.win_size,
+                    self.hop_size,
+                    self.fft_backend.fft_size(),
+                    &self.window,
+                    &self.pad,
+                    self.center,
+                );
                 self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
@@ -158,8 +174,15 @@ where
             .frames_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
-                let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal.as_slice()[start..start + self.win_size]);
+                let frame = signal.frame(
+                    frame_idx,
+                    self.win_size,
+                    self.hop_size,
+                    self.fft_backend.fft_size(),
+                    &self.window,
+                    &self.pad,
+                    self.center,
+                );
                 self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
@@ -260,6 +283,7 @@ where
     where
         T: Send + Sync,
         FftBackend: Sync,
+        P: Sync,
     {
         use rayon::prelude::*;
 
@@ -330,9 +354,8 @@ mod tests {
     use crate::spectrum::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
-    #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
-    #[case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50)]
-
+    #[case("f32.hop4.win7.window_hann.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
+    #[case("f64.hop4.win7.window_hann.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50)]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -346,9 +369,15 @@ mod tests {
         FftBackend: Sync,
     {
         use generic_num::num;
-        let fft_size = fft_backend.fft_size();
 
-        let stft = Stft::new(hop_size, win_size, window.clone(), fft_backend)?;
+        let stft = Stft::new(
+            hop_size,
+            win_size,
+            window.clone(),
+            PadMode::Constant(T::zero()),
+            false,
+            fft_backend,
+        )?;
         let signal: Signal<T> = (0..signal_len)
             .map(|i| num!(i * i))
             .collect::<Vec<_>>()
@@ -366,19 +395,7 @@ mod tests {
         );
 
         {
-            let frame = stft.stft_frame(
-                signal
-                    .frame(
-                        0,
-                        win_size,
-                        hop_size,
-                        fft_size,
-                        &vec![num!(1.0); win_size],
-                        &PadMode::Constant(T::zero()),
-                        false,
-                    )
-                    .as_ref(),
-            );
+            let frame = stft.stft_frame(signal.as_slice()[..win_size].into());
             frame
                 .0
                 .iter()

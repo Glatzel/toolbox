@@ -24,7 +24,7 @@ fn bench_wrapper<T, B>(
     B: IFftBackend<T> + Sync,
 {
     let fft_size = backend.fft_size();
-    let stft = Stft::new(fft_size, fft_size, Hann, Pad::default(), true, backend).unwrap();
+    let stft = Stft::new(fft_size, fft_size, Hann, Pad::default(), false, backend).unwrap();
     let data: Signal<T> = (0..10usize.pow(size as u32))
         .map(|i| num!(i))
         .collect::<Vec<_>>()

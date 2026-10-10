@@ -1,5 +1,7 @@
 use core::slice;
 
+use num_traits::Float;
+
 use crate::data_types::Signal;
 use crate::data_types::signal::SignalRef;
 
@@ -43,4 +45,19 @@ impl<'a, T> IntoIterator for SignalRefMut<'a, T> {
     type IntoIter = slice::IterMut<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter { self.0.iter_mut() }
+}
+
+impl<T: Float> SignalRefMut<'_, T> {
+    pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
+        self.as_ref().frame_count(win_size, hop_size)
+    }
+    pub fn frame(
+        &self,
+        frame_idx: usize,
+        win_size: usize,
+        hop_size: usize,
+        fft_size: usize,
+    ) -> Signal<T> {
+        self.as_ref().frame(frame_idx, win_size, hop_size, fft_size)
+    }
 }

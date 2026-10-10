@@ -94,30 +94,9 @@ impl<'a, T> IntoIterator for &'a mut Signal<T> {
 }
 
 impl<T: Float> Signal<T> {
-    /// Returns the number of frames for a non-centered, non-padded frame grid.
-    ///
-    /// If the signal is shorter than the window, returns one frame.
-    /// A zero-length window or hop size is invalid.
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
-        assert!(win_size > 0, "win_size must be greater than zero");
-        assert!(hop_size > 0, "hop_size must be greater than zero");
-
-        if self.len() < win_size {
-            1
-        } else {
-            (self.len() - win_size) / hop_size + 1
-        }
+        self.as_ref().frame_count(win_size, hop_size)
     }
-
-    /// Extracts a frame and zero-pads it to `fft_size`.
-    ///
-    /// The final frame may contain fewer than `win_size` input samples;
-    /// those samples are zero-padded along with the FFT padding.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the window or hop size is zero, if `fft_size < win_size`,
-    /// or if `frame_idx` is outside the frame grid.
     pub fn frame(
         &self,
         frame_idx: usize,
@@ -125,24 +104,6 @@ impl<T: Float> Signal<T> {
         hop_size: usize,
         fft_size: usize,
     ) -> Signal<T> {
-        assert!(win_size > 0, "win_size must be greater than zero");
-        assert!(hop_size > 0, "hop_size must be greater than zero");
-        assert!(fft_size >= win_size, "fft_size must be >= win_size");
-
-        let frame_count = self.frame_count(win_size, hop_size);
-        assert!(frame_idx < frame_count, "frame_idx out of bounds");
-
-        let start = frame_idx
-            .checked_mul(hop_size)
-            .expect("frame start index overflow");
-
-        let available = self.len().saturating_sub(start).min(win_size);
-        let mut frame = vec![T::zero(); fft_size];
-
-        if available > 0 {
-            frame[..available].copy_from_slice(&self.0[start..start + available]);
-        }
-
-        Signal(frame)
+        self.as_ref().frame(frame_idx, win_size, hop_size, fft_size)
     }
 }

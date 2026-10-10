@@ -128,14 +128,6 @@ where
         })
     }
 
-    const fn frame_count(&self, signal_len: usize) -> usize {
-        if signal_len < self.win_size {
-            1
-        } else {
-            ((signal_len - self.win_size) / self.hop_size) + 1
-        }
-    }
-
     fn frame(&self, input: &[T]) -> Signal<T> {
         let mut frame: Vec<T> = input
             .into_iter()
@@ -167,7 +159,7 @@ where
         // names — adjust to match the real trait if they differ.
         use rayon::prelude::*;
 
-        let frame_count = self.frame_count(signal.len());
+        let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
         result
@@ -183,7 +175,7 @@ where
     }
 
     pub fn stft(&self, signal: SignalRef<T>) -> Spectrum2D<T> {
-        let frame_count = self.frame_count(signal.len());
+        let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         spectrogram
             .frames_iter_mut()

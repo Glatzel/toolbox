@@ -7,7 +7,7 @@ use generic_num::num;
 use num_traits::{Float, FloatConst};
 use thiserror::Error;
 
-use crate::data_types::{Signal, SignalRef};
+use crate::data_types::{Signal, SignalRef, SignalRefMut};
 
 #[derive(Error, Debug)]
 pub enum PadError {
@@ -16,7 +16,39 @@ pub enum PadError {
     #[error("signal size is too small, expected at least {min_size}, got {actual}")]
     SignalSizeTooSmall { min_size: usize, actual: usize },
 }
-
+impl<T> Signal<T>
+where
+    T: Float,
+{
+    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    where
+        P: IPad<T>,
+    {
+        self.as_ref().pad(pad, pad_before, pad_after)
+    }
+}
+impl<T> SignalRef<'_, T>
+where
+    T: Float,
+{
+    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    where
+        P: IPad<T>,
+    {
+        pad.pad(self.to_owned(), pad_before, pad_after)
+    }
+}
+impl<T> SignalRefMut<'_, T>
+where
+    T: Float,
+{
+    pub fn pad<P>(&self, pad: P, pad_before: usize, pad_after: usize) -> Result<Signal<T>, PadError>
+    where
+        P: IPad<T>,
+    {
+        self.as_ref().pad(pad, pad_before, pad_after)
+    }
+}
 pub trait IPad<T>
 where
     T: Float,

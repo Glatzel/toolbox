@@ -68,10 +68,10 @@ impl<T: Float> SignalRef<'_, T> {
     where
         T: Sum,
     {
-        assert!(win_size > 0, "win_size must be greater than zero");
-        assert!(hop_size > 0, "hop_size must be greater than zero");
-        assert!(fft_size >= win_size, "fft_size must be >= win_size");
-        assert!(
+        debug_assert!(win_size > 0, "win_size must be greater than zero");
+        debug_assert!(hop_size > 0, "hop_size must be greater than zero");
+        debug_assert!(fft_size >= win_size, "fft_size must be >= win_size");
+        debug_assert!(
             frame_idx < self.frame_count(win_size, hop_size),
             "frame_idx out of bounds"
         );

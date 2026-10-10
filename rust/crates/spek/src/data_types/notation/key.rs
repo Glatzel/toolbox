@@ -13,19 +13,19 @@ pub enum KeyScale {
 }
 #[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
 pub enum KeyMode {
-    #[strum(serialize = "ionian")]
+    #[strum(serialize = "ionian", serialize = "ion")]
     Ionian,
-    #[strum(serialize = "dorian")]
+    #[strum(serialize = "dorian", serialize = "dor")]
     Dorian,
-    #[strum(serialize = "phrygian")]
+    #[strum(serialize = "phrygian", serialize = "phryg", serialize = "phr")]
     Phrygian,
-    #[strum(serialize = "lydian")]
+    #[strum(serialize = "lydian", serialize = "lyd")]
     Lydian,
-    #[strum(serialize = "mixolydian")]
+    #[strum(serialize = "mixolydian", serialize = "mixolyd", serialize = "mix")]
     Mixolydian,
-    #[strum(serialize = "aeolian")]
+    #[strum(serialize = "aeolian", serialize = "aeol", serialize = "aeo")]
     Aeolian,
-    #[strum(serialize = "locrian")]
+    #[strum(serialize = "locrian", serialize = "locr", serialize = "loc")]
     Locrian,
 }
 

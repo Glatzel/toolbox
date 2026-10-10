@@ -39,8 +39,6 @@ macro_rules! simple_structure {
         where
             T: num_traits::Float,
         {
-            #[inline]
-            #[must_use]
             pub fn into_inner(self) -> T { self.0 }
         }
 

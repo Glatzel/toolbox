@@ -1,7 +1,7 @@
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
-use crate::data_types::{Scratch, Signal, SignalRef, SignalRefMut, Spectrum, Spectrum2D};
+use crate::data_types::{Scratch, Signal, SignalRef, SignalRefMut, Spectrum1D, Spectrum2D};
 
 pub trait IFftBackend<T> {
     fn fft_size(&self) -> usize;
@@ -9,7 +9,7 @@ pub trait IFftBackend<T> {
     fn spectrum_size(&self) -> usize;
     fn scratch_size(&self) -> usize;
     fn new_signal(&self) -> Signal<T>;
-    fn new_spectrum(&self) -> Spectrum<T>;
+    fn new_spectrum(&self) -> Spectrum1D<T>;
     fn new_scratch(&self) -> Scratch<T>;
     fn new_spectrum2d(&self, frame_count: usize) -> Spectrum2D<T>;
     fn fft(&self, signal: SignalRef<'_, T>, real: &mut [T], imag: &mut [T]);

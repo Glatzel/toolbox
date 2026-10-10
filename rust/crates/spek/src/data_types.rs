@@ -10,7 +10,7 @@ mod power;
 mod signal;
 mod spectrogram;
 mod spectrum;
-mod spectrum2d;
+
 mod tuning;
 
 pub use a4::A4;
@@ -23,8 +23,9 @@ pub use phase::Phase;
 pub use power::Power;
 pub use signal::{ISignal, Signal, SignalRef, SignalRefMut};
 pub use spectrogram::Spectrogram;
-pub use spectrum::{Scratch, ScratchRef, ScratchRefMut, Spectrum, SpectrumRef, SpectrumRefMut};
-pub use spectrum2d::Spectrum2D;
+pub use spectrum::{
+    Scratch, ScratchRef, ScratchRefMut, Spectrum1D, Spectrum2D, Spectrum1DRef, Spectrum1DRefMut,
+};
 pub use tuning::Tuning;
 
 macro_rules! simple_structure {

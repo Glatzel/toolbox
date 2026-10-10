@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::iter::Sum;
 use std::marker::{Send, Sync};
+use std::ops::MulAssign;
 
 use criterion::{BenchmarkId, criterion_group, criterion_main};
 use generic_num::num;
@@ -20,7 +21,7 @@ fn bench_wrapper<T, B>(
     backend: B,
     size: usize,
 ) where
-    T: Float + Debug + FloatConst + Sync + Sum + Send,
+    T: Float + Debug + FloatConst + Sync + Sum + Send + MulAssign,
     B: IFftBackend<T> + Sync,
 {
     let fft_size = backend.fft_size();

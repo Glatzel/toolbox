@@ -57,7 +57,7 @@ fn bench_f32(c: &mut criterion::Criterion) {
             bench_wrapper::<f32, _>(
                 &mut group,
                 "phastft",
-                spek::spectrum::phastft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
+                spek::spectrum::PhastftBackend::<phastft::planner::PlannerR2c32>::new(
                     fft_size,
                 ),
                 size,
@@ -72,7 +72,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
             bench_wrapper::<f64, _>(
                 &mut group,
                 "phastft",
-                spek::spectrum::phastft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
+                spek::spectrum::PhastftBackend::<phastft::planner::PlannerR2c64>::new(
                     fft_size,
                 ),
                 size,

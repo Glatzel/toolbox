@@ -1,5 +1,6 @@
 use core::slice;
 use std::iter::Sum;
+use std::ops::MulAssign;
 
 use num_traits::Float;
 
@@ -64,7 +65,7 @@ impl<T: Float> SignalRefMut<'_, T> {
         center: bool,
     ) -> Signal<T>
     where
-        T: Sum,
+        T: Sum + MulAssign,
     {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)

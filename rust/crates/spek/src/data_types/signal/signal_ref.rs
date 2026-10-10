@@ -1,5 +1,6 @@
 use core::slice;
 use std::iter::Sum;
+use std::ops::MulAssign;
 
 use num_traits::Float;
 
@@ -62,62 +63,33 @@ impl<T: Float> SignalRef<'_, T> {
         hop_size: usize,
         fft_size: usize,
         window: &[T],
-        _pad: &Pad<T>,
-        _center: bool,
+        pad: &Pad<T>,
+        center: bool,
     ) -> Signal<T>
     where
-        T: Float,
+        T: Sum + MulAssign,
     {
+        debug_assert!(win_size > 0, "win_size must be greater than zero");
+        debug_assert!(hop_size > 0, "hop_size must be greater than zero");
+        debug_assert!(fft_size >= win_size, "fft_size must be >= win_size");
+        debug_assert!(
+            frame_idx < self.frame_count(win_size, hop_size),
+            "frame_idx out of bounds"
+        );
         let start = frame_idx * hop_size;
-        let available = self.len().saturating_sub(start).min(win_size);
-
-        let mut frame = vec![T::zero(); fft_size];
-
-        for (i, (&sample, &weight)) in self.0[start..start + available]
-            .iter()
-            .zip(window.iter())
-            .enumerate()
-        {
-            frame[i] = sample * weight;
+        let frame = SignalRef(&self.0[start..(start + win_size).max(self.len())]);
+        let (pad_before, pad_after) = if center {
+            let rest = fft_size - win_size;
+            let before = rest / 2;
+            let after = rest - before;
+            (before, after)
+        } else {
+            (0, fft_size - win_size)
+        };
+        let mut frame = frame.pad(pad, pad_before, pad_after).unwrap().into_inner();
+        for i in 0..win_size {
+            frame[pad_before + i] *= window[i];
         }
-
-        Signal::new(frame)
+        frame.into()
     }
-    // pub fn frame(
-    //     &self,
-    //     frame_idx: usize,
-    //     win_size: usize,
-    //     hop_size: usize,
-    //     fft_size: usize,
-    //     window: &[T],
-    //     pad: &Pad<T>,
-    //     center: bool,
-    // ) -> Signal<T>
-    // where
-    //     T: Sum,
-    // {
-    //     debug_assert!(win_size > 0, "win_size must be greater than zero");
-    //     debug_assert!(hop_size > 0, "hop_size must be greater than zero");
-    //     debug_assert!(fft_size >= win_size, "fft_size must be >= win_size");
-    //     debug_assert!(
-    //         frame_idx < self.frame_count(win_size, hop_size),
-    //         "frame_idx out of bounds"
-    //     );
-    //     let start = frame_idx * hop_size;
-    //     let frame: Signal<T> = self.0[start..(start +
-    // win_size).max(self.len())]         .iter()
-    //         .zip(window.iter())
-    //         .map(|(i, w)| *i * *w)
-    //         .collect::<Vec<_>>()
-    //         .into();
-    //     let (pad_before, pad_after) = if center {
-    //         let rest = fft_size - win_size;
-    //         let before = rest / 2;
-    //         let after = rest - before;
-    //         (before, after)
-    //     } else {
-    //         (0, fft_size - win_size)
-    //     };
-    //     frame.pad(pad, pad_before, pad_after).unwrap()
-    // }
 }

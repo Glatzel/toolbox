@@ -1,5 +1,6 @@
 use core::slice;
 use std::iter::{FromIterator, Sum};
+use std::ops::MulAssign;
 
 use num_traits::Float;
 
@@ -41,6 +42,10 @@ impl<T> Signal<T> {
     pub fn truncate(&mut self, len: usize) { self.0.truncate(len); }
 
     pub fn get(&self, index: usize) -> Option<&T> { self.0.get(index) }
+    pub fn set(&mut self, index: usize, value: T) -> &mut Self {
+        self.0[index] = value;
+        self
+    }
 
     pub fn get_mut(&mut self, index: usize) -> Option<&mut T> { self.0.get_mut(index) }
 
@@ -114,7 +119,7 @@ impl<T: Float> Signal<T> {
         center: bool,
     ) -> Self
     where
-        T: Sum,
+        T: Sum + MulAssign,
     {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)

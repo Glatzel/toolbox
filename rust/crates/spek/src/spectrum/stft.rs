@@ -4,6 +4,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use std::iter::Sum;
+use std::ops::MulAssign;
 
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
@@ -47,7 +48,7 @@ where
 
 impl<T, FftBackend> Stft<T, FftBackend>
 where
-    T: Float + FloatConst + Debug + Sum,
+    T: Float + FloatConst + Debug + Sum + MulAssign,
     FftBackend: IFftBackend<T>,
 {
     pub fn new(
@@ -348,7 +349,7 @@ mod tests {
         #[case] signal_len: usize,
     ) -> mischief::Result<()>
     where
-        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum,
+        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum + MulAssign,
         FftBackend: Sync,
     {
         use generic_num::num;

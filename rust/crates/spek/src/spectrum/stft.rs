@@ -11,8 +11,8 @@ use parking_lot::Mutex;
 use crate::data_types::Spectrum2D;
 use crate::data_types::{Signal, SignalRef};
 use crate::error::SpekError;
+use crate::fft::IFftBackend;
 use crate::pad::IPad;
-use crate::spectrum::IFftBackend;
 use crate::windows::IWindow;
 
 /// # STFT Parameters
@@ -339,8 +339,8 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::fft::PhastftBackend;
     use crate::pad::PadMode;
-    use crate::spectrum::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
     #[case("f32.hop4.win7.window_hann.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]

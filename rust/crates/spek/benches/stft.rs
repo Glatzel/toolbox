@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::iter::Sum;
 use std::marker::{Send, Sync};
 
 use criterion::{BenchmarkId, criterion_group, criterion_main};
@@ -19,7 +20,7 @@ fn bench_wrapper<T, B>(
     backend: B,
     size: usize,
 ) where
-    T: Float + Debug + FloatConst + Sync + Send,
+    T: Float + Debug + FloatConst + Sync + Sum + Send,
     B: IFftBackend<T> + Sync,
 {
     let fft_size = backend.fft_size();
@@ -61,7 +62,7 @@ fn bench_f32(c: &mut criterion::Criterion) {
             bench_wrapper::<f32, _>(
                 &mut group,
                 "phastft",
-                spek::spectrum::PhastftBackend::<phastft::planner::PlannerR2c32>::new(fft_size),
+                spek::fft::PhastftBackend::<phastft::planner::PlannerR2c32>::new(fft_size),
                 size,
             );
         }
@@ -74,7 +75,7 @@ fn bench_f64(c: &mut criterion::Criterion) {
             bench_wrapper::<f64, _>(
                 &mut group,
                 "phastft",
-                spek::spectrum::PhastftBackend::<phastft::planner::PlannerR2c64>::new(fft_size),
+                spek::fft::PhastftBackend::<phastft::planner::PlannerR2c64>::new(fft_size),
                 size,
             );
         }

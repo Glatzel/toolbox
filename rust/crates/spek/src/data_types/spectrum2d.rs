@@ -32,6 +32,13 @@ where
     pub fn imag(&self) -> &[T] { &self.imag }
     pub const fn bin_count(&self) -> usize { self.bin_count }
     pub const fn frame_count(&self) -> usize { self.frame_count }
+    pub const fn signal_len(&self, hop_size: usize, win_size: usize) -> usize {
+        if self.frame_count == 0 {
+            0
+        } else {
+            (self.frame_count - 1) * hop_size + win_size
+        }
+    }
 
     pub fn frame(&self, index: usize) -> (&[T], &[T]) {
         let start = index * self.bin_count;

@@ -189,31 +189,20 @@ where
         spectrogram
     }
 
-    /// Length of the reconstructed signal for a spectrogram with
-    /// `frame_count` frames, given this STFT's window/hop size.
-    const fn reconstructed_len(&self, frame_count: usize) -> usize {
-        if frame_count == 0 {
-            0
-        } else {
-            (frame_count - 1) * self.hop_size + self.win_size
-        }
-    }
-
     // Add this field to the struct and init as `Mutex::new(None)` in the
     // constructor. norm_cache: Mutex<Option<(usize, Arc<[T]>)>>,
 
     /// Reciprocal overlap-add normalization for a given frame_count.
     /// Pure function of (window, hop_size, win_size, frame_count) — cached
     /// so repeated calls with the same shape skip recomputation entirely.
-    fn normalization(&self, frame_count: usize) -> alloc::sync::Arc<[T]> {
+    fn normalization(&self, signal_len: usize, frame_count: usize) -> alloc::sync::Arc<[T]> {
         if let Some((len, buf)) = self.norm_cache.lock().as_ref()
             && *len == frame_count
         {
             return buf.clone();
         }
 
-        let out_len = self.reconstructed_len(frame_count);
-        let mut window_sum = vec![T::zero(); out_len];
+        let mut window_sum = vec![T::zero(); signal_len];
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
             for (ws, w) in window_sum[start..start + self.win_size]
@@ -242,9 +231,9 @@ where
 
     pub fn istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T> {
         let frame_count = spectrum.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
+        let out_len = spectrum.signal_len(self.hop_size, self.win_size);
         let fft_size = self.fft_backend.fft_size();
-        let norm = self.normalization(frame_count);
+        let norm = self.normalization(out_len, frame_count);
 
         let mut output = vec![T::zero(); out_len];
         let (mut scratch_real, mut scratch_imag) = self.fft_backend.new_scratch();
@@ -279,7 +268,7 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_istft(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T>
+    pub fn par_istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T>
     where
         T: Send + Sync,
         FftBackend: Sync,
@@ -287,15 +276,15 @@ where
     {
         use rayon::prelude::*;
 
-        let frame_count = spectrogram.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
+        let frame_count = spectrum.frame_count();
+        let out_len = spectrum.signal_len(self.hop_size, self.win_size);
         let fft_size = self.fft_backend.fft_size();
-        let norm = self.normalization(frame_count);
+        let norm = self.normalization(out_len, frame_count);
 
         // Flat scratch buffer for all frames' windowed IFFT output.
         let mut windowed = vec![T::zero(); frame_count * fft_size];
 
-        spectrogram
+        spectrum
             .frames_par_iter_mut()
             .zip(windowed.par_chunks_mut(fft_size))
             .for_each_init(

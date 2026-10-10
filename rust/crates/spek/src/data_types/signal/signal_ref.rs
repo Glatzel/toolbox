@@ -63,7 +63,7 @@ impl<T: Float> SignalRef<'_, T> {
     ///
     /// Panics if the window or hop size is zero, if `fft_size < win_size`,
     /// or if `frame_idx` is outside the frame grid.
-    pub fn frame_unchecked<P>(
+    pub fn frame<P>(
         &self,
         frame_idx: usize,
         win_size: usize,

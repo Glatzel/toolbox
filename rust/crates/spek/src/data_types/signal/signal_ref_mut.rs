@@ -53,23 +53,6 @@ impl<T: Float> SignalRefMut<'_, T> {
     pub const fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame_unchecked<P, W>(
-        &self,
-        frame_idx: usize,
-        win_size: usize,
-        hop_size: usize,
-        fft_size: usize,
-        window: &[T],
-        pad: &P,
-        center: bool,
-    ) -> Signal<T>
-    where
-        P: IPad<T>,
-        W: IWindow<T>,
-    {
-        self.as_ref()
-            .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
-    }
     pub fn frame<P, W>(
         &self,
         frame_idx: usize,
@@ -87,4 +70,5 @@ impl<T: Float> SignalRefMut<'_, T> {
         self.as_ref()
             .frame(frame_idx, win_size, hop_size, fft_size, window, pad, center)
     }
+ 
 }

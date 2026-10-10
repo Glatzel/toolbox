@@ -103,22 +103,6 @@ impl<T: Float> Signal<T> {
     pub fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         self.as_ref().frame_count(win_size, hop_size)
     }
-    pub fn frame_unchecked<P>(
-        &self,
-        frame_idx: usize,
-        win_size: usize,
-        hop_size: usize,
-        fft_size: usize,
-        window: &[T],
-        pad: &P,
-        center: bool,
-    ) -> Self
-    where
-        P: IPad<T>,
-    {
-        self.as_ref()
-            .frame_unchecked(frame_idx, win_size, hop_size, fft_size, window, pad, center)
-    }
     pub fn frame<P>(
         &self,
         frame_idx: usize,

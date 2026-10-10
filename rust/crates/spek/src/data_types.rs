@@ -10,7 +10,7 @@ mod power;
 mod signal;
 mod spectrogram;
 mod spectrum;
-mod spectrum2d;
+
 mod tuning;
 
 pub use a4::A4;
@@ -21,16 +21,20 @@ pub use mel::Mel;
 pub use octs::Octs;
 pub use phase::Phase;
 pub use power::Power;
-pub use signal::{Signal, SignalRef, SignalRefMut};
+pub use signal::{ISignal, Signal, SignalRef, SignalRefMut};
 pub use spectrogram::Spectrogram;
-pub use spectrum::{Scratch, ScratchRef, ScratchRefMut, Spectrum, SpectrumRef, SpectrumRefMut};
-pub use spectrum2d::Spectrum2D;
+pub use spectrum::{
+    Scratch, ScratchRef, ScratchRefMut, Spectrum1D, Spectrum1DRef, Spectrum1DRefMut, Spectrum2D,
+};
 pub use tuning::Tuning;
 
 macro_rules! simple_structure {
     ($name:ident) => {
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-        pub struct $name<T>(pub T);
+        pub struct $name<T>(pub T)
+        where
+            T: num_traits::Float;
+
         impl<T> From<T> for $name<T>
         where
             T: num_traits::Float,

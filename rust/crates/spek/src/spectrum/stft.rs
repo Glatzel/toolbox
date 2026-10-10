@@ -3,40 +3,18 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
+use std::iter::Sum;
 
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
-use thiserror::Error;
 
-use crate::data_types::SignalRef;
 #[cfg(feature = "parallel")]
 use crate::data_types::Spectrum2D;
-use crate::pad::PadError;
-use crate::spectrum::IFftBackend;
-use crate::windows::{IWindow, WindowError};
+use crate::data_types::{ISignal, SignalRef};
+use crate::error::SpekError;
+use crate::fft::IFftBackend;
+use crate::windows::Window;
 
-#[derive(Error, Debug)]
-pub enum StftError {
-    #[error(transparent)]
-    Pad(#[from] PadError),
-    #[error(transparent)]
-    Window(#[from] WindowError),
-
-    #[error("{name} size not correct, got {size} ({reason})")]
-    InvalidSize {
-        name: &'static str,
-        size: usize,
-        reason: &'static str,
-    },
-    #[error("size not correct, {name_a} got {size_a} and {name_b} got {size_b} ({reason})")]
-    Invalid2Size {
-        name_a: &'static str,
-        name_b: &'static str,
-        size_a: usize,
-        size_b: usize,
-        reason: &'static str,
-    },
-}
 /// # STFT Parameters
 ///
 /// ```text
@@ -54,7 +32,7 @@ pub enum StftError {
 /// ```
 pub struct Stft<T, FftBackend>
 where
-    T: Float + FloatConst,
+    T: Float,
     FftBackend: IFftBackend<T>,
 {
     hop_size: usize,
@@ -66,41 +44,38 @@ where
 
 impl<T, FftBackend> Stft<T, FftBackend>
 where
-    T: Float + FloatConst + Debug,
+    T: Float + FloatConst + Debug + Sum,
     FftBackend: IFftBackend<T>,
 {
-    pub fn new<W>(
+    pub fn new(
         hop_size: usize,
         win_size: usize,
-        window: W,
+        window: Window<T>,
         fft_backend: FftBackend,
-    ) -> Result<Self, StftError>
-    where
-        W: IWindow<T>,
-    {
+    ) -> Result<Self, SpekError> {
         if hop_size == 0 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "hop_size",
                 size: 0,
                 reason: "must be greater than 0, got 0",
             });
         }
         if win_size == 0 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "win_size",
                 size: 0,
                 reason: "must be greater than 0, got 0",
             });
         }
         if fft_backend.fft_size() < 2 {
-            return Err(StftError::InvalidSize {
+            return Err(SpekError::InvalidSize {
                 name: "fft_size",
                 size: fft_backend.fft_size(),
                 reason: "must be greater than 1",
             });
         }
         if win_size > fft_backend.fft_size() {
-            return Err(StftError::Invalid2Size {
+            return Err(SpekError::Invalid2Size {
                 name_a: "win_size",
                 name_b: "fft_size",
                 size_a: win_size,
@@ -109,7 +84,7 @@ where
             });
         }
         if hop_size > win_size {
-            return Err(StftError::Invalid2Size {
+            return Err(SpekError::Invalid2Size {
                 name_a: "hop_size",
                 name_b: "win_size",
                 size_a: hop_size,
@@ -128,28 +103,17 @@ where
         })
     }
 
-    const fn frame_count(&self, signal_len: usize) -> usize {
-        if signal_len < self.win_size {
-            1
-        } else {
-            ((signal_len - self.win_size) / self.hop_size) + 1
-        }
-    }
-
-    fn frame(&self, input: SignalRef<'_, T>) -> Vec<T> {
-        let mut frame: Vec<T> = input
-            .iter()
-            .zip(self.window.iter())
-            .map(|(i, w)| *i * *w)
-            .collect();
-        frame.resize(self.fft_backend.fft_size(), T::zero());
-        frame
-    }
-
     pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
-        let frame = self.frame(input);
+        let frame = input.frame(
+            0,
+            self.win_size,
+            self.hop_size,
+            self.fft_backend.fft_size(),
+            &self.window,
+        );
+
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
-        self.fft_backend.fft(&frame, &mut real, &mut imag);
+        self.fft_backend.fft(frame.as_ref(), &mut real, &mut imag);
         (real, imag)
     }
 
@@ -167,44 +131,44 @@ where
         // names — adjust to match the real trait if they differ.
         use rayon::prelude::*;
 
-        let frame_count = self.frame_count(signal.len());
+        let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
         result
             .frames_par_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
-                let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal[start..start + self.win_size]);
-                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
+                let frame = signal.frame(
+                    frame_idx,
+                    self.win_size,
+                    self.hop_size,
+                    self.fft_backend.fft_size(),
+                    &self.window,
+                );
+                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
         result
     }
 
     pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
-        let frame_count = self.frame_count(signal.len());
+        let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
         spectrogram
             .frames_iter_mut()
             .enumerate()
             .for_each(|(frame_idx, spectrum)| {
-                let start = frame_idx * self.hop_size;
-                let frame = self.frame(&signal[start..start + self.win_size]);
-                self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
+                let frame = signal.frame(
+                    frame_idx,
+                    self.win_size,
+                    self.hop_size,
+                    self.fft_backend.fft_size(),
+                    &self.window,
+                );
+                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
             });
 
         spectrogram
-    }
-
-    /// Length of the reconstructed signal for a spectrogram with
-    /// `frame_count` frames, given this STFT's window/hop size.
-    const fn reconstructed_len(&self, frame_count: usize) -> usize {
-        if frame_count == 0 {
-            0
-        } else {
-            (frame_count - 1) * self.hop_size + self.win_size
-        }
     }
 
     // Add this field to the struct and init as `Mutex::new(None)` in the
@@ -213,15 +177,14 @@ where
     /// Reciprocal overlap-add normalization for a given frame_count.
     /// Pure function of (window, hop_size, win_size, frame_count) — cached
     /// so repeated calls with the same shape skip recomputation entirely.
-    fn normalization(&self, frame_count: usize) -> alloc::sync::Arc<[T]> {
+    fn normalization(&self, signal_len: usize, frame_count: usize) -> alloc::sync::Arc<[T]> {
         if let Some((len, buf)) = self.norm_cache.lock().as_ref()
             && *len == frame_count
         {
             return buf.clone();
         }
 
-        let out_len = self.reconstructed_len(frame_count);
-        let mut window_sum = vec![T::zero(); out_len];
+        let mut window_sum = vec![T::zero(); signal_len];
         for frame_idx in 0..frame_count {
             let start = frame_idx * self.hop_size;
             for (ws, w) in window_sum[start..start + self.win_size]
@@ -250,9 +213,9 @@ where
 
     pub fn istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T> {
         let frame_count = spectrum.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
+        let out_len = spectrum.signal_len(self.hop_size, self.win_size);
         let fft_size = self.fft_backend.fft_size();
-        let norm = self.normalization(frame_count);
+        let norm = self.normalization(out_len, frame_count);
 
         let mut output = vec![T::zero(); out_len];
         let (mut scratch_real, mut scratch_imag) = self.fft_backend.new_scratch();
@@ -266,7 +229,7 @@ where
                 self.fft_backend.ifft(
                     spectrum.0,
                     spectrum.1,
-                    &mut time_frame,
+                    time_frame.as_mut(),
                     &mut scratch_real,
                     &mut scratch_imag,
                 );
@@ -287,22 +250,22 @@ where
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_istft(&self, spectrogram: &mut Spectrum2D<T>) -> Vec<T>
+    pub fn par_istft(&self, spectrum: &mut Spectrum2D<T>) -> Vec<T>
     where
         T: Send + Sync,
         FftBackend: Sync,
     {
         use rayon::prelude::*;
 
-        let frame_count = spectrogram.frame_count();
-        let out_len = self.reconstructed_len(frame_count);
+        let frame_count = spectrum.frame_count();
+        let out_len = spectrum.signal_len(self.hop_size, self.win_size);
         let fft_size = self.fft_backend.fft_size();
-        let norm = self.normalization(frame_count);
+        let norm = self.normalization(out_len, frame_count);
 
         // Flat scratch buffer for all frames' windowed IFFT output.
         let mut windowed = vec![T::zero(); frame_count * fft_size];
 
-        spectrogram
+        spectrum
             .frames_par_iter_mut()
             .zip(windowed.par_chunks_mut(fft_size))
             .for_each_init(
@@ -347,18 +310,20 @@ where
 #[cfg(test)]
 mod tests {
     use core::fmt::{Debug, Display};
+    #[cfg(test)]
+    use std::iter::Sum;
 
     use float_cmp::ApproxEq;
     use phastft::planner::{PlannerR2c32, PlannerR2c64};
     use rstest::rstest;
 
     use super::*;
-    use crate::spectrum::PhastftBackend;
+    use crate::data_types::Signal;
+    use crate::fft::PhastftBackend;
     use crate::windows::Window;
     #[rstest]
-    #[case("f32.hop4.win7.window_hann.backend_phastft.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
-    #[case("f64.hop4.win7.window_hann.backend_phastft.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50)]
-
+    #[case("f32.hop4.win7.window_hann.49" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c32>::new(8), 49)]
+    #[case("f64.hop4.win7.window_hann.50" ,4, 7, Window::Hann,  PhastftBackend::<PlannerR2c64>::new(8), 50)]
     fn test_stft<T: Float + FloatConst, FftBackend: IFftBackend<T>>(
         #[case] name: &str,
         #[case] hop_size: usize,
@@ -368,15 +333,18 @@ mod tests {
         #[case] signal_len: usize,
     ) -> mischief::Result<()>
     where
-        T: Debug + Float + Display + ApproxEq + Sync + Send,
+        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum,
         FftBackend: Sync,
     {
         use generic_num::num;
 
-        let stft = Stft::new(hop_size, win_size, window, fft_backend)?;
-        let signal: Vec<T> = (0..signal_len).map(|i| num!(i * i)).collect();
+        let stft = Stft::new(hop_size, win_size, window.clone(), fft_backend)?;
+        let signal: Signal<T> = (0..signal_len)
+            .map(|i| num!(i * i))
+            .collect::<Vec<_>>()
+            .into();
 
-        let spectrum = stft.stft(&mut signal.clone());
+        let spectrum = stft.stft(signal.clone().as_ref());
         insta::assert_debug_snapshot!(
             format!("{name}.spectogram"),
             spectrum
@@ -386,9 +354,18 @@ mod tests {
                 .map(|(r, i)| (format!("{r:.6}"), format!("{i:.6}")))
                 .collect::<Vec<_>>()
         );
-
         {
-            let frame = stft.stft_frame(&signal[0..win_size]);
+            let spectrum_par = stft.par_stft(signal.clone().as_ref());
+            spectrum_par
+                .iter()
+                .zip(spectrum.iter())
+                .for_each(|((rep, imp), (re, im))| {
+                    float_cmp::assert_approx_eq!(T, *rep, *re);
+                    float_cmp::assert_approx_eq!(T, *imp, *im);
+                });
+        }
+        {
+            let frame = stft.stft_frame(signal.as_slice()[..win_size].into());
             frame
                 .0
                 .iter()

@@ -1,7 +1,7 @@
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
-use crate::data_types::{Scratch, Signal, Spectrum, Spectrum2D};
+use crate::data_types::{Scratch, Signal, SignalRef, SignalRefMut, Spectrum1D, Spectrum2D};
 
 pub trait IFftBackend<T> {
     fn fft_size(&self) -> usize;
@@ -9,15 +9,15 @@ pub trait IFftBackend<T> {
     fn spectrum_size(&self) -> usize;
     fn scratch_size(&self) -> usize;
     fn new_signal(&self) -> Signal<T>;
-    fn new_spectrum(&self) -> Spectrum<T>;
+    fn new_spectrum(&self) -> Spectrum1D<T>;
     fn new_scratch(&self) -> Scratch<T>;
     fn new_spectrum2d(&self, frame_count: usize) -> Spectrum2D<T>;
-    fn fft(&self, signal: &[T], real: &mut [T], imag: &mut [T]);
+    fn fft(&self, signal: SignalRef<'_, T>, real: &mut [T], imag: &mut [T]);
     fn ifft(
         &self,
         real: &[T],
         imag: &[T],
-        signal: &mut [T],
+        signal: SignalRefMut<'_, T>,
         scratch_real: &mut [T],
         scratch_imag: &mut [T],
     );
@@ -45,7 +45,7 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
     fn signal_size(&self) -> usize { self.fft_size }
     fn spectrum_size(&self) -> usize { self.fft_size / 2 + 1 }
     fn scratch_size(&self) -> usize { self.fft_size / 2 }
-    fn new_signal(&self) -> Vec<f32> { vec![0_f32; self.signal_size()] }
+    fn new_signal(&self) -> Signal<f32> { vec![0_f32; self.signal_size()] }
 
     fn new_spectrum(&self) -> (Vec<f32>, Vec<f32>) {
         (
@@ -65,7 +65,7 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
         Spectrum2D::new(frame_count, self.spectrum_size())
     }
 
-    fn fft(&self, signal: &[f32], real: &mut [f32], imag: &mut [f32]) {
+    fn fft(&self, signal: SignalRef<'_, f32>, real: &mut [f32], imag: &mut [f32]) {
         phastft::r2c_fft_f32_with_planner_and_opts(
             signal,
             real,
@@ -78,7 +78,7 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
         &self,
         real: &[f32],
         imag: &[f32],
-        signal: &mut [f32],
+        signal: SignalRefMut<'_, f32>,
         scratch_real: &mut [f32],
         scratch_imag: &mut [f32],
     ) {
@@ -110,7 +110,7 @@ impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
     fn spectrum_size(&self) -> usize { self.fft_size / 2 + 1 }
 
     fn scratch_size(&self) -> usize { self.fft_size / 2 }
-    fn new_signal(&self) -> Vec<f64> { vec![0_f64; self.signal_size()] }
+    fn new_signal(&self) -> Signal<f64> { vec![0_f64; self.signal_size()] }
 
     fn new_spectrum(&self) -> (Vec<f64>, Vec<f64>) {
         (
@@ -130,14 +130,14 @@ impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
         Spectrum2D::new(frame_count, self.spectrum_size())
     }
 
-    fn fft(&self, signal: &[f64], real: &mut [f64], imag: &mut [f64]) {
+    fn fft(&self, signal: SignalRef<'_, f64>, real: &mut [f64], imag: &mut [f64]) {
         r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options);
     }
     fn ifft(
         &self,
         real: &[f64],
         imag: &[f64],
-        signal: &mut [f64],
+        signal: SignalRefMut<'_, f64>,
         scratch_real: &mut [f64],
         scratch_imag: &mut [f64],
     ) {

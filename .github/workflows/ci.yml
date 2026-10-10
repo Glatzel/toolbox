@@ -21,7 +21,9 @@ jobs:
       pull-requests: write
   changed:
     outputs:
-      changed-benchmark: ${{ steps.main.outputs.benchmark_any_changed }}
+      changed-benchmark-rax: ${{ steps.main.outputs.benchmark-rax_any_changed }}
+      changed-benchmark-rax-nmea: ${{ steps.main.outputs.benchmark-rax-nmea_any_changed }}
+      changed-benchmark-spek: ${{ steps.main.outputs.benchmark-spek_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
       changed-mischief: ${{ steps.main.outputs.mischief_any_changed }}
@@ -39,11 +41,13 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files_yaml: |
-            benchmark:
+            benchmark-rax:
+              - ./rust/crates/rax/**
+            benchmark-rax-nmea:
               - ./rust/crates/rax/**
               - ./rust/crates/rax-nmea/**
+            benchmark-spek:
               - ./rust/crates/spek/**
-              - ./.github/workflows/benchmark.yml
             python:
               - ./python/**
               - ./.github/workflows/ci-python.yml
@@ -60,10 +64,48 @@ jobs:
               - ./tools/ttyw/**
             tools-vinaya:
               - ./tools/vinaya/**
-  benchmark:
+  benchmark-rax:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
-    uses: ./.github/workflows/benchmark.yml
+    if: ${{ needs.changed.outputs.changed-benchmark-rax != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+        with:
+          working-directory: ./rust
+          options: -p rax --all-features
+
+  benchmark-rax-nmea:
+    needs: changed
+    if: ${{ needs.changed.outputs.changed-benchmark-rax-nmea != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+        with:
+          working-directory: ./rust
+          options: -p rax-nmea --all-features
+
+  benchmark-spek:
+    needs: changed
+    if: ${{needs.changed.outputs.changed-benchmark-spek != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@6d2ccb98bd47d6620d887977508e8a61fcd8a5e1 # v2026.10.7
+        with:
+          working-directory: ./rust
+          options: -p spek --all-features
+
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
@@ -239,7 +281,9 @@ jobs:
     needs:
       [
         lefthook,
-        benchmark,
+        benchmark-rax,
+        benchmark-rax-nmea,
+        benchmark-spek,
         fuzz,
         changed,
         python-ci,

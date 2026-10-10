@@ -23,24 +23,9 @@ use alloc::vec::Vec;
 
 use generic_num::num;
 use num_traits::{Float, FloatConst};
-use thiserror::Error;
 
-/// Errors that can occur while constructing a window.
-#[derive(Error, Debug)]
-pub enum WindowError {
-    /// The exponential window requires a strictly positive `tau`.
-    #[error("Tau must be positive")]
-    ExponentialTau,
-    /// Kaiser-Bessel derived windows are only supported in symmetric mode.
-    #[error("Kaiser-Bessel derived asymmetric window must be symmetric")]
-    KaiserBesselDerivedAsymmetric,
-    /// Kaiser-Bessel derived windows require an even number of samples.
-    #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
-    KaiserBesselDerivedSize,
-}
-pub trait IWindow<T> {
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError>;
-}
+use crate::error::SpekError;
+
 /// A parameterized window function.
 ///
 /// The variants correspond to the window functions listed by
@@ -55,10 +40,7 @@ pub trait IWindow<T> {
 /// amplitude accuracy, while `Dpss` is designed for concentration of energy
 /// within a chosen bandwidth.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Window<T>
-where
-    T: Float + FloatConst,
-{
+pub enum Window<T> {
     /// Modified Bartlett-Hann window.
     Barthnn,
 
@@ -78,34 +60,52 @@ where
     Boxcar,
 
     /// Dolph-Chebyshev window with the requested sidelobe attenuation in dB.
-    Chebwin { attenuation: T },
+    Chebwin {
+        attenuation: T,
+    },
+
+    Constant(T),
 
     /// Window with a simple cosine shape.
     Cosine,
 
     /// Discrete Prolate Spheroidal Sequence (DPSS) window with time-bandwidth
     /// product `nw`.
-    Dpss { nw: T },
+    Dpss {
+        nw: T,
+    },
 
     /// Exponential (Poisson) window, optionally specifying its center and decay
     /// `tau`.
-    Exponential { center: Option<T>, tau: Option<T> },
+    Exponential {
+        center: Option<T>,
+        tau: Option<T>,
+    },
 
     /// Flat-top window, designed for accurate amplitude measurements.
     FlatTop,
 
     /// Gaussian window with the given standard deviation.
-    Gaussian { sd: T },
+    Gaussian {
+        sd: T,
+    },
 
     /// Generic weighted sum of cosine terms.
-    GeneralCosine { coeffs: Vec<T> },
+    GeneralCosine {
+        coeffs: Vec<T>,
+    },
 
     /// Generalized Gaussian window with shape and standard-deviation
     /// parameters.
-    GeneralGaussian { shape: T, sd: T },
+    GeneralGaussian {
+        shape: T,
+        sd: T,
+    },
 
     /// Generalized Hamming window parameterized by `alpha`.
-    GeneralHamming { alpha: T },
+    GeneralHamming {
+        alpha: T,
+    },
 
     /// Hamming window.
     Hamming,
@@ -114,10 +114,14 @@ where
     Hann,
 
     /// Kaiser window with shape parameter `beta`.
-    Kaiser { beta: T },
+    Kaiser {
+        beta: T,
+    },
 
     /// Kaiser-Bessel derived window with shape parameter `beta`.
-    KaiserBesselDerived { beta: T },
+    KaiserBesselDerived {
+        beta: T,
+    },
 
     /// Lanczos (sinc) window.
     Lanczos,
@@ -130,15 +134,21 @@ where
 
     /// Taylor window with `nbar` near-invariant sidelobes, sidelobe level `sll`
     /// in dB, and optional normalization.
-    Taylor { nbar: usize, sll: T, norm: bool },
+    Taylor {
+        nbar: usize,
+        sll: T,
+        norm: bool,
+    },
 
     /// Triangular window.
     Triang,
 
     /// Tukey (tapered cosine) window with taper fraction `alpha`.
-    Tukey { alpha: T },
+    Tukey {
+        alpha: T,
+    },
 }
-impl<T> IWindow<T> for Window<T>
+impl<T> Window<T>
 where
     T: Float + FloatConst,
 {
@@ -156,7 +166,7 @@ where
     /// Returns an error when the selected window has parameter or size
     /// restrictions, such as a non-positive exponential `tau` or an
     /// asymmetric/odd-sized Kaiser-Bessel derived window.
-    fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, WindowError> {
+    pub fn window(&self, size: usize, symmetric: bool) -> Result<Vec<T>, SpekError> {
         let result = match self {
             Self::Barthnn => barthnn(size, symmetric),
             Self::Bartlett => bartlett(size, symmetric),
@@ -165,6 +175,7 @@ where
             Self::Bohman => bohman(size, symmetric),
             Self::Boxcar => boxcar(size, symmetric),
             Self::Chebwin { attenuation } => chebwin(size, symmetric, *attenuation),
+            Self::Constant(n) => vec![*n; size],
             Self::Cosine => cosine(size, symmetric),
             Self::Dpss { nw } => dpss(size, symmetric, *nw),
             Self::Exponential { center, tau } => exponential(size, symmetric, *center, *tau)?,
@@ -176,7 +187,7 @@ where
             Self::Hamming => hamming(size, symmetric),
             Self::Hann => hann(size, symmetric),
             Self::Kaiser { beta } => kaiser(size, symmetric, *beta),
-            Self::KaiserBesselDerived { beta } => kaiser_bessel_derived(size, symmetric, *beta)?,
+            Self::KaiserBesselDerived { beta } => kaiser_bessel_derived(size, *beta)?,
             Self::Lanczos => lanczos(size, symmetric),
             Self::Nuttall => nuttall(size, symmetric),
             Self::Parzen => parzen(size, symmetric),
@@ -187,7 +198,12 @@ where
         Ok(result)
     }
 }
-
+impl<T> Default for Window<T>
+where
+    T: Float,
+{
+    fn default() -> Self { Self::Constant(T::one()) }
+}
 /// Return a modified Bartlett-Hann window.
 ///
 /// The window combines a linear term with a cosine term and is also known as
@@ -683,7 +699,7 @@ pub fn exponential<T>(
     symmetric: bool,
     center: Option<T>,
     tau: Option<T>,
-) -> Result<Vec<T>, WindowError>
+) -> Result<Vec<T>, SpekError>
 where
     T: Float + FloatConst,
 {
@@ -713,7 +729,7 @@ where
     // SciPy requires tau > 0.
     let tau = match tau.unwrap_or_else(|| T::one()) {
         tau if tau > T::zero() => tau,
-        _ => return Err(WindowError::ExponentialTau),
+        _ => return Err(SpekError::ExponentialTau),
     };
 
     let mut window = Vec::with_capacity(size);
@@ -945,11 +961,7 @@ where
 /// The construction is based on a cumulative sum of a Kaiser window followed
 /// by square-root normalization. As in SciPy, this window is only defined here
 /// for an even `size` and `symmetric = true`.
-pub fn kaiser_bessel_derived<T>(
-    size: usize,
-    symmetric: bool,
-    beta: T,
-) -> Result<Vec<T>, WindowError>
+pub fn kaiser_bessel_derived<T>(size: usize, beta: T) -> Result<Vec<T>, SpekError>
 where
     T: Float + FloatConst,
 {
@@ -957,11 +969,8 @@ where
         return Ok(Vec::new());
     }
 
-    if !symmetric {
-        return Err(WindowError::KaiserBesselDerivedAsymmetric);
-    }
     if !size.is_multiple_of(2) {
-        return Err(WindowError::KaiserBesselDerivedSize);
+        return Err(SpekError::KaiserBesselDerivedSize);
     }
 
     // SciPy:
@@ -1380,9 +1389,6 @@ mod tests {
         #[case] name: &str,
         #[values(true, false)] symmetric: bool,
     ) -> mischief::Result<()> {
-        if name == "kaiser_bessel_derived" && !symmetric {
-            return Ok(());
-        }
         let window = window
             .window(10, symmetric)?
             .iter()

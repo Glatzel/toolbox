@@ -1,5 +1,7 @@
 pub mod data_types;
-pub mod frequency_range;
+mod error;
+pub mod fft;
+mod frequency_range;
 pub mod pad;
 pub mod spectrum;
 mod utils;

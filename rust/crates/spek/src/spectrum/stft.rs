@@ -3,7 +3,6 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use std::iter::Sum;
 
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
@@ -44,7 +43,7 @@ where
 
 impl<T, FftBackend> Stft<T, FftBackend>
 where
-    T: Float + FloatConst + Debug + Sum,
+    T: Float + FloatConst + Debug,
     FftBackend: IFftBackend<T>,
 {
     pub fn new(
@@ -123,50 +122,43 @@ where
         T: Sync + Send,
         FftBackend: Sync,
     {
-        // ASSUMPTION: `Spectrogram` exposes `frames_mut_unchecked(&mut self)
-        // -> impl IndexedParallelIterator<Item = &mut Vec<SP>>` (a rayon
-        // par_iter_mut over per-frame spectra) and `IFftBackend` methods are
-        // `Sync`/callable from multiple threads with per-call scratch. I
-        // don't have spectogram.rs / fft_backend.rs to confirm these method
-        // names — adjust to match the real trait if they differ.
         use rayon::prelude::*;
 
+        let fft_size = self.fft_backend.fft_size();
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
 
         result
             .frames_par_iter_mut()
             .enumerate()
-            .for_each(|(frame_idx, spectrum)| {
-                let frame = signal.frame(
-                    frame_idx,
-                    self.win_size,
-                    self.hop_size,
-                    self.fft_backend.fft_size(),
-                    &self.window,
-                );
-                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
-            });
+            .for_each_init(
+                || vec![T::zero(); fft_size],
+                |frame, (frame_idx, spectrum)| {
+                    signal.frame_into(frame, frame_idx, self.win_size, self.hop_size, &self.window);
+                    self.fft_backend.fft(frame, spectrum.0, spectrum.1);
+                },
+            );
 
         result
     }
 
     pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
+        let fft_size = self.fft_backend.fft_size();
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
-        spectrogram
-            .frames_iter_mut()
-            .enumerate()
-            .for_each(|(frame_idx, spectrum)| {
-                let frame = signal.frame(
-                    frame_idx,
-                    self.win_size,
-                    self.hop_size,
-                    self.fft_backend.fft_size(),
-                    &self.window,
-                );
-                self.fft_backend.fft(frame.as_ref(), spectrum.0, spectrum.1);
-            });
+
+        let mut frame = vec![T::zero(); fft_size];
+
+        for (frame_idx, spectrum) in spectrogram.frames_iter_mut().enumerate() {
+            signal.frame_into(
+                &mut frame,
+                frame_idx,
+                self.win_size,
+                self.hop_size,
+                &self.window,
+            );
+            self.fft_backend.fft(&frame, spectrum.0, spectrum.1);
+        }
 
         spectrogram
     }
@@ -310,8 +302,6 @@ where
 #[cfg(test)]
 mod tests {
     use core::fmt::{Debug, Display};
-    #[cfg(test)]
-    use std::iter::Sum;
 
     use float_cmp::ApproxEq;
     use phastft::planner::{PlannerR2c32, PlannerR2c64};
@@ -333,7 +323,7 @@ mod tests {
         #[case] signal_len: usize,
     ) -> mischief::Result<()>
     where
-        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst + Sum,
+        T: Debug + Float + Display + ApproxEq + Sync + Send + FloatConst,
         FftBackend: Sync,
     {
         use generic_num::num;

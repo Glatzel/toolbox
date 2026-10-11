@@ -15,22 +15,22 @@ where
     /// # Parameters
     ///
     /// - `sr`: Audio sampling rate in Hz. Must be greater than zero.
-    /// - `n_fft`: FFT frame length. Must be greater than zero.
+    /// - `fft_size`: FFT frame length. Must be greater than zero.
     ///
     /// # Returns
     ///
-    /// An iterator of length `1 + n_fft / 2`, containing frequencies in Hz:
-    /// `0, sr / n_fft, 2 * sr / n_fft, ..., sr / 2` (for even `n_fft`).
+    /// An iterator of length `1 + fft_size / 2`, containing frequencies in Hz:
+    /// `0, sr / fft_size, 2 * sr / fft_size, ..., sr / 2` (for even `fft_size`).
     ///
     /// # References
     ///
     /// - [librosa.fft_frequencies](https://librosa.org/doc/latest/generated/librosa.fft_frequencies.html)
-    pub fn fft_frequencies(sr: T, n_fft: usize) -> impl ExactSizeIterator<Item = Self> {
+    pub fn fft_frequencies(sr: T, fft_size: usize) -> impl ExactSizeIterator<Item = Self> {
         #[allow(
             clippy::range_plus_one,
             reason = "RangeInclusive does not implement ExactSizeIterator."
         )]
-        (0..(1 + n_fft / 2)).map(move |n| Self(num!(n) * sr / num!(n_fft)))
+        (0..(1 + fft_size / 2)).map(move |n| Self(num!(n) * sr / num!(fft_size)))
     }
 
     /// Compute the center frequencies of Constant-Q Transform (CQT) bins.
@@ -57,15 +57,15 @@ where
     /// # References
     ///
     /// - [librosa.cqt_frequencies](https://librosa.org/doc/latest/generated/librosa.cqt_frequencies.html)
-    pub fn cqt_frequencies<I, I1>(
+    pub fn cqt_frequencies<H, TU>(
         n_bins: usize,
-        fmin: I,
+        fmin: H,
         bins_per_octave: usize,
-        tuning: I1,
+        tuning: TU,
     ) -> impl ExactSizeIterator<Item = T>
     where
-        I: Into<Self>,
-        I1: Into<Tuning<T>>,
+        H: Into<Self>,
+        TU: Into<Tuning<T>>,
     {
         let correction = num!(2.0).powf(tuning.into().0 / num!(bins_per_octave));
         let fmin = fmin.into().0;

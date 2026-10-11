@@ -3,16 +3,16 @@ from scipy.fft import irfft, rfft
 
 
 def generate(signal: np.ndarray) -> None:
-    n_fft = len(signal)
-    spectrum = rfft(signal, n=n_fft)  # complex, length n_fft // 2 + 1
-    recovered = irfft(spectrum, n=n_fft)  # real, length n_fft
+    fft_size = len(signal)
+    spectrum = rfft(signal, n=fft_size)  # complex, length fft_size // 2 + 1
+    recovered = irfft(spectrum, n=fft_size)  # real, length fft_size
 
-    expected_spectrum_len = n_fft // 2 + 1
+    expected_spectrum_len = fft_size // 2 + 1
     assert spectrum.shape[0] == expected_spectrum_len, (
         f"spectrum length {spectrum.shape[0]} != N/2+1 ({expected_spectrum_len})"
     )
 
-    print(f"n_fft={n_fft}")
+    print(f"fft_size={fft_size}")
     print("signal:        ", np.array2string(signal, precision=6))
     print("spectrum (re): ", np.array2string(spectrum.real, precision=6))
     print("spectrum (im): ", np.array2string(spectrum.imag, precision=6))

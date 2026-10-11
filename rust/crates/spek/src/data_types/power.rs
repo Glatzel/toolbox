@@ -30,10 +30,10 @@ where
     /// - `top_db`: constant offset **subtracted** from the result. Pass `0` for
     ///   a plain dB conversion. Unlike librosa, this is *not* a relative
     ///   dynamic-range clip.
-    pub fn to_db<I, I1>(&self, reference: T, amin: I, top_db: I1) -> Db<T>
+    pub fn to_db<P, D>(&self, reference: T, amin: P, top_db: D) -> Db<T>
     where
-        I: Into<Self>,
-        I1: Into<Db<T>>,
+        P: Into<Self>,
+        D: Into<Db<T>>,
     {
         let power = self.0.max(amin.into().0);
         Db(num!(10.0) * (power / reference).log10() - top_db.into().0)

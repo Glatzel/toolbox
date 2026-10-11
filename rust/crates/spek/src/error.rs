@@ -11,8 +11,6 @@ pub enum SpekError {
     //window
     #[error("Tau must be positive")]
     ExponentialTau,
-    #[error("Kaiser-Bessel derived asymmetric window must be symmetric")]
-    KaiserBesselDerivedAsymmetric,
     #[error("Kaiser-Bessel Derived windows are only defined for even number of points")]
     KaiserBesselDerivedSize,
 

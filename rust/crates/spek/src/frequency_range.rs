@@ -20,7 +20,8 @@ where
     /// # Returns
     ///
     /// An iterator of length `1 + fft_size / 2`, containing frequencies in Hz:
-    /// `0, sr / fft_size, 2 * sr / fft_size, ..., sr / 2` (for even `fft_size`).
+    /// `0, sr / fft_size, 2 * sr / fft_size, ..., sr / 2` (for even
+    /// `fft_size`).
     ///
     /// # References
     ///

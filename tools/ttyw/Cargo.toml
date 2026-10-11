@@ -1,6 +1,6 @@
 [package]
 name = "ttyw"
-version = "2026.10.5"
+version = "2026.10.11"
 edition = "2024"
 
 [dependencies]

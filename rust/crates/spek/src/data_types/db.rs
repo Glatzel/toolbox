@@ -31,10 +31,10 @@ impl<T> Db<T>
 where
     T: Float,
 {
-    pub fn from_power<I, I1>(power: Power<T>, reference: T, amin: I1, top_db: I) -> Self
+    pub fn from_power<D, P>(power: Power<T>, reference: T, amin: P, top_db: D) -> Self
     where
-        I: Into<Self>,
-        I1: Into<Power<T>>,
+        D: Into<Self>,
+        P: Into<Power<T>>,
     {
         power.to_db(reference, amin, top_db)
     }
@@ -44,10 +44,10 @@ where
     ///
     /// See [`Power::to_db`] for the meaning of `reference`, `amin` and
     /// `top_db`.
-    pub fn from_spectrum<I, I1>(real: T, imag: T, reference: T, amin: I1, top_db: I) -> Self
+    pub fn from_spectrum<D, P>(real: T, imag: T, reference: T, amin: P, top_db: D) -> Self
     where
-        I: Into<Self>,
-        I1: Into<Power<T>>,
+        D: Into<Self>,
+        P: Into<Power<T>>,
     {
         Power::from_spectrum(real, imag).to_db(reference, amin, top_db)
     }

@@ -78,7 +78,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "textwrap",
 ]
@@ -154,7 +154,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "clap",
 ]
@@ -201,7 +201,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "clerk"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "jiff",
  "owo-colors",
@@ -590,7 +590,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "arbor",
  "backtrace",
@@ -601,7 +601,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "quote",
  "syn 3.0.7",
@@ -639,7 +639,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "orc"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "arbor",
  "assert_cmd",

@@ -84,7 +84,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "arbor"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "textwrap",
 ]
@@ -242,7 +242,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "clap",
 ]
@@ -290,7 +290,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "clerk"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "jiff",
  "owo-colors",
@@ -966,7 +966,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "arbor",
  "backtrace",
@@ -977,7 +977,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "quote",
  "syn 3.0.7",
@@ -1815,7 +1815,7 @@ dependencies = [
 
 [[package]]
 name = "ttyw"
-version = "2026.10.5"
+version = "2026.10.11"
 dependencies = [
  "axum",
  "clap",

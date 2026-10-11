@@ -64,22 +64,20 @@ pub enum WeightingKind {
 /// # References
 ///
 /// - [librosa.perceptual_weighting](https://librosa.org/doc/latest/api/generated/librosa.perceptual_weighting.html)
-pub fn perceptual_weighting<T, I, I1, I2, I3, I4>(
-    power: I,
-    frequency: I1,
+pub fn perceptual_weighting<T, P, F, D>(
+    power: P,
+    frequency: F,
     reference: T,
-    amin: I2,
-    top_db: I3,
+    amin: P,
+    top_db: D,
     kind: WeightingKind,
-    min_db: I4,
+    min_db: D,
 ) -> T
 where
     T: Float,
-    I: Into<Power<T>>,
-    I1: Into<Hz<T>>,
-    I2: Into<Power<T>>,
-    I3: Into<Db<T>>,
-    I4: Into<Db<T>>,
+    P: Into<Power<T>>,
+    F: Into<Hz<T>>,
+    D: Into<Db<T>>,
 {
     frequency_weighting(frequency.into().0, kind, min_db.into().0)
         + power
@@ -109,10 +107,10 @@ where
 ///
 /// - [librosa.frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.frequency_weighting.html)
 /// - [librosa.Z_weighting](https://librosa.org/doc/latest/api/generated/librosa.Z_weighting.html)
-pub fn frequency_weighting<T, I>(frequency: T, kind: WeightingKind, min_db: I) -> T
+pub fn frequency_weighting<T, D>(frequency: T, kind: WeightingKind, min_db: D) -> T
 where
     T: Float,
-    I: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     match kind {
         WeightingKind::A => a_weighting(frequency, min_db),
@@ -143,16 +141,16 @@ where
 /// # References
 ///
 /// - [librosa.multi_frequency_weighting](https://librosa.org/doc/latest/api/generated/librosa.multi_frequency_weighting.html)
-pub fn multi_frequency_weighting<'a, T, I, I1>(
+pub fn multi_frequency_weighting<'a, T, I, D>(
     frequencies: &'a [T],
     kinds: I,
-    min_db: I1,
+    min_db: D,
 ) -> impl Iterator<Item = impl Iterator<Item = T> + 'a> + 'a
 where
     T: Float,
     I: IntoIterator<Item = WeightingKind>,
     I::IntoIter: 'a,
-    I1: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     let min_db = min_db.into().0;
     kinds.into_iter().map(move |kind| {
@@ -181,10 +179,10 @@ where
 /// # References
 ///
 /// - [librosa.A_weighting](https://librosa.org/doc/latest/api/generated/librosa.A_weighting.html)
-pub fn a_weighting<T, I>(frequency: T, min_db: I) -> T
+pub fn a_weighting<T, D>(frequency: T, min_db: D) -> T
 where
     T: Float,
-    I: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     let f_sq = frequency * frequency;
 
@@ -222,10 +220,10 @@ where
 /// # References
 ///
 /// - [librosa.B_weighting](https://librosa.org/doc/latest/api/generated/librosa.B_weighting.html)
-pub fn b_weighting<T, I>(frequency: T, min_db: I) -> T
+pub fn b_weighting<T, D>(frequency: T, min_db: D) -> T
 where
     T: Float,
-    I: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     let f_sq = frequency * frequency;
 
@@ -261,10 +259,10 @@ where
 /// # References
 ///
 /// - [librosa.C_weighting](https://librosa.org/doc/latest/api/generated/librosa.C_weighting.html)
-pub fn c_weighting<T, I>(frequency: T, min_db: I) -> T
+pub fn c_weighting<T, D>(frequency: T, min_db: D) -> T
 where
     T: Float,
-    I: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     let f_sq = frequency * frequency;
 
@@ -298,10 +296,10 @@ where
 /// # References
 ///
 /// - [librosa.D_weighting](https://librosa.org/doc/latest/api/generated/librosa.D_weighting.html)
-pub fn d_weighting<T, I>(frequency: T, min_db: I) -> T
+pub fn d_weighting<T, D>(frequency: T, min_db: D) -> T
 where
     T: Float,
-    I: Into<Db<T>>,
+    D: Into<Db<T>>,
 {
     let f_sq = frequency * frequency;
 

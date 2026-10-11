@@ -22,10 +22,10 @@ where
     ///   a plain dB conversion. Unlike librosa, this is *not* a relative
     ///   dynamic-range clip, since a scalar function has no access to the
     ///   spectrogram maximum.
-    pub fn to_db<I, I1>(&self, reference: T, amin: I1, top_db: I) -> Db<T>
+    pub fn to_db<D, A>(&self, reference: T, amin: A, top_db: D) -> Db<T>
     where
-        I: Into<Db<T>>,
-        I1: Into<Self>,
+        D: Into<Db<T>>,
+        A: Into<Self>,
     {
         let amplitude = self.0.max(amin.into().0);
         Db(num!(20.0) * (amplitude / reference).log10() - top_db.into().0)

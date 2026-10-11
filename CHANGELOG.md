@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.10.11] - 2026-10-11
+
+### Added
+
+- **(spek)** Add some fn by @Glatzel in [#884](https://github.com/Glatzel/toolbox/pull/884)
+- **(spek)** Add some fn by @Glatzel in [#886](https://github.com/Glatzel/toolbox/pull/886)
+
+### Changed
+
+- **(spek)** Impl frequency_range by @Glatzel in [#885](https://github.com/Glatzel/toolbox/pull/885)
+- **(spek)** Restruct crate by @Glatzel in [#887](https://github.com/Glatzel/toolbox/pull/887)
+- **(spek)** Modify some types by @Glatzel in [#888](https://github.com/Glatzel/toolbox/pull/888)
+- **(spek)** Impl signal by @Glatzel in [#889](https://github.com/Glatzel/toolbox/pull/889)
+- Update data_types.rs by @Glatzel in [#896](https://github.com/Glatzel/toolbox/pull/896)
+
+### Performance
+
+- **(spek)** Improve stft perf by @Glatzel in [#895](https://github.com/Glatzel/toolbox/pull/895)
+
+### Refactor
+
+- Only keep phastft by @Glatzel in [#876](https://github.com/Glatzel/toolbox/pull/876)
+- Reconstruct spek by @Glatzel in [#883](https://github.com/Glatzel/toolbox/pull/883)
+
+### Removed
+
+- Remove path-slash by @Glatzel in [#874](https://github.com/Glatzel/toolbox/pull/874)
+- Remove dunce by @Glatzel in [#875](https://github.com/Glatzel/toolbox/pull/875)
+
+### Testing
+
+- Update conversion.rs by @Glatzel in [#882](https://github.com/Glatzel/toolbox/pull/882)
+
 ## [2026.10.5] - 2026-10-05
 
 ### Changed
@@ -653,6 +686,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add terminal layer by @Glatzel in [#1](https://github.com/Glatzel/toolbox/pull/1)
 
+[2026.10.11]: https://github.com/Glatzel/toolbox/compare/v2026.10.5..v2026.10.11
 [2026.10.5]: https://github.com/Glatzel/toolbox/compare/v2026.9.14..v2026.10.5
 [2026.9.14]: https://github.com/Glatzel/toolbox/compare/v2026.9.10..v2026.9.14
 [2026.9.10]: https://github.com/Glatzel/toolbox/compare/v2026.8.22..v2026.9.10

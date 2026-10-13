@@ -33,7 +33,7 @@ rstest = "0.27.0"
 serde = "1.0.229"
 serialport = "4.10.0"
 strum = { version = "0.28.0", features = ["derive"] }
-syn = "3.0.7"
+syn = "3.0.9"
 tempfile = "3.27.0"
 terminal_size = "0.4.4"
 textwrap = { version = "0.16.4", default-features = false }

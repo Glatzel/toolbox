@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum::{AsRefStr, EnumString};
 
 use crate::data_types::notation::{Accidental, NotationError, Pitch};
@@ -11,7 +12,10 @@ pub enum KeyScale {
     #[strum(serialize = "minor", serialize = "min")]
     Minor,
 }
-#[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
+#[derive(
+    Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq, TryFromPrimitive, IntoPrimitive,
+)]
+#[repr(u8)]
 pub enum KeyMode {
     #[strum(serialize = "ionian", serialize = "ion")]
     Ionian,
@@ -29,19 +33,6 @@ pub enum KeyMode {
     Locrian,
 }
 
-impl KeyMode {
-    pub const fn offset(&self) -> u8 {
-        match self {
-            Self::Ionian => 0,
-            Self::Dorian => 1,
-            Self::Phrygian => 2,
-            Self::Lydian => 3,
-            Self::Mixolydian => 4,
-            Self::Aeolian => 5,
-            Self::Locrian => 6,
-        }
-    }
-}
 #[derive(Debug, Clone, AsRefStr, PartialEq, Eq)]
 pub enum KeyQuality {
     Scale(KeyScale),

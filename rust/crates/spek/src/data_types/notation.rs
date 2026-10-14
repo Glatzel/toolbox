@@ -1,15 +1,18 @@
 mod key;
+mod melakarta;
 mod midi;
 mod note;
 mod shared;
-
+mod thaat;
 use std::num::ParseIntError;
 
 pub use key::{Key, KeyMode, KeyQuality, KeyScale};
+pub use melakarta::Melakarta;
 pub use midi::Midi;
 pub use note::Note;
 use rax::error::VerbError;
 pub use shared::{Accidental, Pitch};
+pub use thaat::Thaat;
 use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Eq)]

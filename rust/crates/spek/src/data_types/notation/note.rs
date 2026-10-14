@@ -114,7 +114,7 @@ impl Note {
         T: Float + Sum,
     {
         let cents = self.cents.map_or_else(T::zero, |c| num!(c) / num!(100));
-        let offset: T = self.accs.iter().map(|a| num!(*a as u8)).sum();
+        let offset: T = self.accs.iter().map(|a| num!(*a as i8)).sum();
         Midi(
             num!(12) * (num!(self.octave.unwrap_or_default()) + T::one())
                 + num!(u8::from(self.pitch))

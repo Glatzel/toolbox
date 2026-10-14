@@ -1,36 +1,27 @@
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum::{AsRefStr, EnumString};
 
 use crate::data_types::notation::NotationError;
 
-#[derive(Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq)]
+#[derive(
+    Debug, Copy, Clone, AsRefStr, EnumString, PartialEq, Eq, IntoPrimitive, TryFromPrimitive,
+)]
+#[repr(u8)]
 pub enum Pitch {
     #[strum(serialize = "C", serialize = "c")]
-    C,
+    C = 0,
     #[strum(serialize = "D", serialize = "d")]
-    D,
+    D = 2,
     #[strum(serialize = "E", serialize = "e")]
-    E,
+    E = 4,
     #[strum(serialize = "F", serialize = "f")]
-    F,
+    F = 5,
     #[strum(serialize = "G", serialize = "g")]
-    G,
+    G = 7,
     #[strum(serialize = "A", serialize = "a")]
-    A,
+    A = 9,
     #[strum(serialize = "B", serialize = "b")]
-    B,
-}
-impl From<Pitch> for u8 {
-    fn from(value: Pitch) -> Self {
-        match value {
-            Pitch::C => 0,
-            Pitch::D => 2,
-            Pitch::E => 4,
-            Pitch::F => 5,
-            Pitch::G => 7,
-            Pitch::A => 9,
-            Pitch::B => 11,
-        }
-    }
+    B = 11,
 }
 impl TryFrom<char> for Pitch {
     type Error = NotationError;
@@ -49,7 +40,9 @@ impl TryFrom<char> for Pitch {
         Ok(result)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr, EnumString)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, AsRefStr, EnumString, TryFromPrimitive, IntoPrimitive,
+)]
 #[repr(i8)]
 pub enum Accidental {
     #[strum(serialize = "♯", serialize = "#")]

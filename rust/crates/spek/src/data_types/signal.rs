@@ -4,11 +4,8 @@ pub type Signal<T> = Vec<T>;
 pub type SignalRef<'a, T> = &'a [T];
 pub type SignalRefMut<'a, T> = &'a mut [T];
 
-pub trait ISignal<T> {
-    fn frame_count(&self, win_size: usize, hop_size: usize) -> usize
-    where
-        Self: AsRef<[T]>,
-    {
+pub trait ISignal<T>: AsRef<[T]> {
+    fn frame_count(&self, win_size: usize, hop_size: usize) -> usize {
         let len = self.as_ref().len();
         if len < win_size {
             1
@@ -27,7 +24,6 @@ pub trait ISignal<T> {
         hop_size: usize,
         window: &[T],
     ) where
-        Self: AsRef<[T]>,
         T: Float,
     {
         let fft_size = out.len();
@@ -74,7 +70,6 @@ pub trait ISignal<T> {
         window: &[T],
     ) -> Signal<T>
     where
-        Self: AsRef<[T]>,
         T: Float,
     {
         // Padding is zeroed by frame_into, so uninitialized-free `vec!` is
@@ -85,5 +80,4 @@ pub trait ISignal<T> {
     }
 }
 
-impl<T> ISignal<T> for Vec<T> {}
-impl<T> ISignal<T> for [T] {}
+impl<T, S: AsRef<[T]> + ?Sized> ISignal<T> for S {}

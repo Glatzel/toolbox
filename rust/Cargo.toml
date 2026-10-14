@@ -23,6 +23,7 @@ derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 float-cmp = "0.10.0"
 insta = "1.49.0"
 jiff = { version = "0.2.38", default-features = false, features = ["perf-inline"] }
+num_enum = "0.7.6"
 num-traits = "0.2.19"
 owo-colors = "4.4.0"
 parking_lot = "0.12.5"
@@ -44,7 +45,6 @@ tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
 uuid = "1.28.0"
-num_enum = "0.7.6"
 
 [profile.dev.package]
 insta.opt-level = 3

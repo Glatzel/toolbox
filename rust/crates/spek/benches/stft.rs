@@ -28,16 +28,16 @@ fn bench_wrapper<T, B>(
         .map(|i| num!(i))
         .collect::<Vec<_>>()
         .into();
-    let mut spectrum = stft.stft(data.as_ref());
+    let mut spectrum = stft.stft(&data);
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_{}_10^", name, fft_size), size),
         &size,
-        |b, _| b.iter(|| stft.stft(data.as_ref())),
+        |b, _| b.iter(|| stft.stft(&data)),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_stft_parallel_{}_10^", name, fft_size), size),
         &size,
-        |b, _| b.iter(|| stft.par_stft(data.as_ref())),
+        |b, _| b.iter(|| stft.par_stft(&data)),
     );
     g.bench_with_input(
         BenchmarkId::new(format!("{}_istft_{}_10^", name, fft_size), size),

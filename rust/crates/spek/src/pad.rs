@@ -32,12 +32,17 @@ impl<T> Pad<T>
 where
     T: Float + Sum,
 {
-    pub fn pad(
+    pub fn pad<'a, S>(
         &self,
-        signal: SignalRef<'_, T>,
+        signal: S,
         pad_before: usize,
         pad_after: usize,
-    ) -> Result<Signal<T>, SpekError> {
+    ) -> Result<Signal<T>, SpekError>
+    where
+        S: Into<SignalRef<'a, T>>,
+        T: 'a,
+    {
+        let signal = signal.into();
         if signal.is_empty() {
             return Err(SpekError::EmptySignal);
         }
@@ -46,20 +51,20 @@ where
         match self {
             Self::Constant(value) => {
                 padded.extend(core::iter::repeat_n(*value, pad_before));
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
                 padded.extend(core::iter::repeat_n(*value, pad_after));
             }
 
             Self::Empty => {
                 padded.extend(core::iter::repeat_n(T::zero(), pad_before));
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
                 padded.extend(core::iter::repeat_n(T::zero(), pad_after));
             }
 
             Self::Edge => {
                 padded.extend(core::iter::repeat_n(signal[0], pad_before));
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 padded.extend(core::iter::repeat_n(*signal.last().unwrap(), pad_after));
             }
@@ -75,7 +80,7 @@ where
                     padded.push(signal[i]);
                 }
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 for i in 0..pad_after {
                     if i + 1 >= signal.len() {
@@ -94,7 +99,7 @@ where
                     padded.push(signal[idx]);
                 }
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 for i in 0..pad_after {
                     let idx = (signal.len() - 1).saturating_sub(i);
@@ -116,7 +121,7 @@ where
                     padded.push(signal[idx]);
                 }
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 for i in 0..pad_after {
                     padded.push(signal[i % signal.len()]);
@@ -133,7 +138,7 @@ where
                     padded.push(first * (T::one() - alpha));
                 }
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 for i in 0..pad_after {
                     let alpha = num!(i + 1) / num!(pad_after + 1);
@@ -169,7 +174,7 @@ where
 
                 padded.extend(core::iter::repeat_n(value, pad_before));
 
-                padded.extend_from_slice(signal);
+                padded.extend_from_slice(&signal);
 
                 padded.extend(core::iter::repeat_n(value, pad_after));
             }
@@ -193,37 +198,35 @@ mod tests {
     #[test]
     fn empty_signal_errors() {
         let signal: [f64; 0] = [];
-        let err = Pad::Edge.pad(signal.as_ref().into(), 1, 1).unwrap_err();
+        let err = Pad::Edge.pad(signal.as_ref(), 1, 1).unwrap_err();
         assert!(matches!(err, SpekError::EmptySignal));
     }
 
     #[test]
     fn constant() {
         let signal = [1.0, 2.0, 3.0];
-        let result = Pad::Constant(9.0)
-            .pad(signal.as_ref().into(), 2, 1)
-            .unwrap();
+        let result = Pad::Constant(9.0).pad(signal.as_ref(), 2, 1).unwrap();
         assert_close(result.as_slice(), &[9.0, 9.0, 1.0, 2.0, 3.0, 9.0]);
     }
 
     #[test]
     fn empty_mode_pads_with_zero() {
         let signal = [1.0, 2.0, 3.0];
-        let result = Pad::Empty.pad(signal.as_ref().into(), 2, 1).unwrap();
+        let result = Pad::Empty.pad(signal.as_ref(), 2, 1).unwrap();
         assert_close(result.as_slice(), &[0.0, 0.0, 1.0, 2.0, 3.0, 0.0]);
     }
 
     #[test]
     fn edge() {
         let signal = [1.0, 2.0, 3.0];
-        let result = Pad::Edge.pad(signal.as_ref().into(), 2, 3).unwrap();
+        let result = Pad::Edge.pad(signal.as_ref(), 2, 3).unwrap();
         assert_close(result.as_slice(), &[1.0, 1.0, 1.0, 2.0, 3.0, 3.0, 3.0, 3.0]);
     }
 
     #[test]
     fn maximum() {
         let signal = [3.0, 1.0, 4.0, 1.0, 5.0];
-        let result = Pad::Maximum.pad(signal.as_ref().into(), 2, 2).unwrap();
+        let result = Pad::Maximum.pad(signal.as_ref(), 2, 2).unwrap();
         assert_close(
             result.as_slice(),
             &[5.0, 5.0, 3.0, 1.0, 4.0, 1.0, 5.0, 5.0, 5.0],
@@ -233,7 +236,7 @@ mod tests {
     #[test]
     fn minimum() {
         let signal = [3.0, 1.0, 4.0, 1.0, 5.0];
-        let result = Pad::Minimum.pad(signal.as_ref().into(), 1, 1).unwrap();
+        let result = Pad::Minimum.pad(signal.as_ref(), 1, 1).unwrap();
         assert_close(result.as_slice(), &[1.0, 3.0, 1.0, 4.0, 1.0, 5.0, 1.0]);
     }
 
@@ -241,7 +244,7 @@ mod tests {
     fn mean() {
         let signal = [1.0, 2.0, 3.0, 4.0];
         // mean = 2.5
-        let result = Pad::Mean.pad(signal.as_ref().into(), 1, 1).unwrap();
+        let result = Pad::Mean.pad(signal.as_ref(), 1, 1).unwrap();
         assert_close(result.as_slice(), &[2.5, 1.0, 2.0, 3.0, 4.0, 2.5]);
     }
 
@@ -249,7 +252,7 @@ mod tests {
     fn median_odd_length() {
         let signal = [5.0, 1.0, 3.0];
         // sorted: [1, 3, 5] -> median = 3
-        let result = Pad::Median.pad(signal.as_ref().into(), 1, 0).unwrap();
+        let result = Pad::Median.pad(signal.as_ref(), 1, 0).unwrap();
         assert_close(result.as_slice(), &[3.0, 5.0, 1.0, 3.0]);
     }
 
@@ -257,14 +260,14 @@ mod tests {
     fn median_even_length_takes_upper_middle() {
         let signal = [4.0, 1.0, 3.0, 2.0];
         // sorted: [1, 2, 3, 4] -> index len/2 == 2 -> 3
-        let result = Pad::Median.pad(signal.as_ref().into(), 0, 1).unwrap();
+        let result = Pad::Median.pad(signal.as_ref(), 0, 1).unwrap();
         assert_close(result.as_slice(), &[4.0, 1.0, 3.0, 2.0, 3.0]);
     }
 
     #[test]
     fn linear_ramp() {
         let signal = [4.0];
-        let result = Pad::LinearRamp.pad(signal.as_ref().into(), 4, 0).unwrap();
+        let result = Pad::LinearRamp.pad(signal.as_ref(), 4, 0).unwrap();
         // ramps from 0 towards 4.0 over 4 steps: 4*(1-1/5), 4*(1-2/5),
         // 4*(1-3/5), 4*(1-4/5)
         assert_close(result.as_slice(), &[3.2, 2.4, 1.6, 0.8, 4.0]);
@@ -273,35 +276,35 @@ mod tests {
     #[test]
     fn reflect() {
         let signal = [1.0, 2.0, 3.0, 4.0];
-        let result = Pad::Reflect.pad(signal.as_ref().into(), 2, 2).unwrap();
+        let result = Pad::Reflect.pad(signal.as_ref(), 2, 2).unwrap();
         assert_close(result.as_slice(), &[3.0, 2.0, 1.0, 2.0, 3.0, 4.0, 3.0, 2.0]);
     }
 
     #[test]
     fn reflect_too_large_pad_before_errors() {
         let signal = [1.0, 2.0];
-        let err = Pad::Reflect.pad(signal.as_ref().into(), 5, 0).unwrap_err();
+        let err = Pad::Reflect.pad(signal.as_ref(), 5, 0).unwrap_err();
         assert!(matches!(err, SpekError::SignalSizeTooSmall { .. }));
     }
 
     #[test]
     fn reflect_too_large_pad_after_errors() {
         let signal = [1.0, 2.0];
-        let err = Pad::Reflect.pad(signal.as_ref().into(), 0, 5).unwrap_err();
+        let err = Pad::Reflect.pad(signal.as_ref(), 0, 5).unwrap_err();
         assert!(matches!(err, SpekError::SignalSizeTooSmall { .. }));
     }
 
     #[test]
     fn symmetric() {
         let signal = [1.0, 2.0, 3.0];
-        let result = Pad::Symmetric.pad(signal.as_ref().into(), 2, 2).unwrap();
+        let result = Pad::Symmetric.pad(signal.as_ref(), 2, 2).unwrap();
         assert_close(result.as_slice(), &[2.0, 1.0, 1.0, 2.0, 3.0, 3.0, 2.0]);
     }
 
     #[test]
     fn wrap_basic() {
         let signal = [1.0, 2.0, 3.0];
-        let result = Pad::Wrap.pad(signal.as_ref().into(), 2, 2).unwrap();
+        let result = Pad::Wrap.pad(signal.as_ref(), 2, 2).unwrap();
         // before: last 2 elements [2, 3], after: first 2 elements [1, 2]
         assert_close(result.as_slice(), &[2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0]);
     }
@@ -316,9 +319,7 @@ mod tests {
             let signal: Signal<f64> = (0..len).map(|v| v as f64).collect();
             for pad_before in 0..=8usize {
                 for pad_after in 0..=8usize {
-                    let result = Pad::Wrap
-                        .pad(signal.as_ref(), pad_before, pad_after)
-                        .unwrap();
+                    let result = Pad::Wrap.pad(&signal, pad_before, pad_after).unwrap();
                     assert_eq!(result.len(), len + pad_before + pad_after);
                 }
             }
@@ -330,7 +331,7 @@ mod tests {
         // pad_before=5, len=3: at i=2, (5-2) % 3 == 0, which used to compute
         // idx = len (3) instead of 0 and panic on out-of-bounds indexing.
         let signal = [10.0, 20.0, 30.0];
-        let result = Pad::Wrap.pad(signal.as_ref().into(), 5, 0).unwrap();
+        let result = Pad::Wrap.pad(signal.as_ref(), 5, 0).unwrap();
         assert_close(
             result.as_slice(),
             &[20.0, 30.0, 10.0, 20.0, 30.0, 10.0, 20.0, 30.0],
@@ -340,7 +341,7 @@ mod tests {
     #[test]
     fn wrap_pad_larger_than_signal() {
         let signal = [1.0, 2.0];
-        let result = Pad::Wrap.pad(signal.as_ref().into(), 5, 3).unwrap();
+        let result = Pad::Wrap.pad(signal.as_ref(), 5, 3).unwrap();
         assert_close(
             result.as_slice(),
             &[2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],

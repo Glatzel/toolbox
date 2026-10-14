@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 use phastft::planner::{PlannerR2c32, PlannerR2c64};
 use phastft::{c2r_fft_f64_with_planner_and_opts, r2c_fft_f64_with_planner_and_opts};
 
@@ -12,15 +14,20 @@ pub trait IFftBackend<T> {
     fn new_spectrum(&self) -> Spectrum1D<T>;
     fn new_scratch(&self) -> Scratch<T>;
     fn new_spectrum2d(&self, frame_count: usize) -> Spectrum2D<T>;
-    fn fft(&self, signal: SignalRef<'_, T>, real: &mut [T], imag: &mut [T]);
-    fn ifft(
+    fn fft<'a, S>(&self, signal: S, real: &mut [T], imag: &mut [T])
+    where
+        S: Into<SignalRef<'a, T>>,
+        T: 'a;
+    fn ifft<'a, S>(
         &self,
         real: &[T],
         imag: &[T],
-        signal: SignalRefMut<'_, T>,
+        signal: S,
         scratch_real: &mut [T],
         scratch_imag: &mut [T],
-    );
+    ) where
+        S: Into<SignalRefMut<'a, T>>,
+        T: 'a;
 }
 
 #[derive(Debug, Clone)]
@@ -65,27 +72,32 @@ impl IFftBackend<f32> for PhastftBackend<PlannerR2c32> {
         Spectrum2D::new(frame_count, self.spectrum_size())
     }
 
-    fn fft(&self, signal: SignalRef<'_, f32>, real: &mut [f32], imag: &mut [f32]) {
+    fn fft<'a, S>(&self, signal: S, real: &mut [f32], imag: &mut [f32])
+    where
+        S: Into<SignalRef<'a, f32>>,
+    {
         phastft::r2c_fft_f32_with_planner_and_opts(
-            signal,
+            signal.into().as_ref(),
             real,
             imag,
             &self.planner,
             &self.options,
         );
     }
-    fn ifft(
+    fn ifft<'a, S>(
         &self,
         real: &[f32],
         imag: &[f32],
-        signal: SignalRefMut<'_, f32>,
+        signal: S,
         scratch_real: &mut [f32],
         scratch_imag: &mut [f32],
-    ) {
+    ) where
+        S: Into<SignalRefMut<'a, f32>>,
+    {
         phastft::c2r_fft_f32_with_planner_and_opts(
             real,
             imag,
-            signal,
+            signal.into().deref_mut(),
             &self.planner,
             &self.options,
             scratch_real,
@@ -130,21 +142,32 @@ impl IFftBackend<f64> for PhastftBackend<PlannerR2c64> {
         Spectrum2D::new(frame_count, self.spectrum_size())
     }
 
-    fn fft(&self, signal: SignalRef<'_, f64>, real: &mut [f64], imag: &mut [f64]) {
-        r2c_fft_f64_with_planner_and_opts(signal, real, imag, &self.planner, &self.options);
+    fn fft<'a, S>(&self, signal: S, real: &mut [f64], imag: &mut [f64])
+    where
+        S: Into<SignalRef<'a, f64>>,
+    {
+        r2c_fft_f64_with_planner_and_opts(
+            signal.into().deref(),
+            real,
+            imag,
+            &self.planner,
+            &self.options,
+        );
     }
-    fn ifft(
+    fn ifft<'a, S>(
         &self,
         real: &[f64],
         imag: &[f64],
-        signal: SignalRefMut<'_, f64>,
+        signal: S,
         scratch_real: &mut [f64],
         scratch_imag: &mut [f64],
-    ) {
+    ) where
+        S: Into<SignalRefMut<'a, f64>>,
+    {
         c2r_fft_f64_with_planner_and_opts(
             real,
             imag,
-            signal,
+            signal.into().deref_mut(),
             &self.planner,
             &self.options,
             scratch_real,

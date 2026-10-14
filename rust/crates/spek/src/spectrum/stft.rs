@@ -102,8 +102,11 @@ where
         })
     }
 
-    pub fn stft_frame(&self, input: SignalRef<'_, T>) -> (Vec<T>, Vec<T>) {
-        let frame = input.frame(
+    pub fn stft_frame<'a, S>(&self, input: S) -> (Vec<T>, Vec<T>)
+    where
+        T: 'a, S: Into<SignalRef<'a, T>>,
+    {
+        let frame = input.into().frame(
             0,
             self.win_size,
             self.hop_size,
@@ -112,18 +115,19 @@ where
         );
 
         let (mut real, mut imag) = self.fft_backend.new_spectrum();
-        self.fft_backend.fft(frame.as_ref(), &mut real, &mut imag);
+        self.fft_backend.fft(&frame, &mut real, &mut imag);
         (real, imag)
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T>
+    pub fn par_stft<'a, S>(&self, signal: S) -> Spectrum2D<T>
     where
         T: Sync + Send,
         FftBackend: Sync,
+        T: 'a, S: Into<SignalRef<'a, T>>,
     {
         use rayon::prelude::*;
-
+        let signal = signal.into();
         let fft_size = self.fft_backend.fft_size();
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut result = self.fft_backend.new_spectrum2d(frame_count);
@@ -131,15 +135,26 @@ where
         result.frames_par_iter_mut().enumerate().for_each_init(
             || vec![T::zero(); fft_size],
             |frame, (frame_idx, spectrum)| {
-                signal.frame_into(frame, frame_idx, self.win_size, self.hop_size, &self.window);
-                self.fft_backend.fft(frame, spectrum.0, spectrum.1);
+                signal.frame_into(
+                    frame.as_mut_slice(),
+                    frame_idx,
+                    self.win_size,
+                    self.hop_size,
+                    &self.window,
+                );
+                self.fft_backend
+                    .fft(frame.as_slice(), spectrum.0, spectrum.1);
             },
         );
 
         result
     }
 
-    pub fn stft(&self, signal: SignalRef<'_, T>) -> Spectrum2D<T> {
+    pub fn stft<'a, S>(&self, signal: S) -> Spectrum2D<T>
+    where
+        T: 'a, S: Into<SignalRef<'a, T>>,
+    {
+        let signal = signal.into();
         let fft_size = self.fft_backend.fft_size();
         let frame_count = signal.frame_count(self.win_size, self.hop_size);
         let mut spectrogram = self.fft_backend.new_spectrum2d(frame_count);
@@ -218,7 +233,7 @@ where
                 self.fft_backend.ifft(
                     spectrum.0,
                     spectrum.1,
-                    time_frame.as_mut(),
+                    &mut time_frame,
                     &mut scratch_real,
                     &mut scratch_imag,
                 );
@@ -263,7 +278,7 @@ where
                     self.fft_backend.ifft(
                         spectrum.0,
                         spectrum.1,
-                        time_frame,
+                        time_frame.as_mut(),
                         scratch_real,
                         scratch_imag,
                     );
@@ -331,7 +346,7 @@ mod tests {
             .collect::<Vec<_>>()
             .into();
 
-        let spectrum = stft.stft(signal.clone().as_ref());
+        let spectrum = stft.stft(&signal.clone());
         insta::assert_debug_snapshot!(
             format!("{name}.spectogram"),
             spectrum
@@ -342,7 +357,7 @@ mod tests {
                 .collect::<Vec<_>>()
         );
         {
-            let spectrum_par = stft.par_stft(signal.clone().as_ref());
+            let spectrum_par = stft.par_stft(&signal.clone());
             spectrum_par
                 .iter()
                 .zip(spectrum.iter())
@@ -352,7 +367,7 @@ mod tests {
                 });
         }
         {
-            let frame = stft.stft_frame(signal.as_slice()[..win_size].into());
+            let frame = stft.stft_frame(&signal.as_slice()[..win_size]);
             frame
                 .0
                 .iter()

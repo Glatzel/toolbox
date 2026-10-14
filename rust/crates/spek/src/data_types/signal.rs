@@ -1,8 +1,61 @@
+use std::ops::{Deref, DerefMut};
+
 use num_traits::Float;
 
 pub type Signal<T> = Vec<T>;
-pub type SignalRef<'a, T> = &'a [T];
-pub type SignalRefMut<'a, T> = &'a mut [T];
+
+pub struct SignalRef<'a, T>(&'a [T]);
+pub struct SignalRefMut<'a, T>(&'a mut [T]);
+
+// Manual impls: derive(Clone, Copy) would add an unnecessary `T: Copy` bound.
+impl<T> Clone for SignalRef<'_, T> {
+    fn clone(&self) -> Self { *self }
+}
+impl<T> Copy for SignalRef<'_, T> {}
+
+impl<T> SignalRefMut<'_, T> {
+    /// Cheap mut -> shared view without consuming `self`.
+    pub const fn as_signal_ref(&self) -> SignalRef<'_, T> { SignalRef(&*self.0) }
+
+    /// Explicit reborrow, since a struct holding `&mut` is moved, not
+    /// implicitly reborrowed, when passed by value.
+    pub const fn reborrow(&mut self) -> SignalRefMut<'_, T> { SignalRefMut(&mut *self.0) }
+}
+
+impl<'a, T> From<&'a [T]> for SignalRef<'a, T> {
+    fn from(s: &'a [T]) -> Self { Self(s) }
+}
+impl<'a, T> From<&'a Vec<T>> for SignalRef<'a, T> {
+    fn from(v: &'a Vec<T>) -> Self { Self(v.as_slice()) }
+}
+impl<'a, T> From<&'a mut [T]> for SignalRefMut<'a, T> {
+    fn from(s: &'a mut [T]) -> Self { Self(s) }
+}
+impl<'a, T> From<&'a mut Vec<T>> for SignalRefMut<'a, T> {
+    fn from(v: &'a mut Vec<T>) -> Self { Self(v.as_mut_slice()) }
+}
+impl<'a, T> From<SignalRefMut<'a, T>> for SignalRef<'a, T> {
+    fn from(s: SignalRefMut<'a, T>) -> Self { Self(s.0) }
+}
+
+impl<T> Deref for SignalRef<'_, T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] { self.0 }
+}
+impl<T> Deref for SignalRefMut<'_, T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] { self.0 }
+}
+impl<T> DerefMut for SignalRefMut<'_, T> {
+    fn deref_mut(&mut self) -> &mut [T] { self.0 }
+}
+
+impl<T> AsRef<[T]> for SignalRef<'_, T> {
+    fn as_ref(&self) -> &[T] { self.0 }
+}
+impl<T> AsRef<[T]> for SignalRefMut<'_, T> {
+    fn as_ref(&self) -> &[T] { self.0 }
+}
 
 pub trait ISignal<T> {
     fn frame_count(&self, win_size: usize, hop_size: usize) -> usize
@@ -19,17 +72,18 @@ pub trait ISignal<T> {
 
     /// Allocation-free variant: writes the windowed, zero-padded, centered
     /// frame into `out` (which must have length `fft_size`).
-    fn frame_into(
+    fn frame_into<'a>(
         &self,
-        out: SignalRefMut<'_, T>,
+        out: impl Into<SignalRefMut<'a, T>>,
         frame_idx: usize,
         win_size: usize,
         hop_size: usize,
         window: &[T],
     ) where
         Self: AsRef<[T]>,
-        T: Float,
+        T: 'a + Float,
     {
+        let mut out = out.into();
         let fft_size = out.len();
         debug_assert!(win_size > 0, "win_size must be greater than zero");
         debug_assert!(hop_size > 0, "hop_size must be greater than zero");
@@ -77,13 +131,17 @@ pub trait ISignal<T> {
         Self: AsRef<[T]>,
         T: Float,
     {
-        // Padding is zeroed by frame_into, so uninitialized-free `vec!` is
-        // only needed for correctness of the type; the cost is one memset.
         let mut out = vec![T::zero(); fft_size];
-        self.frame_into(&mut out, frame_idx, win_size, hop_size, window);
+        self.frame_into(
+            SignalRefMut::from(&mut out),
+            frame_idx,
+            win_size,
+            hop_size,
+            window,
+        );
         out
     }
 }
 
-impl<T> ISignal<T> for Vec<T> {}
-impl<T> ISignal<T> for [T] {}
+impl<T> ISignal<T> for SignalRef<'_, T> {}
+impl<T> ISignal<T> for SignalRefMut<'_, T> {}

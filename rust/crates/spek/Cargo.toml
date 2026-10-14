@@ -17,7 +17,7 @@ rax.workspace = true
 rayon = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
-num_enum.workspace = true
+
 [dev-dependencies]
 criterion.workspace = true
 float-cmp.workspace = true

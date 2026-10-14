@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 from logging import INFO, FileHandler
 from pathlib import Path
@@ -60,7 +60,7 @@ def file_handler(level: int = INFO, logfile_dir: str | Path = "./logs") -> FileH
     """
     logfile_dir = Path(logfile_dir)
     logfile_dir.mkdir(parents=True, exist_ok=True)
-    logfile_name = datetime.datetime.now().strftime(r"%Y-%m-%d %H-%M-%S.log")
+    logfile_name = dt.datetime.now().strftime(r"%Y-%m-%d %H-%M-%S.log")
     logfile = logfile_dir / logfile_name
     handler = logging.FileHandler(logfile, encoding="utf-8")
     handler.setLevel(level)

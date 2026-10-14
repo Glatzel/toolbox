@@ -45,7 +45,6 @@ tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
 uuid = "1.28.0"
-num_enum = "0.7.6"
 
 [profile.dev.package]
 insta.opt-level = 3

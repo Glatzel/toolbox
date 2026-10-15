@@ -139,7 +139,23 @@ jobs:
   python-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-python != 'false' }}
-    uses: ./.github/workflows/ci-python.yml
+    runs-on: ubuntu-latest
+    steps:
+      - parallel:
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        - name: Set up pixi
+          uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
+          with:
+            run-install: false
+      - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        with:
+          working-directory: ./python
+        env:
+          PYTHONPATH: ./src
+      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        if: ${{!cancelled()}}
+        with:
+          flags: ci-python
   rust-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}

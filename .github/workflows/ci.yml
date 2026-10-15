@@ -28,7 +28,7 @@ jobs:
       changed-fuzz-rax-nmea: ${{ steps.main.outputs.fuzz-rax-nmea_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
-      changed-mischief: ${{ steps.main.outputs.mischief_any_changed }}
+      changed-rust-mischief: ${{ steps.main.outputs.rust-mischief_any_changed }}
 
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
       changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
@@ -60,7 +60,7 @@ jobs:
             rust:
               - ./rust/**
               - ./.github/workflows/ci-rust.yml
-            mischief:
+            rust-mischief:
               - ./rust/crates/mischief/**
             tools-orc:
               - ./tools/orc/**
@@ -163,7 +163,7 @@ jobs:
 
   check-mischief:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-mischief != 'false' &&  github.event_name != 'push'}}
+    if: ${{ needs.changed.outputs.changed-rust-mischief != 'false' &&  github.event_name != 'push'}}
     strategy:
       fail-fast: false
       matrix:

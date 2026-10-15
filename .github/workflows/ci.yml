@@ -73,6 +73,7 @@ jobs:
               - ./tools/ttyw/**
             tools-vinaya:
               - ./tools/vinaya/**
+
   benchmark:
     needs: changed
     if: >-
@@ -107,7 +108,9 @@ jobs:
         with:
           working-directory: ./rust
           options: -p ${{ matrix.package }} --all-features
+
   fuzz:
+    if: ${{github.event_name != 'push'}}
     strategy:
       fail-fast: false
       matrix:
@@ -158,6 +161,7 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-python
+
   rust-ci:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust != 'false' }}
@@ -165,7 +169,7 @@ jobs:
 
   check-mischief:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-rust-mischief != 'false'}}
+    if: ${{ needs.changed.outputs.changed-rust-mischief != 'false' &&  github.event_name != 'push'}}
     strategy:
       fail-fast: false
       matrix:
@@ -201,7 +205,7 @@ jobs:
 
   envoy-miri:
     runs-on: ubuntu-latest
-    if: ${{ needs.changed.outputs.changed-rust-envoy != 'false'}}
+    if: ${{ needs.changed.outputs.changed-rust-envoy != 'false' &&  github.event_name != 'push'}}
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

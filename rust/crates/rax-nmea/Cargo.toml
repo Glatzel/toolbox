@@ -28,6 +28,7 @@ criterion.workspace = true
 insta = { workspace = true, features = ["filters", "json"] }
 mischief.workspace = true
 rstest.workspace = true
+serde = { workspace = true, features = ["derive"] }
 
 [features]
 serde = ["dep:serde", "jiff/serde"]

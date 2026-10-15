@@ -44,5 +44,3 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-rust
-
-  

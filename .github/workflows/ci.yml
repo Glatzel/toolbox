@@ -200,7 +200,7 @@ jobs:
         with:
           flags: ci-rust
 
-  check-mischief:
+  clippy-mischief:
     needs: changed
     if: ${{ needs.changed.outputs.changed-rust-mischief != 'false' &&  github.event_name != 'push'}}
     strategy:
@@ -382,7 +382,7 @@ jobs:
         changed,
         python-ci,
         rust-ci,
-        check-mischief,
+        clippy-mischief,
         envoy-miri,
         tools-orc,
         tools-shook,

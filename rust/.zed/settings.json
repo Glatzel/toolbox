@@ -3,18 +3,10 @@
     "rust-analyzer": {
       "initialization_options": {
         "check": {
-          "features": [
-            "default"
-            // "tracing",
-            // "fancy"
-          ]
+          "features": "all"
         },
         "cargo": {
-          "features": [
-            "default"
-            // "tracing",
-            // "fancy"
-          ]
+          "features": "all"
         }
       }
     }

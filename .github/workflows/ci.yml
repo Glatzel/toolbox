@@ -121,7 +121,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - parallel:
-
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             if: ${{ matrix.changed != 'false' }}
           - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
@@ -145,11 +144,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - parallel:
-        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        - name: Set up pixi
-          uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
-          with:
-            run-install: false
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - name: Set up pixi
+            uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
+            with:
+              run-install: false
       - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
           working-directory: ./python
@@ -347,7 +346,7 @@ jobs:
         python-ci,
         rust-ci,
         check-mischief,
-        miri-envoy,
+        envoy-miri,
         tools-orc,
         tools-shook,
         tools-ttyw,

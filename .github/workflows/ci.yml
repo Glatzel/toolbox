@@ -24,6 +24,8 @@ jobs:
       changed-benchmark-rax: ${{ steps.main.outputs.benchmark-rax_any_changed }}
       changed-benchmark-rax-nmea: ${{ steps.main.outputs.benchmark-rax-nmea_any_changed }}
       changed-benchmark-spek: ${{ steps.main.outputs.benchmark-spek_any_changed }}
+      changed-fuzz-rax: ${{ steps.main.outputs.fuzz-rax_any_changed }}
+      changed-fuzz-rax-nmea: ${{ steps.main.outputs.fuzz-rax-nmea_any_changed }}
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
       changed-mischief: ${{ steps.main.outputs.mischief_any_changed }}
@@ -48,6 +50,10 @@ jobs:
               - ./rust/crates/rax-nmea/**
             benchmark-spek:
               - ./rust/crates/spek/**
+            fuzz-rax:
+              - ./fuzz/fuzz-rax/**
+            fuzz-rax-nmea:
+              - ./fuzz/fuzz-rax-nmea/**
             python:
               - ./python/**
               - ./.github/workflows/ci-python.yml
@@ -64,10 +70,30 @@ jobs:
               - ./tools/ttyw/**
             tools-vinaya:
               - ./tools/vinaya/**
-  benchmark-rax:
+  benchmark:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark-rax != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+    if: >-
+      ${{
+        !contains(
+          fromJSON('["false"]'),
+          needs.changed.outputs[format('changed-benchmark-{0}', matrix.name)]
+        ) &&
+        (
+          github.event_name != 'pull_request' ||
+          contains(join(github.event.pull_request.labels.*.name, ','), 'perf')
+        )
+      }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: rax
+            package: rax
+          - name: rax-nmea
+            package: rax-nmea
+          - name: spek
+            package: spek
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -76,35 +102,39 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
           working-directory: ./rust
-          options: -p rax --all-features
-
-  benchmark-rax-nmea:
-    needs: changed
-    if: ${{ needs.changed.outputs.changed-benchmark-rax-nmea != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
+          options: -p ${{ matrix.package }} --all-features
+  fuzz:
+    if: >-
+      ${{
+        !contains(
+          fromJSON('["false"]'),
+          needs.changed.outputs[format('changed-{0}', matrix.name)]
+        ) || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+      }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: fuzz-rax
+            pwd: ./fuzz/fuzz-rax
+          - name: fuzz-rax-nmea
+            pwd: ./fuzz/fuzz-rax-nmea
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+            with:
+              toolchain: nightly
+              components: llvm-tools-preview
+      - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
-          submodules: true
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          working-directory: ${{matrix.pwd}}
+          target: ${{matrix.name}}
+      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        if: ${{ !cancelled() }}
         with:
-          working-directory: ./rust
-          options: -p rax-nmea --all-features
-
-  benchmark-spek:
-    needs: changed
-    if: ${{needs.changed.outputs.changed-benchmark-spek != 'false' && ( github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf') )}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: true
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-        with:
-          working-directory: ./rust
-          options: -p spek --all-features
+          flags: ${{matrix.name}}
 
   python-ci:
     needs: changed
@@ -271,10 +301,6 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-vinaya
-
-  fuzz:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    uses: ./.github/workflows/fuzz.yml
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'

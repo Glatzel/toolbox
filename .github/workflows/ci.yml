@@ -105,13 +105,6 @@ jobs:
           working-directory: ./rust
           options: -p ${{ matrix.package }} --all-features
   fuzz:
-    if: >-
-      ${{
-        !contains(
-          fromJSON('["false"]'),
-          needs.changed.outputs[format('changed-{0}', matrix.name)]
-        ) || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-      }}
     strategy:
       fail-fast: false
       matrix:

@@ -74,32 +74,33 @@ jobs:
     needs: changed
     if: >-
       ${{
-        !contains(
-          fromJSON('["false"]'),
-          needs.changed.outputs[format('changed-benchmark-{0}', matrix.name)]
-        ) &&
-        (
-          github.event_name != 'pull_request' ||
-          contains(join(github.event.pull_request.labels.*.name, ','), 'perf')
-        )
+        github.event_name != 'pull_request' ||
+        contains(join(github.event.pull_request.labels.*.name, ','), 'perf')
       }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: rax
-            package: rax
-          - name: rax-nmea
-            package: rax-nmea
-          - name: spek
-            package: spek
+          - package: rax
+            changed: ${{ needs.changed.outputs.changed-benchmark-rax }}
+          - package: rax-nmea
+            changed: ${{ needs.changed.outputs.changed-benchmark-rax-nmea }}
+          - package: spek
+            changed: ${{ needs.changed.outputs.changed-benchmark-spek }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Skip unchanged benchmark
+        if: ${{ matrix.changed != 'false' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: true
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+
+      - if: ${{ matrix.changed != 'false' }}
+        uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1
+        # v2026.10.9
+
+      - if: ${{ matrix.changed != 'false' }}
+        uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1
         with:
           working-directory: ./rust
           options: -p ${{ matrix.package }} --all-features
@@ -117,22 +118,28 @@ jobs:
         include:
           - name: fuzz-rax
             pwd: ./fuzz/fuzz-rax
+            changed: ${{ needs.changed.outputs.changed-fuzz-rax }}
           - name: fuzz-rax-nmea
             pwd: ./fuzz/fuzz-rax-nmea
+            changed: ${{ needs.changed.outputs.changed-fuzz-rax-nmea }}
     runs-on: ubuntu-latest
     steps:
       - parallel:
+
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ matrix.changed != 'false' }}
           - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+            if: ${{ matrix.changed != 'false' }}
             with:
               toolchain: nightly
               components: llvm-tools-preview
       - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        if: ${{ matrix.changed != 'false' }}
         with:
           working-directory: ${{matrix.pwd}}
           target: ${{matrix.name}}
       - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.changed != 'false'}}
         with:
           flags: ${{matrix.name}}
 

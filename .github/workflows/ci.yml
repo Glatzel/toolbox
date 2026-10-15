@@ -29,6 +29,7 @@ jobs:
       changed-python: ${{ steps.main.outputs.python_any_changed }}
       changed-rust: ${{ steps.main.outputs.rust_any_changed }}
       changed-rust-mischief: ${{ steps.main.outputs.rust-mischief_any_changed }}
+      changed-rust-envoy: ${{ steps.main.outputs.rust-envoy_any_changed }}
 
       changed-tools-orc: ${{ steps.main.outputs.tools-orc_any_changed }}
       changed-tools-shook: ${{ steps.main.outputs.tools-shook_any_changed }}
@@ -62,6 +63,8 @@ jobs:
               - ./.github/workflows/ci-rust.yml
             rust-mischief:
               - ./rust/crates/mischief/**
+            rust-envoy:
+              - ./rust/crates/envoy/**
             tools-orc:
               - ./tools/orc/**
             tools-shook:
@@ -163,7 +166,7 @@ jobs:
 
   check-mischief:
     needs: changed
-    if: ${{ needs.changed.outputs.changed-rust-mischief != 'false' &&  github.event_name != 'push'}}
+    if: ${{ needs.changed.outputs.changed-rust-mischief != 'false'}}
     strategy:
       fail-fast: false
       matrix:
@@ -196,6 +199,21 @@ jobs:
         with:
           working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color
+
+  envoy-miri:
+    runs-on: ubuntu-latest
+    if: ${{ needs.changed.outputs.changed-rust-envoy != 'false'}}
+    steps:
+      - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+            with:
+              toolchain: nightly
+              components: "miri"
+      - uses: Glatzel/template/.github/actions/rust/cargo-miri@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        with:
+          working-directory: ./rust
+          options: -p envoy
 
   tools-orc:
     needs: changed
@@ -329,6 +347,7 @@ jobs:
         python-ci,
         rust-ci,
         check-mischief,
+        miri-envoy,
         tools-orc,
         tools-shook,
         tools-ttyw,

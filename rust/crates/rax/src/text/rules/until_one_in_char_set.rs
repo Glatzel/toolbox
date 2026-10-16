@@ -24,7 +24,8 @@ use crate::text::rules::UntilMode;
 pub struct UntilOneInCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>> {
     /// Character set filter defining which characters match.
     pub filter: &'f F,
-    /// Determines how the first matching character is handled. See [`UntilMode`].
+    /// Determines how the first matching character is handled. See
+    /// [`UntilMode`].
     pub mode: UntilMode,
 }
 

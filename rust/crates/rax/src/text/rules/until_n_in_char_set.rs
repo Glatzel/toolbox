@@ -34,7 +34,8 @@ pub struct UntilNInCharSet<
 > {
     /// Character set filter defining which characters match.
     pub filter: &'f F,
-    /// Determines how the N-th matching character is handled. See [`UntilMode`].
+    /// Determines how the N-th matching character is handled. See
+    /// [`UntilMode`].
     pub mode: UntilMode,
 }
 

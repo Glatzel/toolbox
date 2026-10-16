@@ -99,7 +99,8 @@ pub trait IRule {
     fn type_name() -> &'static str { core::any::type_name::<Self>() }
 }
 
-/// Trait for rules that consume a prefix of the input sequentially (flow rules).
+/// Trait for rules that consume a prefix of the input sequentially (flow
+/// rules).
 ///
 /// A flow rule inspects the start of the input and, on a match, returns the
 /// produced value together with the number of bytes consumed. The remaining

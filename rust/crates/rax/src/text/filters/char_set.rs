@@ -57,8 +57,8 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
 /// non-ASCII entry becomes a **compile error** rather than a runtime check.
 ///
 /// Because ASCII-ness is guaranteed, the set is stored as a 128-bit bitmap and
-/// [`contains`](AsciiCharSetFilter::contains) is itself `const`, so a lookup can
-/// be evaluated at compile time.
+/// [`contains`](AsciiCharSetFilter::contains) is itself `const`, so a lookup
+/// can be evaluated at compile time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AsciiCharSetFilter<const N: usize> {
     table: [char; N],
@@ -115,7 +115,8 @@ impl<const N: usize> AsciiCharSetFilter<N> {
         c.is_ascii() && (self.mask >> (c as u32)) & 1 != 0
     }
 
-    /// Returns the 128-bit bitmap backing [`contains`](AsciiCharSetFilter::contains).
+    /// Returns the 128-bit bitmap backing
+    /// [`contains`](AsciiCharSetFilter::contains).
     pub const fn mask(&self) -> u128 { self.mask }
 }
 impl<const N: usize> ICharSetFilter<N> for AsciiCharSetFilter<N> {}

@@ -20,11 +20,6 @@ use crate::text::IRule;
 /// so multi-byte UTF-8 delimiters are handled correctly.
 ///
 /// If the delimiter is not found, the rule returns a [`RuleError`].
-///
-/// # Type Parameters
-///
-/// - `C`: Delimiter character to search for.
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilChar<const C: char, const IS_ASCII: bool> {
     /// Determines how the input is split around the delimiter.
@@ -41,9 +36,14 @@ impl<const C: char> IFlowRule<true> for UntilChar<C, true> {
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the delimiter is found and the
-    ///   selected mode can split the input.
-    /// - `Err(RuleError)` if the delimiter is not found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected [`UntilMode`](super::UntilMode).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the delimiter is not found.
+    ///
+    /// # Notes
     ///
     /// The input and delimiter must be ASCII for byte-based matching to
     /// correspond to character-based matching.
@@ -74,12 +74,13 @@ impl<const C: char> IFlowRule<false> for UntilChar<C, false> {
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the delimiter is found and the
-    ///   selected mode can split the input.
-    /// - `Err(RuleError)` if the delimiter is not found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected [`UntilMode`](super::UntilMode) and the UTF-8 length of the
+    /// delimiter.
     ///
-    /// The consumed byte count depends on the selected [`super::UntilMode`] and
-    /// the UTF-8 length of the delimiter.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the delimiter is not found.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (idx, ch) in input.char_indices() {
             if ch == C {

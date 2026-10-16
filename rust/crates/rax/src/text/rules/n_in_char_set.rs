@@ -26,6 +26,8 @@ use crate::text::filters::{AsciiCharSetFilter, CharSetFilter, ICharSetFilter, IF
 /// [`RuleError`]. When `N` is zero, the rule succeeds with an empty prefix
 /// and consumes zero bytes.
 ///
+/// # Notes
+///
 /// The ASCII implementation assumes that the input contains only ASCII
 /// characters. This assumption is not validated by the rule.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -51,15 +53,18 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the first `N` bytes belong to the
-    ///   character set.
-    /// - `Err(RuleError)` if the input is shorter than `N` bytes or contains a
-    ///   byte that does not belong to the character set.
+    /// The matched prefix and a consumed length of `N`. For `N == 0`, returns
+    /// an empty prefix and consumes zero bytes.
     ///
-    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    /// # Errors
     ///
-    /// The input must contain only ASCII characters for the matched byte
-    /// count to correspond to a character count.
+    /// Returns [`RuleError`] if the input is shorter than `N` bytes or contains
+    /// a byte that does not belong to the character set.
+    ///
+    /// # Notes
+    ///
+    /// The input must contain only ASCII characters for the matched byte count
+    /// to correspond to a character count.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
@@ -97,12 +102,13 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the first `N` Unicode scalar values
-    ///   belong to the character set.
-    /// - `Err(RuleError)` if the input contains fewer than `N` characters or
-    ///   any of the first `N` characters does not belong to the character set.
+    /// The matched prefix and its byte length. For `N == 0`, returns an empty
+    /// prefix and consumes zero bytes.
     ///
-    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input contains fewer than `N` characters or
+    /// any of the first `N` characters does not belong to the character set.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));

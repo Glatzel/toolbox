@@ -3,10 +3,16 @@ use core::fmt::Debug;
 use crate::error::VerbError;
 use crate::text::{IFlowRule, IGlobalRule};
 
+/// The kind of parser operation through which a rule is applied.
+///
+/// Recorded in a [`VerbError`] to indicate how a rule failed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Verb {
+    /// Applies a flow rule and returns its output ([`StrParser::take`]).
     Take,
+    /// Applies a flow rule and discards its output ([`StrParser::skip`]).
     Skip,
+    /// Applies a global rule to the entire input ([`StrParser::global`]).
     Global,
 }
 
@@ -26,6 +32,7 @@ pub struct StrParser<'a> {
 }
 
 impl<'a> StrParser<'a> {
+    /// Creates a parser over `input`, with the cursor at the start.
     pub fn new<S>(input: &'a S) -> Self
     where
         S: AsRef<str> + ?Sized,
@@ -34,6 +41,7 @@ impl<'a> StrParser<'a> {
         Self { full: s, cursor: 0 }
     }
 
+    /// Replaces the parsed input and resets the cursor to the start.
     pub const fn set_str(&mut self, input: &'a str) -> &mut Self {
         self.full = input;
         self.cursor = 0;
@@ -44,10 +52,6 @@ impl<'a> StrParser<'a> {
     pub const fn full_str(&self) -> &str { self.full }
 
     /// Returns the remaining unparsed portion of the input.
-    ///
-    /// # Safety
-    ///
-    /// Internally uses a raw pointer to the string slice.
     pub fn rest_str(&self) -> &str { unsafe { self.full.get_unchecked(self.cursor..) } }
 
     /// Resets the parser to the start of the input.
@@ -62,9 +66,18 @@ impl Default for StrParser<'_> {
 }
 
 impl<'a> StrParser<'a> {
-    /// Strictly takes a value using a flow rule.
+    /// Applies a flow rule and consumes its matched prefix.
     ///
-    /// Returns an error if the rule does not match.
+    /// # Returns
+    ///
+    /// The value produced by `rule`; the cursor advances by the number of
+    /// bytes the rule consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`VerbError`] wrapping the rule's
+    /// [`RuleError`](crate::error::RuleError) if `rule` does not match, leaving
+    /// the cursor unchanged.
     pub fn take<R, const IS_ASCII: bool>(&mut self, rule: &R) -> Result<R::Output<'a>, VerbError>
     where
         R: IFlowRule<IS_ASCII>,
@@ -78,9 +91,17 @@ impl<'a> StrParser<'a> {
         }
     }
 
-    /// Strictly skips input matching a rule.
+    /// Applies a flow rule and discards its matched prefix.
     ///
-    /// Returns an error if the rule does not match.
+    /// # Returns
+    ///
+    /// The parser itself, for chaining; the cursor advances by the number of
+    /// bytes the rule consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`VerbError`] if `rule` does not match, leaving the cursor
+    /// unchanged.
     pub fn skip<R, const IS_ASCII: bool>(&mut self, rule: &R) -> Result<&mut Self, VerbError>
     where
         R: IFlowRule<IS_ASCII>,
@@ -94,10 +115,18 @@ impl<'a> StrParser<'a> {
         }
     }
 
-    /// Applies a global rule to the full input.
+    /// Applies a global rule to the whole of `input`.
     ///
-    /// Unlike flow rules, global rules operate on the entire input
-    /// and do not modify the parser's `rest` pointer.
+    /// Unlike flow rules, global rules do not consume input and do not affect
+    /// the parser cursor.
+    ///
+    /// # Returns
+    ///
+    /// The value produced by `rule`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`VerbError`] if `rule` does not match.
     pub fn global<R, const IS_ASCII: bool>(
         input: &'a str,
         rule: &R,

@@ -17,30 +17,15 @@ use crate::text::rules::UntilMode;
 ///
 /// If no matching character is found, the rule returns a [`RuleError`].
 ///
-/// # Fields
-///
-/// - `filter`: The character set filter that defines which characters match.
-/// - `mode`: Determines how the first matching character is handled:
-///   - [`UntilMode::Discard`]: Excludes the matched character from the prefix
-///     and consumes it.
-///   - [`UntilMode::KeepInOutput`]: Includes the matched character at the end
-///     of the prefix.
-///   - [`UntilMode::KeepInRest`]: Leaves the matched character at the beginning
-///     of the remainder.
-///
-/// # Type Parameters
-///
-/// - `'f`: Lifetime of the character set filter reference.
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
-/// - `N`: Capacity or size parameter of the character set filter.
-/// - `F`: Character set filter implementing [`ICharSetFilter`].
-///
 /// The Unicode implementation scans Unicode scalar values and respects UTF-8
 /// character boundaries. The ASCII implementation scans bytes using a bitmask
 /// and assumes that the input contains only ASCII characters.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilOneInCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>> {
+    /// Character set filter defining which characters match.
     pub filter: &'f F,
+    /// Determines how the first matching character is handled. See
+    /// [`UntilMode`].
     pub mode: UntilMode,
 }
 
@@ -56,12 +41,12 @@ impl<const N: usize> IFlowRule<false> for UntilOneInCharSet<'_, false, N, CharSe
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a matching character is found, with
-    ///   the split determined by the selected mode.
-    /// - `Err(RuleError)` if no matching character is found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode and the UTF-8 length of the matched character.
     ///
-    /// The consumed byte count depends on the selected mode and the UTF-8
-    /// length of the matched character.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if no matching character is found.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if self.filter.filter(&c) {
@@ -82,12 +67,17 @@ impl<const N: usize> IFlowRule<true> for UntilOneInCharSet<'_, true, N, AsciiCha
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a matching byte is found, with the
-    ///   split determined by the selected mode.
-    /// - `Err(RuleError)` if no matching byte is found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode.
     ///
-    /// The input must contain only ASCII characters for byte-based matching
-    /// to correspond to character-based matching.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if no matching byte is found.
+    ///
+    /// # Notes
+    ///
+    /// The input must contain only ASCII characters for byte-based matching to
+    /// correspond to character-based matching.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         input
             .as_bytes()

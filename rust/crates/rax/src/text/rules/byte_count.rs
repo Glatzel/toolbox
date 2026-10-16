@@ -2,16 +2,12 @@ use super::IFlowRule;
 use crate::error::RuleError;
 use crate::text::rules::IRule;
 
-/// Rule that extracts a fixed number of bytes from the input string.
+/// Rule that extracts a fixed number of bytes from the start of the input.
 ///
-/// The `ByteCount<N>` rule attempts to split the input string at exactly `N`
-/// bytes. If the input has at least `N` bytes and the split is on a valid UTF-8
-/// boundary, it returns a tuple `(Some(prefix), rest)` where:
-/// - `prefix` is the first `N` bytes of the input,
-/// - `rest` is the remainder of the input.
-///
-/// If the input is shorter than `N` bytes, or if `N` would split a UTF-8
-/// character in half, the rule returns `(None, input)`.
+/// `ByteCount<N, IS_ASCII>` splits the input at byte `N`. If the input has at
+/// least `N` bytes and `N` lies on a UTF-8 character boundary, the rule returns
+/// `Ok((prefix, N))`, where `prefix` is the first `N` bytes. Otherwise it
+/// returns a [`RuleError`].
 ///
 /// This rule is useful for parsing fixed-width fields or binary-like data
 /// represented as UTF-8 strings.
@@ -27,9 +23,12 @@ impl<const N: usize, const IS_ASCII: bool> IFlowRule<IS_ASCII> for ByteCount<N, 
     ///
     /// # Returns
     ///
-    /// - `(Some(prefix), rest)` if the input contains at least `N` bytes and
-    ///   the split occurs on a valid UTF-8 boundary.
-    /// - `(None, input)` otherwise.
+    /// The first `N` bytes of the input, with a consumed length of `N`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input is shorter than `N` bytes or if `N`
+    /// is not on a UTF-8 character boundary.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         input.get(..N).map_or_else(
             || {

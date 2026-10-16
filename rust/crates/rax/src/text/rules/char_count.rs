@@ -38,11 +38,12 @@ impl<const N: usize> IFlowRule<false> for CharCount<N, false> {
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the input contains at least `N`
-    ///   Unicode scalar values.
-    /// - `Err(RuleError)` if the input contains fewer than `N` characters.
+    /// The first `N` characters of the input and their byte length. For
+    /// `N == 0`, returns an empty prefix and consumes zero bytes.
     ///
-    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input contains fewer than `N` characters.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
@@ -77,11 +78,14 @@ impl<const N: usize> IFlowRule<true> for CharCount<N, true> {
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the input contains at least `N`
-    ///   ASCII characters.
-    /// - `Err(RuleError)` if the input contains fewer than `N` bytes.
+    /// The first `N` bytes of the input, with a consumed length of `N`. For
+    /// `N == 0`, returns an empty prefix and consumes zero bytes.
     ///
-    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input contains fewer than `N` bytes.
+    ///
+    /// # Notes
     ///
     /// The input must contain only ASCII characters for the result to
     /// correspond to a character count.

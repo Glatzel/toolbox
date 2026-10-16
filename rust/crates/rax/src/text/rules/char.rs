@@ -25,19 +25,12 @@ use crate::text::rules::IRule;
 ///
 /// This rule is useful for matching literal delimiters, separators, or other
 /// fixed punctuation in text-based formats.
-///
-/// # Type Parameters
-///
-/// - `C`: Character to match at the start of the input.
-/// - `IS_ASCII`: Whether to use the byte comparison fast path.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Char<const C: char, const IS_ASCII: bool>;
 
 impl<const C: char, const IS_ASCII: bool> IRule for Char<C, IS_ASCII> {}
 
-// ASCII fast path: compare the first byte directly because each ASCII
-// character occupies one byte.
 impl<const C: char> IFlowRule<true> for Char<C, true> {
     type Output<'a> = char;
 
@@ -45,9 +38,12 @@ impl<const C: char> IFlowRule<true> for Char<C, true> {
     ///
     /// # Returns
     ///
-    /// - `Ok((C, 1))` if the first input byte equals `C as u8`.
-    /// - `Err(RuleError)` if the input is empty, the first byte differs, or
-    ///   `C` is not an ASCII character.
+    /// The matched character `C`, with a consumed length of `1`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input is empty, its first byte is not
+    /// `C as u8`, or `C` is not an ASCII character.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if C.is_ascii() {
             // C is a const generic, so `C.is_ascii()` and `C as u8` are
@@ -65,8 +61,6 @@ impl<const C: char> IFlowRule<true> for Char<C, true> {
         }
     }
 }
-// Unicode path: compare full UTF-8 characters so multi-byte delimiters match
-// correctly and the consumed length reflects `C.len_utf8()`.
 impl<const C: char> IFlowRule<false> for Char<C, false> {
     type Output<'a> = char;
 
@@ -74,8 +68,11 @@ impl<const C: char> IFlowRule<false> for Char<C, false> {
     ///
     /// # Returns
     ///
-    /// - `Ok((C, C.len_utf8()))` if the input starts with the character `C`.
-    /// - `Err(RuleError)` if the input is empty or does not start with `C`.
+    /// The matched character `C`, with a consumed length of `C.len_utf8()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input is empty or does not start with `C`.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if input.starts_with(C) {
             Ok((C, C.len_utf8()))

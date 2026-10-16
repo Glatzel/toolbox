@@ -2,28 +2,32 @@ use core::fmt::Debug;
 
 use crate::text::filters::IFilter;
 
+/// A character-set filter over `&char`.
+///
+/// Implemented by [`CharSetFilter`] and [`AsciiCharSetFilter`], and consumed by
+/// the character-set rules to test membership.
 pub trait ICharSetFilter<const N: usize>: for<'a> IFilter<&'a char> + Debug {}
 
-/// A fixed, sorted set of characters for efficient membership testing.
+/// A fixed set of characters for membership testing.
 ///
-/// The `table` must be sorted and contain unique characters. The `filter`
-/// method uses a simple linear/binary search, which is effectively O(log N)
-/// but very fast for small sets and `const` friendly. No nightly features
-/// are required.
+/// [`CharSetFilter::new`] sorts the supplied characters, and `filter` tests
+/// membership with a binary search over the sorted table. Duplicate characters
+/// are permitted and do not affect the result.
 ///
 /// If every character is known to be ASCII *at compile time*, prefer
-/// [`AsciiCharSetFilter`] instead: it collapses membership testing to a
-/// single shift + mask and enforces the ASCII invariant as a compile error.
+/// [`AsciiCharSetFilter`] instead: it stores the set as a 128-bit bitmap and
+/// enforces the ASCII invariant as a compile error.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CharSetFilter<const N: usize> {
     table: [char; N],
 }
 
 impl<const N: usize> CharSetFilter<N> {
-    /// # Safety
+    /// Builds a filter from `table`, sorting it in place.
     ///
-    /// The caller must guarantee that `table` is sorted and contains unique
-    /// characters.
+    /// # Returns
+    ///
+    /// A filter whose membership tests cover exactly the characters in `table`.
     pub const fn new(mut table: [char; N]) -> Self {
         let mut i = 1;
         while i < N {
@@ -45,18 +49,16 @@ impl<const N: usize> IFilter<&char> for CharSetFilter<N> {
     fn filter(&self, input: &char) -> bool { self.table.binary_search(input).is_ok() }
 }
 
-/// A fixed, sorted set of **ASCII** characters, verified entirely at
-/// compile time.
+/// A fixed set of **ASCII** characters, verified entirely at compile time.
 ///
-/// `new` is a `const fn` that panics during const-evaluation if any
-/// character is not ASCII. When used to initialize a `const` or `static`
-/// item (as every predefined filter below does), a non-ASCII entry turns
-/// into a **compile error**, not a runtime check — there is no
-/// `Option<u128>` to inspect at call time.
+/// [`new`](AsciiCharSetFilter::new) is a `const fn` that panics during
+/// const-evaluation if any character is not ASCII. When used to initialize a
+/// `const` or `static` item (as every predefined filter below does), a
+/// non-ASCII entry becomes a **compile error** rather than a runtime check.
 ///
-/// Because ASCII-ness is guaranteed, membership testing is a single shift
-/// `+` mask against a 128-bit bitmap, and `contains` is itself `const`, so
-/// lookups can be evaluated at compile time too.
+/// Because ASCII-ness is guaranteed, the set is stored as a 128-bit bitmap and
+/// [`contains`](AsciiCharSetFilter::contains) is itself `const`, so a lookup can
+/// be evaluated at compile time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AsciiCharSetFilter<const N: usize> {
     table: [char; N],
@@ -101,17 +103,19 @@ impl<const N: usize> AsciiCharSetFilter<N> {
         Self { table, mask }
     }
 
-    /// O(1) membership test. `const fn`, so this can run at compile time
-    /// too (e.g. `const FOO: bool = MY_FILTER.contains('a');`).
+    /// Tests whether `c` belongs to the set.
     ///
-    /// Note: the *table* is guaranteed ASCII by construction, but the
-    /// *queried* `c` is not — a non-ASCII `c` simply returns `false`
-    /// rather than shifting out of range.
+    /// A non-ASCII `c` returns `false`.
+    ///
+    /// # Notes
+    ///
+    /// `contains` is a `const fn`, so a lookup can be evaluated at compile time
+    /// (for example `const FOO: bool = MY_FILTER.contains('a');`).
     pub const fn contains(&self, c: char) -> bool {
         c.is_ascii() && (self.mask >> (c as u32)) & 1 != 0
     }
 
-    /// The cached bitmask backing `contains`.
+    /// Returns the 128-bit bitmap backing [`contains`](AsciiCharSetFilter::contains).
     pub const fn mask(&self) -> u128 { self.mask }
 }
 impl<const N: usize> ICharSetFilter<N> for AsciiCharSetFilter<N> {}

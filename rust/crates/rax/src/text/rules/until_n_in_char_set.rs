@@ -20,27 +20,10 @@ use crate::text::rules::UntilMode;
 /// [`RuleError`]. When `N` is zero, the rule succeeds with an empty prefix
 /// and consumes zero bytes.
 ///
-/// # Fields
-///
-/// - `filter`: The character set filter that defines which characters match.
-/// - `mode`: Determines how the N-th matching character is handled:
-///   - [`UntilMode::Discard`]: Excludes the matching character from the prefix
-///     and consumes it.
-///   - [`UntilMode::KeepInOutput`]: Includes the matching character at the end
-///     of the prefix.
-///   - [`UntilMode::KeepInRest`]: Leaves the matching character at the
-///     beginning of the remainder.
-///
-/// # Type Parameters
-///
-/// - `'f`: Lifetime of the character set filter reference.
-/// - `N`: Number of matching characters required to stop scanning.
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
-/// - `F`: Character set filter implementing [`ICharSetFilter`].
-/// - `N_CHAR_SET`: Capacity or size parameter of the character set filter.
-///
 /// The ASCII implementation scans bytes using a bitmask, while the Unicode
 /// implementation scans Unicode scalar values and respects UTF-8 boundaries.
+/// `IS_ASCII` records whether the input is assumed to contain only ASCII
+/// characters.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNInCharSet<
     'f,
@@ -49,7 +32,9 @@ pub struct UntilNInCharSet<
     F: ICharSetFilter<N_CHAR_SET>,
     const N_CHAR_SET: usize,
 > {
+    /// Character set filter defining which characters match.
     pub filter: &'f F,
+    /// Determines how the N-th matching character is handled. See [`UntilMode`].
     pub mode: UntilMode,
 }
 
@@ -67,13 +52,18 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<true>
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the N-th matching byte is found.
-    /// - `Err(RuleError)` if fewer than `N` matching bytes are found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode. For `N == 0`, returns an empty prefix and consumes
+    /// zero bytes.
     ///
-    /// For `N == 0`, returns an empty prefix and consumes zero bytes.
+    /// # Errors
     ///
-    /// The input must contain only ASCII characters for byte-based matching
-    /// to correspond to character-based matching.
+    /// Returns [`RuleError`] if fewer than `N` matching bytes are found.
+    ///
+    /// # Notes
+    ///
+    /// The input must contain only ASCII characters for byte-based matching to
+    /// correspond to character-based matching.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));
@@ -106,15 +96,17 @@ impl<const N: usize, const N_CHAR_SET: usize> IFlowRule<false>
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the N-th matching character is
-    ///   found.
-    /// - `Err(RuleError)` if fewer than `N` matching characters are found.
-    ///
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode and the UTF-8 length of the N-th matching character.
     /// For `N == 0`, returns an empty prefix and consumes zero bytes.
     ///
-    /// Matching is performed on Unicode scalar values rather than grapheme
-    /// clusters. The consumed byte count depends on the selected mode and
-    /// the UTF-8 length of the N-th matching character.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if fewer than `N` matching characters are found.
+    ///
+    /// # Notes
+    ///
+    /// Matching operates on Unicode scalar values, not grapheme clusters.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         if N == 0 {
             return Ok(("", 0));

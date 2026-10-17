@@ -15,11 +15,11 @@ fn parse_field(res: &str, range: core::ops::Range<usize>, label: &str) -> Result
         reason: format!("Failed to parse {label} field.").into(),
     })
 }
-/// Rule to parse an NMEA UTC time string in the format "hhmmss.sss,...".
+/// Parses an NMEA time field in the `hhmmss.sss` format.
 ///
-/// Converts the time to a `DateTime<Utc>` using today's date.
-/// Returns a tuple of (`DateTime<Utc>`, `rest_of_input`) if successful,
-/// otherwise None.
+/// The resulting value is a [`Time`] without timezone information; the
+/// fractional part of the seconds is converted to nanoseconds. An empty field
+/// produces [`None`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaTime;
 
@@ -27,10 +27,15 @@ impl IRule for NmeaTime {}
 
 impl rax::text::IFlowRule<true> for NmeaTime {
     type Output<'a> = Option<Time>;
-    /// Applies the `NmeaUtc` rule to the input string.
-    /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
-    /// returns the result and the rest of the string. Logs each step for
-    /// debugging.
+    /// Parses the time field and returns it together with the number of bytes
+    /// consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] if the field is missing, if the hour, minute,
+    /// or second components cannot be parsed, if the fractional seconds have
+    /// more than nine digits, or if the components do not form a valid
+    /// [`Time`].
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         let Ok((res, advanced)) = UNTIL_COMMA_DISCARD.apply(input) else {
             return Err(RuleError {

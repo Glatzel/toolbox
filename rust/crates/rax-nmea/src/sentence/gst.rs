@@ -7,7 +7,7 @@ use rax::text::StrParser;
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
-///GNSS pseudorange error statistics
+/// GNSS pseudorange error statistics.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Gst {

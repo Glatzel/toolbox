@@ -7,7 +7,10 @@ use rax::text::StrParser;
 use crate::RaxNmeaError;
 use crate::rules::{NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
-/// Dhv - Velocity in 3 dimensions
+/// Velocity in 3 dimensions (DHV).
+///
+/// Reports the 3D velocity components and the ground speed computed by the
+/// receiver.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Dhv {

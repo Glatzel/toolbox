@@ -11,7 +11,7 @@ use crate::RaxNmeaError;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-///Poll a standard message (Talker ID GL)
+/// Poll a standard message (talker GP).
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Getters)]
 pub struct Gpq {

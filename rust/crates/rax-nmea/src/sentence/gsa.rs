@@ -13,27 +13,34 @@ use crate::common::SystemId;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_COMMA_OR_STAR_KEEP_RIGHT, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
+/// Satellite selection mode reported in the GSA sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaOperationMode {
+    /// Satellites were selected manually (`M`).
     #[strum(serialize = "Manual", serialize = "M")]
     Manual,
+    /// Satellites are selected automatically (`A`).
     #[strum(serialize = "Automatic", serialize = "A")]
     Automatic,
 }
 
+/// Navigation mode reported in the GSA sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GsaNavigationMode {
+    /// No fix is available (`1`).
     #[strum(serialize = "No Fix", serialize = "1")]
     NoFix,
+    /// Two-dimensional fix (`2`).
     #[strum(serialize = "Fix 2D", serialize = "2")]
     Fix2D,
+    /// Three-dimensional fix (`3`).
     #[strum(serialize = "Fix 3D", serialize = "3")]
     Fix3D,
 }
 
-///GNSS DOP and active satellites
+/// GNSS DOP and active satellites.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Gsa {

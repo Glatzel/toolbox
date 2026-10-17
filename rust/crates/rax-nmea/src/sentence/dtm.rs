@@ -11,13 +11,17 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::rules::{NmeaDegree, UNTIL_COMMA_DISCARD};
 use crate::utils::ParseOptionPrimitive;
+/// Local datum used by a DTM sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DtmDatum {
+    /// World Geodetic System 1984.
     #[strum(serialize = "W84")]
     WGS84,
+    /// Parametry Zemli 1990 (PZ-90).
     #[strum(serialize = "P90")]
     PZ90,
+    /// User-defined datum.
     #[strum(serialize = "999")]
     UserDefined,
 }

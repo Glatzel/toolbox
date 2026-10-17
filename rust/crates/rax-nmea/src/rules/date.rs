@@ -6,6 +6,11 @@ use rax::error::RuleError;
 use rax::text::IRule;
 
 use super::UNTIL_COMMA_DISCARD;
+
+/// Parses an NMEA date in the `ddmmyy` format.
+///
+/// The two-digit year is interpreted as a year between 2000 and 2099. An
+/// empty field produces [`None`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDate;
 
@@ -13,10 +18,14 @@ impl IRule for NmeaDate {}
 
 impl rax::text::IFlowRule<true> for NmeaDate {
     type Output<'a> = Option<Date>;
-    /// Applies the `NmeaUtc` rule to the input string.
-    /// Parses the UTC time, converts to `DateTime<Utc>` using today's date, and
-    /// returns the result and the rest of the string. Logs each step for
-    /// debugging.
+    /// Parses the date field and returns it together with the number of bytes
+    /// consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] if the field is missing, if the day, month, or
+    /// year components cannot be parsed, or if they do not form a valid
+    /// calendar date.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         let (res, advanced) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
             reason: "Missing Date string.".into(),

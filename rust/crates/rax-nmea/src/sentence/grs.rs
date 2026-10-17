@@ -14,12 +14,16 @@ use crate::rules::{
 };
 use crate::utils::ParseOptionPrimitive;
 
+/// Source of the GNSS range residuals reported in the GRS sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GrsResidualMode {
+    /// Residuals were used to compute the position in the associated GGA
+    /// sentence (value `0`).
     #[strum(serialize = "Used in GGA", serialize = "0")]
     UsedInGga,
 
+    /// Residuals were calculated after the GGA position was fixed (value `1`).
     #[strum(serialize = "Calculated after GGA", serialize = "1")]
     CalculatedAfterGga,
 }

@@ -7,7 +7,9 @@ use crate::RaxNmeaError;
 use crate::rules::UNTIL_COMMA_DISCARD;
 use crate::utils::ParseOptionPrimitive;
 
-///Poll a standard message (Talker ID GL)
+/// Dual ground/water distance (VLW).
+///
+/// Reports cumulative and trip distances measured over water and over ground.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Vlw {

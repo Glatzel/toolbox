@@ -9,7 +9,7 @@ use crate::RaxNmeaError;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-///Poll a standard message (Talker ID GL)
+/// Poll a standard message (talker GL).
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Glq {

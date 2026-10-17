@@ -11,20 +11,28 @@ use serde::{Deserialize, Serialize};
 use crate::RaxNmeaError;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_NEW_LINE_DISCARD, UNTIL_STAR_DISCARD};
 
+/// Type of message carried in a TXT sentence.
+///
+/// The numeric values follow the NMEA 0183 definition of the message type
+/// field.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TxtType {
+    /// Error message (value `00`).
     #[strum(serialize = "Error", serialize = "00")]
     Error = 0,
+    /// Warning message (value `01`).
     #[strum(serialize = "Warn", serialize = "01")]
     Warn = 1,
+    /// Informational message (value `02`).
     #[strum(serialize = "Info", serialize = "02")]
     Info = 2,
+    /// User-defined message (value `07`).
     #[strum(serialize = "User", serialize = "07")]
     User = 7,
 }
 
-///Text transmission
+/// Text transmission.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Txt {

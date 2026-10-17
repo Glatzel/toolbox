@@ -8,7 +8,9 @@ use crate::common::FaaMode;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
-#[doc = "Poll a standard message (Talker ID GL)"]
+/// True heading and status (THS).
+///
+/// Reports the true heading of the vehicle and the FAA mode indicator.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Ths {

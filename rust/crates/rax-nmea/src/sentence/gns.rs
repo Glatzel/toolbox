@@ -17,20 +17,25 @@ use crate::rules::{
 };
 use crate::utils::ParseOptionPrimitive;
 
+/// Navigational status reported in the GNS sentence.
 #[derive(Debug, PartialEq, Eq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GnsNavigationStatus {
+    /// Safe: the position solution is within limits (`S`).
     #[strum(serialize = "Safe", serialize = "S")]
     Safe,
+    /// Caution: the position solution is degraded (`C`).
     #[strum(serialize = "Caution", serialize = "C")]
     Caution,
+    /// Unsafe: the position solution exceeds limits (`U`).
     #[strum(serialize = "Unsafe", serialize = "U")]
     Unsafe,
+    /// Not valid: no usable position solution (`V`).
     #[strum(serialize = "Invalid", serialize = "V")]
     Invalid,
 }
 
-///GNSS fix data
+/// GNSS fix data.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Gns {
@@ -39,7 +44,7 @@ pub struct Gns {
     /// Latitude, ddmm.mmmm, where dd is degrees and mm.mmmm is minutes.
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,
-    ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
+    /// Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
     /// Positive values indicate East, negative values indicate West.
     lon: Option<f64>,
     /// FAA mode

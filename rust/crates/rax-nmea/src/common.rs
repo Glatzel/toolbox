@@ -7,13 +7,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::RaxNmeaError;
 
+/// NMEA sentence formatter identifier.
+///
+/// The identifier is the three-character field following the talker ID in an
+/// NMEA sentence, for example `GGA` in `$GPGGA,...`.
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Identifier {
+    /// Delta position (DHV).
     #[strum(serialize = "DHV")]
     DHV,
 
-    ///Datum reference
+    /// Datum reference.
     #[strum(serialize = "DTM")]
     DTM,
 
@@ -21,15 +26,15 @@ pub enum Identifier {
     #[strum(serialize = "GBQ")]
     GBQ,
 
-    ///GPS Satellite Fault Detection
+    /// GPS satellite fault detection.
     #[strum(serialize = "GBS")]
     GBS,
 
-    ///Global Positioning System Fix Data
+    /// Global Positioning System fix data.
     #[strum(serialize = "GGA")]
     GGA,
 
-    ///Geographic Position - Latitude/Longitude
+    /// Geographic position: latitude and longitude.
     #[strum(serialize = "GLL")]
     GLL,
 
@@ -41,55 +46,59 @@ pub enum Identifier {
     #[strum(serialize = "GNQ")]
     GNQ,
 
-    ///Fix data
+    /// GNSS fix data.
     #[strum(serialize = "GNS")]
     GNS,
 
-    ///Poll a standard message
+    /// Poll a standard message.
     #[strum(serialize = "GPQ")]
     GPQ,
 
-    ///GPS Range Residuals
+    /// GNSS range residuals.
     #[strum(serialize = "GRS")]
     GRS,
 
-    ///GPS Pseudorange Noise Statistics
+    /// GNSS dilution of precision and active satellites.
     #[strum(serialize = "GSA")]
     GSA,
 
-    ///GPS DOP and active satellites
+    /// GNSS pseudorange error statistics.
     #[strum(serialize = "GST")]
     GST,
 
-    ///Satellites in viewR
+    /// Satellites in view.
     #[strum(serialize = "GSV")]
     GSV,
 
-    ///Recommended Minimum Navigation Information
+    /// Recommended minimum specific GNSS data.
     #[strum(serialize = "RMC")]
     RMC,
 
-    ///True heading and status
+    /// True heading and status.
     #[strum(serialize = "THS")]
     THS,
 
-    ///Text transmission
+    /// Text transmission.
     #[strum(serialize = "TXT")]
     TXT,
 
-    ///Dual ground/water distance
+    /// Dual ground/water distance.
     #[strum(serialize = "VLW")]
     VLW,
 
-    ///Track made good and Ground speed
+    /// Track made good and ground speed.
     #[strum(serialize = "VTG")]
     VTG,
 
-    ///Time & Date - UTC, day, month, year and local time zone
+    /// Time and date: UTC, day, month, year, and local time zone.
     #[strum(serialize = "ZDA")]
     ZDA,
 }
 
+/// Two-character NMEA talker ID.
+///
+/// The talker identifies the source system that produced a sentence, for
+/// example `GP` for a GPS receiver in `$GPGGA,...`.
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Talker {
@@ -190,36 +199,50 @@ pub enum Talker {
     WI,
 }
 
+/// FAA mode indicator.
+///
+/// The mode indicator describes the quality and provenance of the position
+/// solution reported in a sentence.
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FaaMode {
+    /// Autonomous position solution.
     #[strum(serialize = "Autonomous", serialize = "A")]
     Autonomous,
 
+    /// Differential position solution.
     #[strum(serialize = "Differential", serialize = "D")]
     Differential,
 
+    /// Estimated (dead-reckoning) position.
     #[strum(serialize = "Estimated", serialize = "E")]
     Estimated,
 
+    /// RTK float solution.
     #[strum(serialize = "Rtk Float", serialize = "F")]
     RtkFloat,
 
+    /// Manual input mode.
     #[strum(serialize = "Manual Input", serialize = "M")]
     ManualInput,
 
+    /// Position is not valid.
     #[strum(serialize = "Not Valid", serialize = "N")]
     NotValid,
 
+    /// Precise (RTK fixed) solution.
     #[strum(serialize = "Precise", serialize = "P")]
     Precise,
 
+    /// RTK integer (fixed) solution.
     #[strum(serialize = "Rtk Integer", serialize = "R")]
     RtkInteger,
 
+    /// Simulated position.
     #[strum(serialize = "Simulator", serialize = "S")]
     Simulator,
 
+    /// Quectel-specific mode indicator.
     #[strum(serialize = "Quectel Querk", serialize = "U")]
     QuectelQuerk,
 }
@@ -243,36 +266,49 @@ impl TryFrom<&char> for FaaMode {
     }
 }
 
+/// GNSS system identifier.
+///
+/// Used by sentences that report the constellation a satellite or signal
+/// belongs to.
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SystemId {
+    /// Global Positioning System (GPS).
     #[strum(serialize = "GPS", serialize = "G", serialize = "1")]
     GPS = 1,
 
+    /// GLONASS.
     #[strum(serialize = "GLONASS", serialize = "L", serialize = "2")]
     GLONASS = 2,
 
+    /// Galileo.
     #[strum(serialize = "Galileo", serialize = "A", serialize = "3")]
     Galileo = 3,
 
+    /// BeiDou Navigation Satellite System (BDS).
     #[strum(serialize = "BDS", serialize = "B", serialize = "4")]
     BDS = 4,
 
+    /// Quasi-Zenith Satellite System (QZSS).
     #[strum(serialize = "QZSS", serialize = "Q", serialize = "5")]
     QZSS = 5,
 
+    /// Navigation with Indian Constellation (NavIC).
     #[strum(serialize = "NavIC", serialize = "I", serialize = "6")]
     NavIC = 6,
 }
 
+/// Validity status reported by a sentence.
 #[derive(
     Debug, Clone, Copy, Hash, Eq, PartialEq, PartialOrd, Ord, strum::EnumString, strum::AsRefStr,
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Status {
+    /// Data is valid.
     #[strum(serialize = "Valid", serialize = "A")]
     Valid,
 
+    /// Data is not valid.
     #[strum(serialize = "Invalid", serialize = "V")]
     Invalid,
 }

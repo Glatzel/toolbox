@@ -6,11 +6,12 @@ use rax::text::{IFlowRule, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
-/// Rule to parse an NMEA coordinate in the format "DDDMM.MMM,sign,...".
+/// Parses an NMEA coordinate in the `DDDMM.MMM,sign` format.
 ///
-/// Converts the coordinate to decimal degrees, applying the correct sign.
-/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful,
-/// otherwise None.
+/// The numeric field is interpreted as degrees and decimal minutes and
+/// converted to decimal degrees. The `N` and `E` signs produce positive
+/// values; the `S` and `W` signs produce negative values. Two consecutive
+/// empty fields produce [`None`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaCoord;
 
@@ -24,9 +25,14 @@ impl NmeaCoord {
 }
 impl IFlowRule<true> for NmeaCoord {
     type Output<'a> = Option<f64>;
-    /// Applies the `NmeaCoord` rule to the input string.
-    /// Parses the coordinate and sign, converts to decimal degrees, and returns
-    /// the result and the rest of the string. Logs each step for debugging.
+    /// Parses one coordinate field and returns it together with the number of
+    /// bytes consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] if the numeric or sign field is missing, if the
+    /// number is not a valid floating-point value, or if the sign is not one
+    /// of `N`, `S`, `E`, or `W`.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         let (num_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {
             reason: "Missing number string.".into(),

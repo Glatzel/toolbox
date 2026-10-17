@@ -110,6 +110,7 @@ jobs:
           options: -p ${{ matrix.package }} --all-features
 
   fuzz:
+    needs: changed
     if: ${{github.event_name != 'push'}}
     strategy:
       fail-fast: false

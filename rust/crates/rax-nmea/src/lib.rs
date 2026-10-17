@@ -9,11 +9,11 @@
 //!
 //! ```
 //! use core::str::FromStr;
+//!
 //! use rax_nmea::sentence::Gga;
 //!
-//! let gga = Gga::from_str(
-//!     "$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D",
-//! )?;
+//! let gga =
+//!     Gga::from_str("$GPGGA,110256,5505.676996,N,03856.028884,E,2,08,0.7,2135.0,M,14.0,M,,*7D")?;
 //! assert_eq!(gga.num_sv(), &Some(8));
 //! assert!(gga.lat().is_some());
 //! # Ok::<(), rax_nmea::RaxNmeaError>(())

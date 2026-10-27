@@ -37,11 +37,10 @@ impl HoudiniPreference {
             };
             Ok(perf)
         } else {
-            let pref_dir: PathBuf =
-                Self::preference_root()?.join(cfg_select! {
-                    target_os = "macos" => version.to_string(),
-                    _ => format!("houdini{version}"),
-                });
+            let pref_dir: PathBuf = Self::preference_root()?.join(cfg_select! {
+                target_os = "macos" => version.to_string(),
+                _ => format!("houdini{version}"),
+            });
             let perf: Self = Self {
                 version: version.clone(),
                 directory: pref_dir,

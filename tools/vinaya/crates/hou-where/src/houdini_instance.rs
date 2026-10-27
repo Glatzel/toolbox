@@ -12,12 +12,11 @@ pub struct HoudiniInstance {
 
 impl HoudiniInstance {
     ///<https://www.sidefx.com/docs/houdini/hqueue/gettingstarted.html>
-    pub const INSTALL_DIR: &str =
-        cfg_select! {
-            target_os = "windows" => r"C:\Program Files\Side Effects Software",
-            target_os = "macos" => "/Applications/Houdini",
-            target_os = "linux" => "/opt",
-        };
+    pub const INSTALL_DIR: &str = cfg_select! {
+        target_os = "windows" => r"C:\Program Files\Side Effects Software",
+        target_os = "macos" => "/Applications/Houdini",
+        target_os = "linux" => "/opt",
+    };
 
     fn dir_name(version: &HoudiniVersion) -> mischief::Result<String> {
         cfg_select! {
@@ -34,19 +33,18 @@ impl HoudiniInstance {
     };
 
     fn version_from_dir_name(name: &str) -> mischief::Result<HoudiniVersion> {
-        let version_str =
-            cfg_select! {
-                target_os = "windows" => name
-                    .split(' ')
-                    .nth(1)
-                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
-                target_os = "macos" => name
-                    .strip_prefix("Houdini")
-                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
-                _ => name
-                    .strip_prefix("hfs")
-                    .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
-            };
+        let version_str = cfg_select! {
+            target_os = "windows" => name
+                .split(' ')
+                .nth(1)
+                .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+            target_os = "macos" => name
+                .strip_prefix("Houdini")
+                .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+            _ => name
+                .strip_prefix("hfs")
+                .ok_or_else(|| mischief!("Invalid Houdini directory name: {}", name))?,
+        };
         let version = HoudiniVersion::try_from(version_str)?;
         Ok(version)
     }
@@ -104,11 +102,10 @@ impl HoudiniInstance {
     }
 
     pub fn installed(&self) -> mischief::Result<bool> {
-        let houdini_executable =
-            cfg_select! {
-                target_os = "windows" => self.hfs()?.join("bin").join("houdini.exe"),
-                _ => self.hfs()?.join("bin").join("houdini.exe"),
-            };
+        let houdini_executable = cfg_select! {
+            target_os = "windows" => self.hfs()?.join("bin").join("houdini.exe"),
+            _ => self.hfs()?.join("bin").join("houdini.exe"),
+        };
 
         Ok(houdini_executable.exists())
     }
@@ -170,26 +167,24 @@ mod tests {
 
     #[test]
     fn test_hfs() -> mischief::Result<()> {
-        let expected =
-            cfg_select! {
-                target_os = "windows" => r"C:\Program Files\Side Effects Software\Houdini 20.5.123",
-                target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
-                _ => "/opt/hfs20.5.123",
-            };
+        let expected = cfg_select! {
+            target_os = "windows" => r"C:\Program Files\Side Effects Software\Houdini 20.5.123",
+            target_os = "macos" => "/Applications/Houdini/Houdini20.5.123",
+            _ => "/opt/hfs20.5.123",
+        };
         assert_eq!(instance().hfs()?.to_string_lossy(), expected);
         Ok(())
     }
 
     #[test]
     fn test_cmake_prefix_path() -> mischief::Result<()> {
-        let expected =
-            cfg_select! {
-                target_os = "windows" => {
-                    r"C:\Program Files\Side Effects Software\Houdini 20.5.123\toolkit\cmake"
-                }
-                target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
-                _ => "/opt/hfs20.5.123/toolkit/cmake",
-            };
+        let expected = cfg_select! {
+            target_os = "windows" => {
+                r"C:\Program Files\Side Effects Software\Houdini 20.5.123\toolkit\cmake"
+            }
+            target_os = "macos" => "/Applications/Houdini/Houdini20.5.123/toolkit/cmake",
+            _ => "/opt/hfs20.5.123/toolkit/cmake",
+        };
         assert_eq!(instance().cmake_prefix_path()?.to_string_lossy(), expected);
         Ok(())
     }

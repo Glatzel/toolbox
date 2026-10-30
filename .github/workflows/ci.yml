@@ -185,7 +185,7 @@ jobs:
               toolchain: nightly
               components: clippy
       - name: setup
-        if: ${{matrix.setup == 'true'}}
+        if: matrix.setup
         run: |
           git submodule update --init
           if ($IsLinux ) {

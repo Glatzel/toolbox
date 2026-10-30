@@ -17,7 +17,7 @@ pub struct Gll {
     /// Positive values indicate North, negative values indicate South.
     lat: Option<f64>,
 
-    ///Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
+    /// Longitude, dddmm.mmmm, where ddd is degrees and mm.mmmm is minutes.
     /// Positive values indicate East, negative values indicate West.
     lon: Option<f64>,
 

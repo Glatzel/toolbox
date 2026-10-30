@@ -17,8 +17,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.78-h084b8d7_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-261.3-h26e0ef7_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-261.3-h26e0ef7_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-262.1-h26e0ef7_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-262.1-h26e0ef7_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -75,25 +75,25 @@ packages:
     - _openmp_mutex >=4.5
   size: 639968
   timestamp: 1787618616266
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-261.3-h26e0ef7_0.conda
-  sha256: 8e52691223ad4b317a119071e3fa86630a0596ecb7cebf013129536bafdfcef6
-  md5: b851f3303df58190c2132ccdb18ff156
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev-262.1-h26e0ef7_0.conda
+  sha256: 966fb0b86ae5b7a4290cba622d1eb6cc0366ff969d8361ad44697a887de4c0e6
+  md5: 1b069bd868037c9795b35457b5c670db
   depends:
-  - libudev1 261.3 h26e0ef7_0
+  - libudev1 262.1 h26e0ef7_0
   license: LGPL-2.1-or-later
   run_exports:
     weak:
-    - libudev1 >=261.3
-  size: 35841
-  timestamp: 1789157752486
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-261.3-h26e0ef7_0.conda
-  sha256: fac1c96459e07f22913226e53636a229af72248e486b62433ab713ee589778f7
-  md5: c9bf69aab810eaa9ccdac36f703c7434
+    - libudev1 >=262.1
+  size: 35850
+  timestamp: 1792224221481
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libudev1-262.1-h26e0ef7_0.conda
+  sha256: 63bc48418ed3be6166c27f294504153bf3da8579aa5d565ae4fee8bdd1682e54
+  md5: b7e3531ad0f828ee27f5731fcb9ebdc3
   depends:
   - __glibc >=2.17,<3.0.a0
   - libcap >=2.78,<2.79.0a0
   - libgcc >=15
   license: LGPL-2.1-or-later
   run_exports: {}
-  size: 201390
-  timestamp: 1789157751266
+  size: 184945
+  timestamp: 1792224219990

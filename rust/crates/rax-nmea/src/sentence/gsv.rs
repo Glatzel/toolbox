@@ -31,7 +31,7 @@ pub struct Satellite {
     cno: Option<u16>,
 }
 
-///GNSS satellites in view
+/// GNSS satellites in view.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Gsv {

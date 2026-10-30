@@ -1,3 +1,11 @@
+//! Character-set filters used by the character-set rules.
+//!
+//! A filter answers whether a single character belongs to a set.
+//! [`CharSetFilter`] stores an arbitrary set of characters, while
+//! [`AsciiCharSetFilter`] stores an ASCII set backed by a 128-bit bitmap.
+//! [`ICharSetFilter`] is the trait both implement, and the `CHAR_SET_*`
+//! constants provide common predefined sets.
+
 mod char_set;
 
 pub use self::char_set::{

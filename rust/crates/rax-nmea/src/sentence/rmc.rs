@@ -11,25 +11,35 @@ use crate::rules::{
     UNTIL_STAR_DISCARD,
 };
 use crate::utils::ParseOptionPrimitive;
+/// Navigational status reported in the RMC sentence.
 #[derive(Debug, PartialEq, Eq, Clone, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum RmcNavigationStatus {
+    /// Autonomous position solution (`A`).
     #[strum(serialize = "Autonomous", serialize = "A")]
     Autonomous,
+    /// Differential position solution (`D`).
     #[strum(serialize = "Differential", serialize = "D")]
     Differential,
+    /// Estimated (dead reckoning) position (`E`).
     #[strum(serialize = "Estimated", serialize = "E")]
     Estimated,
+    /// Manual input mode (`M`).
     #[strum(serialize = "Manual Input Mode", serialize = "M")]
     ManualInputMode,
+    /// Position is not valid (`N`).
     #[strum(serialize = "Not Valid", serialize = "N")]
     NotValid,
+    /// Simulated position (`S`).
     #[strum(serialize = "Simulator", serialize = "S")]
     Simulator,
+    /// Position is valid (`V`).
     #[strum(serialize = "Valid", serialize = "V")]
     Valid,
 }
-#[doc = "Recommended minimum data"]
+/// Recommended minimum data.
+///
+/// Time, date, position, course, and speed reported by a GNSS receiver.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Rmc {

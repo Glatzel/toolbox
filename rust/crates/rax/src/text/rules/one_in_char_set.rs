@@ -23,14 +23,8 @@ use crate::text::filters::ICharSetFilter;
 /// - `consumed_bytes` is the number of bytes consumed.
 ///
 /// If the input is empty or the first character does not belong to the set,
-/// the rule returns a [`RuleError`].
-///
-/// # Type Parameters
-///
-/// - `'f`: Lifetime of the character set filter reference.
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
-/// - `N`: Capacity or size parameter of the character set filter.
-/// - `F`: Character set filter implementing [`ICharSetFilter`].
+/// the rule returns a [`RuleError`]. `IS_ASCII` records whether the input is
+/// assumed to contain only ASCII characters.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OneOfCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>>(pub &'f F);
 
@@ -46,12 +40,17 @@ impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<true> for OneOfCharSet<'_, 
     ///
     /// # Returns
     ///
-    /// - `Ok((matched, 1))` if the first byte belongs to the character set.
-    /// - `Err(RuleError)` if the input is empty or the first byte does not
-    ///   belong to the character set.
+    /// The matched character, with a consumed length of `1`.
     ///
-    /// The input must contain only ASCII characters for the consumed byte
-    /// count to correspond to one character.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input is empty or the first byte does not
+    /// belong to the character set.
+    ///
+    /// # Notes
+    ///
+    /// The input must contain only ASCII characters for the consumed byte count
+    /// to correspond to one character.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         let b = input.as_bytes().first().ok_or_else(|| RuleError {
             reason: "empty input".into(),
@@ -74,12 +73,13 @@ impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for OneOfCharSet<'_,
     ///
     /// # Returns
     ///
-    /// - `Ok((matched, consumed_bytes))` if the first character belongs to the
-    ///   character set.
-    /// - `Err(RuleError)` if the input is empty or the first character does not
-    ///   belong to the character set.
+    /// The matched character, with a consumed length equal to its UTF-8 byte
+    /// length.
     ///
-    /// `consumed_bytes` is the UTF-8 byte length of the matched character.
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the input is empty or the first character does
+    /// not belong to the character set.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         let c = input.chars().next().ok_or_else(|| RuleError {
             reason: "empty input".into(),

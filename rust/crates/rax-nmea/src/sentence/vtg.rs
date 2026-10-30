@@ -7,7 +7,7 @@ use crate::RaxNmeaError;
 use crate::common::FaaMode;
 use crate::rules::{UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
-///Course over ground and ground speed
+/// Course over ground and ground speed.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Getters)]
 pub struct Vtg {

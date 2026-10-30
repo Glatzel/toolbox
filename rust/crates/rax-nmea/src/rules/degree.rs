@@ -7,11 +7,11 @@ use rax::text::{IFlowRule, IRule};
 
 use super::UNTIL_COMMA_DISCARD;
 
-/// Rule to parse an NMEA coordinate in the format "DDDMM.MMM,sign,...".
+/// Parses a signed degree value in the `DDD.dddd,sign` format.
 ///
-/// Converts the coordinate to decimal degrees, applying the correct sign.
-/// Returns a tuple of (`decimal_degrees`, `rest_of_input`) if successful,
-/// otherwise None.
+/// The numeric field is already in decimal degrees. The `N` and `E` signs
+/// produce positive values; the `S` and `W` signs produce negative values.
+/// Two consecutive empty fields produce [`None`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaDegree;
 
@@ -20,6 +20,14 @@ impl IRule for NmeaDegree {}
 impl IFlowRule<true> for NmeaDegree {
     type Output<'a> = Option<f64>;
 
+    /// Parses one signed degree field and returns it together with the number
+    /// of bytes consumed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] if the numeric or sign field is missing, if the
+    /// number is not a valid floating-point value, or if the sign is not one
+    /// of `N`, `S`, `E`, or `W`.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         // Log the input at trace level.
         let (deg_str, advanced1) = UNTIL_COMMA_DISCARD.apply(input).map_err(|_| RuleError {

@@ -110,6 +110,7 @@ jobs:
           options: -p ${{ matrix.package }} --all-features
 
   fuzz:
+    needs: changed
     if: ${{github.event_name != 'push'}}
     strategy:
       fail-fast: false
@@ -126,17 +127,17 @@ jobs:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             if: ${{ matrix.changed != 'false' }}
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             if: ${{ matrix.changed != 'false' }}
             with:
               toolchain: nightly
               components: llvm-tools-preview
-      - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-fuzz@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ matrix.changed != 'false' }}
         with:
           working-directory: ${{matrix.pwd}}
           target: ${{matrix.name}}
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() && matrix.changed != 'false'}}
         with:
           flags: ${{matrix.name}}
@@ -149,15 +150,15 @@ jobs:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - name: Set up pixi
-            uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
+            uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
             with:
               run-install: false
-      - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/python/pytest@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./python
         env:
           PYTHONPATH: ./src
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           flags: ci-python
@@ -179,7 +180,7 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             with:
               toolchain: nightly
               components: clippy
@@ -192,21 +193,21 @@ jobs:
               $env:PKG_CONFIG_PATH= Resolve-Path "./.pixi/envs/default/lib/pkgconfig"
           }
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./rust
           options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           working-directory: ./rust
           options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           working-directory: ./rust
           global-options: ${{matrix.options}}
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           flags: ci-rust
@@ -239,10 +240,10 @@ jobs:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - name: Set up pixi
-            uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
+            uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
             with:
               run-install: false
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./rust
           options: -p mischief --no-default-features --features macros,backtrace,color
@@ -254,11 +255,11 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             with:
               toolchain: nightly
               components: "miri"
-      - uses: Glatzel/template/.github/actions/rust/cargo-miri@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-miri@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./rust
           options: -p envoy
@@ -274,19 +275,19 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             with:
               toolchain: nightly
               components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/orc
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/orc
           nextest-options: --all-features --dep-coverage arbor,clap-style,clerk,mischief
           doc: false
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-orc
@@ -302,21 +303,21 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             with:
               toolchain: nightly
               components: clippy
 
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/shook
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{matrix.machine == 'ubuntu-latest'}}
         with:
           working-directory: ./tools/shook
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief,kioyu
           doc: false
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled() && matrix.machine == 'ubuntu-latest'}}
         with:
           flags: ci-tools-shook
@@ -329,7 +330,7 @@ jobs:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - name: Set up pixi
-            uses: prefix-dev/setup-pixi@9dabb60412d3d2d967a8d682f7ce01317af40514 # v0.11.0
+            uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
             with:
               run-install: false
       - name: frontend
@@ -338,19 +339,19 @@ jobs:
           pixi run check
           pixi run build
         working-directory: ./tools/ttyw
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           toolchain: nightly
           components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/ttyw
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/ttyw
           doc: false
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-ttyw
@@ -366,20 +367,20 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
             with:
               toolchain: nightly
               components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{matrix.machine=='ubuntu-latest'}}
         with:
           working-directory: ./tools/vinaya
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:
           working-directory: ./tools/vinaya
           doc: false
           nextest-options: --all-features --dep-coverage clap-style,clerk,mischief
-      - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-vinaya

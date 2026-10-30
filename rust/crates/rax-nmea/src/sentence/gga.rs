@@ -8,25 +8,37 @@ use crate::RaxNmeaError;
 use crate::rules::{NmeaCoord, NmeaTime, UNTIL_COMMA_DISCARD, UNTIL_STAR_DISCARD};
 use crate::utils::ParseOptionPrimitive;
 
+/// Quality indicator reported in the GGA sentence.
+///
+/// The numeric values follow the NMEA 0183 definition of field 6.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::AsRefStr)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum GgaQualityIndicator {
+    /// No position fix is available (value `0`).
     #[strum(serialize = "Invalid", serialize = "0")]
     Invalid = 0,
+    /// Autonomous GPS fix (value `1`).
     #[strum(serialize = "Gps Fix", serialize = "1")]
     GpsFix = 1,
+    /// Differential GPS fix (value `2`).
     #[strum(serialize = "Differential Gps Fix", serialize = "2")]
     DifferentialGpsFix = 2,
+    /// Precise Positioning Service (PPS) fix (value `3`).
     #[strum(serialize = "Pps Fix", serialize = "3")]
     PpsFix = 3,
+    /// Real Time Kinematic (RTK) fixed solution (value `4`).
     #[strum(serialize = "Real Time Kinematic", serialize = "4")]
     RealTimeKinematic = 4,
+    /// RTK float solution (value `5`).
     #[strum(serialize = "Float RTK", serialize = "5")]
     FloatRTK = 5,
+    /// Estimated (dead reckoning) fix (value `6`).
     #[strum(serialize = "Dead Reckoning", serialize = "6")]
     DeadReckoning = 6,
+    /// Manual input mode (value `7`).
     #[strum(serialize = "Manual Input Mode", serialize = "7")]
     ManualInputMode = 7,
+    /// Simulation mode (value `8`).
     #[strum(serialize = "Simulation Mode", serialize = "8")]
     SimulationMode = 8,
 }

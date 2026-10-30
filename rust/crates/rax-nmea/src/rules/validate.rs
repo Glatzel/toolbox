@@ -6,8 +6,11 @@ use core::fmt::Debug;
 use rax::error::RuleError;
 use rax::text::IRule;
 
-/// Rule to validate an NMEA sentence for correct start character and checksum.
-/// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
+/// Validates a single NMEA sentence.
+///
+/// The sentence must start with `$`, contain a `*` checksum delimiter followed
+/// by exactly two hexadecimal digits, and carry a checksum that matches the
+/// XOR of the payload bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaValidate;
 
@@ -16,10 +19,13 @@ impl IRule for NmeaValidate {}
 impl rax::text::IGlobalRule<true> for NmeaValidate {
     type Output<'a> = ();
 
-    /// Applies the `NmeaValidate` rule to the input string.
-    /// Checks that the sentence starts with '$', contains a checksum delimiter
-    /// '*', and that the calculated checksum matches the provided checksum.
-    /// Logs each step for debugging.
+    /// Validates the sentence and returns `()` when it is well formed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] if the `$` prefix, the `*` delimiter, or a
+    /// two-digit hexadecimal checksum is missing, or if the checksum does not
+    /// match the payload.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         let line = input.trim_end();
 
@@ -75,8 +81,10 @@ impl rax::text::IGlobalRule<true> for NmeaValidate {
         Ok(())
     }
 }
-/// Rule to validate an NMEA sentence for correct start character and checksum.
-/// Returns Ok(()) if the sentence is valid, otherwise returns a mischief error.
+/// Validates every line of a multi-line NMEA message.
+///
+/// Each line is checked with [`NmeaValidate`]; the first invalid line causes
+/// the whole message to be rejected.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NmeaValidateMultiLine;
 
@@ -85,10 +93,13 @@ impl IRule for NmeaValidateMultiLine {}
 impl rax::text::IGlobalRule<true> for NmeaValidateMultiLine {
     type Output<'a> = ();
 
-    /// Applies the `NmeaValidate` rule to the input string.
-    /// Checks that the sentence starts with '$', contains a checksum delimiter
-    /// '*', and that the calculated checksum matches the provided checksum.
-    /// Logs each step for debugging.
+    /// Validates every line in the message and returns `()` when all lines
+    /// are well formed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`RuleError`] from [`NmeaValidate`] for the first invalid
+    /// line.
     fn apply<'a>(&self, input: &'a str) -> Result<Self::Output<'a>, RuleError> {
         // Log the input at trace level.
 

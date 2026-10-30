@@ -17,33 +17,18 @@ use crate::text::rules::UntilMode;
 /// selected mode.
 ///
 /// If every character belongs to the set, the rule returns
-/// `Ok((input, input.len()))`, consuming the entire input. An empty input
-/// also succeeds, returning an empty prefix and consuming zero bytes.
-///
-/// # Fields
-///
-/// - `filter`: The character set filter that defines which characters match.
-/// - `mode`: Determines how the first non-matching character is handled:
-///   - [`UntilMode::Discard`]: Excludes the character from the prefix and
-///     consumes it.
-///   - [`UntilMode::KeepInOutput`]: Includes the character at the end of the
-///     prefix.
-///   - [`UntilMode::KeepInRest`]: Leaves the character at the beginning of the
-///     remainder.
-///
-/// # Type Parameters
-///
-/// - `'f`: Lifetime of the character set filter reference.
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
-/// - `N`: Capacity or size parameter of the character set filter.
-/// - `F`: Character set filter implementing [`ICharSetFilter`].
+/// `Ok((input, input.len()))`, consuming the entire input. An empty input also
+/// succeeds, returning an empty prefix and consuming zero bytes.
 ///
 /// The Unicode implementation scans Unicode scalar values and respects UTF-8
-/// character boundaries. The ASCII implementations scan bytes for efficiency
-/// and assume that the input contains only ASCII characters.
+/// character boundaries. The ASCII implementations scan bytes and assume that
+/// the input contains only ASCII characters.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UntilNotInCharSet<'f, const IS_ASCII: bool, const N: usize, F: ICharSetFilter<N>> {
+    /// Character set filter defining which characters match.
     pub filter: &'f F,
+    /// Determines how the first non-matching character is handled. See
+    /// [`UntilMode`].
     pub mode: UntilMode,
 }
 
@@ -59,13 +44,11 @@ impl<const N: usize, F: ICharSetFilter<N>> IFlowRule<false> for UntilNotInCharSe
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a non-matching character is found,
-    ///   with the split determined by the selected mode.
-    /// - `Ok((input, input.len()))` if every character belongs to the set.
-    ///
-    /// An empty input succeeds with an empty prefix and consumes zero bytes.
-    /// The consumed byte count depends on the selected mode and the UTF-8
-    /// length of the first non-matching character.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode and the UTF-8 length of the first non-matching
+    /// character. If every character belongs to the set, returns
+    /// `(input, input.len())`. An empty input yields an empty prefix and
+    /// consumes zero bytes.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, c) in input.char_indices() {
             if !self.filter.filter(&c) {
@@ -84,12 +67,14 @@ impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, AsciiCha
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a non-matching byte is found, with
-    ///   the split determined by the selected mode.
-    /// - `Ok((input, input.len()))` if every byte belongs to the set.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode. If every byte belongs to the set, returns
+    /// `(input, input.len())`.
     ///
-    /// The input must contain only ASCII characters for byte-based matching
-    /// to correspond to character-based matching.
+    /// # Notes
+    ///
+    /// The input must contain only ASCII characters for byte-based matching to
+    /// correspond to character-based matching.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         for (i, &b) in input.as_bytes().iter().enumerate() {
             if self.filter.mask() & (1_u128 << u32::from(b)) == 0 {
@@ -109,9 +94,11 @@ impl<const N: usize> IFlowRule<true> for UntilNotInCharSet<'_, true, N, CharSetF
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if a non-matching byte is found, with
-    ///   the split determined by the selected mode.
-    /// - `Ok((input, input.len()))` if every byte belongs to the set.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode. If every byte belongs to the set, returns
+    /// `(input, input.len())`.
+    ///
+    /// # Notes
     ///
     /// The input must contain only ASCII characters because each byte is
     /// converted directly to a `char` before filtering.

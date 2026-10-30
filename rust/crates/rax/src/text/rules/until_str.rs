@@ -16,27 +16,16 @@ use crate::text::rules::UntilMode;
 ///
 /// If the delimiter is not found, the rule returns a [`RuleError`].
 ///
-/// # Fields
-///
-/// - `pattern`: The delimiter substring to search for. An empty pattern matches
-///   at the beginning of the input.
-/// - `mode`: Determines how the delimiter is handled:
-///   - [`UntilMode::Discard`]: Excludes the delimiter from the prefix and
-///     consumes it.
-///   - [`UntilMode::KeepInOutput`]: Includes the delimiter at the end of the
-///     prefix.
-///   - [`UntilMode::KeepInRest`]: Leaves the delimiter at the beginning of the
-///     remainder.
-///
-/// # Type Parameters
-///
-/// - `IS_ASCII`: Whether the input is assumed to contain only ASCII characters.
-///
 /// Matching uses UTF-8 byte offsets returned by [`str::find`]. The delimiter
 /// may contain multiple characters, including multi-byte UTF-8 characters.
+/// `IS_ASCII` records whether the input is assumed to contain only ASCII
+/// characters.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UntilStr<const IS_ASCII: bool> {
+    /// Substring delimiter to search for. An empty pattern matches at the start
+    /// of the input.
     pub pattern: &'static str,
+    /// Determines how the delimiter is handled. See [`UntilMode`].
     pub mode: UntilMode,
 }
 
@@ -49,13 +38,16 @@ impl<const IS_ASCII: bool> IFlowRule<IS_ASCII> for UntilStr<IS_ASCII> {
     ///
     /// # Returns
     ///
-    /// - `Ok((prefix, consumed_bytes))` if the delimiter is found, with the
-    ///   split determined by the selected mode.
-    /// - `Err(RuleError)` if the delimiter is not found.
+    /// The extracted prefix and the number of bytes consumed, as determined by
+    /// the selected mode and the delimiter length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError`] if the delimiter is not found.
+    ///
+    /// # Notes
     ///
     /// An empty delimiter matches at the beginning of the input.
-    /// The consumed byte count depends on the selected mode and the delimiter
-    /// length.
     fn apply<'a>(&self, input: &'a str) -> Result<(Self::Output<'a>, usize), RuleError> {
         input.find(self.pattern).map_or_else(
             || {

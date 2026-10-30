@@ -100,11 +100,10 @@ jobs:
         run: git submodule update --init
 
       - if: ${{ matrix.changed != 'false' }}
-        uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1
-        # v2026.10.9
+        uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
 
       - if: ${{ matrix.changed != 'false' }}
-        uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1
+        uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
           working-directory: ./rust
           options: -p ${{ matrix.package }} --all-features

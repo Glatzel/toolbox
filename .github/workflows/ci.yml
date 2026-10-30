@@ -237,6 +237,7 @@ jobs:
           options: -p mischief --no-default-features --features macros,backtrace,color
 
   envoy-miri:
+    needs: changed
     runs-on: ubuntu-latest
     if: ${{ needs.changed.outputs.changed-rust-envoy != 'false' &&  github.event_name != 'push'}}
     steps:

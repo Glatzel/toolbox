@@ -11,7 +11,10 @@ memory = 10000
 [runners]
 cpus = 10
 memory = 8192
-volumes = { "/host_dir" = "/target_dir/default", "/host_dir1" = "/target_dir1/default" }
+volumes = {
+  "/host_dir" = "/target_dir/default",
+  "/host_dir1" = "/target_dir1/default"
+}
 ports = { 123 = 789, 456 = 123 }
 envs = { "FOO" = "BAR_DEFAULT" }
 secrets = { "SFOO" = ["SBAR_DEFAULT", "https://www.google.com/123"] }

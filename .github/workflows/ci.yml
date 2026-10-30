@@ -96,8 +96,8 @@ jobs:
       - name: Skip unchanged benchmark
         if: ${{ matrix.changed != 'false' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          submodules: true
+      - if: ${{matrix.package =='rax-nmea'}}
+        run: git submodule update --init
 
       - if: ${{ matrix.changed != 'false' }}
         uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1

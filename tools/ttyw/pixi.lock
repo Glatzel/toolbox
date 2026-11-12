@@ -38,7 +38,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-16.2.0-h934c35e_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libuv-1.52.1-h280c20c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.2-h25fd6f3_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-26.12.1-h7dc8d62_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-26.13.1-h7dc8d62_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.5-h781a0a9_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.23-hbd8a1cb_0.conda
@@ -59,13 +59,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libstdcxx-16.2.0-hef695bb_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libuv-1.52.1-h80f16a2_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libzlib-1.3.2-hdc9db2a_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nodejs-26.12.1-h932116c_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nodejs-26.13.1-h932116c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.6.5-he6ad1d5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.23-hbd8a1cb_0.conda
       - conda: https://prefix.dev/glatzel/noarch/font-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
       win-64:
-      - conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-26.12.1-h80d1838_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-26.13.1-h80d1838_0.conda
       - conda: https://prefix.dev/glatzel/noarch/font-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
@@ -282,33 +282,32 @@ packages:
     - libzlib >=1.3.2,<2.0a0
   size: 63713
   timestamp: 1785362952714
-- conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-26.12.1-h7dc8d62_1.conda
-  sha256: 6048d8ea5cb3e5335f6c6567b43435e55d7a5d8ccdd55e15543a5febfc2627f2
-  md5: 3023b3804579da1a18eff62c79af2c4e
+- conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-26.13.1-h7dc8d62_0.conda
+  sha256: f8de423f7e502b19b7135555265d161fded0ea343da76ba88919d41c62768cb7
+  md5: b329a9d3402d909c047b55a08d10dce9
   depends:
-  - __glibc >=2.28,<3.0.a0
-  - libstdcxx >=15
   - libgcc >=15
-  - c-ares >=1.34.9,<2.0a0
-  - openssl >=3.5.9,<4.0a0
-  - libnghttp2 >=1.71.0,<2.0a0
-  - libzlib >=1.3.2,<2.0a0
+  - libstdcxx >=15
+  - __glibc >=2.28,<3.0.a0
   - libbrotlicommon >=1.2.1,<1.3.0a0
   - libbrotlienc >=1.2.1,<1.3.0a0
   - libbrotlidec >=1.2.1,<1.3.0a0
+  - libsqlite >=3.54.1,<4.0a0
+  - c-ares >=1.34.9,<2.0a0
+  - zstd >=1.5.7,<1.6.0a0
   - icu >=78.3,<79.0a0
+  - libuv >=1.52.1,<2.0a0
+  - libzlib >=1.3.2,<2.0a0
   - libabseil >=20260817.0,<20260818.0a0
   - libabseil * cxx17*
-  - libuv >=1.52.1,<2.0a0
-  - libsqlite >=3.54.1,<4.0a0
-  - zstd >=1.5.7,<1.6.0a0
+  - libnghttp2 >=1.71.0,<2.0a0
+  - openssl >=3.5.9,<4.0a0
   license: MIT
-  license_family: MIT
   run_exports:
     weak:
-    - nodejs >=26.12.1,<27.0a0
-  size: 20654888
-  timestamp: 1793722470420
+    - nodejs >=26.13.1,<27.0a0
+  size: 20657993
+  timestamp: 1794471900064
 - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.5-h781a0a9_0.conda
   sha256: 9c1533f1cf784f0e250919c0c9762d0b0e6bc727a79290ffb7cea1ceca1d038c
   md5: 5a51a2ea653f120240b1a9bf76e0aae9
@@ -533,33 +532,32 @@ packages:
     - libzlib >=1.3.2,<2.0a0
   size: 70108
   timestamp: 1785276540870
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nodejs-26.12.1-h932116c_1.conda
-  sha256: e598b2aec5629fc85add41a209a2a8c9dda8ca10637d12eb5c8efe2dc4187277
-  md5: d9a3d5465a10c392fab57799047f6f74
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nodejs-26.13.1-h932116c_0.conda
+  sha256: 91b10d7e0ac7c77fd08c7761252a508bc53362c2a60ed8d729e0cb4e8c4d0792
+  md5: 794e06c8aea9c2de4d8045e314a7184a
   depends:
-  - libstdcxx >=15
-  - libgcc >=15
   - __glibc >=2.28,<3.0.a0
-  - openssl >=3.5.9,<4.0a0
-  - libbrotlicommon >=1.2.1,<1.3.0a0
-  - libbrotlienc >=1.2.1,<1.3.0a0
-  - libbrotlidec >=1.2.1,<1.3.0a0
-  - c-ares >=1.34.9,<2.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  - libsqlite >=3.54.1,<4.0a0
-  - icu >=78.3,<79.0a0
+  - libgcc >=15
+  - libstdcxx >=15
   - libzlib >=1.3.2,<2.0a0
+  - c-ares >=1.34.9,<2.0a0
   - libuv >=1.52.1,<2.0a0
   - libabseil >=20260817.0,<20260818.0a0
   - libabseil * cxx17*
+  - libsqlite >=3.54.1,<4.0a0
+  - openssl >=3.5.9,<4.0a0
+  - zstd >=1.5.7,<1.6.0a0
+  - libbrotlicommon >=1.2.1,<1.3.0a0
+  - libbrotlienc >=1.2.1,<1.3.0a0
+  - libbrotlidec >=1.2.1,<1.3.0a0
+  - icu >=78.3,<79.0a0
   - libnghttp2 >=1.71.0,<2.0a0
   license: MIT
-  license_family: MIT
   run_exports:
     weak:
-    - nodejs >=26.12.1,<27.0a0
-  size: 27468072
-  timestamp: 1793722536051
+    - nodejs >=26.13.1,<27.0a0
+  size: 27473527
+  timestamp: 1794471972645
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.6.5-he6ad1d5_0.conda
   sha256: 238136f1df197ecd89bafd728a34d0642176f3170423d13d8276746d675a9485
   md5: 92aec5ec417d2ce9ae109e6c5ad377ff
@@ -594,16 +592,15 @@ packages:
   run_exports: {}
   size: 130057
   timestamp: 1792772446739
-- conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-26.12.1-h80d1838_1.conda
-  sha256: 60e0abcadc53e7593ef6bfc7e8bd943691f23618d1ee0081d1b4abf50f6a630b
-  md5: 171d85bbd28efcc8c8a5e6d116ca97e9
+- conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-26.13.1-h80d1838_0.conda
+  sha256: f9ca6194264f8850c5f566495bf2f96b3b1adb6fcd8fd70fba7d81bbaecf59dd
+  md5: 377dc50e556714aeb246fd1d351bc572
   license: MIT
-  license_family: MIT
   run_exports:
     weak:
-    - nodejs >=26.12.1,<27.0a0
-  size: 34696248
-  timestamp: 1793722493614
+    - nodejs >=26.13.1,<27.0a0
+  size: 34483606
+  timestamp: 1794471912000
 - conda: https://prefix.dev/glatzel/noarch/font-cascadia-mono-woff2-3.5.1-h4616a5c_0.conda
   sha256: 1eeeefdf898cc1142723b042dc243957c57c7c33bd05cb30f8ce90ce7e059932
   md5: 2d8293cf464dec2c8ff9b47507d3b504

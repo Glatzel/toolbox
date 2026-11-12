@@ -23,7 +23,7 @@ derive-getters = { version = "0.5.0", features = ["auto_copy_getters"] }
 float-cmp = "0.10.0"
 insta = "1.49.0"
 jiff = {
-  version = "0.2.38",
+  version = "0.2.43",
   default-features = false,
   features = ["perf-inline"]
 }
@@ -38,7 +38,7 @@ rstest = "0.28.0"
 serde = "1.0.229"
 serialport = "4.10.0"
 strum = { version = "0.28.0", features = ["derive"] }
-syn = "3.0.9"
+syn = "3.0.10"
 tempfile = "3.27.0"
 terminal_size = "0.4.4"
 textwrap = { version = "0.16.4", default-features = false }
@@ -48,7 +48,7 @@ tokio-util = "0.7.20"
 tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
-uuid = "1.29.0"
+uuid = "1.29.2"
 
 [profile.dev.package]
 insta.opt-level = 3

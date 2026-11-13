@@ -22,7 +22,6 @@ strum.workspace = true
 criterion.workspace = true
 float-cmp.workspace = true
 insta.workspace = true
-mischief.workspace = true
 rstest.workspace = true
 
 [features]

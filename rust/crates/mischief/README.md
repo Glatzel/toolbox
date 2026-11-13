@@ -44,10 +44,10 @@ the `macros` feature.
 
 ## Derived diagnoses
 
-`#[derive(IDiagnosis)]` implements structured diagnostics for a struct or enum
-and adds an inherent `into_report()` method. Add `#[diagnosis(display)]` to
-generate `Display`, and `#[diagnosis(error)]` to generate
-`core::error::Error`. The `error` flag requires `Debug` and `Display`.
+`#[derive(IDiagnosis)]` implements structured diagnostics for named-field
+structs, tuple structs, and enums, and adds an inherent `into_report()` method.
+Add `#[diagnosis(display)]` to generate `Display`, and `#[diagnosis(error)]` to
+generate `core::error::Error`. The `error` flag requires `Debug` and `Display`.
 
 ### Complete struct example
 
@@ -119,6 +119,26 @@ The important pieces are:
 - `display` makes `to_string()` use the field-backed description.
 - `source` exposes one field through `IDiagnosis::source()` and `Error::source()`.
 - `into_report()` copies the structured diagnostic chain into a `Report`.
+
+Tuple structs support the same features. Positional placeholders refer to tuple
+fields, and field markers work on unnamed fields:
+
+```rust
+use mischief::IDiagnosis;
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "Filter Error: {0}")]
+struct FilterError(
+    /// Description of the failure.
+    pub String,
+);
+
+#[derive(IDiagnosis)]
+struct TupleFieldError(
+    #[diagnosis(description)] String,
+    #[diagnosis(code)] Option<String>,
+);
+```
 
 ### Complete enum example
 

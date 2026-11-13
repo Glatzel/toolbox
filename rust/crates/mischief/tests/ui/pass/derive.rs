@@ -28,6 +28,13 @@ struct NestedDiagnosis {
     source: StaticDiagnosis,
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(error, display, description = "Filter Error: {0}")]
+struct FilterError(
+    /// Description of the failure.
+    String,
+);
+
 #[derive(IDiagnosis)]
 #[diagnosis(description = "default", code = "E_ENUM")]
 enum EnumDiagnosis {
@@ -115,6 +122,11 @@ fn main() {
         source: StaticDiagnosis { source: None },
     };
     let _ = nested.source();
+
+    let filter = FilterError(String::from("invalid UTF-8"));
+    assert_eq!(filter.to_string(), "Filter Error: invalid UTF-8");
+    assert!(core::error::Error::source(&filter).is_none());
+    let _ = filter.into_report();
 
     let variants = [
         EnumDiagnosis::Unit,

@@ -227,7 +227,8 @@ fn facade_path() -> TokenStream2 {
     }
 }
 
-/// Derives the `IDiagnosis` trait for named-field structs and enums.
+/// Derives the `IDiagnosis` trait for named-field structs, tuple structs, and
+/// enums.
 ///
 /// Structure metadata is configured with `#[diagnosis(...)]`. Mark one field
 /// with `#[diagnosis(description)]` to return its `AsRef<str>` value as the
@@ -298,6 +299,19 @@ fn facade_path() -> TokenStream2 {
 ///
 /// assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
 /// assert_eq!(InputError::Invalid("name".into()).description(), "name");
+/// ```
+///
+/// Tuple struct fields use positional placeholders:
+///
+/// ```ignore
+/// #[derive(Debug, IDiagnosis)]
+/// #[diagnosis(display, error, description = "Filter Error: {0}")]
+/// struct FilterError(String);
+///
+/// assert_eq!(
+///     FilterError("invalid UTF-8".into()).to_string(),
+///     "Filter Error: invalid UTF-8",
+/// );
 /// ```
 ///
 /// Descriptions can format fields for both diagnostics and `Display`:
@@ -388,6 +402,18 @@ mod tests {
                 #[diagnosis(source)]
                 source: Option<MischiefError>,
             }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_tuple_struct_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(error, display, description = "Filter Error: {0}")]
+            struct FilterError(String);
         "#
         .parse()
         .expect("derive input should parse");

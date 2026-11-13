@@ -46,9 +46,9 @@
 //!
 //! # Derived Diagnoses
 //!
-//! The optional `IDiagnosis` derive implements the trait for named-field
-//! structs. Metadata may be static or read directly from fields marked with
-//! `#[diagnosis(description)]` and `#[diagnosis(code)]`.
+//! The optional `IDiagnosis` derive implements the trait for named-field and
+//! tuple structs. Metadata may be static or read directly from fields marked
+//! with `#[diagnosis(description)]` and `#[diagnosis(code)]`.
 //!
 //! ```
 //! use mischief::{IDiagnosis, MischiefError};

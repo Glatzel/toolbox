@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::Result;
-use syn::{DeriveInput, Fields};
+use syn::{DeriveInput, Fields, Index, Member};
 
 use super::attrs::{
     DiagnosisAttributes, FieldRoles, SourceKind, Transparent, option_literal, parse_field_roles,
@@ -22,10 +22,11 @@ pub(crate) fn derive_struct_idiagnosis(
 ) -> Result<TokenStream2> {
     let fields = match input_fields {
         Fields::Named(fields) => &fields.named,
+        Fields::Unnamed(fields) => &fields.unnamed,
         _ => {
             return Err(syn::Error::new_spanned(
                 &input.ident,
-                "IDiagnosis can only be derived for structs with named fields",
+                "IDiagnosis can only be derived for structs with named or tuple fields",
             ));
         }
     };
@@ -56,10 +57,6 @@ pub(crate) fn derive_struct_idiagnosis(
             "`code` field marker cannot be combined with a `code` attribute",
         ));
     }
-    let source = roles
-        .source
-        .map(|source| field_refs[source.index].ident.clone().expect("named field"));
-
     let description_template = description_field
         .is_none()
         .then(|| struct_description_template(&config, &field_refs, input))
@@ -73,8 +70,8 @@ pub(crate) fn derive_struct_idiagnosis(
             quote! { #description }
         },
         |field| {
-            let name = field_refs[field.index].ident.as_ref().expect("named field");
-            description_field_expression(quote! { &self.#name })
+            let field = field_access(&field_refs, field.index);
+            description_field_expression(quote! { &#field })
         },
     );
     let fmt_description = description_template.as_ref().and_then(|template| {
@@ -87,9 +84,9 @@ pub(crate) fn derive_struct_idiagnosis(
     let code = code_field.map_or_else(
         || option_literal(config.code),
         |field| {
-            let field = field_refs[field.index];
-            let name = field.ident.as_ref().expect("named field");
-            code_field_expression(&field.ty, quote! { &self.#name })
+            let field_type = &field_refs[field.index].ty;
+            let field = field_access(&field_refs, field.index);
+            code_field_expression(field_type, quote! { &#field })
         },
     );
     let help = option_literal(config.help);
@@ -97,25 +94,25 @@ pub(crate) fn derive_struct_idiagnosis(
     let severity = config
         .severity
         .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) });
-    let source = match (roles.source, source) {
-        (Some(source), _) if source.kind == SourceKind::Foreign => quote! { None },
-        (Some(_), Some(source)) => {
+    let source = match roles.source {
+        Some(source) if source.kind == SourceKind::Foreign => quote! { None },
+        Some(source) => {
+            let field = field_access(&field_refs, source.index);
             quote! {
                 {
                     use #facade::IAsDiagnosis as _;
-                    self.#source.as_diagnosis()
+                    #field.as_diagnosis()
                 }
             }
         }
-        (None, _) => quote! { None },
-        (Some(_), None) => unreachable!("source field was resolved above"),
+        None => quote! { None },
     };
     let error_source = roles.source.map_or_else(
         || quote! { None },
         |source| {
             let field = field_refs[source.index];
-            let name = field.ident.as_ref().expect("named field");
-            let value = quote! { &self.#name };
+            let value = field_access(&field_refs, source.index);
+            let value = quote! { &#value };
             match source.kind {
                 SourceKind::Diagnosis => error_source_expression(&facade, &field.ty, value),
                 SourceKind::Foreign => foreign_error_source_expression(&facade, &field.ty, value),
@@ -132,11 +129,10 @@ pub(crate) fn derive_struct_idiagnosis(
                 ));
             }
             let field = field_refs[from.index];
-            let field_name = field.ident.as_ref().expect("named field");
             Ok(generate_from_impl(
                 input,
                 &field.ty,
-                quote! { Self { #field_name: value } },
+                field_constructor(&field_refs, from.index, quote! { value }),
             ))
         })
         .transpose()?;
@@ -189,7 +185,7 @@ pub(crate) fn derive_struct_idiagnosis(
     });
     let report_expression = if let Some(source) = roles.source {
         let field = field_refs[source.index];
-        let field_name = field.ident.as_ref().expect("named field");
+        let source_pattern = field_pattern(&field_refs, source.index);
         let builder_expression = match source.kind {
             SourceKind::Diagnosis => diagnosis_source_builder(&field.ty, quote! { source }),
             SourceKind::Foreign => foreign_source_builder(&field.ty, quote! { source }),
@@ -205,7 +201,7 @@ pub(crate) fn derive_struct_idiagnosis(
         quote! {
             #description_update
             match self {
-                Self { #field_name: source, .. } => {
+                #source_pattern => {
                     #facade::Report::new((#builder_expression).build())
                 }
             }
@@ -226,6 +222,40 @@ pub(crate) fn derive_struct_idiagnosis(
     };
     expanded.extend(generate_into_report_impl(input, &facade, report_expression));
     Ok(expanded)
+}
+
+fn field_member(fields: &[&syn::Field], index: usize) -> Member {
+    match fields[index].ident.as_ref() {
+        Some(name) => Member::Named(name.clone()),
+        None => Member::Unnamed(Index::from(index)),
+    }
+}
+
+fn field_access(fields: &[&syn::Field], index: usize) -> TokenStream2 {
+    let member = field_member(fields, index);
+    quote! { self.#member }
+}
+
+fn field_constructor(fields: &[&syn::Field], index: usize, value: TokenStream2) -> TokenStream2 {
+    match fields[index].ident.as_ref() {
+        Some(name) => quote! { Self { #name: #value } },
+        None => quote! { Self(#value) },
+    }
+}
+
+fn field_pattern(fields: &[&syn::Field], index: usize) -> TokenStream2 {
+    if let Some(name) = fields[index].ident.as_ref() {
+        return quote! { Self { #name: source, .. } };
+    }
+
+    let fields = fields.iter().enumerate().map(|(field_index, _)| {
+        if field_index == index {
+            quote! { source }
+        } else {
+            quote! { _ }
+        }
+    });
+    quote! { Self(#(#fields),*) }
 }
 
 fn struct_description_template(
@@ -252,13 +282,7 @@ fn write_description_expression(
     let arguments: Vec<_> = template
         .fields()
         .iter()
-        .map(|&index| {
-            let name = fields[index]
-                .ident
-                .as_ref()
-                .expect("named struct fields have identifiers");
-            quote! { self.#name }
-        })
+        .map(|&index| field_access(fields, index))
         .collect();
     quote! {
         ::core::write!(f, #literal #(, #arguments)*)
@@ -273,13 +297,7 @@ fn format_description_expression(
     let arguments: Vec<_> = template
         .fields()
         .iter()
-        .map(|&index| {
-            let name = fields[index]
-                .ident
-                .as_ref()
-                .expect("named struct fields have identifiers");
-            quote! { self.#name }
-        })
+        .map(|&index| field_access(fields, index))
         .collect();
     quote! {
         alloc::format!(#literal #(, #arguments)*)
@@ -343,49 +361,49 @@ fn derive_transparent_struct(
     };
     let facade = facade_path();
     let field = fields[0];
-    let field_name = field.ident.as_ref().expect("named field");
+    let inner = field_access(fields, 0);
     let methods = match transparent {
         Transparent::Diagnosis => DiagnosisMethods {
             description: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.description()
+                    #inner.description()
                 }
             },
             fmt_description: Some(quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.fmt_description(f)
+                    #inner.fmt_description(f)
                 }
             }),
             source: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.source()
+                    #inner.source()
                 }
             },
             code: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.code()
+                    #inner.code()
                 }
             },
             severity: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.severity()
+                    #inner.severity()
                 }
             },
             help: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.help()
+                    #inner.help()
                 }
             },
             url: quote! {
                 {
                     use #facade::IDiagnosis as _;
-                    self.#field_name.url()
+                    #inner.url()
                 }
             },
         },
@@ -414,28 +432,28 @@ fn derive_transparent_struct(
     let mut expanded = generate_idiagnosis_impl(input, &facade, methods);
     expanded.extend(generate_display_body_impl(
         input,
-        quote! { ::core::fmt::Display::fmt(&self.#field_name, f) },
+        quote! { ::core::fmt::Display::fmt(&#inner, f) },
     ));
     expanded.extend(generate_error_impl(
         input,
-        quote! { ::core::error::Error::source(&self.#field_name) },
+        quote! { ::core::error::Error::source(&#inner) },
     ));
 
     if let Some(from) = roles.from {
         expanded.extend(generate_from_impl(
             input,
             &field.ty,
-            quote! { Self { #field_name: value } },
+            field_constructor(fields, 0, quote! { value }),
         ));
         let _ = from;
     }
 
     let report_expression = match transparent {
         Transparent::Diagnosis => quote! {
-            #facade::Report::new(copy_diagnosis(&self.#field_name))
+            #facade::Report::new(copy_diagnosis(&#inner))
         },
         Transparent::Foreign => quote! {
-            #facade::Report::new(#facade::MischiefError::from_error(self.#field_name))
+            #facade::Report::new(#facade::MischiefError::from_error(#inner))
         },
     };
     expanded.extend(generate_into_report_impl(input, &facade, report_expression));

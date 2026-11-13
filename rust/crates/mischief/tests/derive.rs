@@ -69,6 +69,32 @@ enum EnumFieldMetadataDiagnosis {
     },
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display, description = "Filter Error: {0}")]
+struct FilterError(
+    /// Description of the failure.
+    pub String,
+);
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
+struct TupleFieldMetadataDiagnosis(
+    #[diagnosis(description)] String,
+    #[diagnosis(code)] Option<String>,
+);
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "tuple source")]
+struct TupleSourceDiagnosis(#[diagnosis(source, from)] InnerError);
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "tuple second source")]
+struct TupleSecondSourceDiagnosis(u8, #[diagnosis(source)] InnerError);
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, transparent)]
+struct TupleTransparentDiagnosis(InnerError);
+
 #[derive(IDiagnosis)]
 #[diagnosis(description = "description only")]
 struct DescriptionOnly {
@@ -345,6 +371,74 @@ fn derives_enum_description_and_code_from_marked_fields() {
 
     assert_eq!(diagnosis.description(), "enum field");
     assert_eq!(diagnosis.code(), Some("E_ENUM_FIELD"));
+}
+
+#[test]
+fn derives_filter_error_for_tuple_struct() {
+    let diagnosis = FilterError(String::from("invalid UTF-8"));
+
+    assert_eq!(diagnosis.description(), "Filter Error: {0}");
+    assert_eq!(diagnosis.to_string(), "Filter Error: invalid UTF-8");
+    assert_eq!(
+        diagnosis.clone(),
+        FilterError(String::from("invalid UTF-8"))
+    );
+    assert!(core::error::Error::source(&diagnosis).is_none());
+
+    let report = diagnosis.into_report();
+    assert_eq!(report.error().description(), "Filter Error: invalid UTF-8");
+}
+
+#[test]
+fn derives_description_and_code_from_tuple_fields() {
+    let diagnosis = TupleFieldMetadataDiagnosis(
+        String::from("tuple field description"),
+        Some(String::from("E_TUPLE")),
+    );
+
+    assert_eq!(diagnosis.description(), "tuple field description");
+    assert_eq!(diagnosis.code(), Some("E_TUPLE"));
+    assert_eq!(diagnosis.to_string(), "tuple field description");
+}
+
+#[test]
+fn derives_tuple_source_and_from_conversion() {
+    let diagnosis = TupleSourceDiagnosis::from(InnerError::Inner);
+
+    assert_eq!(diagnosis.description(), "tuple source");
+    assert_eq!(
+        diagnosis.source().map(IDiagnosis::description),
+        Some("inner")
+    );
+    assert_eq!(
+        core::error::Error::source(&diagnosis).map(ToString::to_string),
+        Some(String::from("inner"))
+    );
+}
+
+#[test]
+fn derives_source_from_tuple_field_after_the_first() {
+    let diagnosis = TupleSecondSourceDiagnosis(7, InnerError::Inner);
+
+    assert_eq!(diagnosis.0, 7);
+    assert_eq!(diagnosis.source().map(IDiagnosis::description), Some("inner"));
+    assert_eq!(
+        core::error::Error::source(&diagnosis).map(ToString::to_string),
+        Some(String::from("inner"))
+    );
+}
+
+#[test]
+fn derives_transparent_tuple_struct() {
+    let diagnosis = TupleTransparentDiagnosis(InnerError::Inner);
+
+    assert_eq!(diagnosis.description(), "inner");
+    assert_eq!(diagnosis.to_string(), "inner");
+    assert_eq!(
+        core::error::Error::source(&diagnosis).map(ToString::to_string),
+        None
+    );
+    assert_eq!(diagnosis.into_report().error().description(), "inner");
 }
 
 #[test]

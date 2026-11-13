@@ -77,6 +77,13 @@ enum InputError {
 assert_eq!(InputError::Invalid("name".into()).description(), "name");
 ```
 
+More runnable examples are in the crate’s `examples/` directory:
+
+```text
+cargo run -p mischief --example enum_derive
+cargo run -p mischief --example enum_forward
+```
+
 ## Features
 
 | Feature | Effect |

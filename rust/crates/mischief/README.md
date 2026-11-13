@@ -84,6 +84,7 @@ cargo run -p mischief --example enum_derive
 cargo run -p mischief --example enum_forward
 cargo run -p mischief --example library_boundary
 cargo run -p mischief --example application_boundary
+cargo run -p mischief --example thiserror_upstream
 ```
 
 ## Features

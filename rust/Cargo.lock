@@ -973,6 +973,7 @@ dependencies = [
  "mischief-render",
  "owo-colors",
  "tempfile",
+ "thiserror",
  "trybuild",
 ]
 

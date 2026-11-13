@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(mischief)** `bail!` and `ensure!` are available without the `macros`
   feature.
 - **(mischief)** Raise the explicit MSRV to Rust 1.85.
+- **(envoy)** Replace `thiserror` with `IDiagnosis` metadata while preserving
+  the public `Display`, `Error`, and conversion behavior.
 
 ### Breaking
 

@@ -241,6 +241,7 @@ impl<T: ToCString> ToVecCString for [T] {
 #[cfg(test)]
 mod tests {
     use alloc::string::String;
+    use alloc::vec;
 
     use super::*;
 
@@ -255,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_vec_cstring_from_vec() -> mischief::Result<()> {
-        let v = [String::from("foo"), String::from("bar")].to_vec_cstring()?;
+        let v = vec![String::from("foo"), String::from("bar")].to_vec_cstring()?;
         assert_eq!(v.len(), 2);
         assert_eq!(v[0].to_str().unwrap(), "foo");
         assert_eq!(v[1].to_str().unwrap(), "bar");

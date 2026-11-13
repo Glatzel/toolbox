@@ -485,6 +485,7 @@ name = "envoy"
 version = "2026.11.13"
 dependencies = [
  "mischief",
+ "thiserror",
 ]
 
 [[package]]

@@ -177,7 +177,10 @@ where
     let message: Box<dyn core::any::Any> = Box::new(msg);
     match message.downcast::<Report>() {
         Ok(report) => {
+            #[cfg(all(feature = "backtrace", debug_assertions))]
             let ReportInner { error, .. } = *report.inner;
+            #[cfg(not(all(feature = "backtrace", debug_assertions)))]
+            let ReportInner { error } = *report.inner;
             Report::new(error.with_source(e.inner.error))
         }
         Err(message) => {

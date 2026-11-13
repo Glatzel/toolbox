@@ -134,6 +134,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
+#[allow(
+    unused_extern_crates,
+    reason = "The self alias keeps generated macro paths valid when expanded in this crate."
+)]
 extern crate self as mischief;
 
 pub use mischief_core::{

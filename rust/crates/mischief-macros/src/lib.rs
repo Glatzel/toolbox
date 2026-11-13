@@ -130,7 +130,7 @@ fn expand_bail(input: TokenStream2) -> TokenStream2 {
     };
     let error = expand_error(&parsed_input, &facade_path());
     quote! {
-        return ::core::result::Result::Err(#error);
+        return ::core::result::Result::Err(#error)
     }
 }
 

@@ -54,6 +54,19 @@ pub trait IAsDiagnosis {
     fn as_diagnosis(&self) -> Option<&dyn IDiagnosis>;
 }
 
+/// Exposes a field as a core error source.
+pub trait IErrorSource {
+    /// Returns this value as a core error source, when present.
+    fn as_error_source(&self) -> Option<&(dyn Error + 'static)>;
+}
+
+impl<T> IErrorSource for T
+where
+    T: Error + 'static,
+{
+    fn as_error_source(&self) -> Option<&(dyn Error + 'static)> { Some(self) }
+}
+
 impl<T> IAsDiagnosis for T
 where
     T: IDiagnosis,

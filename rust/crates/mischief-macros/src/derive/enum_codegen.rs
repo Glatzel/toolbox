@@ -8,7 +8,10 @@ use super::attrs::{
     Description, DiagnosisAttributes, option_literal, parse_diagnosis_attributes,
     source_field_index,
 };
-use super::shared::{DiagnosisMethods, generate_idiagnosis_impl};
+use super::shared::{
+    DiagnosisMethods, error_source_expression, generate_display_impl, generate_error_impl,
+    generate_idiagnosis_impl,
+};
 use crate::facade_path;
 
 #[derive(Clone)]
@@ -20,7 +23,9 @@ struct FieldBinding {
 struct EnumArm {
     pattern: TokenStream2,
     description: TokenStream2,
+    display: Option<TokenStream2>,
     source: TokenStream2,
+    error_source: TokenStream2,
     code: TokenStream2,
     severity: TokenStream2,
     help: TokenStream2,
@@ -42,7 +47,7 @@ pub(crate) fn derive_enum_idiagnosis(
     let facade = facade_path();
     let mut arms = Vec::with_capacity(data.variants.len());
     for variant in &data.variants {
-        let (config, forward) = parse_diagnosis_attributes(&variant.attrs, true)?;
+        let (config, forward) = parse_diagnosis_attributes(&variant.attrs, true, false)?;
         let fields: Vec<&Field> = variant.fields.iter().collect();
         let bindings: Vec<FieldBinding> = fields
             .iter()
@@ -64,6 +69,12 @@ pub(crate) fn derive_enum_idiagnosis(
                     "`forward` requires a variant with exactly one field",
                 ));
             }
+            if defaults.display {
+                return Err(syn::Error::new(
+                    forward_span,
+                    "`display` requires a static description for every variant",
+                ));
+            }
             let binding = &bindings[0].binding;
             arms.push(EnumArm {
                 pattern,
@@ -73,12 +84,14 @@ pub(crate) fn derive_enum_idiagnosis(
                         #binding.description()
                     }
                 },
+                display: None,
                 source: quote! {
                     {
                         use #facade::IDiagnosis as _;
                         #binding.source()
                     }
                 },
+                error_source: quote! { None },
                 code: quote! {
                     {
                         use #facade::IDiagnosis as _;
@@ -108,6 +121,11 @@ pub(crate) fn derive_enum_idiagnosis(
         }
 
         let description = enum_description(&config, &defaults, &bindings, variant)?;
+        let display = if defaults.display {
+            Some(enum_static_description(&config, &defaults, variant)?)
+        } else {
+            None
+        };
         let source_index = source_field_index(&fields)?;
         let source = source_index.map_or_else(
             || quote! { None },
@@ -119,6 +137,14 @@ pub(crate) fn derive_enum_idiagnosis(
                         #binding.as_diagnosis()
                     }
                 }
+            },
+        );
+        let error_source = source_index.map_or_else(
+            || quote! { None },
+            |index| {
+                let field = fields[index];
+                let binding = &bindings[index].binding;
+                error_source_expression(&facade, &field.ty, quote! { #binding })
             },
         );
         let code = option_literal(config.code.as_ref().or(defaults.code.as_ref()).cloned());
@@ -133,7 +159,9 @@ pub(crate) fn derive_enum_idiagnosis(
         arms.push(EnumArm {
             pattern,
             description,
+            display,
             source,
+            error_source,
             code,
             severity,
             help,
@@ -156,12 +184,20 @@ pub(crate) fn derive_enum_idiagnosis(
 
     let description_arms = method_arms(&arms, |arm| &arm.description);
     let source_arms = method_arms(&arms, |arm| &arm.source);
+    let error_source_arms: Vec<_> = arms
+        .iter()
+        .map(|arm| {
+            let pattern = &arm.pattern;
+            let expression = &arm.error_source;
+            quote! { #pattern => #expression }
+        })
+        .collect();
     let code_arms = method_arms(&arms, |arm| &arm.code);
     let severity_arms = method_arms(&arms, |arm| &arm.severity);
     let help_arms = method_arms(&arms, |arm| &arm.help);
     let url_arms = method_arms(&arms, |arm| &arm.url);
 
-    Ok(generate_idiagnosis_impl(
+    let mut expanded = generate_idiagnosis_impl(
         input,
         &facade,
         DiagnosisMethods {
@@ -196,7 +232,39 @@ pub(crate) fn derive_enum_idiagnosis(
                 }
             },
         },
-    ))
+    );
+    if defaults.display {
+        let display_arms: Vec<_> = arms
+            .iter()
+            .map(|arm| {
+                let pattern = &arm.pattern;
+                let expression = arm
+                    .display
+                    .as_ref()
+                    .expect("display arms are generated for every normal variant");
+                quote! { #pattern => #expression }
+            })
+            .collect();
+        expanded.extend(generate_display_impl(
+            input,
+            quote! {
+                match self {
+                    #(#display_arms),*
+                }
+            },
+        ));
+    }
+    if defaults.error {
+        expanded.extend(generate_error_impl(
+            input,
+            quote! {
+                match self {
+                    #(#error_source_arms),*
+                }
+            },
+        ));
+    }
+    Ok(expanded)
 }
 
 fn enum_variant_pattern(
@@ -250,6 +318,24 @@ fn enum_description(
             })?;
             Ok(quote! { ::core::convert::AsRef::<str>::as_ref(#binding) })
         }
+    }
+}
+
+fn enum_static_description(
+    config: &DiagnosisAttributes,
+    defaults: &DiagnosisAttributes,
+    variant: &syn::Variant,
+) -> Result<TokenStream2> {
+    match config
+        .description
+        .as_ref()
+        .or(defaults.description.as_ref())
+    {
+        Some(Description::Static(description)) => Ok(quote! { #description }),
+        Some(Description::Field(_)) | None => Err(syn::Error::new_spanned(
+            &variant.ident,
+            "`display` requires a static description for every variant",
+        )),
     }
 }
 

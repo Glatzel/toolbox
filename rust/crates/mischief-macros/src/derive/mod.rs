@@ -18,7 +18,7 @@ pub(crate) fn expand_idiagnosis(input: TokenStream2) -> TokenStream2 {
 }
 
 fn derive_idiagnosis(input: &DeriveInput) -> Result<TokenStream2> {
-    let (config, forward) = parse_diagnosis_attributes(&input.attrs, false)?;
+    let (config, forward) = parse_diagnosis_attributes(&input.attrs, false, true)?;
     if let Some(forward) = forward {
         return Err(syn::Error::new(
             forward,

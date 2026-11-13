@@ -4,7 +4,10 @@ use syn::parse::Result;
 use syn::{DeriveInput, Fields, Member};
 
 use super::attrs::{Description, DiagnosisAttributes, option_literal, source_field_index};
-use super::shared::{DiagnosisMethods, generate_idiagnosis_impl};
+use super::shared::{
+    DiagnosisMethods, error_source_expression, generate_display_impl, generate_error_impl,
+    generate_idiagnosis_impl,
+};
 use crate::facade_path;
 
 pub(crate) fn derive_struct_idiagnosis(
@@ -24,6 +27,20 @@ pub(crate) fn derive_struct_idiagnosis(
     let field_refs: Vec<&syn::Field> = fields.iter().collect();
     let source = source_field_index(&field_refs)?
         .map(|index| field_refs[index].ident.clone().expect("named field"));
+
+    let display_description = if config.display {
+        match &config.description {
+            Some(Description::Static(description)) => Some(quote! { #description }),
+            Some(Description::Field(_)) | None => {
+                return Err(syn::Error::new_spanned(
+                    &input.ident,
+                    "`display` requires a static description",
+                ));
+            }
+        }
+    } else {
+        None
+    };
 
     let description = match config.description {
         Some(Description::Static(description)) => quote! { #description },
@@ -74,8 +91,16 @@ pub(crate) fn derive_struct_idiagnosis(
             }
         },
     );
+    let error_source = source_field_index(&field_refs)?.map_or_else(
+        || quote! { None },
+        |index| {
+            let field = field_refs[index];
+            let source = field.ident.as_ref().expect("named field");
+            error_source_expression(&facade, &field.ty, quote! { &self.#source })
+        },
+    );
 
-    Ok(generate_idiagnosis_impl(
+    let mut expanded = generate_idiagnosis_impl(
         input,
         &facade,
         DiagnosisMethods {
@@ -86,5 +111,12 @@ pub(crate) fn derive_struct_idiagnosis(
             help,
             url,
         },
-    ))
+    );
+    if let Some(description) = display_description {
+        expanded.extend(generate_display_impl(input, description));
+    }
+    if config.error {
+        expanded.extend(generate_error_impl(input, error_source));
+    }
+    Ok(expanded)
 }

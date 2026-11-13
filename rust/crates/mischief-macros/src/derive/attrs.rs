@@ -6,6 +6,8 @@ use syn::{Attribute, Expr, Field, LitStr, Member};
 
 #[derive(Clone, Default)]
 pub(crate) struct DiagnosisAttributes {
+    pub(crate) display: bool,
+    pub(crate) error: bool,
     pub(crate) description: Option<Description>,
     pub(crate) code: Option<LitStr>,
     pub(crate) severity: Option<Expr>,
@@ -26,12 +28,15 @@ impl DiagnosisAttributes {
             && self.severity.is_none()
             && self.help.is_none()
             && self.url.is_none()
+            && !self.display
+            && !self.error
     }
 }
 
 pub(crate) fn parse_diagnosis_attributes(
     attrs: &[Attribute],
     allow_forward: bool,
+    allow_type_flags: bool,
 ) -> Result<(DiagnosisAttributes, Option<Span>)> {
     let mut config = DiagnosisAttributes::default();
     let mut forward = None;
@@ -40,7 +45,17 @@ pub(crate) fn parse_diagnosis_attributes(
             continue;
         }
         attr.parse_nested_meta(|meta| {
-            if meta.path.is_ident("description") {
+            if allow_type_flags && meta.path.is_ident("display") {
+                if config.display {
+                    return Err(meta.error("duplicate `display` attribute"));
+                }
+                config.display = true;
+            } else if allow_type_flags && meta.path.is_ident("error") {
+                if config.error {
+                    return Err(meta.error("duplicate `error` attribute"));
+                }
+                config.error = true;
+            } else if meta.path.is_ident("description") {
                 if config.description.is_some() {
                     return Err(meta.error("duplicate `description` attribute"));
                 }
@@ -83,6 +98,8 @@ pub(crate) fn parse_diagnosis_attributes(
             } else {
                 let expected = if allow_forward {
                     "expected one of: `description`, `description_from`, `code`, `severity`, `help`, `url`, `forward`"
+                } else if allow_type_flags {
+                    "expected one of: `display`, `error`, `description`, `description_from`, `code`, `severity`, `help`, `url`"
                 } else {
                     "expected one of: `description`, `description_from`, `code`, `severity`, `help`, `url`"
                 };

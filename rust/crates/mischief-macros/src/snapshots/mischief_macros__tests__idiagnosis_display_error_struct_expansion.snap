@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for Outer { fn description (& self) -> & str { "outer" } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { { use :: mischief :: IAsDiagnosis as _ ; self . source . as_diagnosis () } } fn code (& self) -> Option < & str > { None } fn severity (& self) -> Option < :: mischief :: Severity > { None } fn help (& self) -> Option < & str > { None } fn url (& self) -> Option < & str > { None } } impl :: core :: fmt :: Display for Outer { fn fmt (& self , f : & mut :: core :: fmt :: Formatter < '_ >) -> :: core :: fmt :: Result { f . write_str ("outer") } } impl :: core :: error :: Error for Outer { fn source (& self) -> Option < & (dyn :: core :: error :: Error + 'static) > { match & self . source { Some (source) => { :: mischief :: IErrorSource :: as_error_source (source) } None => None , } } }

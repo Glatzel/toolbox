@@ -51,6 +51,27 @@ enum EnumDiagnosis {
     Forward(MischiefError),
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "inner")]
+enum InnerError {
+    Inner,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "outer")]
+struct OuterError {
+    #[diagnosis(source)]
+    source: Option<InnerError>,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "default")]
+enum FlaggedError {
+    Default,
+    #[diagnosis(description = "variant")]
+    Variant(#[diagnosis(source)] InnerError),
+}
+
 #[test]
 fn derives_static_description_and_metadata() {
     let source = MischiefError::builder("source").build();
@@ -94,6 +115,25 @@ fn derives_no_source_when_no_field_is_marked() {
     assert_eq!(diagnosis.value, 1);
     assert_eq!(diagnosis.description(), "description only");
     assert!(diagnosis.source().is_none());
+}
+
+#[test]
+fn display_and_error_flags_preserve_source_chain() {
+    let outer = OuterError {
+        source: Some(InnerError::Inner),
+    };
+    assert_eq!(outer.to_string(), "outer");
+    let source = core::error::Error::source(&outer).expect("outer source");
+    assert_eq!(source.to_string(), "inner");
+
+    let default = FlaggedError::Default;
+    assert_eq!(default.to_string(), "default");
+    assert!(core::error::Error::source(&default).is_none());
+
+    let variant = FlaggedError::Variant(InnerError::Inner);
+    assert_eq!(variant.to_string(), "variant");
+    let source = core::error::Error::source(&variant).expect("variant source");
+    assert_eq!(source.to_string(), "inner");
 }
 
 #[test]

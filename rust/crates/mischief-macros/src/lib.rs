@@ -237,8 +237,14 @@ fn facade_path() -> TokenStream2 {
 /// attributes override those defaults. Use `#[diagnosis(forward)]` on a
 /// single-field variant to delegate all methods to that field.
 ///
-/// Formatted descriptions, `Display` or `Error` generation, typed foreign-error
-/// sources, and error mapping between enums are not supported.
+/// Add `display` to generate `core::fmt::Display` from static descriptions. Add
+/// `error` to generate `core::error::Error`; its `source()` delegates to the
+/// field marked `#[diagnosis(source)]`. The type must implement `Debug` and
+/// `Display`, either through the `display` flag or manually.
+///
+/// Formatted descriptions, typed foreign-error sources, transparent
+/// derivation, `into_report()` generation, and error mapping between enums are
+/// not supported.
 ///
 /// # Examples
 ///
@@ -434,6 +440,45 @@ mod tests {
                     #[diagnosis(source)]
                     source: Option<MischiefError>,
                 },
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_display_error_struct_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(
+                display,
+                error,
+                description = "outer",
+            )]
+            struct Outer {
+                #[diagnosis(source)]
+                source: Option<Inner>,
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_display_error_enum_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(
+                display,
+                error,
+                description = "default",
+            )]
+            enum Flagged {
+                Default,
+                #[diagnosis(description = "variant")]
+                Variant(#[diagnosis(source)] Inner),
             }
         "#
         .parse()

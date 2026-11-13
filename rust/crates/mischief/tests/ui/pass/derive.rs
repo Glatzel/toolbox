@@ -1,3 +1,5 @@
+use core::fmt;
+
 use mischief::{IDiagnosis, MischiefError, Severity};
 
 #[derive(IDiagnosis)]
@@ -45,6 +47,30 @@ enum EnumDiagnosis {
     Forward(MischiefError),
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "inner")]
+enum InnerError {
+    Inner,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "outer")]
+struct OuterError {
+    #[diagnosis(source)]
+    source: Option<InnerError>,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(error, description = "manual display")]
+struct ManualDisplayError {
+    #[diagnosis(source)]
+    source: InnerError,
+}
+
+impl fmt::Display for ManualDisplayError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str("manual display") }
+}
+
 fn main() {
     let static_diagnosis = StaticDiagnosis { source: None };
     let _ = (static_diagnosis.code(), static_diagnosis.source());
@@ -80,4 +106,16 @@ fn main() {
             variant.url(),
         );
     }
+
+    let outer = OuterError {
+        source: Some(InnerError::Inner),
+    };
+    assert_eq!(outer.to_string(), "outer");
+    assert!(core::error::Error::source(&outer).is_some());
+
+    let manual = ManualDisplayError {
+        source: InnerError::Inner,
+    };
+    assert_eq!(manual.to_string(), "manual display");
+    assert!(core::error::Error::source(&manual).is_some());
 }

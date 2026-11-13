@@ -3,6 +3,17 @@ name = "clerk"
 version.workspace = true
 edition.workspace = true
 
+[features]
+defmt = ["dep:defmt"]
+tracing = [
+  "dep:jiff",
+  "dep:mischief",
+  "dep:owo-colors",
+  "dep:tracing",
+  "dep:tracing-core",
+  "dep:tracing-subscriber",
+]
+
 [dependencies]
 # embedded logging (firmware side)
 defmt = { workspace = true, optional = true }
@@ -27,14 +38,3 @@ tracing-subscriber = {
 
 [dev-dependencies]
 mischief.workspace = true
-
-[features]
-defmt = ["dep:defmt"]
-tracing = [
-  "dep:mischief",
-  "dep:jiff",
-  "dep:owo-colors",
-  "dep:tracing",
-  "dep:tracing-core",
-  "dep:tracing-subscriber",
-]

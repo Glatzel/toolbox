@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_ensure(input).to_string()
+---
+if ! (ready) { return :: core :: result :: Result :: Err ({ extern crate alloc ; use core :: fmt :: Write as _ ; let mut description = alloc :: string :: String :: new () ; write ! (description , "failed {}" , context) . unwrap () ; :: mischief :: Report :: new (:: mischief :: MischiefError :: builder (description) . help ("retry") . build ()) }) ; }

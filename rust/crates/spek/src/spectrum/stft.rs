@@ -7,9 +7,7 @@ use core::fmt::Debug;
 use num_traits::{Float, FloatConst};
 use parking_lot::Mutex;
 
-#[cfg(feature = "parallel")]
-use crate::data_types::Spectrum2D;
-use crate::data_types::{ISignal, SignalRef};
+use crate::data_types::{ISignal, SignalRef, Spectrum2D};
 use crate::error::SpekError;
 use crate::fft::IFftBackend;
 use crate::windows::Window;

@@ -1,0 +1,5 @@
+error: expected one of: `description`, `code`, `severity`, `help`, `url`, `forward`, `transparent`
+ --> tests/ui/fail/derive_enum_unknown_key.rs:5:42
+  |
+5 |     #[diagnosis(description = "variant", detail = "unsupported")]
+  |                                          ^^^^^^

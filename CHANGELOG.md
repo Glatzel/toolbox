@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.11.13] - 2026-11-13
+
+### Added
+
+- **(mischief)** Split the implementation into `mischief-core`,
+  `mischief-render`, `mischief-macros`, and the `mischief` facade.
+- **(mischief)** Add the `MischiefError` builder and borrowed-or-owned text
+  storage.
+- **(mischief)** Retain foreign error roots for downcasting and represent source
+  chains with private nodes.
+- **(mischief)** Add `Display` for `MischiefError`, `ensure!`, real
+  `source = ...` macro support, and the `IDiagnosis` derive for structs and
+  enums.
+- **(mischief)** Add opt-in `display`, `error`, `from`,
+  `source(foreign)`, `into_report()`, and transparent diagnosis generation.
+- **(mischief)** Add characterization, expansion, trybuild, renamed-dependency,
+  and renderer snapshots.
+
+### Changed
+
+- **(mischief)** The `std` feature now selects verbose tree rendering.
+- **(mischief)** Verbose reports now begin with `Error:` and include help, code,
+  severity, and URL metadata.
+- **(mischief)** `bail!` and `ensure!` are available without the `macros`
+  feature.
+- **(mischief)** Raise the explicit MSRV to Rust 1.85.
+- **(envoy)** Replace `thiserror` with `IDiagnosis` metadata while preserving
+  the public `Display`, `Error`, and conversion behavior.
+
+### Breaking
+
+- **(mischief)** `Report` is now opaque and its former tuple field is private.
+- **(mischief)** `MischiefError` no longer implements `Clone`.
+- **(mischief)** Foreign errors converted into `Report` must implement
+  `Error + Send + Sync + 'static` so the concrete root can be retained.
+
 ## [2026.10.11] - 2026-10-13
 
 ### Added

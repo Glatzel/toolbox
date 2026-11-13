@@ -9,38 +9,65 @@ use std::num::ParseIntError;
 pub use key::{Key, KeyMode, KeyQuality, KeyScale};
 pub use melakarta::Melakarta;
 pub use midi::Midi;
+use mischief_api::IDiagnosis;
 pub use note::Note;
 use rax::error::VerbError;
 pub use shared::{Accidental, Pitch};
 pub use thaat::Thaat;
-use thiserror::Error;
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display)]
 pub enum NotationError {
-    #[error(transparent)]
-    Verb(#[from] VerbError),
+    #[diagnosis(transparent)]
+    Verb(#[diagnosis(from)] VerbError),
 
-    #[error(transparent)]
-    ParseInt(#[from] ParseIntError),
+    #[diagnosis(transparent(foreign))]
+    ParseInt(#[diagnosis(from)] ParseIntError),
 
-    #[error(transparent)]
-    Strum(#[from] strum::ParseError),
+    #[diagnosis(transparent(foreign))]
+    Strum(#[diagnosis(from)] strum::ParseError),
 
-    #[error("Unknown pitch: {0}")]
+    #[diagnosis(description = "Unknown pitch: {0}")]
     UnknownPitch(char),
 
-    #[error("Unknown accidental: {0}")]
+    #[diagnosis(description = "Unknown accidental: {0}")]
     UnknownAccidental(char),
 
-    #[error("Invalid octave first char: {0}")]
+    #[diagnosis(description = "Invalid octave first char: {0}")]
     InvalidOctave(String),
 
-    #[error("Invalid note: {0}")]
+    #[diagnosis(description = "Invalid note: {0}")]
     InvalidNote(String),
 
-    #[error("Invalid key: {0}")]
+    #[diagnosis(description = "Invalid key: {0}")]
     InvalidKey(String),
 
-    #[error("Invalid key kind: {0}")]
+    #[diagnosis(description = "Invalid key kind: {0}")]
     InvalidKeyKind(String),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_display_is_unchanged() {
+        assert_eq!(
+            NotationError::UnknownPitch('H').to_string(),
+            "Unknown pitch: H"
+        );
+        assert_eq!(
+            NotationError::InvalidKeyKind(String::from("unknown")).to_string(),
+            "Invalid key kind: unknown"
+        );
+    }
+
+    #[test]
+    fn transparent_variants_forward_display_and_source() {
+        let parse = "not an integer".parse::<u8>().expect_err("parse must fail");
+        let expected = parse.to_string();
+        let error = NotationError::from(parse);
+
+        assert_eq!(error.to_string(), expected);
+    }
 }

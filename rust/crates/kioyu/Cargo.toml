@@ -7,7 +7,7 @@ edition.workspace = true
 async-trait = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
 jiff = { workspace = true }
-thiserror = { workspace = true }
+mischief-api.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
 tokio-util.workspace = true
 uuid = { workspace = true, features = ["v4"] }

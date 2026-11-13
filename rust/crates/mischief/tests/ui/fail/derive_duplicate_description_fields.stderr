@@ -1,0 +1,5 @@
+error: duplicate `description` field marker
+ --> tests/ui/fail/derive_duplicate_description_fields.rs:7:17
+  |
+7 |     #[diagnosis(description)]
+  |                 ^^^^^^^^^^^

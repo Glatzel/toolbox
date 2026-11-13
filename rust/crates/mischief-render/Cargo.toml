@@ -1,0 +1,38 @@
+[package]
+name = "mischief-render"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+arbor.workspace = true
+backtrace = { workspace = true, optional = true }
+mischief-core.workspace = true
+owo-colors.workspace = true
+terminal_size = { workspace = true, optional = true }
+
+[features]
+default = ["arbor-default"]
+arbor-default = ["arbor/default"]
+backtrace = ["dep:backtrace", "dep:terminal_size"]
+color = []
+hyperlink = []
+pretty = []
+textwrap = ["arbor/textwrap", "dep:terminal_size"]
+textwrap-full = ["arbor/textwrap-full", "dep:terminal_size"]
+textwrap-hyphenation = [
+  "arbor/textwrap-hyphenation",
+  "dep:terminal_size",
+  "pretty",
+]
+textwrap-smawk = ["arbor/textwrap-smawk", "dep:terminal_size", "pretty"]
+textwrap-unicode-linebreak = [
+  "arbor/textwrap-unicode-linebreak",
+  "dep:terminal_size",
+  "pretty",
+]
+textwrap-unicode-width = [
+  "arbor/textwrap-unicode-width",
+  "dep:terminal_size",
+  "pretty",
+]

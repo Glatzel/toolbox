@@ -2,50 +2,57 @@
 name = "mischief"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
+readme = "README.md"
 
 [dependencies]
-arbor.workspace = true
-backtrace = { workspace = true, optional = true }
-mischief-macros = { workspace = true, optional = true }
-owo-colors = { workspace = true, optional = true }
-terminal_size = { workspace = true, optional = true }
+mischief-api.workspace = true
+mischief-core = { workspace = true, features = ["alloc"] }
+mischief-macros.workspace = true
+mischief-render = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta = { workspace = true, features = ["filters"] }
+owo-colors.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+trybuild.workspace = true
 
 [features]
-default = ["arbor/default", "backtrace", "fancy", "macros", "std"]
-backtrace = ["dep:backtrace", "std", "terminal_size"]
+default = [
+  "backtrace",
+  "fancy",
+  "macros",
+  "mischief-render/arbor-default",
+  "std"
+]
+backtrace = ["mischief-render/backtrace", "std"]
 fancy = ["color", "hyperlink", "pretty", "textwrap"]
-macros = ["mischief-macros"]
-std = []
+macros = []
+std = ["mischief-api/std", "mischief-render"]
 
-color = ["owo-colors", "std"]
-hyperlink = ["owo-colors", "std"]
-pretty = ["owo-colors", "std"]
+color = ["mischief-render/color", "std"]
+hyperlink = ["mischief-render/hyperlink", "std"]
+pretty = ["mischief-render/pretty", "std"]
 
 textwrap = [
-  "arbor/textwrap",
+  "mischief-render/textwrap",
   "std",
-  "terminal_size",
 ]
-textwrap-full = ["arbor/textwrap-full", "std", "terminal_size"]
+textwrap-full = ["mischief-render/textwrap-full", "std"]
 textwrap-hyphenation = [
-  "arbor/textwrap-hyphenation",
+  "mischief-render/textwrap-hyphenation",
   "pretty",
   "std",
-  "terminal_size"
 ]
-textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "std", "terminal_size"]
+textwrap-smawk = ["mischief-render/textwrap-smawk", "pretty", "std"]
 textwrap-unicode-linebreak = [
-  "arbor/textwrap-unicode-linebreak",
+  "mischief-render/textwrap-unicode-linebreak",
   "pretty",
-  "std",
-  "terminal_size"
+  "std"
 ]
 textwrap-unicode-width = [
-  "arbor/textwrap-unicode-width",
+  "mischief-render/textwrap-unicode-width",
   "pretty",
-  "std",
-  "terminal_size"
+  "std"
 ]

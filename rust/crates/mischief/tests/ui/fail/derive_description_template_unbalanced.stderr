@@ -1,0 +1,5 @@
+error: malformed description template: unclosed `{`
+ --> tests/ui/fail/derive_description_template_unbalanced.rs:5:31
+  |
+5 |     #[diagnosis(description = "{0")]
+  |                               ^^^^

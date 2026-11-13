@@ -62,7 +62,7 @@ jobs:
               - ./rust/**
               - ./.github/workflows/ci-rust.yml
             rust-mischief:
-              - ./rust/crates/mischief/**
+              - ./rust/crates/mischief*/**
             rust-envoy:
               - ./rust/crates/envoy/**
             tools-orc:

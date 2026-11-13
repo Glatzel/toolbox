@@ -5,16 +5,16 @@
 //! [`Verb`] attempted, the rule's type name, and the input.
 //! [`FilterError`] is returned by character-set filters.
 
-use thiserror::Error;
 extern crate alloc;
 use alloc::borrow::Cow;
-use alloc::string::String;
 use core::fmt::Debug;
+
+use mischief_api::IDiagnosis;
 
 use crate::text::{IRule, Verb};
 /// Error returned when a rule does not match the input.
-#[derive(Error, Debug, Clone, PartialEq, Eq)]
-#[error("Rule Error: {reason}")]
+#[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display, description = "{reason}")]
 pub struct RuleError {
     /// Human-readable reason the rule failed.
     pub reason: Cow<'static, str>,
@@ -45,8 +45,12 @@ impl RuleError {
     }
 }
 /// Error returned when a parser operation fails while applying a rule.
-#[derive(Error, Debug, Clone, PartialEq, Eq)]
-#[error("Verb Error: verb={verb:?}, rule={rule}, input={input}, rule_error={rule_error}")]
+#[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(
+    error,
+    display,
+    description = "Verb Error: verb={verb:?}, rule={rule}, input={input}, rule_error={rule_error}"
+)]
 pub struct VerbError {
     /// The parser operation that was being applied.
     pub verb: Verb,
@@ -58,9 +62,27 @@ pub struct VerbError {
     pub rule_error: RuleError,
 }
 /// Error returned by a character-set filter.
-#[derive(Error, Debug, Clone, PartialEq, Eq)]
-#[error("Filter Error: {0}")]
+#[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display, description = "Filter Error: {0}")]
 pub struct FilterError(
     /// Description of the failure.
-    pub String,
+    pub Cow<'static, str>,
 );
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+
+    #[test]
+    fn error_display_is_unchanged() {
+        let rule = RuleError {
+            reason: Cow::Borrowed("expected a digit"),
+        };
+        assert_eq!(rule.to_string(), "expected a digit");
+
+        let filter = FilterError(Cow::from("missing character"));
+        assert_eq!(filter.to_string(), "Filter Error: missing character");
+    }
+}

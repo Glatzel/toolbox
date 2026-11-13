@@ -1,0 +1,13 @@
+[package]
+name = "mischief-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+mischief-core = { workspace = true, features = ["alloc"] }
+mischief-macros.workspace = true
+
+[features]
+default = []
+std = []

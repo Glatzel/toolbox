@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_mischief(input).to_string()
+---
+{ extern crate alloc ; use core :: fmt :: Write as _ ; let mut description = alloc :: string :: String :: new () ; write ! (description , "wrapped {}" , context) . unwrap () ; :: mischief :: Report :: new (:: mischief :: MischiefError :: builder (description) . code ("E404") . severity (Severity :: Warning) . help ("Try again.") . url ("https://example.com/errors/E404") . source ({ use :: mischief :: IIntoDiagnosis as _ ; (source_error) . into_diagnosis () }) . build ()) }

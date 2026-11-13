@@ -1,0 +1,5 @@
+error: unknown source argument; expected `foreign`
+ --> tests/ui/fail/derive_source_foreign_unknown.rs:6:24
+  |
+6 |     #[diagnosis(source(other))]
+  |                        ^^^^^

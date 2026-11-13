@@ -1,0 +1,5 @@
+error: `transparent` cannot be combined with diagnostic metadata
+ --> tests/ui/fail/derive_transparent_with_key.rs:7:5
+  |
+7 |     Inner(std::io::Error),
+  |     ^^^^^

@@ -1,0 +1,5 @@
+error: `forward` cannot be combined with other diagnosis attributes
+ --> tests/ui/fail/derive_enum_forward_with_key.rs:5:17
+  |
+5 |     #[diagnosis(forward, description = "also set")]
+  |                 ^^^^^^^

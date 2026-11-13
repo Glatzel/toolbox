@@ -4,14 +4,17 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use crate::error::MischiefError;
+use mischief_api::{IDiagnosis, IIntoDiagnosis, MischiefError};
+#[cfg(all(feature = "backtrace", debug_assertions))]
+use mischief_render::Backtrace;
+
 use crate::render::render_diagnosis;
 
-pub struct ReportInner {
+struct ReportInner {
     error: MischiefError,
 
     #[cfg(all(feature = "backtrace", debug_assertions))]
-    backtrace: backtrace::Backtrace,
+    backtrace: Backtrace,
 }
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
 /// handling.
@@ -24,10 +27,12 @@ pub struct ReportInner {
 /// containers such as `anyhow::Error`, while preserving structured diagnosis
 /// information compatible with [`crate::IDiagnosis`].
 ///
-/// Formatting a `Report` will render the full diagnosis chain. If the
-/// `fancy` feature is enabled, a structured tree-based renderer is used.
-/// Otherwise a minimal textual fallback renderer is used.
-pub struct Report(pub Box<ReportInner>);
+/// Formatting a `Report` renders the full diagnosis chain. With the `std`
+/// feature, a structured tree renderer is used; otherwise a minimal textual
+/// fallback renderer prints descriptions only.
+pub struct Report {
+    inner: Box<ReportInner>,
+}
 
 impl Report {
     /// Creates a new `Report` from a [`MischiefError`].
@@ -36,33 +41,66 @@ impl Report {
     /// contained by the report.
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "backtrace", debug_assertions))]
-        let backtrace = backtrace::Backtrace::new();
+        let backtrace = Backtrace::new();
 
-        Self(Box::new(ReportInner {
-            error,
+        Self {
+            inner: Box::new(ReportInner {
+                error,
 
-            #[cfg(all(feature = "backtrace", debug_assertions))]
-            backtrace,
-        }))
+                #[cfg(all(feature = "backtrace", debug_assertions))]
+                backtrace,
+            }),
+        }
     }
 
     /// Returns a reference to the underlying diagnosis.
     ///
     /// This allows callers to inspect structured metadata such as
     /// error codes, severity levels, and help messages.
-    pub fn error(&self) -> &MischiefError { &self.0.error }
+    pub fn error(&self) -> &MischiefError { &self.inner.error }
+
+    /// Returns a shared reference to a foreign error retained in this report's
+    /// source chain that can be downcast to `E`.
+    pub fn downcast_ref<E>(&self) -> Option<&E>
+    where
+        E: Error + 'static,
+    {
+        self.inner.error.downcast_ref()
+    }
 
     /// Renders the report using the configured rendering backend.
     ///
-    /// If the `fancy` feature is enabled, a themed tree renderer based
-    /// on `arbor` is used. Otherwise a minimal textual renderer is used.
+    /// If the `std` feature is enabled, a tree renderer based on `arbor`
+    /// is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        render_diagnosis(&self.0.error, f)?;
+        render_diagnosis(&self.inner.error, f)?;
 
         #[cfg(all(feature = "backtrace", debug_assertions))]
-        crate::render_backtrace(&self.0.backtrace, f)?;
+        crate::render_backtrace(&self.inner.backtrace, f)?;
         Ok(())
     }
+}
+
+impl IIntoDiagnosis for Report {
+    fn into_diagnosis(self) -> MischiefError { self.inner.error }
+}
+
+impl IDiagnosis for Report {
+    fn description(&self) -> &str { self.inner.error.description() }
+
+    fn fmt_description(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.inner.error.fmt_description(f)
+    }
+
+    fn source(&self) -> Option<&dyn IDiagnosis> { self.inner.error.source() }
+
+    fn code(&self) -> Option<&str> { self.inner.error.code() }
+
+    fn severity(&self) -> Option<mischief_core::Severity> { self.inner.error.severity() }
+
+    fn help(&self) -> Option<&str> { self.inner.error.help() }
+
+    fn url(&self) -> Option<&str> { self.inner.error.url() }
 }
 
 /// Formats the report using the configured diagnosis renderer.
@@ -85,27 +123,9 @@ impl Display for Report {
 /// preserving the causal structure of the original error.
 impl<E> From<E> for Report
 where
-    E: Error,
+    E: Error + Send + Sync + 'static,
 {
-    fn from(value: E) -> Self {
-        fn convert(err: &dyn Error) -> MischiefError {
-            MischiefError::new(
-                &err.to_string(),
-                err.source().map(|src| Box::new(convert(src))),
-                None,
-                None,
-                None,
-                None,
-            )
-        }
-
-        Self(Box::new(ReportInner {
-            error: convert(&value),
-
-            #[cfg(all(feature = "backtrace", debug_assertions))]
-            backtrace: backtrace::Backtrace::new(),
-        }))
-    }
+    fn from(value: E) -> Self { Self::new(MischiefError::from_error(value)) }
 }
 
 /// Convenient `Result` alias using [`Report`] as the default error type.
@@ -123,7 +143,10 @@ pub trait IntoMischief<T> {
     fn into_mischief(self) -> Result<T, Report>;
 }
 
-impl<T, E: Error> IntoMischief<T> for Result<T, E> {
+impl<T, E> IntoMischief<T> for Result<T, E>
+where
+    E: Error + Send + Sync + 'static,
+{
     fn into_mischief(self) -> Result<T, Report> {
         match self {
             Err(e) => Err(Report::from(e)),
@@ -155,15 +178,26 @@ fn wrap_inner<D>(e: Report, msg: D) -> Report
 where
     D: Display + 'static,
 {
-    let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-        let mut inner = r.0.error.clone();
-        inner.source = Some(Box::new(e.0.error));
-        inner
-    } else {
-        MischiefError::new(&msg, Some(Box::new(e.0.error)), None, None, None, None)
-    };
-
-    Report::new(new_inner)
+    let message: Box<dyn core::any::Any> = Box::new(msg);
+    match message.downcast::<Report>() {
+        Ok(report) => {
+            #[cfg(all(feature = "backtrace", debug_assertions))]
+            let ReportInner { error, .. } = *report.inner;
+            #[cfg(not(all(feature = "backtrace", debug_assertions)))]
+            let ReportInner { error } = *report.inner;
+            Report::new(error.with_source(e.inner.error))
+        }
+        Err(message) => {
+            let message = message
+                .downcast::<D>()
+                .expect("the original wrap message type should be preserved");
+            Report::new(
+                MischiefError::builder(message.to_string())
+                    .source(e.inner.error)
+                    .build(),
+            )
+        }
+    }
 }
 
 impl<D, T> WrapErr<D, T> for Result<T, Report>

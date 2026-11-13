@@ -1,0 +1,5 @@
+error: duplicate `description` attribute
+ --> tests/ui/fail/derive_enum_duplicate_key.rs:5:40
+  |
+5 |     #[diagnosis(description = "first", description = "second")]
+  |                                        ^^^^^^^^^^^

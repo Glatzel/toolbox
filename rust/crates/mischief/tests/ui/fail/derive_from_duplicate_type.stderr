@@ -1,0 +1,5 @@
+error: duplicate `from` field type
+ --> tests/ui/fail/derive_from_duplicate_type.rs:7:24
+  |
+7 |     Second(#[diagnosis(from)] u8),
+  |                        ^^^^

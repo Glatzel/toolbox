@@ -1,0 +1,5 @@
+error: duplicate `source` field marker
+ --> tests/ui/fail/derive_enum_multiple_sources.rs:8:21
+  |
+8 |         #[diagnosis(source)] MischiefError,
+  |                     ^^^^^^

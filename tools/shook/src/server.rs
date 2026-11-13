@@ -41,6 +41,7 @@ pub async fn start_server(shared_state: Arc<AppContext>) -> mischief::Result<()>
     })?;
     Ok(())
 }
+
 async fn webhook(
     State(state): State<Arc<AppContext>>,
     headers: HeaderMap,

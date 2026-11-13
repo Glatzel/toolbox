@@ -18,10 +18,10 @@ name = "parser_api"
 [dependencies]
 derive-getters.workspace = true
 jiff = { workspace = true, features = ["alloc"] }
+mischief-api.workspace = true
 rax.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 strum.workspace = true
-thiserror.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

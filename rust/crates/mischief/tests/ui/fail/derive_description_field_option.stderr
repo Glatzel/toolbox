@@ -1,0 +1,5 @@
+error: `description` field must not be an `Option`
+ --> tests/ui/fail/derive_description_field_option.rs:5:17
+  |
+5 |     #[diagnosis(description)]
+  |                 ^^^^^^^^^^^

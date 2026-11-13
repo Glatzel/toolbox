@@ -1,14 +1,19 @@
 use alloc::ffi::NulError;
 use core::str::Utf8Error;
 
-use thiserror::Error;
+use mischief_api::IDiagnosis;
 
-#[derive(Error, Debug)]
+/// Error returned by Envoy pointer and string conversions.
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
 pub enum EnvoyError {
-    #[error("The pointer was null.")]
+    /// The input pointer was null.
+    #[diagnosis(description = "The pointer was null.")]
     NullPtr,
-    #[error(transparent)]
-    InvalidUtf8(#[from] Utf8Error),
-    #[error(transparent)]
-    NulError(#[from] NulError),
+    /// The input bytes are not valid UTF-8.
+    #[diagnosis(transparent(foreign))]
+    InvalidUtf8(#[diagnosis(from)] Utf8Error),
+    /// The input string contains an interior NUL byte.
+    #[diagnosis(transparent(foreign))]
+    NulError(#[diagnosis(from)] NulError),
 }

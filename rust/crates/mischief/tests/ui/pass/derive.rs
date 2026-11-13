@@ -1,0 +1,182 @@
+use core::fmt;
+
+use mischief::{IDiagnosis, MischiefError, Severity};
+
+#[derive(IDiagnosis)]
+#[diagnosis(
+    description = "static",
+    code = "E_PASS",
+    severity = Severity::Advice,
+    help = "help",
+    url = "https://example.com/errors/E_PASS",
+)]
+struct StaticDiagnosis {
+    #[diagnosis(source)]
+    source: Option<MischiefError>,
+}
+
+#[derive(IDiagnosis)]
+struct DelegatedDiagnosis {
+    #[diagnosis(description)]
+    message: String,
+}
+
+#[derive(IDiagnosis)]
+#[diagnosis(description = "nested description")]
+struct NestedDiagnosis {
+    #[diagnosis(source)]
+    source: StaticDiagnosis,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(error, display, description = "Filter Error: {0}")]
+struct FilterError(
+    /// Description of the failure.
+    String,
+);
+
+#[derive(IDiagnosis)]
+#[diagnosis(description = "default", code = "E_ENUM")]
+enum EnumDiagnosis {
+    Unit,
+    Tuple(
+        #[diagnosis(description)] String,
+        #[diagnosis(source)] MischiefError,
+    ),
+    BoxedDescription(#[diagnosis(description)] Box<str>),
+    StrDescription {
+        #[diagnosis(description)]
+        message: &'static str,
+    },
+    #[diagnosis(description = "named")]
+    Named {
+        #[diagnosis(source)]
+        source: Option<MischiefError>,
+    },
+    #[diagnosis(forward)]
+    Forward(MischiefError),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "inner")]
+enum InnerError {
+    Inner,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "outer")]
+struct OuterError {
+    #[diagnosis(source)]
+    source: Option<InnerError>,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(error, description = "manual display")]
+struct ManualDisplayError {
+    #[diagnosis(source)]
+    source: InnerError,
+}
+
+impl fmt::Display for ManualDisplayError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str("manual display") }
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "foreign source")]
+struct ForeignSource {
+    #[diagnosis(source(foreign), from)]
+    source: std::io::Error,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "from only")]
+struct FromOnly {
+    #[diagnosis(from)]
+    value: u8,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "reportable")]
+struct Reportable {
+    #[diagnosis(source(foreign))]
+    source: std::io::Error,
+}
+
+#[derive(IDiagnosis)]
+#[diagnosis(description = "used {used}")]
+struct UnusedTemplateField {
+    used: u8,
+    unused: u8,
+}
+
+fn main() {
+    let static_diagnosis = StaticDiagnosis { source: None };
+    let _ = (static_diagnosis.code(), static_diagnosis.source());
+
+    let delegated = DelegatedDiagnosis {
+        message: String::from("delegated"),
+    };
+    let _ = delegated.description();
+
+    let nested = NestedDiagnosis {
+        source: StaticDiagnosis { source: None },
+    };
+    let _ = nested.source();
+
+    let filter = FilterError(String::from("invalid UTF-8"));
+    assert_eq!(filter.to_string(), "Filter Error: invalid UTF-8");
+    assert!(core::error::Error::source(&filter).is_none());
+    let _ = filter.into_report();
+
+    let variants = [
+        EnumDiagnosis::Unit,
+        EnumDiagnosis::Tuple(
+            String::from("tuple"),
+            MischiefError::builder("source").build(),
+        ),
+        EnumDiagnosis::BoxedDescription(String::from("boxed").into_boxed_str()),
+        EnumDiagnosis::StrDescription { message: "str" },
+        EnumDiagnosis::Named { source: None },
+        EnumDiagnosis::Forward(MischiefError::builder("forwarded").build()),
+    ];
+    for variant in &variants {
+        let _ = (
+            variant.description(),
+            variant.source(),
+            variant.code(),
+            variant.severity(),
+            variant.help(),
+            variant.url(),
+        );
+    }
+
+    let outer = OuterError {
+        source: Some(InnerError::Inner),
+    };
+    assert_eq!(outer.to_string(), "outer");
+    assert!(core::error::Error::source(&outer).is_some());
+
+    let manual = ManualDisplayError {
+        source: InnerError::Inner,
+    };
+    assert_eq!(manual.to_string(), "manual display");
+    assert!(core::error::Error::source(&manual).is_some());
+
+    let foreign = ForeignSource::from(std::io::Error::other("io"));
+    assert!(core::error::Error::source(&foreign).is_some());
+
+    let from_only = FromOnly::from(1);
+    assert!(core::error::Error::source(&from_only).is_none());
+
+    let unused = UnusedTemplateField {
+        used: 1,
+        unused: 2,
+    };
+    let _ = mischief::DescriptionDisplay(&unused).to_string();
+
+    let report = Reportable {
+        source: std::io::Error::other("report"),
+    }
+    .into_report();
+    assert!(report.downcast_ref::<std::io::Error>().is_some());
+}

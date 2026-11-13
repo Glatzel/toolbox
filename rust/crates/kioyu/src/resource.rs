@@ -1,19 +1,23 @@
 use std::collections::HashMap;
 
+use mischief_api::IDiagnosis;
+
 pub type ResourceKey = &'static str;
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+
+#[derive(Debug, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display)]
 pub enum ResourceError {
     // Resource errors
-    #[error("resource already registered: {0}")]
+    #[diagnosis(description = "resource already registered: {0}")]
     AlreadyRegistered(ResourceKey),
 
-    #[error("resource not found: {0}")]
+    #[diagnosis(description = "resource not found: {0}")]
     NotFound(ResourceKey),
 
-    #[error("insufficient capacity for: {0}")]
+    #[diagnosis(description = "insufficient capacity for: {0}")]
     InsufficientCapacity(ResourceKey),
 
-    #[error("free would underflow resource: {0}")]
+    #[diagnosis(description = "free would underflow resource: {0}")]
     Underflow(ResourceKey),
 }
 
@@ -154,6 +158,26 @@ impl ResourcePool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn error_display_is_unchanged() {
+        assert_eq!(
+            ResourceError::AlreadyRegistered("cpu").to_string(),
+            "resource already registered: cpu"
+        );
+        assert_eq!(
+            ResourceError::NotFound("gpu").to_string(),
+            "resource not found: gpu"
+        );
+        assert_eq!(
+            ResourceError::InsufficientCapacity("mem").to_string(),
+            "insufficient capacity for: mem"
+        );
+        assert_eq!(
+            ResourceError::Underflow("disk").to_string(),
+            "free would underflow resource: disk"
+        );
+    }
 
     fn pool_with(keys: &[(&'static str, usize)]) -> ResourcePool {
         let mut pool = ResourcePool::new();

@@ -1,0 +1,5 @@
+error: unexpected field, expected one of: `source`, `code`, `severity`, `help`, `url`
+ --> tests/ui/fail/unknown_field.rs:4:40
+  |
+4 |     let _ = mischief!("unknown field", detail = "unexpected");
+  |                                        ^^^^^^

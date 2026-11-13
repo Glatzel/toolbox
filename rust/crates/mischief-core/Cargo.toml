@@ -1,0 +1,9 @@
+[package]
+name = "mischief-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["alloc"]
+alloc = []

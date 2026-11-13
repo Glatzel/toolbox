@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "insta",
  "rstest",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "clap",
  "insta",
@@ -263,13 +263,13 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "clerk"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "defmt",
  "jiff",
  "mischief",
+ "mischief-api",
  "owo-colors",
- "thiserror",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -482,10 +482,10 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "envoy"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "mischief",
- "thiserror",
+ "mischief-api",
 ]
 
 [[package]]
@@ -575,7 +575,7 @@ dependencies = [
 
 [[package]]
 name = "generic-num"
-version = "2026.10.11"
+version = "2026.11.0"
 
 [[package]]
 name = "getrandom"
@@ -856,7 +856,7 @@ dependencies = [
 
 [[package]]
 name = "kioyu"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "arbor",
  "async-trait",
@@ -864,8 +864,8 @@ dependencies = [
  "insta",
  "jiff",
  "mischief",
+ "mischief-api",
  "tempfile",
- "thiserror",
  "tokio",
  "tokio-util",
  "uuid",
@@ -965,22 +965,52 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
- "arbor",
- "backtrace",
  "insta",
+ "mischief-api",
+ "mischief-core",
  "mischief-macros",
+ "mischief-render",
  "owo-colors",
- "terminal_size",
+ "tempfile",
+ "thiserror",
+ "trybuild",
 ]
 
 [[package]]
-name = "mischief-macros"
-version = "2026.10.11"
+name = "mischief-api"
+version = "2026.11.0"
 dependencies = [
+ "mischief-core",
+ "mischief-macros",
+]
+
+[[package]]
+name = "mischief-core"
+version = "2026.11.0"
+
+[[package]]
+name = "mischief-macros"
+version = "2026.11.0"
+dependencies = [
+ "insta",
+ "proc-macro-crate",
+ "proc-macro2",
  "quote",
  "syn 3.0.10",
+ "toml_edit",
+]
+
+[[package]]
+name = "mischief-render"
+version = "2026.11.0"
+dependencies = [
+ "arbor",
+ "backtrace",
+ "mischief-core",
+ "owo-colors",
+ "terminal_size",
 ]
 
 [[package]]
@@ -1160,7 +1190,7 @@ checksum = "c135f38778ad324d9e9ee68690bac2c1a51f340fdf96ca13e2ab3914eb2e51d8"
 
 [[package]]
 name = "polars-fmt"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "strum",
 ]
@@ -1226,29 +1256,29 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rax"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "insta",
+ "mischief-api",
  "rstest",
  "strum",
- "thiserror",
 ]
 
 [[package]]
 name = "rax-nmea"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "derive-getters",
  "insta",
  "jiff",
  "mischief",
+ "mischief-api",
  "rax",
  "rstest",
  "serde",
  "strum",
- "thiserror",
 ]
 
 [[package]]
@@ -1443,6 +1473,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c187e0a369471c550af028cba56d4f4fa2a489ad28151ae95a4d340a2a8b782"
+dependencies = [
+ "serde_core",
+]
+
+[[package]]
 name = "serialport"
 version = "4.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1463,7 +1502,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "clerk",
  "mischief",
@@ -1511,13 +1550,14 @@ checksum = "e8e2fb0f499abb4d162f2bedad68f5ef91a1682b5a03596ddb67efd37768d100"
 
 [[package]]
 name = "spek"
-version = "2026.10.11"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "float-cmp",
  "generic-num",
  "insta",
  "mischief",
+ "mischief-api",
  "num-traits",
  "num_enum",
  "parking_lot",
@@ -1526,7 +1566,6 @@ dependencies = [
  "rayon",
  "rstest",
  "strum",
- "thiserror",
 ]
 
 [[package]]
@@ -1615,6 +1654,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "target-tuple"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "876fef147edbcbddc8ac5cbbba92c7b86519e314e86638596c09673b2ed01e7f"
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1625,6 +1670,15 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "termcolor"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
+dependencies = [
+ "winapi-util",
 ]
 
 [[package]]
@@ -1734,6 +1788,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "1.2.1+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5755c51863cdac711f1956baf8eb9588e060755f7d3c4c979e70ea1e1f32cd7"
+dependencies = [
+ "indexmap",
+ "serde_core",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_parser",
+ "toml_writer",
+ "winnow",
+]
+
+[[package]]
 name = "toml_datetime"
 version = "1.1.3+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1762,6 +1831,12 @@ checksum = "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c"
 dependencies = [
  "winnow",
 ]
+
+[[package]]
+name = "toml_writer"
+version = "1.2.0+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "009dbb7700f11c55ef83aebbe4c0e9cf1f1ac0844bd8d6f00dc38f302026e13a"
 
 [[package]]
 name = "tracing"
@@ -1822,6 +1897,21 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
+]
+
+[[package]]
+name = "trybuild"
+version = "1.0.122"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62db9c92d704393fbf2132041720cc80b689f2d3f28521015c2ac866223c11b8"
+dependencies = [
+ "glob",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "target-tuple",
+ "termcolor",
+ "toml",
 ]
 
 [[package]]

@@ -1,0 +1,5 @@
+error: duplicate `code` field marker
+ --> tests/ui/fail/derive_duplicate_code_fields.rs:9:17
+  |
+9 |     #[diagnosis(code)]
+  |                 ^^^^

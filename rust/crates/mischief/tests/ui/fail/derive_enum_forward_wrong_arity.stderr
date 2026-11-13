@@ -1,0 +1,5 @@
+error: `forward` requires a variant with exactly one field
+ --> tests/ui/fail/derive_enum_forward_wrong_arity.rs:5:17
+  |
+5 |     #[diagnosis(forward)]
+  |                 ^^^^^^^

@@ -1,0 +1,8 @@
+---
+source: crates/mischief/tests/test_report.rs
+expression: rendered
+---
+Error: x Third error
+|-- Second error
+`-- Warning[E404]<https://github.com/Glatzel/toolbox>: first error
+    help: Try again.

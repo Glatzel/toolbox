@@ -1,0 +1,5 @@
+error: duplicate `source` field marker
+ --> tests/ui/fail/derive_multiple_sources.rs:8:17
+  |
+8 |     #[diagnosis(source)]
+  |                 ^^^^^^

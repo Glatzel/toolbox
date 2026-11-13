@@ -1,8 +1,8 @@
-#[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
-mod fancy_render;
-#[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
-mod no_fancy_render;
-#[cfg(any(feature = "color", feature = "pretty", feature = "hyperlink"))]
-pub use fancy_render::*;
-#[cfg(not(any(feature = "color", feature = "pretty", feature = "hyperlink")))]
-pub use no_fancy_render::*;
+#[cfg(not(feature = "std"))]
+pub use mischief_core::render_diagnosis;
+#[cfg(all(feature = "std", feature = "backtrace", debug_assertions))]
+pub use mischief_render::render_backtrace;
+#[cfg(feature = "std")]
+pub use mischief_render::{
+    HyperlinkFormat, ITheme, MischiefIndent, RenderBundle, render_diagnosis,
+};

@@ -1,8 +1,8 @@
 ---
 source: crates/mischief/tests/test_report.rs
-expression: "format!(\"{}\", bundle)"
+expression: rendered
 ---
-[31mx [39mThird error
+Error: [31mx [39mThird error
 [31m├─▶ [39mSecond error
 [31m╰─▶ [39mWarning[E404]<https://github.com/Glatzel/toolbox>: first error
     help: Try again.

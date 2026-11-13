@@ -1,0 +1,5 @@
+---
+source: crates/mischief/tests/derive.rs
+expression: "format!(\"{}\", RenderBundle\n{\n    diagnosis: report.error(), theme: NoTheme, indent:\n    MischiefIndent::default(), #[cfg(feature = \"textwrap\")] width: 80,\n})"
+---
+Error: [31mx [39menum parse error

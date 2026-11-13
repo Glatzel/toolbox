@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use mischief_core::{IIntoDiagnosis, MischiefError};
+use mischief_core::{IDiagnosis, IIntoDiagnosis, MischiefError};
 #[cfg(all(feature = "backtrace", debug_assertions))]
 use mischief_render::Backtrace;
 
@@ -83,6 +83,20 @@ impl Report {
 
 impl IIntoDiagnosis for Report {
     fn into_diagnosis(self) -> MischiefError { self.inner.error }
+}
+
+impl IDiagnosis for Report {
+    fn description(&self) -> &str { self.inner.error.description() }
+
+    fn source(&self) -> Option<&dyn IDiagnosis> { self.inner.error.source() }
+
+    fn code(&self) -> Option<&str> { self.inner.error.code() }
+
+    fn severity(&self) -> Option<mischief_core::Severity> { self.inner.error.severity() }
+
+    fn help(&self) -> Option<&str> { self.inner.error.help() }
+
+    fn url(&self) -> Option<&str> { self.inner.error.url() }
 }
 
 /// Formats the report using the configured diagnosis renderer.

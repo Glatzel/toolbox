@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for StaticDiagnosis { fn description (& self) -> & str { "static description" } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { { use :: mischief :: IAsDiagnosis as _ ; self . source . as_diagnosis () } } fn code (& self) -> Option < & str > { Some ("E_DERIVE") } fn severity (& self) -> Option < :: mischief :: Severity > { Some (Severity :: Warning) } fn help (& self) -> Option < & str > { Some ("try again") } fn url (& self) -> Option < & str > { Some ("https://example.com/errors/E_DERIVE") } }

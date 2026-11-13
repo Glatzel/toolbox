@@ -46,6 +46,30 @@ pub trait IIntoDiagnosis {
     fn into_diagnosis(self) -> MischiefError;
 }
 
+/// Exposes a field as an optional diagnosis source.
+///
+/// This is implemented for diagnosis values and `Option<T>` containers.
+pub trait IAsDiagnosis {
+    /// Returns this value as a diagnosis source, when present.
+    fn as_diagnosis(&self) -> Option<&dyn IDiagnosis>;
+}
+
+impl<T> IAsDiagnosis for T
+where
+    T: IDiagnosis,
+{
+    fn as_diagnosis(&self) -> Option<&dyn IDiagnosis> { Some(self) }
+}
+
+impl<T> IAsDiagnosis for Option<T>
+where
+    T: IAsDiagnosis,
+{
+    fn as_diagnosis(&self) -> Option<&dyn IDiagnosis> {
+        self.as_ref().and_then(IAsDiagnosis::as_diagnosis)
+    }
+}
+
 impl IIntoDiagnosis for MischiefError {
     fn into_diagnosis(self) -> MischiefError { self }
 }

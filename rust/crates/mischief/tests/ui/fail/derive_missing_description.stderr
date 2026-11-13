@@ -1,0 +1,5 @@
+error: missing `description` in `#[diagnosis(...)]`
+ --> tests/ui/fail/derive_missing_description.rs:5:8
+  |
+5 | struct MissingDescription {
+  |        ^^^^^^^^^^^^^^^^^^

@@ -135,13 +135,13 @@
 extern crate self as mischief;
 
 pub use mischief_core::{
-    IDiagnosis, IIntoDiagnosis, MischiefError, MischiefErrorBuilder, Severity,
+    IAsDiagnosis, IDiagnosis, IIntoDiagnosis, MischiefError, MischiefErrorBuilder, Severity,
 };
 pub use mischief_macros::{bail, ensure};
 
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
 pub(crate) mod report;
 #[cfg(feature = "macros")]
-pub use mischief_macros::mischief;
+pub use mischief_macros::{IDiagnosis, mischief};
 pub mod render;
 pub use render::*;

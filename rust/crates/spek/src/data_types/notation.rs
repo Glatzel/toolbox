@@ -4,8 +4,6 @@ mod midi;
 mod note;
 mod shared;
 mod thaat;
-use std::error::Error;
-use std::fmt;
 use std::num::ParseIntError;
 
 pub use key::{Key, KeyMode, KeyQuality, KeyScale};
@@ -18,14 +16,15 @@ pub use shared::{Accidental, Pitch};
 pub use thaat::Thaat;
 
 #[derive(Debug, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display)]
 pub enum NotationError {
-    #[diagnosis(description = "notation parser error")]
+    #[diagnosis(transparent)]
     Verb(#[diagnosis(from)] VerbError),
 
-    #[diagnosis(description = "notation integer parse error")]
+    #[diagnosis(transparent(foreign))]
     ParseInt(#[diagnosis(from)] ParseIntError),
 
-    #[diagnosis(description = "notation enum parse error")]
+    #[diagnosis(transparent(foreign))]
     Strum(#[diagnosis(from)] strum::ParseError),
 
     #[diagnosis(description = "unknown pitch")]
@@ -45,33 +44,6 @@ pub enum NotationError {
 
     #[diagnosis(description = "invalid key kind")]
     InvalidKeyKind(String),
-}
-
-impl fmt::Display for NotationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Verb(source) => fmt::Display::fmt(source, f),
-            Self::ParseInt(source) => fmt::Display::fmt(source, f),
-            Self::Strum(source) => fmt::Display::fmt(source, f),
-            Self::UnknownPitch(value) => write!(f, "Unknown pitch: {value}"),
-            Self::UnknownAccidental(value) => write!(f, "Unknown accidental: {value}"),
-            Self::InvalidOctave(value) => write!(f, "Invalid octave first char: {value}"),
-            Self::InvalidNote(value) => write!(f, "Invalid note: {value}"),
-            Self::InvalidKey(value) => write!(f, "Invalid key: {value}"),
-            Self::InvalidKeyKind(value) => write!(f, "Invalid key kind: {value}"),
-        }
-    }
-}
-
-impl Error for NotationError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Verb(source) => Error::source(source),
-            Self::ParseInt(source) => Error::source(source),
-            Self::Strum(source) => Error::source(source),
-            _ => None,
-        }
-    }
 }
 
 #[cfg(test)]

@@ -11,9 +11,9 @@ pub enum EnvoyError {
     #[diagnosis(description = "The pointer was null.")]
     NullPtr,
     /// The input bytes are not valid UTF-8.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     InvalidUtf8(#[diagnosis(from)] Utf8Error),
     /// The input string contains an interior NUL byte.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     NulError(#[diagnosis(from)] NulError),
 }

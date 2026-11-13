@@ -55,17 +55,17 @@
 //! Diagnostic output can be rendered in multiple formats depending on the
 //! enabled features.
 //!
-//! When the `fancy` feature is enabled, diagnostics are rendered using a
-//! themed tree-based renderer built on the `arbor` crate. This renderer
-//! supports:
+//! When the `std` feature is enabled, diagnostics are rendered using a
+//! tree-based renderer built on the `arbor` crate. The `fancy` feature
+//! enables richer presentation, including:
 //!
 //! - hierarchical error chains
 //! - customizable indentation styles
 //! - colored output
 //! - terminal hyperlinks
 //!
-//! When the `fancy` feature is disabled, a minimal text renderer is used
-//! that prints the diagnostic chain in a simple, dependency-free format.
+//! Without `std`, a minimal text renderer prints the diagnostic descriptions
+//! in a dependency-free format.
 //!
 //! # Severity
 //!

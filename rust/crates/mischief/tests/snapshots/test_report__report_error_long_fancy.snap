@@ -1,8 +1,8 @@
 ---
 source: crates/mischief/tests/test_report.rs
-expression: "format!(\"{}\", bundle)"
+expression: rendered
 ---
-[31mx [39mAttempted to access a resource that is not available in the current execution
+Error: [31mx [39mAttempted to access a resource that is not available in the current execution
 [31m│ [39menvironment, which may indicate missing dependencies, restricted permissions,
 [31m│ [39mor an incorrect build target.
 [31m├─▶ [39mError[E502]: Connection to the database server timed out after multiple

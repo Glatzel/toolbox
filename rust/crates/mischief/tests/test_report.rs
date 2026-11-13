@@ -1,10 +1,10 @@
 use mischief::render::*;
 use mischief::{IntoMischief, WrapErr, mischief};
 
-#[cfg(feature = "fancy")]
+#[cfg(feature = "std")]
 struct NoTheme;
 
-#[cfg(feature = "fancy")]
+#[cfg(feature = "std")]
 impl ITheme for NoTheme {
     fn default_style(&self) -> Option<&owo_colors::Style> { None }
     fn description_style(&self) -> Option<&owo_colors::Style> { None }
@@ -19,8 +19,31 @@ impl ITheme for NoTheme {
     }
 }
 
-#[cfg(not(feature = "fancy"))]
-fn assert_no_fancy_snapshot(name: &str, report: &mischief::Report) {
+#[cfg(feature = "std")]
+fn assert_verbose_snapshot(name: &str, report: &mischief::Report) {
+    let bundle = RenderBundle {
+        diagnosis: report.error(),
+        theme: NoTheme,
+        indent: MischiefIndent::default(),
+        #[cfg(feature = "textwrap")]
+        width: 80,
+    };
+    let rendered = format!("{bundle}");
+    assert!(
+        rendered.starts_with("Error: "),
+        "verbose rendering should label the root: {rendered}"
+    );
+    let report_rendered = format!("{report}");
+    assert!(
+        !report_rendered.contains("Caused by:"),
+        "Report Display should select verbose rendering with std: {report_rendered}"
+    );
+
+    insta::assert_snapshot!(name, rendered);
+}
+
+#[cfg(not(feature = "std"))]
+fn assert_simple_snapshot(name: &str, report: &mischief::Report) {
     println!("{}", report);
     insta::assert_snapshot!(name, format!("{}", report));
 }
@@ -43,20 +66,20 @@ fn report_error() {
     match result {
         Ok(_) => unreachable!(),
         Err(report) => {
-            #[cfg(feature = "fancy")]
+            #[cfg(feature = "std")]
             {
-                let bundle = RenderBundle {
-                    diagnosis: report.error(),
-                    theme: NoTheme,
-                    indent: MischiefIndent::default(),
-                    width: 80,
-                };
-                insta::assert_snapshot!(("report_error_fancy"), format!("{}", bundle))
+                assert_verbose_snapshot(
+                    if cfg!(feature = "fancy") {
+                        "report_error_fancy"
+                    } else {
+                        "report_error_std"
+                    },
+                    &report,
+                );
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(feature = "std"))]
             {
-                println!("{}", report);
-                insta::assert_snapshot!(("report_error_no_fancy"), format!("{}", report))
+                assert_simple_snapshot("report_error_no_fancy", &report);
             }
         }
     }
@@ -85,20 +108,20 @@ fn report_error_long() {
     match result {
         Ok(_) => unreachable!(),
         Err(report) => {
-            #[cfg(feature = "fancy")]
+            #[cfg(feature = "std")]
             {
-                let bundle = RenderBundle {
-                    diagnosis: report.error(),
-                    theme: NoTheme,
-                    indent: MischiefIndent::default(),
-                    width: 80,
-                };
-                insta::assert_snapshot!(("report_error_long_fancy"), format!("{}", bundle))
+                assert_verbose_snapshot(
+                    if cfg!(feature = "fancy") {
+                        "report_error_long_fancy"
+                    } else {
+                        "report_error_long_std"
+                    },
+                    &report,
+                );
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(feature = "std"))]
             {
-                println!("{}", report);
-                insta::assert_snapshot!(("report_error_long_no_fancy"), format!("{}", report))
+                assert_simple_snapshot("report_error_long_no_fancy", &report);
             }
         }
     }
@@ -123,20 +146,20 @@ fn report_from_error() -> mischief::Result<()> {
         Err(report) => {
             assert!(report.downcast_ref::<FakeError>().is_some());
 
-            #[cfg(feature = "fancy")]
+            #[cfg(feature = "std")]
             {
-                let bundle = RenderBundle {
-                    diagnosis: report.error(),
-                    theme: NoTheme,
-                    indent: MischiefIndent::default(),
-                    width: 80,
-                };
-                insta::assert_snapshot!(("report_from_error_fancy"), format!("{}", bundle))
+                assert_verbose_snapshot(
+                    if cfg!(feature = "fancy") {
+                        "report_from_error_fancy"
+                    } else {
+                        "report_from_error_std"
+                    },
+                    &report,
+                );
             }
-            #[cfg(not(feature = "fancy"))]
+            #[cfg(not(feature = "std"))]
             {
-                println!("{}", report);
-                insta::assert_snapshot!(("report_from_error_no_fancy"), format!("{}", report))
+                assert_simple_snapshot("report_from_error_no_fancy", &report);
             }
         }
     }

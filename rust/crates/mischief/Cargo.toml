@@ -18,7 +18,7 @@ default = ["mischief-render/arbor-default", "backtrace", "fancy", "macros", "std
 backtrace = ["mischief-render/backtrace", "std"]
 fancy = ["color", "hyperlink", "pretty", "textwrap"]
 macros = ["mischief-macros"]
-std = []
+std = ["mischief-render"]
 
 color = ["mischief-render/color", "std"]
 hyperlink = ["mischief-render/hyperlink", "std"]

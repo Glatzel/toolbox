@@ -27,9 +27,9 @@ struct ReportInner {
 /// containers such as `anyhow::Error`, while preserving structured diagnosis
 /// information compatible with [`crate::IDiagnosis`].
 ///
-/// Formatting a `Report` will render the full diagnosis chain. If the
-/// `fancy` feature is enabled, a structured tree-based renderer is used.
-/// Otherwise a minimal textual fallback renderer is used.
+/// Formatting a `Report` renders the full diagnosis chain. With the `std`
+/// feature, a structured tree renderer is used; otherwise a minimal textual
+/// fallback renderer prints descriptions only.
 pub struct Report {
     inner: Box<ReportInner>,
 }
@@ -70,8 +70,8 @@ impl Report {
 
     /// Renders the report using the configured rendering backend.
     ///
-    /// If the `fancy` feature is enabled, a themed tree renderer based
-    /// on `arbor` is used. Otherwise a minimal textual renderer is used.
+    /// If the `std` feature is enabled, a tree renderer based on `arbor`
+    /// is used. Otherwise a minimal textual renderer is used.
     fn render_report(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         render_diagnosis(&self.inner.error, f)?;
 

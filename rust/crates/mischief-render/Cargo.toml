@@ -8,16 +8,16 @@ rust-version.workspace = true
 arbor.workspace = true
 backtrace = { workspace = true, optional = true }
 mischief-core.workspace = true
-owo-colors = { workspace = true, optional = true }
+owo-colors.workspace = true
 terminal_size = { workspace = true, optional = true }
 
 [features]
 default = ["arbor-default"]
 arbor-default = ["arbor/default"]
 backtrace = ["dep:backtrace", "dep:terminal_size"]
-color = ["dep:owo-colors"]
-hyperlink = ["dep:owo-colors"]
-pretty = ["dep:owo-colors"]
+color = []
+hyperlink = []
+pretty = []
 textwrap = ["arbor/textwrap", "dep:terminal_size"]
 textwrap-full = ["arbor/textwrap-full", "dep:terminal_size"]
 textwrap-hyphenation = [

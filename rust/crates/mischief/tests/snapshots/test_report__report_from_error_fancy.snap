@@ -1,6 +1,6 @@
 ---
 source: crates/mischief/tests/test_report.rs
-expression: "format!(\"{}\", bundle)"
+expression: rendered
 ---
-[31mx [39merror wrapper
+Error: [31mx [39merror wrapper
 [31m╰─▶ [39mfake error

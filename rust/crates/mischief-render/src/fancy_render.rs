@@ -85,7 +85,7 @@ impl Default for MischiefIndent {
                 other: "│   ".to_string(),
             },
             all(not(feature = "color"), not(feature = "pretty")) => Self {
-                root_first: "x".to_string(),
+                root_first: "x ".to_string(),
                 root_other: "| ".to_string(),
                 top_middle_first: "|-- ".to_string(),
                 bottom_first: "`-- ".to_string(),
@@ -368,7 +368,7 @@ impl<D: IDiagnosis, I: IIndent + Clone, T: ITheme> fmt::Display for RenderBundle
             width: self.width,
         };
 
-        write!(f, "{render}")
+        write!(f, "Error: {render}")
     }
 }
 pub fn render_diagnosis<D>(diagnosis: &D, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result

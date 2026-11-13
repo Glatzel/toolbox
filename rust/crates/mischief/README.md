@@ -44,93 +44,175 @@ the `macros` feature.
 
 ## Derived diagnoses
 
-```rust
-use mischief::{IDiagnosis, MischiefError};
+`#[derive(IDiagnosis)]` implements structured diagnostics for a struct or enum
+and adds an inherent `into_report()` method. Add `#[diagnosis(display)]` to
+generate `Display`, and `#[diagnosis(error)]` to generate
+`core::error::Error`. The `error` flag requires `Debug` and `Display`.
 
-#[derive(IDiagnosis)]
-#[diagnosis(description = "invalid input", code = "E_INPUT")]
-struct InputError {
+### Complete struct example
+
+The following struct is a diagnostic node. `LoadError` supplies its own
+message and metadata, while the `#[diagnosis(source)]` field becomes the next
+item in the diagnosis chain.
+
+```rust
+use mischief::{DescriptionDisplay, IDiagnosis, MischiefError, Severity};
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(
+    display,
+    error,
+    description = "failed to load {path}: {cause}",
+    code = "E_LOAD",
+    severity = Severity::Warning,
+    help = "check the file and its permissions",
+    url = "https://example.com/errors/E_LOAD"
+)]
+struct LoadError {
+    path: String,
     #[diagnosis(source)]
-    source: Option<MischiefError>,
+    cause: MischiefError,
 }
 
-let error = InputError { source: None };
-assert_eq!(error.code(), Some("E_INPUT"));
+fn main() {
+    let error = LoadError {
+        path: "config.toml".into(),
+        cause: MischiefError::builder("permission denied").build(),
+    };
+
+    // description() exposes the template; Display and DescriptionDisplay
+    // interpolate the struct fields.
+    assert_eq!(error.description(), "failed to load {path}: {cause}");
+    assert_eq!(
+        error.to_string(),
+        "failed to load config.toml: permission denied"
+    );
+    assert_eq!(
+        format!("{}", DescriptionDisplay(&error)),
+        "failed to load config.toml: permission denied"
+    );
+
+    assert_eq!(error.code(), Some("E_LOAD"));
+    assert_eq!(error.severity(), Some(Severity::Warning));
+    assert_eq!(error.help(), Some("check the file and its permissions"));
+    assert_eq!(
+        error.source().map(IDiagnosis::description),
+        Some("permission denied")
+    );
+
+    let report = error.into_report();
+    assert_eq!(report.error().code(), Some("E_LOAD"));
+    assert_eq!(
+        report.error().source().and_then(IDiagnosis::description),
+        Some("permission denied")
+    );
+}
 ```
 
-Use `#[diagnosis(description_from = field)]` or
-`#[diagnosis(description = field)]` as shorthand for a `{field}` description
-template. Mark one field with `#[diagnosis(source)]`.
+The important pieces are:
 
-Enums use the same attributes, with enum-level metadata inherited by variants:
+- `description = "..."` is the diagnostic template.
+- `display` makes `to_string()` use the same template with formatted fields.
+- `source` exposes one field through `IDiagnosis::source()` and `Error::source()`.
+- `into_report()` copies the structured diagnostic chain into a `Report`.
+
+### Complete enum example
+
+Enums use the same attributes. Enum-level attributes are defaults inherited by
+variants, while variant-level attributes override those defaults. The example
+also distinguishes a normal wrapper, `transparent`, and
+`transparent(foreign)`:
 
 ```rust
-use mischief::IDiagnosis;
+use std::io;
 
-#[derive(IDiagnosis)]
-#[diagnosis(description = "invalid input", code = "E_INPUT")]
-enum InputError {
-    Missing,
-    #[diagnosis(description_from = 0)]
+use mischief::{IDiagnosis, Severity};
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(
+    display,
+    error,
+    description = "core failure",
+    severity = Severity::Warning
+)]
+enum CoreFailure {
+    InvalidState,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(
+    display,
+    error,
+    description = "application failure",
+    code = "E_APPLICATION"
+)]
+enum ApplicationError {
+    // Remove this wrapper from reports and expose CoreFailure directly.
+    #[diagnosis(transparent)]
+    Core(#[diagnosis(from)] CoreFailure),
+
+    // std::io::Error is not an IDiagnosis, so mark it as foreign.
+    // This also removes the wrapper and generates From<std::io::Error>.
+    #[diagnosis(transparent(foreign))]
+    Io(#[diagnosis(from)] io::Error),
+
+    // This remains an ordinary diagnostic node.
+    #[diagnosis(description = "invalid input: {0}", code = "E_INPUT")]
     Invalid(String),
 }
 
-assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
-```
+fn main() {
+    let core = ApplicationError::from(CoreFailure::InvalidState);
+    assert_eq!(core.description(), "core failure");
+    assert_eq!(core.severity(), Some(Severity::Warning));
+    assert_eq!(core.to_string(), "core failure");
 
-Description strings can interpolate tuple fields by position and named fields
-by name, using Rust format specifications:
+    let core_report = core.into_report();
+    assert_eq!(core_report.error().description(), "core failure");
+    assert_eq!(core_report.error().severity(), Some(Severity::Warning));
 
-```rust
-use mischief::{DescriptionDisplay, IDiagnosis};
+    let io = ApplicationError::from(io::Error::other("read failed"));
+    assert_eq!(io.description(), "application failure");
+    assert_eq!(io.code(), Some("E_APPLICATION"));
+    assert_eq!(io.to_string(), "read failed");
+    assert!(core::error::Error::source(&io).is_none());
 
-#[derive(Debug, IDiagnosis)]
-#[diagnosis(display)]
-enum PitchError {
-    #[diagnosis(description = "Unknown pitch: {0}")]
-    Unknown(char),
+    let io_report = io.into_report();
+    assert_eq!(io_report.error().description(), "read failed");
+    assert!(io_report.downcast_ref::<io::Error>().is_some());
+
+    let invalid = ApplicationError::Invalid("unexpected token".into());
+    assert_eq!(invalid.description(), "invalid input: {0}");
+    assert_eq!(invalid.code(), Some("E_INPUT"));
+    assert_eq!(invalid.to_string(), "invalid input: unexpected token");
 }
-
-let error = PitchError::Unknown('H');
-assert_eq!(error.description(), "Unknown pitch: {0}");
-assert_eq!(error.to_string(), "Unknown pitch: H");
-assert_eq!(
-    format!("{}", DescriptionDisplay(&error)),
-    "Unknown pitch: H"
-);
 ```
 
-`description()` returns the unformatted template when it contains
-placeholders. Renderers and `DescriptionDisplay` use
-`IDiagnosis::fmt_description()` for the formatted text.
+### Choosing how to nest errors
 
-Add `display` and `error` to generate `Display` and `Error`. Use `from` on a
-single field to generate its conversion:
+| Form | Inner type requirement | Effect |
+| --- | --- | --- |
+| `#[diagnosis(source)]` | `IDiagnosis` | Keeps the outer error as a report node and appends the inner diagnosis as its source. |
+| `#[diagnosis(source(foreign))]` | `Error + Send + Sync + 'static` | Keeps the outer node while retaining the concrete foreign error as a report source. |
+| `#[diagnosis(transparent)]` | `IDiagnosis + Display + Error` | Removes the wrapper and forwards all diagnostic metadata, `Display`, and `Error::source()` to the inner value. |
+| `#[diagnosis(transparent(foreign))]` | `Display + Error + Send + Sync + 'static` | Removes the wrapper, forwards `Display`, and retains the foreign error as the report root for downcasting. |
 
-```rust
-use mischief::IDiagnosis;
+Both transparent forms require exactly one field and the type-level
+`display` and `error` flags. `transparent` cannot add metadata of its own.
+`transparent(foreign)` uses the enum-level description, or the variant name
+when no default exists, for `description()`; formatted descriptions and
+`Display` use the foreign error's text.
 
-#[derive(Debug, IDiagnosis)]
-#[diagnosis(display, error, description = "I/O error")]
-enum FileError {
-    #[diagnosis(transparent(foreign))]
-    Io(#[diagnosis(from)] std::io::Error),
-    #[diagnosis(description = "missing file")]
-    Missing,
-}
+Additional description rules:
 
-let error = FileError::from(std::io::Error::other("read failed"));
-assert_eq!(error.to_string(), "read failed");
-let report = error.into_report();
-assert_eq!(report.error().description(), "read failed");
-```
-
-`transparent` forwards to an inner type implementing both `IDiagnosis` and
-`Error`. `transparent(foreign)` forwards `Display` and `Error::source()` to a
-foreign error. Both forms omit the wrapper node from `into_report()`. A
-foreign-transparent variant without an enum-level `description` uses its
-variant name for `description()`, while `fmt_description()` forwards to the
-inner error's `Display`.
+- `description_from = field` is shorthand for a `{field}` template.
+- `description = field` delegates the description to that field.
+- Tuple fields use `{0}`, `{1}`, and named fields use `{name}`.
+- `{0:?}` and `{name:#x}` format specifications are supported.
+- `{{` and `}}` escape literal braces.
+- Enum-level default descriptions cannot contain placeholders.
+- `description()` returns the template unchanged; renderers and
+  `DescriptionDisplay` call `fmt_description()` for the formatted text.
 
 More runnable examples are in the crate’s `examples/` directory:
 

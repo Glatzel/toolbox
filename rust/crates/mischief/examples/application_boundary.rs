@@ -35,9 +35,11 @@ fn main() -> Result<()> {
     let invalid = parse_port("not-a-port").expect_err("invalid input should fail");
     assert_eq!(invalid.error().description(), "invalid port \"not-a-port\"");
     assert!(invalid.downcast_ref::<std::num::ParseIntError>().is_some());
+    eprintln!("{invalid}");
 
     let mode = load_mode("staging").expect_err("unknown mode should fail");
     assert_eq!(mode.error().code(), Some("E_MODE"));
+    eprintln!("{mode}");
     Ok(())
 }
 

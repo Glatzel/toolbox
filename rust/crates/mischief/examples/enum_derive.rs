@@ -1,5 +1,7 @@
 use mischief::{IDiagnosis, MischiefError, Severity};
 
+mod support;
+
 #[derive(IDiagnosis)]
 #[diagnosis(
     description = "command failed",
@@ -51,6 +53,9 @@ fn main() {
 
     let parse = CommandError::Parse(String::from("unexpected token"));
     assert_eq!(parse.description(), "unexpected token");
+
+    support::print_diagnosis("invalid configuration", &invalid);
+    support::print_diagnosis("failed load", &load);
 }
 
 #[test]

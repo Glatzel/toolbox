@@ -1,5 +1,7 @@
 use mischief::{IDiagnosis, MischiefError, Severity};
 
+mod support;
+
 #[derive(IDiagnosis)]
 enum ApplicationError {
     #[diagnosis(forward)]
@@ -19,6 +21,7 @@ fn main() {
     assert_eq!(error.severity(), Some(Severity::Error));
     assert_eq!(error.help(), Some("start the database"));
     assert!(error.source().is_none());
+    support::print_diagnosis("forwarded diagnostic", &error);
 }
 
 #[test]

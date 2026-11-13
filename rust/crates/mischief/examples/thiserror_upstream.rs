@@ -39,14 +39,17 @@ fn main() {
         upstream.source().map(IDiagnosis::description),
         Some("invalid setting `port`")
     );
+    eprintln!("{report}");
 
     let transparent = Report::from(TransparentError::from(SettingsError { key: "mode" }));
     assert_eq!(transparent.error().description(), "invalid setting `mode`");
     assert!(transparent.downcast_ref::<TransparentError>().is_some());
     assert!(transparent.downcast_ref::<SettingsError>().is_none());
+    eprintln!("{transparent}");
 
     let directly_converted = Report::from(SettingsError { key: "mode" });
     assert!(directly_converted.downcast_ref::<SettingsError>().is_some());
+    eprintln!("{directly_converted}");
 }
 
 #[test]

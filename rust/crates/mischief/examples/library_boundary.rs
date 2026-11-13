@@ -1,5 +1,7 @@
 use mischief::{IDiagnosis, MischiefError, Severity};
 
+mod support;
+
 #[derive(IDiagnosis)]
 #[diagnosis(
     description = "configuration failed",
@@ -40,6 +42,7 @@ fn main() {
     assert_eq!(invalid.code(), Some("E_CONFIG_PORT"));
     assert_eq!(invalid.severity(), Some(Severity::Error));
     assert!(invalid.source().is_some());
+    support::print_diagnosis("library error", &invalid);
 }
 
 #[test]

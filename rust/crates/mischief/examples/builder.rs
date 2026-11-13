@@ -15,6 +15,7 @@ fn main() {
         report.error().source().and_then(|source| source.code()),
         Some("E_PARSE")
     );
+    eprintln!("{report}");
 }
 
 #[test]

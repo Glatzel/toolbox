@@ -74,18 +74,18 @@ pub enum RaxNmeaError {
     UnknownGsaNavigationMode(String),
 
     /// A lower-level [`rax`] parsing rule failed.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     RaxVerb(#[diagnosis(from)] rax::error::VerbError),
     /// A floating-point field could not be parsed.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     ParseFloat(#[diagnosis(from)] ParseFloatError),
     /// An integer field could not be parsed.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     ParseInt(#[diagnosis(from)] ParseIntError),
     /// An infallible conversion failed.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     Infallible(#[diagnosis(from)] Infallible),
     /// A [`strum`] enum conversion failed.
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     Strum(#[diagnosis(from)] strum::ParseError),
 }

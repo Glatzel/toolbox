@@ -1,6 +1,6 @@
 #[cfg(not(feature = "std"))]
 pub use mischief_core::render_diagnosis;
-#[cfg(all(feature = "std", feature = "backtrace"))]
+#[cfg(all(feature = "std", feature = "backtrace", debug_assertions))]
 pub use mischief_render::render_backtrace;
 #[cfg(feature = "std")]
 pub use mischief_render::{

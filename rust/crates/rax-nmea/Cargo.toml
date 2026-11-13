@@ -26,8 +26,8 @@ strum.workspace = true
 [dev-dependencies]
 criterion.workspace = true
 insta = { workspace = true, features = ["filters", "json"] }
-rstest.workspace = true
 mischief.workspace = true
+rstest.workspace = true
 
 [features]
 serde = ["dep:serde", "jiff/serde"]

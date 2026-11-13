@@ -8,10 +8,7 @@ edition.workspace = true
 defmt = { workspace = true, optional = true }
 # std logging (host side)
 jiff = { workspace = true, features = ["tz-system"], optional = true }
-mischief-api = {
-  workspace = true,
-  optional = true
-}
+mischief-api = { workspace = true, optional = true }
 owo-colors = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }
 tracing-core = { workspace = true, optional = true }

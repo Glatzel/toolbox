@@ -1007,7 +1007,7 @@ name = "clerk"
 version = "2026.11.0"
 dependencies = [
  "jiff",
- "mischief",
+ "mischief-api",
  "owo-colors",
  "tracing",
  "tracing-core",
@@ -2749,7 +2749,7 @@ dependencies = [
  "async-trait",
  "clerk",
  "jiff",
- "mischief",
+ "mischief-api",
  "tokio",
  "tokio-util",
  "uuid",
@@ -3416,9 +3416,18 @@ dependencies = [
 name = "mischief"
 version = "2026.11.0"
 dependencies = [
+ "mischief-api",
  "mischief-core",
  "mischief-macros",
  "mischief-render",
+]
+
+[[package]]
+name = "mischief-api"
+version = "2026.11.0"
+dependencies = [
+ "mischief-core",
+ "mischief-macros",
 ]
 
 [[package]]
@@ -3433,6 +3442,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+ "toml_edit",
 ]
 
 [[package]]

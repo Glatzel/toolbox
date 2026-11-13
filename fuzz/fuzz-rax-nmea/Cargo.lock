@@ -164,7 +164,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
-name = "mischief"
+name = "mischief-api"
 version = "2026.11.0"
 dependencies = [
  "mischief-core",
@@ -183,6 +183,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+ "toml_edit",
 ]
 
 [[package]]
@@ -237,7 +238,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 name = "rax"
 version = "2026.11.0"
 dependencies = [
- "mischief",
+ "mischief-api",
  "strum",
 ]
 
@@ -247,7 +248,7 @@ version = "2026.11.0"
 dependencies = [
  "derive-getters",
  "jiff",
- "mischief",
+ "mischief-api",
  "rax",
  "strum",
 ]

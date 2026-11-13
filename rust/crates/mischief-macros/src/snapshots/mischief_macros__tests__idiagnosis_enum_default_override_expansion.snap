@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for OverrideEnum { fn description (& self) -> & str { match self { Self :: Default => "default" , Self :: Override => "override" } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Default => None , Self :: Override => None } } fn code (& self) -> Option < & str > { match self { Self :: Default => Some ("E_DEFAULT") , Self :: Override => Some ("E_OVERRIDE") } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Default => Some (Severity :: Advice) , Self :: Override => Some (Severity :: Warning) } } fn help (& self) -> Option < & str > { match self { Self :: Default => Some ("default help") , Self :: Override => Some ("override help") } } fn url (& self) -> Option < & str > { match self { Self :: Default => Some ("https://example.com/default") , Self :: Override => Some ("https://example.com/override") } } }

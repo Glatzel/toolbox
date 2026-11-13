@@ -1,0 +1,5 @@
+error: IDiagnosis cannot be derived for an empty enum
+ --> tests/ui/fail/derive_enum_empty.rs:4:6
+  |
+4 | enum Empty {}
+  |      ^^^^^

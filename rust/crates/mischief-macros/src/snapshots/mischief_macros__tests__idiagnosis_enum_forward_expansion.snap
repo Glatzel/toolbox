@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for ForwardEnum { fn description (& self) -> & str { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . description () } } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . source () } } } fn code (& self) -> Option < & str > { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . code () } } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . severity () } } } fn help (& self) -> Option < & str > { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . help () } } } fn url (& self) -> Option < & str > { match self { Self :: Forward (__field_0) => { use :: mischief :: IDiagnosis as _ ; __field_0 . url () } } } }

@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for UnitEnum { fn description (& self) -> & str { match self { Self :: Unit => "default" } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Unit => None } } fn code (& self) -> Option < & str > { match self { Self :: Unit => Some ("E_DEFAULT") } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Unit => None } } fn help (& self) -> Option < & str > { match self { Self :: Unit => None } } fn url (& self) -> Option < & str > { match self { Self :: Unit => None } } }

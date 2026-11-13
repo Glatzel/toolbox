@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for SourceEnum { fn description (& self) -> & str { match self { Self :: Source { source : __field_0 } => "source" } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Source { source : __field_0 } => { use :: mischief :: IAsDiagnosis as _ ; __field_0 . as_diagnosis () } } } fn code (& self) -> Option < & str > { match self { Self :: Source { source : __field_0 } => None } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Source { source : __field_0 } => None } } fn help (& self) -> Option < & str > { match self { Self :: Source { source : __field_0 } => None } } fn url (& self) -> Option < & str > { match self { Self :: Source { source : __field_0 } => None } } }

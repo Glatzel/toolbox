@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for NamedEnum { fn description (& self) -> & str { match self { Self :: Named { value : __field_0 } => "named" } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Named { value : __field_0 } => None } } fn code (& self) -> Option < & str > { match self { Self :: Named { value : __field_0 } => None } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Named { value : __field_0 } => None } } fn help (& self) -> Option < & str > { match self { Self :: Named { value : __field_0 } => None } } fn url (& self) -> Option < & str > { match self { Self :: Named { value : __field_0 } => None } } }

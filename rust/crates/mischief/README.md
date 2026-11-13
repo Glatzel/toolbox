@@ -61,6 +61,22 @@ assert_eq!(error.code(), Some("E_INPUT"));
 Use `#[diagnosis(description = field)]` to delegate the description to an
 `AsRef<str>` field. Mark one field with `#[diagnosis(source)]`.
 
+Enums use the same attributes, with enum-level metadata inherited by variants:
+
+```rust
+use mischief::IDiagnosis;
+
+#[derive(IDiagnosis)]
+#[diagnosis(description = "invalid input", code = "E_INPUT")]
+enum InputError {
+    Missing,
+    #[diagnosis(description_from = 0)]
+    Invalid(String),
+}
+
+assert_eq!(InputError::Invalid("name".into()).description(), "name");
+```
+
 ## Features
 
 | Feature | Effect |

@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_idiagnosis(input).to_string()
+---
+impl :: mischief :: IDiagnosis for TupleEnum { fn description (& self) -> & str { match self { Self :: Tuple (__field_0 , __field_1) => :: core :: convert :: AsRef :: < str > :: as_ref (__field_0) } } fn source (& self) -> Option < & dyn :: mischief :: IDiagnosis > { match self { Self :: Tuple (__field_0 , __field_1) => None } } fn code (& self) -> Option < & str > { match self { Self :: Tuple (__field_0 , __field_1) => None } } fn severity (& self) -> Option < :: mischief :: Severity > { match self { Self :: Tuple (__field_0 , __field_1) => None } } fn help (& self) -> Option < & str > { match self { Self :: Tuple (__field_0 , __field_1) => None } } fn url (& self) -> Option < & str > { match self { Self :: Tuple (__field_0 , __field_1) => None } } }

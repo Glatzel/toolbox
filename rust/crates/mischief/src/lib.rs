@@ -65,6 +65,23 @@
 //! assert!(error.source().is_none());
 //! ```
 //!
+//! Enums may define defaults and override them per variant:
+//!
+//! ```
+//! use mischief::IDiagnosis;
+//!
+//! #[derive(IDiagnosis)]
+//! #[diagnosis(description = "invalid input", code = "E_INPUT")]
+//! enum InputError {
+//!     Missing,
+//!     #[diagnosis(description_from = 0)]
+//!     Invalid(String),
+//! }
+//!
+//! assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
+//! assert_eq!(InputError::Invalid("name".into()).description(), "name");
+//! ```
+//!
 //! # Foreign Errors
 //!
 //! Foreign errors retain their concrete root type for downcasting while their

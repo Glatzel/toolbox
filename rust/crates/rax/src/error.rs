@@ -15,7 +15,7 @@ use mischief::IDiagnosis;
 use crate::text::{IRule, Verb};
 /// Error returned when a rule does not match the input.
 #[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
-#[diagnosis(error,display, description_from = reason)]
+#[diagnosis(error, display, description = "reason")]
 pub struct RuleError {
     /// Human-readable reason the rule failed.
     pub reason: Cow<'static, str>,
@@ -47,7 +47,11 @@ impl RuleError {
 }
 /// Error returned when a parser operation fails while applying a rule.
 #[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
-#[diagnosis(error, display, description = "parser verb failed")]
+#[diagnosis(
+    error,
+    display,
+    description = "Verb Error: verb={verb:?}, rule={rule}, input={input}, rule_error={rule_error}"
+)]
 pub struct VerbError {
     /// The parser operation that was being applied.
     pub verb: Verb,
@@ -60,7 +64,7 @@ pub struct VerbError {
 }
 /// Error returned by a character-set filter.
 #[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
-#[diagnosis(error, display, description = "parser verb failed")]
+#[diagnosis(error, display, description = "Filter Error: {0}")]
 pub struct FilterError(
     /// Description of the failure.
     pub String,

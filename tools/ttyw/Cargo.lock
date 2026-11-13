@@ -293,8 +293,8 @@ name = "clerk"
 version = "2026.11.13"
 dependencies = [
  "jiff",
+ "mischief",
  "owo-colors",
- "thiserror 2.0.21",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -1798,7 +1798,7 @@ dependencies = [
 
 [[package]]
 name = "ttyw"
-version = "2026.10.11"
+version = "2026.11.13"
 dependencies = [
  "axum",
  "clap",

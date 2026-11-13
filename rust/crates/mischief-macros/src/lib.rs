@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
@@ -94,9 +95,13 @@ impl Parse for MischiefErrorInput {
 /// ```
 #[proc_macro]
 pub fn mischief(input: TokenStream) -> TokenStream {
-    let parsed_input = match syn::parse::<MischiefErrorInput>(input) {
+    expand_mischief(input.into()).into()
+}
+
+fn expand_mischief(input: TokenStream2) -> TokenStream2 {
+    let parsed_input = match syn::parse2::<MischiefErrorInput>(input) {
         Ok(input) => input,
-        Err(e) => return e.to_compile_error().into(),
+        Err(e) => return e.to_compile_error(),
     };
 
     let description_lit = parsed_input.description_lit;
@@ -140,5 +145,29 @@ pub fn mischief(input: TokenStream) -> TokenStream {
         }
     };
 
-    expanded.into()
+    expanded
+}
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_snapshot;
+    use proc_macro2::TokenStream;
+
+    use super::expand_mischief;
+
+    #[test]
+    fn mischief_expansion() {
+        let input: TokenStream = r#"
+            "wrapped {}",
+            context,
+            code = "E404",
+            severity = Severity::Warning,
+            help = "Try again.",
+            url = "https://example.com/errors/E404",
+        "#
+        .parse()
+        .expect("macro input should parse");
+
+        assert_snapshot!(expand_mischief(input).to_string());
+    }
 }

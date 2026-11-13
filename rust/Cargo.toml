@@ -32,6 +32,7 @@ num-traits = "0.2.19"
 owo-colors = "4.4.0"
 parking_lot = "0.13.0"
 phastft = { version = "0.4.1", default-features = false }
+proc-macro2 = "1.0.107"
 quote = "1.0.47"
 rayon = "1.12.0"
 rstest = "0.28.0"

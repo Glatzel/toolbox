@@ -1,0 +1,5 @@
+---
+source: crates/mischief-macros/src/lib.rs
+expression: expand_mischief(input).to_string()
+---
+{ extern crate mischief ; use mischief :: { MischiefError , Report } ; extern crate alloc ; use alloc :: string :: String ; use core :: fmt :: Write ; let mut description = String :: new () ; write ! (description , "wrapped {}" , context) . unwrap () ; Report :: new (MischiefError :: new (description , None , Some ("E404" . into ()) , Some (Severity :: Warning . into ()) , Some ("Try again." . into ()) , Some ("https://example.com/errors/E404" . into ()) ,)) }

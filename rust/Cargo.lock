@@ -979,6 +979,8 @@ dependencies = [
 name = "mischief-macros"
 version = "2026.10.11"
 dependencies = [
+ "insta",
+ "proc-macro2",
  "quote",
  "syn 3.0.10",
 ]

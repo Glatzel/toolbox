@@ -95,6 +95,41 @@ enum ForeignEnum {
     Parse(#[diagnosis(from)] std::num::ParseIntError),
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "report inner")]
+enum ReportInner {
+    Inner,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(
+    description = "report outer",
+    code = "E_REPORT_OUTER",
+    severity = Severity::Warning,
+    help = "retry",
+    url = "https://example.com/E_REPORT_OUTER"
+)]
+struct ReportableError {
+    #[diagnosis(source)]
+    source: ReportInner,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "foreign report")]
+struct ForeignReportableError {
+    #[diagnosis(source(foreign))]
+    source: std::io::Error,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "report enum")]
+enum ReportableEnum {
+    #[diagnosis(description = "diagnosis variant")]
+    Diagnosis(#[diagnosis(source)] ReportInner),
+    #[diagnosis(description = "foreign variant")]
+    Foreign(#[diagnosis(source(foreign))] std::io::Error),
+}
+
 #[test]
 fn derives_static_description_and_metadata() {
     let source = MischiefError::builder("source").build();
@@ -175,6 +210,40 @@ fn foreign_sources_and_from_conversions_work_independently() {
 
     let parse = ForeignEnum::from("not a number".parse::<u8>().expect_err("invalid integer"));
     assert!(matches!(parse, ForeignEnum::Parse(_)));
+}
+
+#[test]
+fn into_report_preserves_metadata_and_sources() {
+    let report = ReportableError {
+        source: ReportInner::Inner,
+    }
+    .into_report();
+    assert_eq!(report.error().description(), "report outer");
+    assert_eq!(report.error().code(), Some("E_REPORT_OUTER"));
+    assert_eq!(
+        report.error().source().map(IDiagnosis::description),
+        Some("report inner")
+    );
+
+    let foreign = ForeignReportableError {
+        source: std::io::Error::other("foreign report"),
+    }
+    .into_report();
+    assert!(foreign.downcast_ref::<std::io::Error>().is_some());
+
+    let enum_report = ReportableEnum::Foreign(std::io::Error::other("enum report")).into_report();
+    assert_eq!(enum_report.error().description(), "foreign variant");
+    assert!(enum_report.downcast_ref::<std::io::Error>().is_some());
+
+    let diagnosis_report = ReportableEnum::Diagnosis(ReportInner::Inner).into_report();
+    assert_eq!(diagnosis_report.error().description(), "diagnosis variant");
+    assert_eq!(
+        diagnosis_report
+            .error()
+            .source()
+            .map(IDiagnosis::description),
+        Some("report inner")
+    );
 }
 
 #[test]

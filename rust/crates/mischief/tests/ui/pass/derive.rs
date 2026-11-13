@@ -85,6 +85,13 @@ struct FromOnly {
     value: u8,
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "reportable")]
+struct Reportable {
+    #[diagnosis(source(foreign))]
+    source: std::io::Error,
+}
+
 fn main() {
     let static_diagnosis = StaticDiagnosis { source: None };
     let _ = (static_diagnosis.code(), static_diagnosis.source());
@@ -138,4 +145,10 @@ fn main() {
 
     let from_only = FromOnly::from(1);
     assert!(core::error::Error::source(&from_only).is_none());
+
+    let report = Reportable {
+        source: std::io::Error::other("report"),
+    }
+    .into_report();
+    assert!(report.downcast_ref::<std::io::Error>().is_some());
 }

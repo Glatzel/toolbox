@@ -7,8 +7,9 @@ use super::attrs::{
     Description, DiagnosisAttributes, SourceKind, option_literal, parse_field_roles,
 };
 use super::shared::{
-    DiagnosisMethods, error_source_expression, foreign_error_source_expression,
-    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
+    DiagnosisMethods, diagnosis_source_builder, error_source_expression,
+    foreign_error_source_expression, foreign_source_builder, generate_display_impl,
+    generate_error_impl, generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl,
 };
 use crate::facade_path;
 
@@ -149,5 +150,24 @@ pub(crate) fn derive_struct_idiagnosis(
     if let Some(from) = from {
         expanded.extend(from);
     }
+    let report_expression = roles.source.map_or_else(
+        || quote! { #facade::Report::new(builder.build()) },
+        |source| {
+            let field = field_refs[source.index];
+            let field_name = field.ident.as_ref().expect("named field");
+            let builder_expression = match source.kind {
+                SourceKind::Diagnosis => diagnosis_source_builder(&field.ty, quote! { source }),
+                SourceKind::Foreign => foreign_source_builder(&field.ty, quote! { source }),
+            };
+            quote! {
+                match self {
+                    Self { #field_name: source, .. } => {
+                        #facade::Report::new((#builder_expression).build())
+                    }
+                }
+            }
+        },
+    );
+    expanded.extend(generate_into_report_impl(input, &facade, report_expression));
     Ok(expanded)
 }

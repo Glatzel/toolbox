@@ -248,9 +248,13 @@ fn facade_path() -> TokenStream2 {
 /// `From<FieldType>`. `from` is independent of source tracking. Two `from`
 /// fields with the same type in one enum are rejected.
 ///
-/// Formatted descriptions, typed foreign-error sources, transparent
-/// derivation, `into_report()` generation, and error mapping between enums are
-/// not supported.
+/// Every derived type also receives an inherent `into_report(self) -> Report`.
+/// Diagnostic sources are copied into the report, while owned foreign sources
+/// are retained as downcastable roots. The blanket `From<Error> for Report`
+/// conversion is unchanged.
+///
+/// Formatted descriptions, transparent derivation, and error mapping between
+/// enums are not supported.
 ///
 /// # Examples
 ///
@@ -517,6 +521,44 @@ mod tests {
                 Io(#[diagnosis(source(foreign), from)] IoError),
                 #[diagnosis(description = "parse")]
                 Parse(#[diagnosis(from)] ParseError),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_into_report_struct_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(
+                description = "outer",
+                code = "E_OUTER",
+                severity = Severity::Warning,
+                help = "try again",
+                url = "https://example.com/E_OUTER",
+            )]
+            struct Outer {
+                #[diagnosis(source)]
+                source: Inner,
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_into_report_enum_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(description = "default")]
+            enum Reportable {
+                #[diagnosis(description = "diagnosis")]
+                Diagnosis(#[diagnosis(source)] Inner),
+                #[diagnosis(description = "foreign")]
+                Foreign(#[diagnosis(source(foreign))] IoError),
             }
         "#
         .parse()

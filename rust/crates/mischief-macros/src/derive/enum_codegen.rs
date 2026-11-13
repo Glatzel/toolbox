@@ -11,8 +11,9 @@ use super::attrs::{
     parse_field_roles,
 };
 use super::shared::{
-    DiagnosisMethods, error_source_expression, foreign_error_source_expression,
-    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
+    DiagnosisMethods, diagnosis_source_builder, error_source_expression,
+    foreign_error_source_expression, foreign_source_builder, generate_display_impl,
+    generate_error_impl, generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl,
 };
 use crate::facade_path;
 
@@ -28,6 +29,7 @@ struct EnumArm {
     display: Option<TokenStream2>,
     source: TokenStream2,
     error_source: TokenStream2,
+    report: TokenStream2,
     code: TokenStream2,
     severity: TokenStream2,
     help: TokenStream2,
@@ -126,6 +128,9 @@ pub(crate) fn derive_enum_idiagnosis(
                     }
                 },
                 error_source: quote! { None },
+                report: quote! {
+                    #facade::Report::new(copy_diagnosis(&#binding))
+                },
                 code: quote! {
                     {
                         use #facade::IDiagnosis as _;
@@ -205,6 +210,24 @@ pub(crate) fn derive_enum_idiagnosis(
             display,
             source,
             error_source,
+            report: roles.source.map_or_else(
+                || quote! { #facade::Report::new(builder.build()) },
+                |source| {
+                    let field = fields[source.index];
+                    let binding = &bindings[source.index].binding;
+                    let builder_expression = match source.kind {
+                        SourceKind::Diagnosis => {
+                            diagnosis_source_builder(&field.ty, quote! { #binding })
+                        }
+                        SourceKind::Foreign => {
+                            foreign_source_builder(&field.ty, quote! { #binding })
+                        }
+                    };
+                    quote! {
+                        #facade::Report::new((#builder_expression).build())
+                    }
+                },
+            ),
             code,
             severity,
             help,
@@ -307,6 +330,23 @@ pub(crate) fn derive_enum_idiagnosis(
             },
         ));
     }
+    let report_arms: Vec<_> = arms
+        .iter()
+        .map(|arm| {
+            let pattern = &arm.pattern;
+            let expression = &arm.report;
+            quote! { #pattern => #expression }
+        })
+        .collect();
+    expanded.extend(generate_into_report_impl(
+        input,
+        &facade,
+        quote! {
+            match self {
+                #(#report_arms),*
+            }
+        },
+    ));
     for from_impl in from_impls {
         expanded.extend(from_impl);
     }

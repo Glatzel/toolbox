@@ -134,6 +134,93 @@ pub(crate) fn generate_from_impl(
     }
 }
 
+pub(crate) fn generate_into_report_impl(
+    input: &DeriveInput,
+    facade: &TokenStream2,
+    report_expression: TokenStream2,
+) -> TokenStream2 {
+    let name = &input.ident;
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+    quote! {
+        impl #impl_generics #name #type_generics #where_clause {
+            /// Converts this value into a mischief report.
+            pub fn into_report(self) -> #facade::Report {
+                extern crate alloc;
+
+                fn copy_diagnosis(source: &dyn #facade::IDiagnosis) -> #facade::MischiefError {
+                    use alloc::string::ToString as _;
+
+                    let mut builder = #facade::MischiefError::builder(
+                        #facade::IDiagnosis::description(source).to_string()
+                    );
+                    if let Some(code) = #facade::IDiagnosis::code(source) {
+                        builder = builder.code(code.to_string());
+                    }
+                    if let Some(severity) = #facade::IDiagnosis::severity(source) {
+                        builder = builder.severity(severity);
+                    }
+                    if let Some(help) = #facade::IDiagnosis::help(source) {
+                        builder = builder.help(help.to_string());
+                    }
+                    if let Some(url) = #facade::IDiagnosis::url(source) {
+                        builder = builder.url(url.to_string());
+                    }
+                    if let Some(source) = #facade::IDiagnosis::source(source) {
+                        builder = builder.source(copy_diagnosis(source));
+                    }
+                    builder.build()
+                }
+
+                use alloc::string::ToString as _;
+
+                let mut builder = #facade::MischiefError::builder(
+                    #facade::IDiagnosis::description(&self).to_string()
+                );
+                if let Some(code) = #facade::IDiagnosis::code(&self) {
+                    builder = builder.code(code.to_string());
+                }
+                if let Some(severity) = #facade::IDiagnosis::severity(&self) {
+                    builder = builder.severity(severity);
+                }
+                if let Some(help) = #facade::IDiagnosis::help(&self) {
+                    builder = builder.help(help.to_string());
+                }
+                if let Some(url) = #facade::IDiagnosis::url(&self) {
+                    builder = builder.url(url.to_string());
+                }
+
+                #report_expression
+            }
+        }
+    }
+}
+
+pub(crate) fn diagnosis_source_builder(field_type: &Type, value: TokenStream2) -> TokenStream2 {
+    if is_option(field_type) {
+        quote! {
+            match #value {
+                Some(source) => builder.source(copy_diagnosis(&source)),
+                None => builder,
+            }
+        }
+    } else {
+        quote! { builder.source(copy_diagnosis(&#value)) }
+    }
+}
+
+pub(crate) fn foreign_source_builder(field_type: &Type, value: TokenStream2) -> TokenStream2 {
+    if is_option(field_type) {
+        quote! {
+            match #value {
+                Some(source) => builder.source_error(source),
+                None => builder,
+            }
+        }
+    } else {
+        quote! { builder.source_error(#value) }
+    }
+}
+
 fn is_option(field_type: &Type) -> bool {
     let Type::Path(path) = field_type else {
         return false;

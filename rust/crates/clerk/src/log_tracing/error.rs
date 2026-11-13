@@ -1,33 +1,15 @@
 use std::error::Error;
-use std::fmt;
 use std::path::PathBuf;
 
 use mischief::IDiagnosis;
 
 #[derive(Debug, IDiagnosis)]
+#[diagnosis(error, display)]
 pub enum ClerkError {
-    #[diagnosis(description = "I/O error")]
+    #[diagnosis(transparent(foreign))]
     IO(#[diagnosis(from)] std::io::Error),
     #[diagnosis(description = "Parent directory not found")]
     ParentDirectoryNotFound(PathBuf),
-}
-
-impl fmt::Display for ClerkError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::IO(source) => fmt::Display::fmt(source, f),
-            Self::ParentDirectoryNotFound(_) => f.write_str("Parent directory not found"),
-        }
-    }
-}
-
-impl Error for ClerkError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::IO(source) => Error::source(source),
-            Self::ParentDirectoryNotFound(_) => None,
-        }
-    }
 }
 
 #[cfg(test)]

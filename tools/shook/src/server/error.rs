@@ -5,11 +5,11 @@ use mischief::IDiagnosis;
 #[derive(Debug, IDiagnosis)]
 #[diagnosis(display, error)]
 pub enum ShookServerError {
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     Microsandbox(#[diagnosis(from)] microsandbox::MicrosandboxError),
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     SerdeJson(#[diagnosis(from)] serde_json::Error),
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     Validator(#[diagnosis(from)] validator::ValidationErrors),
 
     #[diagnosis(description = "Missing header: {0}")]

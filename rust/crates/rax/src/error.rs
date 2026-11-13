@@ -8,7 +8,7 @@
 extern crate alloc;
 use alloc::borrow::Cow;
 use alloc::string::String;
-use core::fmt::{self, Debug};
+use core::fmt::Debug;
 
 use mischief::IDiagnosis;
 
@@ -59,7 +59,8 @@ pub struct VerbError {
     pub rule_error: RuleError,
 }
 /// Error returned by a character-set filter.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error, display, description = "parser verb failed")]
 pub struct FilterError(
     /// Description of the failure.
     pub String,

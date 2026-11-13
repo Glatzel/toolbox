@@ -1,15 +1,12 @@
-use std::error::Error;
-use std::fmt;
-
 use clerk::ClerkError;
 use mischief::IDiagnosis;
 
 #[derive(Debug, IDiagnosis)]
 #[diagnosis(display, error)]
 pub enum KioyuError {
-    #[diagnosis(transparent)]
+    #[diagnosis(transparent(foreign))]
     Clerk(#[diagnosis(from)] ClerkError),
-    #[diagnosis(description = "I/O error")]
+    #[diagnosis(transparent(foreign))]
     IO(#[diagnosis(from)] std::io::Error),
     #[diagnosis(description = "Dispatcher closed.")]
     DispatcherClosed,

@@ -1,16 +1,18 @@
+use std::collections::HashMap;
+
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{format_ident, quote};
+use quote::{ToTokens, format_ident, quote};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{DeriveInput, Field, Fields, Ident, Index, Member};
 
 use super::attrs::{
-    Description, DiagnosisAttributes, option_literal, parse_diagnosis_attributes,
-    source_field_index,
+    Description, DiagnosisAttributes, SourceKind, option_literal, parse_diagnosis_attributes,
+    parse_field_roles,
 };
 use super::shared::{
-    DiagnosisMethods, error_source_expression, generate_display_impl, generate_error_impl,
-    generate_idiagnosis_impl,
+    DiagnosisMethods, error_source_expression, foreign_error_source_expression,
+    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
 };
 use crate::facade_path;
 
@@ -46,6 +48,8 @@ pub(crate) fn derive_enum_idiagnosis(
 
     let facade = facade_path();
     let mut arms = Vec::with_capacity(data.variants.len());
+    let mut from_impls = Vec::new();
+    let mut from_types = HashMap::new();
     for variant in &data.variants {
         let (config, forward) = parse_diagnosis_attributes(&variant.attrs, true, false)?;
         let fields: Vec<&Field> = variant.fields.iter().collect();
@@ -61,6 +65,36 @@ pub(crate) fn derive_enum_idiagnosis(
             })
             .collect();
         let pattern = enum_variant_pattern(variant, &fields, &bindings);
+        let roles = parse_field_roles(&fields)?;
+        let from_impl = roles
+            .from
+            .map(|from| {
+                if fields.len() != 1 {
+                    return Err(syn::Error::new(
+                        from.span,
+                        "`from` requires a variant with exactly one field",
+                    ));
+                }
+                let field = fields[0];
+                let field_type = field.ty.to_token_stream().to_string();
+                if from_types.insert(field_type, from.span).is_some() {
+                    return Err(syn::Error::new(from.span, "duplicate `from` field type"));
+                }
+                let variant_name = &variant.ident;
+                let body = match &variant.fields {
+                    Fields::Named(_) => {
+                        let name = field.ident.as_ref().expect("named field");
+                        quote! { Self::#variant_name { #name: value } }
+                    }
+                    Fields::Unnamed(_) => quote! { Self::#variant_name(value) },
+                    Fields::Unit => unreachable!("unit variants have no from field"),
+                };
+                Ok(generate_from_impl(input, &field.ty, body))
+            })
+            .transpose()?;
+        if let Some(from_impl) = from_impl {
+            from_impls.push(from_impl);
+        }
 
         if let Some(forward_span) = forward {
             if fields.len() != 1 {
@@ -126,11 +160,13 @@ pub(crate) fn derive_enum_idiagnosis(
         } else {
             None
         };
-        let source_index = source_field_index(&fields)?;
-        let source = source_index.map_or_else(
+        let source = roles.source.map_or_else(
             || quote! { None },
-            |index| {
-                let binding = &bindings[index].binding;
+            |source| {
+                if source.kind == SourceKind::Foreign {
+                    return quote! { None };
+                }
+                let binding = &bindings[source.index].binding;
                 quote! {
                     {
                         use #facade::IAsDiagnosis as _;
@@ -139,12 +175,19 @@ pub(crate) fn derive_enum_idiagnosis(
                 }
             },
         );
-        let error_source = source_index.map_or_else(
+        let error_source = roles.source.map_or_else(
             || quote! { None },
-            |index| {
-                let field = fields[index];
-                let binding = &bindings[index].binding;
-                error_source_expression(&facade, &field.ty, quote! { #binding })
+            |source| {
+                let field = fields[source.index];
+                let binding = &bindings[source.index].binding;
+                match source.kind {
+                    SourceKind::Diagnosis => {
+                        error_source_expression(&facade, &field.ty, quote! { #binding })
+                    }
+                    SourceKind::Foreign => {
+                        foreign_error_source_expression(&facade, &field.ty, quote! { #binding })
+                    }
+                }
             },
         );
         let code = option_literal(config.code.as_ref().or(defaults.code.as_ref()).cloned());
@@ -263,6 +306,9 @@ pub(crate) fn derive_enum_idiagnosis(
                 }
             },
         ));
+    }
+    for from_impl in from_impls {
+        expanded.extend(from_impl);
     }
     Ok(expanded)
 }

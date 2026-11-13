@@ -1,0 +1,5 @@
+error: duplicate `from` field marker
+ --> tests/ui/fail/derive_from_duplicate_field.rs:8:21
+  |
+8 |         #[diagnosis(from)] u16,
+  |                     ^^^^

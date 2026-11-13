@@ -71,6 +71,20 @@ impl fmt::Display for ManualDisplayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str("manual display") }
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "foreign source")]
+struct ForeignSource {
+    #[diagnosis(source(foreign), from)]
+    source: std::io::Error,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "from only")]
+struct FromOnly {
+    #[diagnosis(from)]
+    value: u8,
+}
+
 fn main() {
     let static_diagnosis = StaticDiagnosis { source: None };
     let _ = (static_diagnosis.code(), static_diagnosis.source());
@@ -118,4 +132,10 @@ fn main() {
     };
     assert_eq!(manual.to_string(), "manual display");
     assert!(core::error::Error::source(&manual).is_some());
+
+    let foreign = ForeignSource::from(std::io::Error::other("io"));
+    assert!(core::error::Error::source(&foreign).is_some());
+
+    let from_only = FromOnly::from(1);
+    assert!(core::error::Error::source(&from_only).is_none());
 }

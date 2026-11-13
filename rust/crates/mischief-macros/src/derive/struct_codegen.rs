@@ -3,10 +3,12 @@ use quote::quote;
 use syn::parse::Result;
 use syn::{DeriveInput, Fields, Member};
 
-use super::attrs::{Description, DiagnosisAttributes, option_literal, source_field_index};
+use super::attrs::{
+    Description, DiagnosisAttributes, SourceKind, option_literal, parse_field_roles,
+};
 use super::shared::{
-    DiagnosisMethods, error_source_expression, generate_display_impl, generate_error_impl,
-    generate_idiagnosis_impl,
+    DiagnosisMethods, error_source_expression, foreign_error_source_expression,
+    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
 };
 use crate::facade_path;
 
@@ -25,8 +27,10 @@ pub(crate) fn derive_struct_idiagnosis(
         }
     };
     let field_refs: Vec<&syn::Field> = fields.iter().collect();
-    let source = source_field_index(&field_refs)?
-        .map(|index| field_refs[index].ident.clone().expect("named field"));
+    let roles = parse_field_roles(&field_refs)?;
+    let source = roles
+        .source
+        .map(|source| field_refs[source.index].ident.clone().expect("named field"));
 
     let display_description = if config.display {
         match &config.description {
@@ -80,25 +84,49 @@ pub(crate) fn derive_struct_idiagnosis(
     let severity = config
         .severity
         .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) });
-    let source = source.map_or_else(
-        || quote! { None },
-        |source| {
+    let source = match (roles.source, source) {
+        (Some(source), _) if source.kind == SourceKind::Foreign => quote! { None },
+        (Some(_), Some(source)) => {
             quote! {
                 {
                     use #facade::IAsDiagnosis as _;
                     self.#source.as_diagnosis()
                 }
             }
-        },
-    );
-    let error_source = source_field_index(&field_refs)?.map_or_else(
+        }
+        (None, _) => quote! { None },
+        (Some(_), None) => unreachable!("source field was resolved above"),
+    };
+    let error_source = roles.source.map_or_else(
         || quote! { None },
-        |index| {
-            let field = field_refs[index];
-            let source = field.ident.as_ref().expect("named field");
-            error_source_expression(&facade, &field.ty, quote! { &self.#source })
+        |source| {
+            let field = field_refs[source.index];
+            let name = field.ident.as_ref().expect("named field");
+            let value = quote! { &self.#name };
+            match source.kind {
+                SourceKind::Diagnosis => error_source_expression(&facade, &field.ty, value),
+                SourceKind::Foreign => foreign_error_source_expression(&facade, &field.ty, value),
+            }
         },
     );
+    let from = roles
+        .from
+        .map(|from| {
+            if field_refs.len() != 1 {
+                return Err(syn::Error::new(
+                    from.span,
+                    "`from` requires a struct with exactly one field",
+                ));
+            }
+            let field = field_refs[from.index];
+            let field_name = field.ident.as_ref().expect("named field");
+            Ok(generate_from_impl(
+                input,
+                &field.ty,
+                quote! { Self { #field_name: value } },
+            ))
+        })
+        .transpose()?;
 
     let mut expanded = generate_idiagnosis_impl(
         input,
@@ -117,6 +145,9 @@ pub(crate) fn derive_struct_idiagnosis(
     }
     if config.error {
         expanded.extend(generate_error_impl(input, error_source));
+    }
+    if let Some(from) = from {
+        expanded.extend(from);
     }
     Ok(expanded)
 }

@@ -99,6 +99,41 @@ pub(crate) fn error_source_expression(
     }
 }
 
+pub(crate) fn foreign_error_source_expression(
+    facade: &TokenStream2,
+    field_type: &Type,
+    value: TokenStream2,
+) -> TokenStream2 {
+    if is_option(field_type) {
+        quote! {
+            match #value {
+                Some(source) => {
+                    #facade::IForeignErrorSource::as_foreign_error_source(source)
+                }
+                None => None,
+            }
+        }
+    } else {
+        quote! { #facade::IForeignErrorSource::as_foreign_error_source(#value) }
+    }
+}
+
+pub(crate) fn generate_from_impl(
+    input: &DeriveInput,
+    field_type: &Type,
+    body: TokenStream2,
+) -> TokenStream2 {
+    let name = &input.ident;
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+    quote! {
+        impl #impl_generics ::core::convert::From<#field_type> for #name #type_generics #where_clause {
+            fn from(value: #field_type) -> Self {
+                #body
+            }
+        }
+    }
+}
+
 fn is_option(field_type: &Type) -> bool {
     let Type::Path(path) = field_type else {
         return false;

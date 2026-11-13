@@ -141,8 +141,8 @@
 extern crate self as mischief;
 
 pub use mischief_core::{
-    IAsDiagnosis, IDiagnosis, IErrorSource, IIntoDiagnosis, MischiefError, MischiefErrorBuilder,
-    Severity,
+    IAsDiagnosis, IDiagnosis, IErrorSource, IForeignErrorSource, IIntoDiagnosis, MischiefError,
+    MischiefErrorBuilder, Severity,
 };
 pub use mischief_macros::{bail, ensure};
 

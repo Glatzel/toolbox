@@ -60,6 +60,19 @@ pub trait IErrorSource {
     fn as_error_source(&self) -> Option<&(dyn Error + 'static)>;
 }
 
+/// Exposes a field as a sendable foreign core error source.
+pub trait IForeignErrorSource {
+    /// Returns this value as a core error source, when present.
+    fn as_foreign_error_source(&self) -> Option<&(dyn Error + 'static)>;
+}
+
+impl<T> IForeignErrorSource for T
+where
+    T: Error + Send + Sync + 'static,
+{
+    fn as_foreign_error_source(&self) -> Option<&(dyn Error + 'static)> { Some(self) }
+}
+
 impl<T> IErrorSource for T
 where
     T: Error + 'static,

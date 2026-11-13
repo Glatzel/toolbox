@@ -232,6 +232,8 @@ fn facade_path() -> TokenStream2 {
 /// Structure metadata is configured with `#[diagnosis(...)]`. Descriptions may
 /// be static literals or delegated to a field implementing `AsRef<str>`. Mark
 /// one field with `#[diagnosis(source)]` to expose it as the diagnosis source.
+/// Use `#[diagnosis(source(foreign))]` for a `Send + Sync + 'static` core error
+/// that should appear only through `core::error::Error::source()`.
 ///
 /// Enum-level attributes provide defaults for every variant. Variant-level
 /// attributes override those defaults. Use `#[diagnosis(forward)]` on a
@@ -241,6 +243,10 @@ fn facade_path() -> TokenStream2 {
 /// `error` to generate `core::error::Error`; its `source()` delegates to the
 /// field marked `#[diagnosis(source)]`. The type must implement `Debug` and
 /// `Display`, either through the `display` flag or manually.
+///
+/// Mark one field per variant with `#[diagnosis(from)]` to generate
+/// `From<FieldType>`. `from` is independent of source tracking. Two `from`
+/// fields with the same type in one enum are rejected.
 ///
 /// Formatted descriptions, typed foreign-error sources, transparent
 /// derivation, `into_report()` generation, and error mapping between enums are
@@ -479,6 +485,38 @@ mod tests {
                 Default,
                 #[diagnosis(description = "variant")]
                 Variant(#[diagnosis(source)] Inner),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_source_foreign_from_struct_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "foreign source")]
+            struct ForeignSource {
+                #[diagnosis(source(foreign), from)]
+                source: IoError,
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_source_foreign_from_enum_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "foreign source")]
+            enum ForeignSource {
+                #[diagnosis(description = "io")]
+                Io(#[diagnosis(source(foreign), from)] IoError),
+                #[diagnosis(description = "parse")]
+                Parse(#[diagnosis(from)] ParseError),
             }
         "#
         .parse()

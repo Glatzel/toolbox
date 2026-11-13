@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Attribute, Expr, Field, LitStr, Member};
+use syn::{Attribute, Expr, Field, Ident, LitStr, Member, Token, parenthesized};
 
 #[derive(Clone, Default)]
 pub(crate) struct DiagnosisAttributes {
@@ -19,6 +19,31 @@ pub(crate) struct DiagnosisAttributes {
 pub(crate) enum Description {
     Static(LitStr),
     Field(Member),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SourceKind {
+    Diagnosis,
+    Foreign,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct SourceField {
+    pub(crate) index: usize,
+    pub(crate) kind: SourceKind,
+    pub(crate) _span: Span,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct FromField {
+    pub(crate) index: usize,
+    pub(crate) span: Span,
+}
+
+#[derive(Default)]
+pub(crate) struct FieldRoles {
+    pub(crate) source: Option<SourceField>,
+    pub(crate) from: Option<FromField>,
 }
 
 impl DiagnosisAttributes {
@@ -119,8 +144,8 @@ pub(crate) fn parse_diagnosis_attributes(
     Ok((config, forward))
 }
 
-pub(crate) fn source_field_index(fields: &[&Field]) -> Result<Option<usize>> {
-    let mut source = None;
+pub(crate) fn parse_field_roles(fields: &[&Field]) -> Result<FieldRoles> {
+    let mut roles = FieldRoles::default();
     for (index, field) in fields.iter().enumerate() {
         for attr in &field.attrs {
             if !attr.path().is_ident("diagnosis") {
@@ -128,18 +153,51 @@ pub(crate) fn source_field_index(fields: &[&Field]) -> Result<Option<usize>> {
             }
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("source") {
-                    if source.is_some() {
+                    if roles.source.is_some() {
                         return Err(meta.error("duplicate `source` field marker"));
                     }
-                    source = Some(index);
+                    let kind = if meta.input.peek(syn::token::Paren) {
+                        let content;
+                        parenthesized!(content in meta.input);
+                        let kind: Ident = content.parse()?;
+                        if kind != "foreign" {
+                            return Err(syn::Error::new_spanned(
+                                kind,
+                                "unknown source argument; expected `foreign`",
+                            ));
+                        }
+                        if !content.is_empty() {
+                            content.parse::<Token![,]>()?;
+                            if !content.is_empty() {
+                                return Err(content.error("unexpected source argument"));
+                            }
+                        }
+                        SourceKind::Foreign
+                    } else {
+                        SourceKind::Diagnosis
+                    };
+                    roles.source = Some(SourceField {
+                        index,
+                        kind,
+                        _span: meta.path.span(),
+                    });
+                    Ok(())
+                } else if meta.path.is_ident("from") {
+                    if roles.from.is_some() {
+                        return Err(meta.error("duplicate `from` field marker"));
+                    }
+                    roles.from = Some(FromField {
+                        index,
+                        span: meta.path.span(),
+                    });
                     Ok(())
                 } else {
-                    Err(meta.error("expected `source`"))
+                    Err(meta.error("expected `source` or `from`"))
                 }
             })?;
         }
     }
-    Ok(source)
+    Ok(roles)
 }
 
 pub(crate) fn option_literal(value: Option<LitStr>) -> TokenStream2 {

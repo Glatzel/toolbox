@@ -72,6 +72,29 @@ enum FlaggedError {
     Variant(#[diagnosis(source)] InnerError),
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "foreign source")]
+struct ForeignSource {
+    #[diagnosis(source(foreign), from)]
+    source: std::io::Error,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "from only")]
+struct FromOnly {
+    #[diagnosis(from)]
+    value: u8,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "foreign enum")]
+enum ForeignEnum {
+    #[diagnosis(description = "io variant")]
+    Io(#[diagnosis(source(foreign), from)] std::io::Error),
+    #[diagnosis(description = "parse variant")]
+    Parse(#[diagnosis(from)] std::num::ParseIntError),
+}
+
 #[test]
 fn derives_static_description_and_metadata() {
     let source = MischiefError::builder("source").build();
@@ -134,6 +157,24 @@ fn display_and_error_flags_preserve_source_chain() {
     assert_eq!(variant.to_string(), "variant");
     let source = core::error::Error::source(&variant).expect("variant source");
     assert_eq!(source.to_string(), "inner");
+}
+
+#[test]
+fn foreign_sources_and_from_conversions_work_independently() {
+    let foreign = ForeignSource::from(std::io::Error::other("io failure"));
+    assert!(IDiagnosis::source(&foreign).is_none());
+    assert!(core::error::Error::source(&foreign).is_some());
+
+    let from_only = FromOnly::from(7);
+    assert_eq!(from_only.value, 7);
+    assert!(core::error::Error::source(&from_only).is_none());
+
+    let io = ForeignEnum::Io(std::io::Error::other("enum io"));
+    assert!(IDiagnosis::source(&io).is_none());
+    assert!(core::error::Error::source(&io).is_some());
+
+    let parse = ForeignEnum::from("not a number".parse::<u8>().expect_err("invalid integer"));
+    assert!(matches!(parse, ForeignEnum::Parse(_)));
 }
 
 #[test]

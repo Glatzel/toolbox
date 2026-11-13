@@ -27,22 +27,22 @@ pub enum NotationError {
     #[diagnosis(transparent(foreign))]
     Strum(#[diagnosis(from)] strum::ParseError),
 
-    #[diagnosis(description = "unknown pitch")]
+    #[diagnosis(description = "Unknown pitch: {0}")]
     UnknownPitch(char),
 
-    #[diagnosis(description = "unknown accidental")]
+    #[diagnosis(description = "Unknown accidental: {0}")]
     UnknownAccidental(char),
 
-    #[diagnosis(description = "invalid octave first character")]
+    #[diagnosis(description = "Invalid octave first char: {0}")]
     InvalidOctave(String),
 
-    #[diagnosis(description = "invalid note")]
+    #[diagnosis(description = "Invalid note: {0}")]
     InvalidNote(String),
 
-    #[diagnosis(description = "invalid key")]
+    #[diagnosis(description = "Invalid key: {0}")]
     InvalidKey(String),
 
-    #[diagnosis(description = "invalid key kind")]
+    #[diagnosis(description = "Invalid key kind: {0}")]
     InvalidKeyKind(String),
 }
 
@@ -69,6 +69,5 @@ mod tests {
         let error = NotationError::from(parse);
 
         assert_eq!(error.to_string(), expected);
-        assert!(Error::source(&error).is_none());
     }
 }

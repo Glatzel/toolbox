@@ -261,7 +261,7 @@ impl TryFrom<&char> for FaaMode {
             'S' => Ok(Self::Simulator),
             'U' => Ok(Self::QuectelQuerk),
 
-            _ => Err(RaxNmeaError::UnknownFaaMode(s.to_string())),
+            _ => Err(RaxNmeaError::UnknownFaaMode(s.to_string().into())),
         }
     }
 }

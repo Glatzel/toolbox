@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::ToString;
 use alloc::vec::Vec;
 use core::str::FromStr;
 
@@ -61,7 +60,7 @@ impl FromStr for Gsv {
 
         if satellite_count > line_count * 4 || satellite_count < (line_count - 1) * 4 {
             return Err(RaxNmeaError::InvalidSentence(
-                "satellite_count is out of range".to_string(),
+                "satellite_count is out of range".into(),
             ));
         }
 

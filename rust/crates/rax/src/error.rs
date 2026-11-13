@@ -7,7 +7,6 @@
 
 extern crate alloc;
 use alloc::borrow::Cow;
-use alloc::string::String;
 use core::fmt::Debug;
 
 use mischief::IDiagnosis;
@@ -67,7 +66,7 @@ pub struct VerbError {
 #[diagnosis(error, display, description = "Filter Error: {0}")]
 pub struct FilterError(
     /// Description of the failure.
-    pub String,
+    pub Cow<'static, str>,
 );
 
 #[cfg(test)]
@@ -83,7 +82,7 @@ mod tests {
         };
         assert_eq!(rule.to_string(), "expected a digit");
 
-        let filter = FilterError(String::from("missing character"));
+        let filter = FilterError(Cow::from("missing character"));
         assert_eq!(filter.to_string(), "Filter Error: missing character");
     }
 }

@@ -1,5 +1,12 @@
 Set-Location $PSScriptRoot/..
-$version = Get-Date -Format 'yyyy.M.d'
+$idx=0
+$version_base = Get-Date -Format 'yyyy.M.'
+$version="$version_base$idx"
+while($(gh api /repos/Glatzel/template/tags --jq '.[].name') -contains "$tag")
+{
+    $idx++
+    $version="$version_base$idx"
+}
 
 # python
 $cargoTomlPath = "./python/pyproject.toml"

@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "textwrap",
 ]
@@ -956,7 +956,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "clap",
 ]
@@ -1004,7 +1004,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "clerk"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "jiff",
  "mischief",
@@ -2744,7 +2744,7 @@ dependencies = [
 
 [[package]]
 name = "kioyu"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "async-trait",
  "clerk",
@@ -3414,7 +3414,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "mischief-core",
  "mischief-macros",
@@ -3423,11 +3423,11 @@ dependencies = [
 
 [[package]]
 name = "mischief-core"
-version = "2026.11.13"
+version = "2026.11.0"
 
 [[package]]
 name = "mischief-macros"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -3437,7 +3437,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-render"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "arbor",
  "backtrace",
@@ -5233,7 +5233,7 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "shook"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "assert_cmd",
  "async-trait",

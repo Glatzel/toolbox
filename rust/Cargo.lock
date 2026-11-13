@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "arbor"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "insta",
  "rstest",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "clap-style"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "clap",
  "insta",
@@ -263,7 +263,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "clerk"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "defmt",
  "jiff",
@@ -481,7 +481,7 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "envoy"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "mischief",
 ]
@@ -573,7 +573,7 @@ dependencies = [
 
 [[package]]
 name = "generic-num"
-version = "2026.11.13"
+version = "2026.11.0"
 
 [[package]]
 name = "getrandom"
@@ -854,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "kioyu"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "arbor",
  "async-trait",
@@ -962,7 +962,7 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "insta",
  "mischief-core",
@@ -976,11 +976,11 @@ dependencies = [
 
 [[package]]
 name = "mischief-core"
-version = "2026.11.13"
+version = "2026.11.0"
 
 [[package]]
 name = "mischief-macros"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "insta",
  "proc-macro-crate",
@@ -991,7 +991,7 @@ dependencies = [
 
 [[package]]
 name = "mischief-render"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "arbor",
  "backtrace",
@@ -1177,7 +1177,7 @@ checksum = "c135f38778ad324d9e9ee68690bac2c1a51f340fdf96ca13e2ab3914eb2e51d8"
 
 [[package]]
 name = "polars-fmt"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "strum",
 ]
@@ -1243,7 +1243,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rax"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "insta",
@@ -1254,7 +1254,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "derive-getters",
@@ -1488,7 +1488,7 @@ dependencies = [
 
 [[package]]
 name = "serialport-ext"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "clerk",
  "mischief",
@@ -1536,7 +1536,7 @@ checksum = "e8e2fb0f499abb4d162f2bedad68f5ef91a1682b5a03596ddb67efd37768d100"
 
 [[package]]
 name = "spek"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "float-cmp",

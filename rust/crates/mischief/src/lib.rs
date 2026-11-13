@@ -1,133 +1,118 @@
-//! `mischief` is a lightweight diagnostic-oriented error handling library.
+//! Structured diagnostics with optional metadata, layered source chains,
+//! macros, and terminal rendering.
 //!
-//! The crate provides structured error types, diagnostic metadata, and
-//! configurable rendering mechanisms for displaying error chains.
-//! It is designed to integrate naturally with Rust’s standard `Error`
-//! ecosystem while allowing richer diagnostic information and flexible
-//! presentation of errors.
+//! The crate facade re-exports the core diagnostic model, procedural macros,
+//! and feature-selected renderer under one API. The minimum supported Rust
+//! version is 1.85.
 //!
-//! # Diagnostic Model
+//! # Quick Start
 //!
-//! At the core of the crate is the [`IDiagnosis`] trait, which represents
-//! structured diagnostic information associated with an error. A diagnostic
-//! may include:
+//! ```
+//! use mischief::{IDiagnosis, MischiefError, Report, Result, WrapErr};
 //!
-//! - A human-readable description
-//! - A causal source diagnostic
-//! - An optional error code
-//! - A severity classification
-//! - Optional help text
-//! - An optional documentation URL
+//! let diagnosis = MischiefError::builder("parse failed")
+//!     .code("E_PARSE")
+//!     .help("check the input")
+//!     .build();
+//! let result: Result<()> = Err(Report::new(diagnosis)).wrap_err("load config");
+//! let report = result.expect_err("the result should be an error");
 //!
-//! This abstraction allows errors to carry structured metadata that can be
-//! consumed by renderers, logging systems, or external tooling.
-//!
-//! # Structured Errors
-//!
-//! The primary concrete diagnostic type provided by the crate is
-//! [`MischiefError`]. It stores the diagnostic metadata defined by
-//! [`IDiagnosis`] and supports recursive source chaining to represent
-//! causal error relationships.
-//!
-//! `MischiefError` forms the internal representation used by the higher-level
-//! error container [`Report`].
-//!
-//! # Error Container
-//!
-//! [`Report`] is the main user-facing error type of the crate. It wraps a
-//! [`MischiefError`] and provides ergonomic integration with Rust’s standard
-//! error traits and conversion mechanisms.
-//!
-//! A `Report` can be created directly from a `MischiefError`, or constructed
-//! automatically from any type implementing [`core::error::Error`]. During
-//! conversion, the entire source chain of the original error is recursively
-//! transformed into structured diagnostics.
-//!
-//! The crate also provides utilities for working with `Report` values,
-//! including:
-//!
-//! - [`IntoMischief`] for converting results into diagnostic-aware results
-//! - [`WrapErr`] for attaching contextual diagnostics to existing errors
-//! - A convenient [`Result`] alias using `Report` as the default error type
-//!
-//! # Rendering
-//!
-//! Diagnostic output can be rendered in multiple formats depending on the
-//! enabled features.
-//!
-//! When the `std` feature is enabled, diagnostics are rendered using a
-//! tree-based renderer built on the `arbor` crate. The `fancy` feature
-//! enables richer presentation, including:
-//!
-//! - hierarchical error chains
-//! - customizable indentation styles
-//! - colored output
-//! - terminal hyperlinks
-//!
-//! Without `std`, a minimal text renderer prints the diagnostic descriptions
-//! in a dependency-free format.
-//!
-//! # Severity
-//!
-//! Diagnostics may optionally include a [`Severity`] classification. This
-//! allows errors to be categorized into advisory messages, warnings, or
-//! critical failures, enabling renderers and external systems to adjust
-//! presentation accordingly.
-//!
-//! # Design Goals
-//!
-//! The crate focuses on several core goals:
-//!
-//! - structured diagnostic information
-//! - ergonomic integration with the standard error trait
-//! - minimal runtime overhead
-//! - flexible rendering strategies
-//! - compatibility with both simple and rich terminal output
-//!
-//! `mischief` is suitable for applications and libraries that require
-//! structured diagnostics while retaining a straightforward error handling
-//! model.
-//!
-//! # Examples
-//!
-//! ```should_panic
-//! use mischief::mischief;
-//!
-//! use crate::mischief::WrapErr;
-//! fn foo() -> std::result::Result<i32, &'static str> { Err("fake error") }
-//! fn main() -> mischief::Result<()> {
-//!     foo()
-//!         .map_err(|e| mischief!("{}", e))
-//!         .wrap_err("error wrapper")?;
-//!     Ok(())
-//! }
+//! assert_eq!(report.error().description(), "load config");
+//! assert_eq!(
+//!     report.error().source().and_then(|source| source.code()),
+//!     Some("E_PARSE")
+//! );
 //! ```
 //!
-//! ```should_panic
-//! use mischief::{WrapErr, mischief};
+//! # Macros
 //!
-//! fn foo() -> std::result::Result<i32, &'static str> { Err("fake error") }
-//! fn main() -> mischief::Result<()> {
-//!     foo()
-//!         .map_err(|e| mischief!("{}", e))
-//!         .wrap_err("error wrapper")?;
+//! [`mischief!`] constructs a [`Report`] with formatting and metadata.
+//! [`bail!`] returns it immediately, while [`ensure!`] returns it only when a
+//! condition is false. `bail!` and `ensure!` are available independently of the
+//! `macros` feature.
+//!
+//! ```
+//! use mischief::{IDiagnosis, Result, ensure, mischief};
+//!
+//! let report = mischief!("connect to {}", "db", code = "E_CONNECT", help = "retry");
+//! assert_eq!(report.error().code(), Some("E_CONNECT"));
+//!
+//! fn validate(ok: bool) -> Result<()> {
+//!     ensure!(ok, "invalid input", code = "E_INPUT");
 //!     Ok(())
 //! }
+//! assert!(validate(false).is_err());
 //! ```
 //!
-//! ```should_panic
-//! use std::fs::File;
+//! # Derived Diagnoses
 //!
-//! use mischief::{IntoMischief, WrapErr};
+//! The optional `IDiagnosis` derive implements the trait for named-field
+//! structs. A static description is shown here; `description = field` delegates
+//! the description to a field implementing `AsRef<str>`.
 //!
-//! fn main() -> mischief::Result<()> {
-//!     let _ = File::open("fake")
-//!         .into_mischief()
-//!         .wrap_err(mischief::mischief!("mischief wrapper", help = "some help"))
-//!         .wrap_err("error wrapper")?;
-//!     Ok(())
+//! ```
+//! use mischief::{IDiagnosis, MischiefError};
+//!
+//! #[derive(IDiagnosis)]
+//! #[diagnosis(description = "invalid input", code = "E_INPUT")]
+//! struct InputError {
+//!     #[diagnosis(source)]
+//!     source: Option<MischiefError>,
 //! }
+//!
+//! let error = InputError { source: None };
+//! assert_eq!(error.code(), Some("E_INPUT"));
+//! assert!(error.source().is_none());
 //! ```
+//!
+//! # Foreign Errors
+//!
+//! Foreign errors retain their concrete root type for downcasting while their
+//! source chain is represented by descriptions. Foreign roots must be
+//! `Error + Send + Sync + 'static`.
+//!
+//! ```
+//! use core::fmt;
+//!
+//! use mischief::MischiefError;
+//!
+//! #[derive(Debug)]
+//! struct Timeout;
+//!
+//! impl fmt::Display for Timeout {
+//!     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str("timeout") }
+//! }
+//!
+//! impl core::error::Error for Timeout {}
+//!
+//! let error = MischiefError::builder("request failed")
+//!     .source_error(Timeout)
+//!     .build();
+//! assert!(error.downcast_ref::<Timeout>().is_some());
+//! ```
+//!
+//! # Features
+//!
+//! | Feature | Effect |
+//! | --- | --- |
+//! | `std` | Enables the verbose tree renderer and backtrace support foundations. |
+//! | `fancy` | Enables color, hyperlinks, Unicode trees, and text wrapping; implies `std`. |
+//! | `macros` | Re-exports `mischief!` and the `IDiagnosis` derive. `bail!` and `ensure!` are always available. |
+//! | `backtrace` | Adds debug-build backtraces to verbose reports; implies `std`. |
+//! | `textwrap-*` | Selects text-wrapping backend behavior. |
+//!
+//! Without `std`, [`Report`] uses the simple renderer and prints descriptions
+//! only. The facade always uses `alloc`; the lower-level `mischief-core` crate
+//! exposes `alloc` as an optional feature.
+//!
+//! # Crate Layers
+//!
+//! - `mischief-core` contains the diagnostic trait, metadata types, source
+//!   nodes, error conversion, and simple renderer.
+//! - `mischief-render` contains the verbose tree renderer and optional styling.
+//! - `mischief-macros` contains `mischief!`, `bail!`, `ensure!`, and the
+//!   `IDiagnosis` derive.
+//! - `mischief` re-exports the public API and selects the renderer by feature.
 #![allow(clippy::unwrap_used, reason = "This crate is for error handling.")]
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]

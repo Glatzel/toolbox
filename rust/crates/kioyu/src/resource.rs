@@ -1,20 +1,36 @@
 use std::collections::HashMap;
+use std::fmt;
+
+use mischief::IDiagnosis;
 
 pub type ResourceKey = &'static str;
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+
+#[derive(Debug, PartialEq, Eq, IDiagnosis)]
+#[diagnosis(error)]
 pub enum ResourceError {
     // Resource errors
-    #[error("resource already registered: {0}")]
+    #[diagnosis(description = "resource already registered")]
     AlreadyRegistered(ResourceKey),
 
-    #[error("resource not found: {0}")]
+    #[diagnosis(description = "resource not found")]
     NotFound(ResourceKey),
 
-    #[error("insufficient capacity for: {0}")]
+    #[diagnosis(description = "insufficient resource capacity")]
     InsufficientCapacity(ResourceKey),
 
-    #[error("free would underflow resource: {0}")]
+    #[diagnosis(description = "resource free would underflow")]
     Underflow(ResourceKey),
+}
+
+impl fmt::Display for ResourceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::AlreadyRegistered(key) => write!(f, "resource already registered: {key}"),
+            Self::NotFound(key) => write!(f, "resource not found: {key}"),
+            Self::InsufficientCapacity(key) => write!(f, "insufficient capacity for: {key}"),
+            Self::Underflow(key) => write!(f, "free would underflow resource: {key}"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -154,6 +170,26 @@ impl ResourcePool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn error_display_is_unchanged() {
+        assert_eq!(
+            ResourceError::AlreadyRegistered("cpu").to_string(),
+            "resource already registered: cpu"
+        );
+        assert_eq!(
+            ResourceError::NotFound("gpu").to_string(),
+            "resource not found: gpu"
+        );
+        assert_eq!(
+            ResourceError::InsufficientCapacity("mem").to_string(),
+            "insufficient capacity for: mem"
+        );
+        assert_eq!(
+            ResourceError::Underflow("disk").to_string(),
+            "free would underflow resource: disk"
+        );
+    }
 
     fn pool_with(keys: &[(&'static str, usize)]) -> ResourcePool {
         let mut pool = ResourcePool::new();

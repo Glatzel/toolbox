@@ -1007,8 +1007,8 @@ name = "clerk"
 version = "2026.11.13"
 dependencies = [
  "jiff",
+ "mischief",
  "owo-colors",
- "thiserror",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -2749,7 +2749,7 @@ dependencies = [
  "async-trait",
  "clerk",
  "jiff",
- "thiserror",
+ "mischief",
  "tokio",
  "tokio-util",
  "uuid",
@@ -5258,7 +5258,6 @@ dependencies = [
  "serde_with",
  "sha2 0.11.1",
  "tempfile",
- "thiserror",
  "tokio",
  "toml",
  "validator",

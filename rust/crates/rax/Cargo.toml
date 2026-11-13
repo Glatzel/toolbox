@@ -8,8 +8,8 @@ harness = false
 name = "rules"
 
 [dependencies]
+mischief = { workspace = true, default-features = false, features = ["macros"] }
 strum.workspace = true
-thiserror.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

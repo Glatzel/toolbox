@@ -269,7 +269,6 @@ dependencies = [
  "jiff",
  "mischief",
  "owo-colors",
- "thiserror",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -864,7 +863,6 @@ dependencies = [
  "jiff",
  "mischief",
  "tempfile",
- "thiserror",
  "tokio",
  "tokio-util",
  "uuid",
@@ -1249,9 +1247,9 @@ version = "2026.11.13"
 dependencies = [
  "codspeed-criterion-compat",
  "insta",
+ "mischief",
  "rstest",
  "strum",
- "thiserror",
 ]
 
 [[package]]
@@ -1267,7 +1265,6 @@ dependencies = [
  "rstest",
  "serde",
  "strum",
- "thiserror",
 ]
 
 [[package]]
@@ -1554,7 +1551,6 @@ dependencies = [
  "rayon",
  "rstest",
  "strum",
- "thiserror",
 ]
 
 [[package]]

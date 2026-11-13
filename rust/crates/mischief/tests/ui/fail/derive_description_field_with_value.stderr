@@ -1,0 +1,5 @@
+error: `description` field marker does not accept a value
+ --> tests/ui/fail/derive_description_field_with_value.rs:5:17
+  |
+5 |     #[diagnosis(description = "message")]
+  |                 ^^^^^^^^^^^

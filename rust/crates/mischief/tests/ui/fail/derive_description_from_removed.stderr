@@ -1,0 +1,5 @@
+error: expected one of: `display`, `error`, `description`, `code`, `severity`, `help`, `url`, `transparent`
+ --> tests/ui/fail/derive_description_from_removed.rs:4:13
+  |
+4 | #[diagnosis(description_from = 0)]
+  |             ^^^^^^^^^^^^^^^^

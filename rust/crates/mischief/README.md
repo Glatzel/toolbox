@@ -51,9 +51,9 @@ generate `Display`, and `#[diagnosis(error)]` to generate
 
 ### Complete struct example
 
-The following struct is a diagnostic node. `LoadError` supplies its own
-message and metadata, while the `#[diagnosis(source)]` field becomes the next
-item in the diagnosis chain.
+The following struct is a diagnostic node. `LoadError` reads its message and
+optional code directly from marked fields, while the
+`#[diagnosis(source)]` field becomes the next item in the diagnosis chain.
 
 ```rust
 use mischief::{DescriptionDisplay, IDiagnosis, MischiefError, Severity};
@@ -62,27 +62,30 @@ use mischief::{DescriptionDisplay, IDiagnosis, MischiefError, Severity};
 #[diagnosis(
     display,
     error,
-    description = "failed to load {path}: {cause}",
-    code = "E_LOAD",
     severity = Severity::Warning,
     help = "check the file and its permissions",
     url = "https://example.com/errors/E_LOAD"
 )]
 struct LoadError {
-    path: String,
+    #[diagnosis(description)]
+    message: String,
+    #[diagnosis(code)]
+    code: Option<String>,
     #[diagnosis(source)]
     cause: MischiefError,
 }
 
 fn main() {
     let error = LoadError {
-        path: "config.toml".into(),
+        message: "failed to load config.toml: permission denied".into(),
+        code: Some("E_LOAD".into()),
         cause: MischiefError::builder("permission denied").build(),
     };
 
-    // description() exposes the template; Display and DescriptionDisplay
-    // interpolate the struct fields.
-    assert_eq!(error.description(), "failed to load {path}: {cause}");
+    assert_eq!(
+        error.description(),
+        "failed to load config.toml: permission denied"
+    );
     assert_eq!(
         error.to_string(),
         "failed to load config.toml: permission denied"
@@ -111,8 +114,9 @@ fn main() {
 
 The important pieces are:
 
-- `description = "..."` is the diagnostic template.
-- `display` makes `to_string()` use the same template with formatted fields.
+- `#[diagnosis(description)]` reads the message from a string-like field.
+- `#[diagnosis(code)]` reads an optional code from the marked field.
+- `display` makes `to_string()` use the field-backed description.
 - `source` exposes one field through `IDiagnosis::source()` and `Error::source()`.
 - `into_report()` copies the structured diagnostic chain into a `Report`.
 
@@ -156,9 +160,13 @@ enum ApplicationError {
     #[diagnosis(transparent(foreign))]
     Io(#[diagnosis(from)] io::Error),
 
-    // This remains an ordinary diagnostic node.
-    #[diagnosis(description = "invalid input: {0}", code = "E_INPUT")]
-    Invalid(String),
+    // This remains an ordinary diagnostic node and reads metadata from fields.
+    Invalid {
+        #[diagnosis(description)]
+        message: String,
+        #[diagnosis(code)]
+        code: Option<String>,
+    },
 }
 
 fn main() {
@@ -181,8 +189,11 @@ fn main() {
     assert_eq!(io_report.error().description(), "read failed");
     assert!(io_report.downcast_ref::<io::Error>().is_some());
 
-    let invalid = ApplicationError::Invalid("unexpected token".into());
-    assert_eq!(invalid.description(), "invalid input: {0}");
+    let invalid = ApplicationError::Invalid {
+        message: "invalid input: unexpected token".into(),
+        code: Some("E_INPUT".into()),
+    };
+    assert_eq!(invalid.description(), "invalid input: unexpected token");
     assert_eq!(invalid.code(), Some("E_INPUT"));
     assert_eq!(invalid.to_string(), "invalid input: unexpected token");
 }
@@ -203,10 +214,14 @@ Both transparent forms require exactly one field and the type-level
 when no default exists, for `description()`; formatted descriptions and
 `Display` use the foreign error's text.
 
-Additional description rules:
+Additional metadata rules:
 
-- `description_from = field` is shorthand for a `{field}` template.
-- `description = field` delegates the description to that field.
+- `description = "..."` defines a static description template.
+- `#[diagnosis(description)]` marks a field implementing `AsRef<str>` as the
+  description.
+- `code = "..."` defines a static diagnostic code.
+- `#[diagnosis(code)]` marks a field as the code; the field may be string-like
+  or an `Option` containing a string-like value.
 - Tuple fields use `{0}`, `{1}`, and named fields use `{name}`.
 - `{0:?}` and `{name:#x}` format specifications are supported.
 - `{{` and `}}` escape literal braces.

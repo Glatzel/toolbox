@@ -135,6 +135,23 @@ pub(crate) fn foreign_error_source_expression(
     }
 }
 
+pub(crate) fn description_field_expression(value: TokenStream2) -> TokenStream2 {
+    quote! { ::core::convert::AsRef::<str>::as_ref(#value) }
+}
+
+pub(crate) fn code_field_expression(field_type: &Type, value: TokenStream2) -> TokenStream2 {
+    if is_option(field_type) {
+        quote! {
+            match #value {
+                Some(code) => Some(::core::convert::AsRef::<str>::as_ref(code)),
+                None => None,
+            }
+        }
+    } else {
+        quote! { Some(::core::convert::AsRef::<str>::as_ref(#value)) }
+    }
+}
+
 pub(crate) fn generate_from_impl(
     input: &DeriveInput,
     field_type: &Type,
@@ -238,7 +255,7 @@ pub(crate) fn foreign_source_builder(field_type: &Type, value: TokenStream2) -> 
     }
 }
 
-fn is_option(field_type: &Type) -> bool {
+pub(crate) fn is_option(field_type: &Type) -> bool {
     let Type::Path(path) = field_type else {
         return false;
     };

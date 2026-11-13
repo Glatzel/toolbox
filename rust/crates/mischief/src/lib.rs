@@ -47,20 +47,28 @@
 //! # Derived Diagnoses
 //!
 //! The optional `IDiagnosis` derive implements the trait for named-field
-//! structs. A static description is shown here; `description = field` delegates
-//! the description to a field implementing `AsRef<str>`.
+//! structs. Metadata may be static or read directly from fields marked with
+//! `#[diagnosis(description)]` and `#[diagnosis(code)]`.
 //!
 //! ```
 //! use mischief::{IDiagnosis, MischiefError};
 //!
 //! #[derive(IDiagnosis)]
-//! #[diagnosis(description = "invalid input", code = "E_INPUT")]
 //! struct InputError {
+//!     #[diagnosis(description)]
+//!     message: String,
+//!     #[diagnosis(code)]
+//!     code: Option<String>,
 //!     #[diagnosis(source)]
 //!     source: Option<MischiefError>,
 //! }
 //!
-//! let error = InputError { source: None };
+//! let error = InputError {
+//!     message: "invalid input".into(),
+//!     code: Some("E_INPUT".into()),
+//!     source: None,
+//! };
+//! assert_eq!(error.description(), "invalid input");
 //! assert_eq!(error.code(), Some("E_INPUT"));
 //! assert!(error.source().is_none());
 //! ```
@@ -74,12 +82,11 @@
 //! #[diagnosis(description = "invalid input", code = "E_INPUT")]
 //! enum InputError {
 //!     Missing,
-//!     #[diagnosis(description_from = 0)]
-//!     Invalid(String),
+//!     Invalid(#[diagnosis(description)] String),
 //! }
 //!
 //! assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
-//! assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
+//! assert_eq!(InputError::Invalid("name".into()).description(), "name");
 //! ```
 //!
 //! Description strings can interpolate fields with thiserror-style syntax.

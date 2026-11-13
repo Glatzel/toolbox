@@ -4,19 +4,20 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, format_ident, quote};
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{DeriveInput, Field, Fields, Ident, LitStr, Member};
+use syn::{DeriveInput, Field, Fields, Ident, LitStr};
 
 use super::attrs::{
-    Description, DiagnosisAttributes, SourceKind, Transparent, option_literal,
-    parse_diagnosis_attributes, parse_field_roles,
+    DiagnosisAttributes, SourceKind, Transparent, option_literal, parse_diagnosis_attributes,
+    parse_field_roles,
 };
 use super::description_template::{
     DescriptionTemplate, parse_default_description_template, parse_description_template,
 };
 use super::shared::{
-    DiagnosisMethods, diagnosis_source_builder, error_source_expression,
-    foreign_error_source_expression, foreign_source_builder, generate_display_body_impl,
-    generate_error_impl, generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl,
+    DiagnosisMethods, code_field_expression, description_field_expression,
+    diagnosis_source_builder, error_source_expression, foreign_error_source_expression,
+    foreign_source_builder, generate_display_body_impl, generate_error_impl, generate_from_impl,
+    generate_idiagnosis_impl, generate_into_report_impl, is_option,
 };
 use crate::facade_path;
 
@@ -120,6 +121,18 @@ pub(crate) fn derive_enum_idiagnosis(
                 return Err(syn::Error::new(
                     source._span,
                     "`transparent` cannot be combined with `source`",
+                ));
+            }
+            if let Some(description) = roles.description {
+                return Err(syn::Error::new(
+                    description.span,
+                    "`transparent` cannot be combined with a `description` field marker",
+                ));
+            }
+            if let Some(code) = roles.code {
+                return Err(syn::Error::new(
+                    code.span,
+                    "`transparent` cannot be combined with a `code` field marker",
                 ));
             }
 
@@ -284,21 +297,73 @@ pub(crate) fn derive_enum_idiagnosis(
             continue;
         }
 
-        let template =
-            variant_description_template(&config, default_description.as_ref(), &fields, variant)?;
-        let description = template.raw();
+        if let Some(description) = roles.description {
+            if config.description.is_some() {
+                return Err(syn::Error::new(
+                    description.span,
+                    "`description` field marker cannot be combined with a `description` attribute",
+                ));
+            }
+            if is_option(&fields[description.index].ty) {
+                return Err(syn::Error::new(
+                    description.span,
+                    "`description` field must not be an `Option`",
+                ));
+            }
+        }
+        if let Some(code) = roles.code {
+            if config.code.is_some() {
+                return Err(syn::Error::new(
+                    code.span,
+                    "`code` field marker cannot be combined with a `code` attribute",
+                ));
+            }
+        }
+
+        let template = roles
+            .description
+            .is_none()
+            .then(|| {
+                variant_description_template(
+                    &config,
+                    default_description.as_ref(),
+                    &fields,
+                    variant,
+                )
+            })
+            .transpose()?;
+        let description = roles.description.map_or_else(
+            || {
+                let description = template.as_ref().expect("description template").raw();
+                quote! { #description }
+            },
+            |field| {
+                let binding = &bindings[field.index].binding;
+                description_field_expression(quote! { #binding })
+            },
+        );
         let display = if defaults.display {
-            if template.needs_formatting() {
-                Some(write_description_expression(&template, &bindings))
+            if roles.description.is_none()
+                && template
+                    .as_ref()
+                    .expect("description template")
+                    .needs_formatting()
+            {
+                Some(write_description_expression(
+                    template.as_ref().expect("description template"),
+                    &bindings,
+                ))
             } else {
                 Some(quote! { f.write_str(#description) })
             }
         } else {
             None
         };
-        let fmt_description = template
-            .needs_formatting()
-            .then(|| write_description_expression(&template, &bindings));
+        let fmt_description = template.as_ref().and_then(|template| {
+            template
+                .needs_formatting()
+                .then(|| write_description_expression(template, &bindings))
+        });
         let source = roles.source.map_or_else(
             || quote! { None },
             |source| {
@@ -329,7 +394,14 @@ pub(crate) fn derive_enum_idiagnosis(
                 }
             },
         );
-        let code = option_literal(config.code.as_ref().or(defaults.code.as_ref()).cloned());
+        let code = roles.code.map_or_else(
+            || option_literal(config.code.as_ref().or(defaults.code.as_ref()).cloned()),
+            |code| {
+                let field = fields[code.index];
+                let binding = &bindings[code.index].binding;
+                code_field_expression(&field.ty, quote! { #binding })
+            },
+        );
         let help = option_literal(config.help.as_ref().or(defaults.help.as_ref()).cloned());
         let url = option_literal(config.url.as_ref().or(defaults.url.as_ref()).cloned());
         let severity = config
@@ -338,7 +410,11 @@ pub(crate) fn derive_enum_idiagnosis(
             .or(defaults.severity.as_ref())
             .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) });
 
-        let report = if template.needs_formatting() {
+        let report = if template
+            .as_ref()
+            .is_some_and(DescriptionTemplate::needs_formatting)
+        {
+            let template = template.as_ref().expect("description template");
             let formatted = format_description_expression(&template, &bindings);
             let builder = quote! {
                 let builder = builder.description(#formatted);
@@ -573,16 +649,11 @@ fn enum_variant_pattern(
 fn parse_enum_default_description(
     defaults: &DiagnosisAttributes,
 ) -> Result<Option<DescriptionTemplate>> {
-    match defaults.description.as_ref() {
-        Some(Description::Static(description)) => {
-            parse_default_description_template(description).map(Some)
-        }
-        Some(Description::Field(field)) => Err(syn::Error::new_spanned(
-            field,
-            "enum-level default description cannot contain placeholders",
-        )),
-        None => Ok(None),
-    }
+    defaults
+        .description
+        .as_ref()
+        .map(parse_default_description_template)
+        .transpose()
 }
 
 fn variant_description_template(
@@ -591,28 +662,17 @@ fn variant_description_template(
     fields: &[&Field],
     variant: &syn::Variant,
 ) -> Result<DescriptionTemplate> {
-    match config.description.as_ref() {
-        Some(Description::Static(description)) => parse_description_template(description, fields),
-        Some(Description::Field(field)) => description_template_from_field(field, fields),
-        None => default.cloned().ok_or_else(|| {
-            syn::Error::new_spanned(
-                &variant.ident,
-                "missing `description`, `description_from`, or `forward` on enum variant",
-            )
-        }),
-    }
-}
-
-fn description_template_from_field(
-    field: &Member,
-    fields: &[&Field],
-) -> Result<DescriptionTemplate> {
-    let placeholder = match field {
-        Member::Named(name) => format!("{{{}}}", name),
-        Member::Unnamed(index) => format!("{{{}}}", index.index),
-    };
-    let template = LitStr::new(&placeholder, field.span());
-    parse_description_template(&template, fields)
+    config.description.as_ref().map_or_else(
+        || {
+            default.cloned().ok_or_else(|| {
+                syn::Error::new_spanned(
+                    &variant.ident,
+                    "missing `description`, `description` field marker, or `forward` on enum variant",
+                )
+            })
+        },
+        |description| parse_description_template(description, fields),
+    )
 }
 
 fn write_description_expression(

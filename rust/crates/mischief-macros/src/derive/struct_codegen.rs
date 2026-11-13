@@ -1,19 +1,17 @@
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::Result;
-use syn::spanned::Spanned;
-use syn::{DeriveInput, Fields, Member};
+use syn::{DeriveInput, Fields};
 
 use super::attrs::{
-    Description, DiagnosisAttributes, FieldRoles, SourceKind, Transparent, option_literal,
-    parse_field_roles,
+    DiagnosisAttributes, FieldRoles, SourceKind, Transparent, option_literal, parse_field_roles,
 };
 use super::description_template::{DescriptionTemplate, parse_description_template};
 use super::shared::{
-    DiagnosisMethods, diagnosis_source_builder, error_source_expression,
-    foreign_error_source_expression, foreign_source_builder, generate_display_body_impl,
-    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
-    generate_into_report_impl,
+    DiagnosisMethods, code_field_expression, description_field_expression,
+    diagnosis_source_builder, error_source_expression, foreign_error_source_expression,
+    foreign_source_builder, generate_display_body_impl, generate_display_impl, generate_error_impl,
+    generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl, is_option,
 };
 use crate::facade_path;
 
@@ -36,18 +34,64 @@ pub(crate) fn derive_struct_idiagnosis(
     if let Some(transparent) = config.transparent {
         return derive_transparent_struct(input, config, transparent, &field_refs, roles);
     }
+    let description_field = roles.description;
+    let code_field = roles.code;
+    if let Some(field) = description_field {
+        if is_option(&field_refs[field.index].ty) {
+            return Err(syn::Error::new(
+                field.span,
+                "`description` field must not be an `Option`",
+            ));
+        }
+    }
+    if description_field.is_some() && config.description.is_some() {
+        return Err(syn::Error::new(
+            description_field.expect("description field marker").span,
+            "`description` field marker cannot be combined with a `description` attribute",
+        ));
+    }
+    if code_field.is_some() && config.code.is_some() {
+        return Err(syn::Error::new(
+            code_field.expect("code field marker").span,
+            "`code` field marker cannot be combined with a `code` attribute",
+        ));
+    }
     let source = roles
         .source
         .map(|source| field_refs[source.index].ident.clone().expect("named field"));
 
-    let description_template = struct_description_template(&config, &field_refs, input)?;
-    let description = description_template.raw();
-    let fmt_description = description_template
-        .needs_formatting()
-        .then(|| write_description_expression(&description_template, &field_refs));
+    let description_template = description_field
+        .is_none()
+        .then(|| struct_description_template(&config, &field_refs, input))
+        .transpose()?;
+    let description = description_field.map_or_else(
+        || {
+            let description = description_template
+                .as_ref()
+                .expect("description template")
+                .raw();
+            quote! { #description }
+        },
+        |field| {
+            let name = field_refs[field.index].ident.as_ref().expect("named field");
+            description_field_expression(quote! { &self.#name })
+        },
+    );
+    let fmt_description = description_template.as_ref().and_then(|template| {
+        template
+            .needs_formatting()
+            .then(|| write_description_expression(template, &field_refs))
+    });
 
     let facade = facade_path();
-    let code = option_literal(config.code);
+    let code = code_field.map_or_else(
+        || option_literal(config.code),
+        |field| {
+            let field = field_refs[field.index];
+            let name = field.ident.as_ref().expect("named field");
+            code_field_expression(&field.ty, quote! { &self.#name })
+        },
+    );
     let help = option_literal(config.help);
     let url = option_literal(config.url);
     let severity = config
@@ -111,10 +155,22 @@ pub(crate) fn derive_struct_idiagnosis(
         },
     );
     if config.display {
-        if description_template.needs_formatting() {
+        if description_field.is_some() {
             expanded.extend(generate_display_body_impl(
                 input,
-                write_description_expression(&description_template, &field_refs),
+                quote! { f.write_str(#description) },
+            ));
+        } else if description_template
+            .as_ref()
+            .expect("description template")
+            .needs_formatting()
+        {
+            expanded.extend(generate_display_body_impl(
+                input,
+                write_description_expression(
+                    description_template.as_ref().expect("description template"),
+                    &field_refs,
+                ),
             ));
         } else {
             expanded.extend(generate_display_impl(input, quote! { #description }));
@@ -126,9 +182,11 @@ pub(crate) fn derive_struct_idiagnosis(
     if let Some(from) = from {
         expanded.extend(from);
     }
-    let description_update = description_template
-        .needs_formatting()
-        .then(|| format_description_expression(&description_template, &field_refs));
+    let description_update = description_template.as_ref().and_then(|template| {
+        template
+            .needs_formatting()
+            .then(|| format_description_expression(template, &field_refs))
+    });
     let report_expression = if let Some(source) = roles.source {
         let field = field_refs[source.index];
         let field_name = field.ident.as_ref().expect("named field");
@@ -175,35 +233,15 @@ fn struct_description_template(
     fields: &[&syn::Field],
     input: &DeriveInput,
 ) -> Result<DescriptionTemplate> {
-    match config.description.as_ref() {
-        Some(Description::Static(description)) => parse_description_template(description, fields),
-        Some(Description::Field(field)) => {
-            let field_name = match field {
-                Member::Named(field_name) => field_name,
-                Member::Unnamed(_) => {
-                    return Err(syn::Error::new_spanned(
-                        field,
-                        "delegated description field does not exist",
-                    ));
-                }
-            };
-            if !fields
-                .iter()
-                .any(|candidate| candidate.ident.as_ref() == Some(field_name))
-            {
-                return Err(syn::Error::new_spanned(
-                    field_name,
-                    "delegated description field does not exist",
-                ));
-            }
-            let template = syn::LitStr::new(&format!("{{{field_name}}}"), field.span());
-            parse_description_template(&template, fields)
-        }
-        None => Err(syn::Error::new_spanned(
-            &input.ident,
-            "missing `description` in `#[diagnosis(...)]`",
-        )),
-    }
+    config.description.as_ref().map_or_else(
+        || {
+            Err(syn::Error::new_spanned(
+                &input.ident,
+                "missing `description` in `#[diagnosis(...)]`",
+            ))
+        },
+        |description| parse_description_template(description, fields),
+    )
 }
 
 fn write_description_expression(
@@ -271,6 +309,18 @@ fn derive_transparent_struct(
         return Err(syn::Error::new(
             source._span,
             "`transparent` cannot be combined with `source`",
+        ));
+    }
+    if let Some(description) = roles.description {
+        return Err(syn::Error::new(
+            description.span,
+            "`transparent` cannot be combined with a `description` field marker",
+        ));
+    }
+    if let Some(code) = roles.code {
+        return Err(syn::Error::new(
+            code.span,
+            "`transparent` cannot be combined with a `code` field marker",
         ));
     }
     if transparent == Transparent::Diagnosis && config.has_metadata() {

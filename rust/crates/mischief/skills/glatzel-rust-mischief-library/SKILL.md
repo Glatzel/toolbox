@@ -49,8 +49,8 @@ use mischief::{IDiagnosis, MischiefError};
 #[diagnosis(description = "configuration failed", code = "E_CONFIG")]
 pub enum ConfigError {
     Missing,
-    #[diagnosis(description_from = path)]
     Invalid {
+        #[diagnosis(description)]
         path: String,
         #[diagnosis(source)]
         source: MischiefError,

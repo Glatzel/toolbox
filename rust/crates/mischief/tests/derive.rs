@@ -34,11 +34,39 @@ struct StaticDiagnosis {
 }
 
 #[derive(IDiagnosis)]
-#[diagnosis(description = message)]
 struct DelegatedDiagnosis {
+    #[diagnosis(description)]
     message: String,
     #[diagnosis(source)]
     source: MischiefError,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display)]
+struct FieldMetadataDiagnosis {
+    #[diagnosis(description)]
+    message: String,
+    #[diagnosis(code)]
+    code: String,
+}
+
+#[derive(IDiagnosis)]
+struct OptionalCodeDiagnosis {
+    #[diagnosis(description)]
+    message: String,
+    #[diagnosis(code)]
+    code: Option<String>,
+}
+
+#[derive(IDiagnosis)]
+#[diagnosis(description = "enum default", code = "E_DEFAULT")]
+enum EnumFieldMetadataDiagnosis {
+    WithFields {
+        #[diagnosis(description)]
+        message: String,
+        #[diagnosis(code)]
+        code: Option<&'static str>,
+    },
 }
 
 #[derive(IDiagnosis)]
@@ -58,8 +86,10 @@ struct DescriptionOnly {
 enum EnumDiagnosis {
     #[diagnosis(description = "unit")]
     Unit,
-    #[diagnosis(description_from = 0)]
-    Tuple(String, #[diagnosis(source)] MischiefError),
+    Tuple(
+        #[diagnosis(description)] String,
+        #[diagnosis(source)] MischiefError,
+    ),
     #[diagnosis(description = "named")]
     Named {
         #[diagnosis(source)]
@@ -261,17 +291,13 @@ fn derives_static_description_and_metadata() {
 }
 
 #[test]
-fn derives_delegated_description_and_source() {
+fn derives_description_field_and_source() {
     let diagnosis = DelegatedDiagnosis {
         message: String::from("delegated description"),
         source: MischiefError::builder("source").build(),
     };
 
-    assert_eq!(diagnosis.description(), "{message}");
-    assert_eq!(
-        format!("{}", mischief::DescriptionDisplay(&diagnosis)),
-        "delegated description"
-    );
+    assert_eq!(diagnosis.description(), "delegated description");
     assert_eq!(diagnosis.code(), None);
     assert_eq!(diagnosis.severity(), None);
     assert_eq!(diagnosis.help(), None);
@@ -280,6 +306,45 @@ fn derives_delegated_description_and_source() {
         diagnosis.source().map(IDiagnosis::description),
         Some("source")
     );
+}
+
+#[test]
+fn derives_description_and_code_from_marked_fields() {
+    let diagnosis = FieldMetadataDiagnosis {
+        message: String::from("field description"),
+        code: String::from("E_FIELD"),
+    };
+
+    assert_eq!(diagnosis.description(), "field description");
+    assert_eq!(diagnosis.code(), Some("E_FIELD"));
+    assert_eq!(diagnosis.to_string(), "field description");
+}
+
+#[test]
+fn derives_optional_code_from_marked_field() {
+    let with_code = OptionalCodeDiagnosis {
+        message: String::from("optional code"),
+        code: Some(String::from("E_OPTIONAL")),
+    };
+    assert_eq!(with_code.description(), "optional code");
+    assert_eq!(with_code.code(), Some("E_OPTIONAL"));
+
+    let without_code = OptionalCodeDiagnosis {
+        message: String::from("no code"),
+        code: None,
+    };
+    assert_eq!(without_code.code(), None);
+}
+
+#[test]
+fn derives_enum_description_and_code_from_marked_fields() {
+    let diagnosis = EnumFieldMetadataDiagnosis::WithFields {
+        message: String::from("enum field"),
+        code: Some("E_ENUM_FIELD"),
+    };
+
+    assert_eq!(diagnosis.description(), "enum field");
+    assert_eq!(diagnosis.code(), Some("E_ENUM_FIELD"));
 }
 
 #[test]
@@ -454,7 +519,7 @@ fn derives_enum_variants_and_renders_with_simple_renderer() {
         String::from("tuple description"),
         MischiefError::builder("tuple source").build(),
     );
-    assert_eq!(diagnosis.description(), "{0}");
+    assert_eq!(diagnosis.description(), "tuple description");
     assert_eq!(
         diagnosis.source().map(IDiagnosis::description),
         Some("tuple source")

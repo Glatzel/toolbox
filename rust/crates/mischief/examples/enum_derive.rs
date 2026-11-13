@@ -18,14 +18,13 @@ enum CommandError {
         severity = Severity::Error
     )]
     InvalidConfig,
-    #[diagnosis(description_from = path)]
     Load {
+        #[diagnosis(description)]
         path: String,
         #[diagnosis(source)]
         source: MischiefError,
     },
-    #[diagnosis(description_from = 0)]
-    Parse(String),
+    Parse(#[diagnosis(description)] String),
 }
 
 fn main() {
@@ -44,7 +43,7 @@ fn main() {
         path: String::from("config.toml"),
         source: MischiefError::builder("permission denied").build(),
     };
-    assert_eq!(load.description(), "{path}");
+    assert_eq!(load.description(), "config.toml");
     assert_eq!(format!("{}", DescriptionDisplay(&load)), "config.toml");
     assert_eq!(load.code(), Some("E_COMMAND"));
     assert_eq!(
@@ -53,7 +52,7 @@ fn main() {
     );
 
     let parse = CommandError::Parse(String::from("unexpected token"));
-    assert_eq!(parse.description(), "{0}");
+    assert_eq!(parse.description(), "unexpected token");
     assert_eq!(
         format!("{}", DescriptionDisplay(&parse)),
         "unexpected token"

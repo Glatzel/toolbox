@@ -229,11 +229,15 @@ fn facade_path() -> TokenStream2 {
 
 /// Derives the `IDiagnosis` trait for named-field structs and enums.
 ///
-/// Structure metadata is configured with `#[diagnosis(...)]`. Descriptions may
-/// be static literals or delegated to a field implementing `AsRef<str>`. Mark
-/// one field with `#[diagnosis(source)]` to expose it as the diagnosis source.
-/// Use `#[diagnosis(source(foreign))]` for a `Send + Sync + 'static` core error
-/// that should appear only through `core::error::Error::source()`.
+/// Structure metadata is configured with `#[diagnosis(...)]`. Mark one field
+/// with `#[diagnosis(description)]` to return its `AsRef<str>` value as the
+/// description, and mark one field with `#[diagnosis(code)]` to return its
+/// string value as the error code. A code field may be a string-like value or
+/// an `Option` containing one.
+///
+/// Mark one field with `#[diagnosis(source)]` to expose it as the diagnosis
+/// source. Use `#[diagnosis(source(foreign))]` for a `Send + Sync + 'static`
+/// core error that should appear only through `core::error::Error::source()`.
 ///
 /// Enum-level attributes provide defaults for every variant. Variant-level
 /// attributes override those defaults. Use `#[diagnosis(forward)]` on a
@@ -246,13 +250,13 @@ fn facade_path() -> TokenStream2 {
 /// expressions and additional format arguments are not supported.
 ///
 /// `IDiagnosis::description` returns the unformatted template literal for
-/// diagnostics with placeholders. Renderers and the `DescriptionDisplay`
-/// adapter call `IDiagnosis::fmt_description` to produce the formatted text.
-/// `description_from = field` is equivalent to a `{field}` description
-/// template. Enum-level default descriptions cannot contain placeholders.
+/// static diagnostics with placeholders, or the marked field's string value for
+/// field-backed diagnostics. Renderers and the `DescriptionDisplay` adapter
+/// call `IDiagnosis::fmt_description` to produce the formatted text.
+/// Enum-level default descriptions cannot contain placeholders.
 ///
 /// Add `display` to generate `core::fmt::Display` from the same description
-/// template. Add `error` to generate `core::error::Error`; its `source()`
+/// source. Add `error` to generate `core::error::Error`; its `source()`
 /// delegates to the field marked `#[diagnosis(source)]`. The type must
 /// implement `Debug` and `Display`, either through the `display` flag or
 /// manually.
@@ -289,12 +293,11 @@ fn facade_path() -> TokenStream2 {
 /// #[diagnosis(description = "invalid input", code = "E_INPUT")]
 /// enum InputError {
 ///     Missing,
-///     #[diagnosis(description_from = 0)]
-///     Invalid(String),
+///     Invalid(#[diagnosis(description)] String),
 /// }
 ///
 /// assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
-/// assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
+/// assert_eq!(InputError::Invalid("name".into()).description(), "name");
 /// ```
 ///
 /// Descriptions can format fields for both diagnostics and `Display`:
@@ -410,8 +413,7 @@ mod tests {
     fn idiagnosis_enum_tuple_variant_expansion() {
         let input: TokenStream = r#"
             enum TupleEnum {
-                #[diagnosis(description_from = 0)]
-                Tuple(String, u32),
+                Tuple(#[diagnosis(description)] String, u32),
             }
         "#
         .parse()
@@ -463,11 +465,13 @@ mod tests {
     }
 
     #[test]
-    fn idiagnosis_enum_description_from_expansion() {
+    fn idiagnosis_enum_description_field_expansion() {
         let input: TokenStream = r#"
-            enum DescriptionFromEnum {
-                #[diagnosis(description_from = message)]
-                Named { message: String },
+            enum DescriptionFieldEnum {
+                Named {
+                    #[diagnosis(description)]
+                    message: String,
+                },
             }
         "#
         .parse()
@@ -606,11 +610,10 @@ mod tests {
     }
 
     #[test]
-    fn idiagnosis_description_from_template_expansion() {
+    fn idiagnosis_description_field_expansion() {
         let input: TokenStream = r#"
             enum Template {
-                #[diagnosis(description_from = 0)]
-                Message(String),
+                Message(#[diagnosis(description)] String),
             }
         "#
         .parse()

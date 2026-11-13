@@ -16,8 +16,8 @@ struct StaticDiagnosis {
 }
 
 #[derive(IDiagnosis)]
-#[diagnosis(description = message)]
 struct DelegatedDiagnosis {
+    #[diagnosis(description)]
     message: String,
 }
 
@@ -32,12 +32,15 @@ struct NestedDiagnosis {
 #[diagnosis(description = "default", code = "E_ENUM")]
 enum EnumDiagnosis {
     Unit,
-    #[diagnosis(description_from = 0)]
-    Tuple(String, #[diagnosis(source)] MischiefError),
-    #[diagnosis(description_from = 0)]
-    BoxedDescription(Box<str>),
-    #[diagnosis(description_from = message)]
-    StrDescription { message: &'static str },
+    Tuple(
+        #[diagnosis(description)] String,
+        #[diagnosis(source)] MischiefError,
+    ),
+    BoxedDescription(#[diagnosis(description)] Box<str>),
+    StrDescription {
+        #[diagnosis(description)]
+        message: &'static str,
+    },
     #[diagnosis(description = "named")]
     Named {
         #[diagnosis(source)]

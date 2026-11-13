@@ -4,7 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-thiserror.workspace = true
-
-[dev-dependencies]
-mischief.workspace = true
+mischief = { workspace = true, default-features = false, features = ["macros"] }

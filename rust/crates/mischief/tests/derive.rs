@@ -1,10 +1,11 @@
 #![cfg(feature = "macros")]
 #![deny(unreachable_code)]
 
+use core::convert::Infallible;
+
 #[cfg(feature = "std")]
 use mischief::render::*;
 use mischief::{IDiagnosis, MischiefError, Severity};
-use core::convert::Infallible;
 
 #[cfg(feature = "std")]
 struct NoTheme;
@@ -99,7 +100,10 @@ struct TupleTransparentDiagnosis(InnerError);
 
 #[derive(Debug, IDiagnosis)]
 #[diagnosis(display, error)]
-#[allow(dead_code, reason = "the uninhabited variant is a compile-time regression fixture")]
+#[allow(
+    dead_code,
+    reason = "the uninhabited variant is a compile-time regression fixture"
+)]
 enum InfallibleDiagnosis {
     #[diagnosis(transparent(foreign))]
     Infallible(#[diagnosis(from)] Infallible),
@@ -431,7 +435,10 @@ fn derives_source_from_tuple_field_after_the_first() {
     let diagnosis = TupleSecondSourceDiagnosis(7, InnerError::Inner);
 
     assert_eq!(diagnosis.0, 7);
-    assert_eq!(diagnosis.source().map(IDiagnosis::description), Some("inner"));
+    assert_eq!(
+        diagnosis.source().map(IDiagnosis::description),
+        Some("inner")
+    );
     assert_eq!(
         core::error::Error::source(&diagnosis).map(ToString::to_string),
         Some(String::from("inner"))

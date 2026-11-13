@@ -22,17 +22,17 @@ textwrap = ["arbor/textwrap", "dep:terminal_size"]
 textwrap-full = ["arbor/textwrap-full", "dep:terminal_size"]
 textwrap-hyphenation = [
   "arbor/textwrap-hyphenation",
-  "pretty",
   "dep:terminal_size",
+  "pretty",
 ]
-textwrap-smawk = ["arbor/textwrap-smawk", "pretty", "dep:terminal_size"]
+textwrap-smawk = ["arbor/textwrap-smawk", "dep:terminal_size", "pretty"]
 textwrap-unicode-linebreak = [
   "arbor/textwrap-unicode-linebreak",
-  "pretty",
   "dep:terminal_size",
+  "pretty",
 ]
 textwrap-unicode-width = [
   "arbor/textwrap-unicode-width",
-  "pretty",
   "dep:terminal_size",
+  "pretty",
 ]

@@ -14,7 +14,10 @@ generic-num = { path = "./crates/generic-num/" }
 mischief = { path = "./crates/mischief/" }
 mischief-core = { path = "./crates/mischief-core/", default-features = false }
 mischief-macros = { path = "./crates/mischief-macros/" }
-mischief-render = { path = "./crates/mischief-render/", default-features = false }
+mischief-render = {
+  path = "./crates/mischief-render/",
+  default-features = false
+}
 rax = { path = "./crates/rax/", default-features = false }
 
 async-trait = "0.1.92"
@@ -35,8 +38,8 @@ num-traits = "0.2.19"
 owo-colors = "4.4.0"
 parking_lot = "0.13.0"
 phastft = { version = "0.4.1", default-features = false }
-proc-macro2 = "1.0.107"
 proc-macro-crate = "3.5.0"
+proc-macro2 = "1.0.107"
 quote = "1.0.47"
 rayon = "1.12.0"
 rstest = "0.28.0"

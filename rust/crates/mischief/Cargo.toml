@@ -18,7 +18,13 @@ thiserror.workspace = true
 trybuild.workspace = true
 
 [features]
-default = ["mischief-render/arbor-default", "backtrace", "fancy", "macros", "std"]
+default = [
+  "backtrace",
+  "fancy",
+  "macros",
+  "mischief-render/arbor-default",
+  "std"
+]
 backtrace = ["mischief-render/backtrace", "std"]
 fancy = ["color", "hyperlink", "pretty", "textwrap"]
 macros = []

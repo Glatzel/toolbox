@@ -165,7 +165,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "mischief"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "mischief-core",
  "mischief-macros",
@@ -173,11 +173,11 @@ dependencies = [
 
 [[package]]
 name = "mischief-core"
-version = "2026.11.13"
+version = "2026.11.0"
 
 [[package]]
 name = "mischief-macros"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -235,7 +235,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rax"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "mischief",
  "strum",
@@ -243,7 +243,7 @@ dependencies = [
 
 [[package]]
 name = "rax-nmea"
-version = "2026.11.13"
+version = "2026.11.0"
 dependencies = [
  "derive-getters",
  "jiff",

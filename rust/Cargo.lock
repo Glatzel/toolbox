@@ -967,13 +967,16 @@ dependencies = [
 name = "mischief"
 version = "2026.10.11"
 dependencies = [
- "arbor",
- "backtrace",
  "insta",
+ "mischief-core",
  "mischief-macros",
+ "mischief-render",
  "owo-colors",
- "terminal_size",
 ]
+
+[[package]]
+name = "mischief-core"
+version = "2026.10.11"
 
 [[package]]
 name = "mischief-macros"
@@ -983,6 +986,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+]
+
+[[package]]
+name = "mischief-render"
+version = "2026.10.11"
+dependencies = [
+ "arbor",
+ "backtrace",
+ "mischief-core",
+ "owo-colors",
+ "terminal_size",
 ]
 
 [[package]]

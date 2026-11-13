@@ -6,9 +6,8 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
+use mischief_core::{IDiagnosis, Severity};
 use owo_colors::{OwoColorize, Style};
-
-use crate::{IDiagnosis, Severity};
 
 /// Indentation configuration used when rendering diagnostic trees.
 ///

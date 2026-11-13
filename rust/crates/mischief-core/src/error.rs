@@ -1,4 +1,3 @@
-extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use core::fmt::Display;
@@ -80,6 +79,15 @@ impl MischiefError {
             help: help.map(|s| s.to_string()),
             url: url.map(|s| s.to_string()),
         }
+    }
+
+    /// Replaces this diagnosis's source with another diagnosis.
+    ///
+    /// This is used by the facade to prepend contextual error layers while
+    /// preserving diagnostic metadata.
+    pub fn with_source(mut self, source: Box<Self>) -> Self {
+        self.source = Some(source);
+        self
     }
 }
 

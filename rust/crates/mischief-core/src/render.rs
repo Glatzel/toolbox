@@ -1,4 +1,3 @@
-extern crate alloc;
 use crate::IDiagnosis;
 
 /// Produces an iterator over the diagnosis chain.
@@ -34,7 +33,7 @@ where
     let mut chain = chain(diagnosis);
 
     if let Some(first) = chain.next() {
-        f.write_str(&alloc::format!("Error: {}", first.description()))?;
+        write!(f, "Error: {}", first.description())?;
         writeln!(f)?;
     }
 
@@ -47,16 +46,9 @@ where
             first = false;
         }
 
-        f.write_str(&alloc::format!("    {}", diagnosis.description()))?;
+        write!(f, "    {}", diagnosis.description())?;
         writeln!(f)?;
     }
 
     Ok(())
-}
-#[cfg(all(feature = "backtrace", debug_assertions))]
-pub fn render_backtrace(
-    backtrace: &backtrace::Backtrace,
-    f: &mut core::fmt::Formatter<'_>,
-) -> core::fmt::Result {
-    writeln!(f, "Backtrace:\n{:?}", backtrace)
 }

@@ -4,14 +4,17 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use crate::error::MischiefError;
+use mischief_core::MischiefError;
+#[cfg(all(feature = "backtrace", debug_assertions))]
+use mischief_render::Backtrace;
+
 use crate::render::render_diagnosis;
 
 pub struct ReportInner {
     error: MischiefError,
 
     #[cfg(all(feature = "backtrace", debug_assertions))]
-    backtrace: backtrace::Backtrace,
+    backtrace: Backtrace,
 }
 /// High-level wrapper around [`MischiefError`] used for ergonomic error
 /// handling.
@@ -36,7 +39,7 @@ impl Report {
     /// contained by the report.
     pub fn new(error: MischiefError) -> Self {
         #[cfg(all(feature = "backtrace", debug_assertions))]
-        let backtrace = backtrace::Backtrace::new();
+        let backtrace = Backtrace::new();
 
         Self(Box::new(ReportInner {
             error,
@@ -103,7 +106,7 @@ where
             error: convert(&value),
 
             #[cfg(all(feature = "backtrace", debug_assertions))]
-            backtrace: backtrace::Backtrace::new(),
+            backtrace: Backtrace::new(),
         }))
     }
 }
@@ -156,9 +159,7 @@ where
     D: Display + 'static,
 {
     let new_inner = if let Some(r) = (&msg as &dyn core::any::Any).downcast_ref::<Report>() {
-        let mut inner = r.0.error.clone();
-        inner.source = Some(Box::new(e.0.error));
-        inner
+        r.0.error.clone().with_source(Box::new(e.0.error))
     } else {
         MischiefError::new(&msg, Some(Box::new(e.0.error)), None, None, None, None)
     };

@@ -94,9 +94,7 @@ impl Parse for MischiefErrorInput {
 /// mischief!("format string", positional_args..., code = ..., severity = ..., help = ..., url = ...)
 /// ```
 #[proc_macro]
-pub fn mischief(input: TokenStream) -> TokenStream {
-    expand_mischief(input.into()).into()
-}
+pub fn mischief(input: TokenStream) -> TokenStream { expand_mischief(input.into()).into() }
 
 fn expand_mischief(input: TokenStream2) -> TokenStream2 {
     let parsed_input = match syn::parse2::<MischiefErrorInput>(input) {

@@ -253,8 +253,16 @@ fn facade_path() -> TokenStream2 {
 /// are retained as downcastable roots. The blanket `From<Error> for Report`
 /// conversion is unchanged.
 ///
-/// Formatted descriptions, transparent derivation, and error mapping between
-/// enums are not supported.
+/// Use `transparent` on a single-field struct or variant to delegate
+/// `IDiagnosis`, `Display`, and `Error::source()` to an inner diagnosis and
+/// error. Use `transparent(foreign)` for an inner foreign error. Transparent
+/// forms require the `display` and `error` flags; foreign transparency also
+/// requires a static enum-level description. Transparent wrappers do not add a
+/// report node.
+///
+/// Formatted descriptions with field interpolation, `#[backtrace]`, custom
+/// `fmt` expressions, error mapping between external enums, and changes to the
+/// blanket `From<Error> for Report` conversion are not supported.
 ///
 /// # Examples
 ///
@@ -272,6 +280,17 @@ fn facade_path() -> TokenStream2 {
 ///
 /// assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
 /// assert_eq!(InputError::Invalid("name".into()).description(), "name");
+/// ```
+///
+/// Transparent foreign errors forward their display and source chain:
+///
+/// ```ignore
+/// #[derive(IDiagnosis)]
+/// #[diagnosis(display, error, description = "I/O error")]
+/// enum FileError {
+///     #[diagnosis(transparent(foreign))]
+///     Io(#[diagnosis(from)] std::io::Error),
+/// }
 /// ```
 #[proc_macro_derive(IDiagnosis, attributes(diagnosis))]
 #[allow(non_snake_case)]
@@ -559,6 +578,82 @@ mod tests {
                 Diagnosis(#[diagnosis(source)] Inner),
                 #[diagnosis(description = "foreign")]
                 Foreign(#[diagnosis(source(foreign))] IoError),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "default")]
+            enum Transparent {
+                #[diagnosis(transparent)]
+                Inner(Inner),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_foreign_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "foreign default", code = "E_FOREIGN")]
+            enum Transparent {
+                #[diagnosis(transparent(foreign))]
+                Io(IoError),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_named_struct_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, transparent)]
+            struct Transparent {
+                inner: Inner,
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_from_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "foreign")]
+            enum Transparent {
+                #[diagnosis(transparent(foreign))]
+                Io(#[diagnosis(from)] IoError),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_mixed_enum_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error, description = "default")]
+            enum Mixed {
+                #[diagnosis(transparent)]
+                Inner(Inner),
+                #[diagnosis(description = "normal")]
+                Normal(#[diagnosis(source)] Source),
             }
         "#
         .parse()

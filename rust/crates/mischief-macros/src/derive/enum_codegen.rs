@@ -7,12 +7,12 @@ use syn::spanned::Spanned;
 use syn::{DeriveInput, Field, Fields, Ident, Index, Member};
 
 use super::attrs::{
-    Description, DiagnosisAttributes, SourceKind, option_literal, parse_diagnosis_attributes,
-    parse_field_roles,
+    Description, DiagnosisAttributes, SourceKind, Transparent, option_literal,
+    parse_diagnosis_attributes, parse_field_roles,
 };
 use super::shared::{
     DiagnosisMethods, diagnosis_source_builder, error_source_expression,
-    foreign_error_source_expression, foreign_source_builder, generate_display_impl,
+    foreign_error_source_expression, foreign_source_builder, generate_display_body_impl,
     generate_error_impl, generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl,
 };
 use crate::facade_path;
@@ -53,7 +53,7 @@ pub(crate) fn derive_enum_idiagnosis(
     let mut from_impls = Vec::new();
     let mut from_types = HashMap::new();
     for variant in &data.variants {
-        let (config, forward) = parse_diagnosis_attributes(&variant.attrs, true, false)?;
+        let (config, forward) = parse_diagnosis_attributes(&variant.attrs, true, false, true)?;
         let fields: Vec<&Field> = variant.fields.iter().collect();
         let bindings: Vec<FieldBinding> = fields
             .iter()
@@ -96,6 +96,121 @@ pub(crate) fn derive_enum_idiagnosis(
             .transpose()?;
         if let Some(from_impl) = from_impl {
             from_impls.push(from_impl);
+        }
+
+        if let Some(transparent) = config.transparent {
+            if fields.len() != 1 {
+                return Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    "`transparent` requires a variant with exactly one field",
+                ));
+            }
+            if !defaults.display || !defaults.error {
+                return Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    "`transparent` requires the `display` and `error` flags",
+                ));
+            }
+            if config.has_metadata() {
+                return Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    "`transparent` cannot be combined with diagnostic metadata",
+                ));
+            }
+            if let Some(source) = roles.source {
+                return Err(syn::Error::new(
+                    source._span,
+                    "`transparent` cannot be combined with `source`",
+                ));
+            }
+
+            let binding = &bindings[0].binding;
+            let methods = match transparent {
+                Transparent::Diagnosis => DiagnosisMethods {
+                    description: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.description()
+                        }
+                    },
+                    source: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.source()
+                        }
+                    },
+                    code: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.code()
+                        }
+                    },
+                    severity: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.severity()
+                        }
+                    },
+                    help: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.help()
+                        }
+                    },
+                    url: quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.url()
+                        }
+                    },
+                },
+                Transparent::Foreign => {
+                    let description = match defaults.description.as_ref() {
+                        Some(Description::Static(description)) => description,
+                        Some(Description::Field(_)) | None => {
+                            return Err(syn::Error::new_spanned(
+                                &variant.ident,
+                                "`transparent(foreign)` requires an enum-level static description",
+                            ));
+                        }
+                    };
+                    DiagnosisMethods {
+                        description: quote! { #description },
+                        source: quote! { None },
+                        code: option_literal(defaults.code.clone()),
+                        severity: defaults
+                            .severity
+                            .clone()
+                            .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) }),
+                        help: option_literal(defaults.help.clone()),
+                        url: option_literal(defaults.url.clone()),
+                    }
+                }
+            };
+            arms.push(EnumArm {
+                pattern,
+                description: methods.description,
+                display: Some(quote! {
+                    ::core::fmt::Display::fmt(#binding, f)
+                }),
+                source: methods.source,
+                error_source: quote! {
+                    ::core::error::Error::source(#binding)
+                },
+                report: match transparent {
+                    Transparent::Diagnosis => quote! {
+                        #facade::Report::new(copy_diagnosis(&#binding))
+                    },
+                    Transparent::Foreign => quote! {
+                        #facade::Report::new(#facade::MischiefError::from_error(#binding))
+                    },
+                },
+                code: methods.code,
+                severity: methods.severity,
+                help: methods.help,
+                url: methods.url,
+            });
+            continue;
         }
 
         if let Some(forward_span) = forward {
@@ -161,7 +276,8 @@ pub(crate) fn derive_enum_idiagnosis(
 
         let description = enum_description(&config, &defaults, &bindings, variant)?;
         let display = if defaults.display {
-            Some(enum_static_description(&config, &defaults, variant)?)
+            let description = enum_static_description(&config, &defaults, variant)?;
+            Some(quote! { f.write_str(#description) })
         } else {
             None
         };
@@ -311,7 +427,7 @@ pub(crate) fn derive_enum_idiagnosis(
                 quote! { #pattern => #expression }
             })
             .collect();
-        expanded.extend(generate_display_impl(
+        expanded.extend(generate_display_body_impl(
             input,
             quote! {
                 match self {

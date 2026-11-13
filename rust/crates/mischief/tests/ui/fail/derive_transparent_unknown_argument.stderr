@@ -1,0 +1,5 @@
+error: unknown transparent argument; expected `foreign`
+ --> tests/ui/fail/derive_transparent_unknown_argument.rs:6:29
+  |
+6 |     #[diagnosis(transparent(other))]
+  |                             ^^^^^

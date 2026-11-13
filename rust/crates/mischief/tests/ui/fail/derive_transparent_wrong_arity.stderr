@@ -1,0 +1,5 @@
+error: `transparent` requires a variant with exactly one field
+ --> tests/ui/fail/derive_transparent_wrong_arity.rs:7:5
+  |
+7 |     Unit,
+  |     ^^^^

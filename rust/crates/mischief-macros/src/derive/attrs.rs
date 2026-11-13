@@ -13,12 +13,19 @@ pub(crate) struct DiagnosisAttributes {
     pub(crate) severity: Option<Expr>,
     pub(crate) help: Option<LitStr>,
     pub(crate) url: Option<LitStr>,
+    pub(crate) transparent: Option<Transparent>,
 }
 
 #[derive(Clone)]
 pub(crate) enum Description {
     Static(LitStr),
     Field(Member),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Transparent {
+    Diagnosis,
+    Foreign,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -55,6 +62,15 @@ impl DiagnosisAttributes {
             && self.url.is_none()
             && !self.display
             && !self.error
+            && self.transparent.is_none()
+    }
+
+    pub(crate) fn has_metadata(&self) -> bool {
+        self.description.is_some()
+            || self.code.is_some()
+            || self.severity.is_some()
+            || self.help.is_some()
+            || self.url.is_some()
     }
 }
 
@@ -62,6 +78,7 @@ pub(crate) fn parse_diagnosis_attributes(
     attrs: &[Attribute],
     allow_forward: bool,
     allow_type_flags: bool,
+    allow_transparent: bool,
 ) -> Result<(DiagnosisAttributes, Option<Span>)> {
     let mut config = DiagnosisAttributes::default();
     let mut forward = None;
@@ -80,6 +97,27 @@ pub(crate) fn parse_diagnosis_attributes(
                     return Err(meta.error("duplicate `error` attribute"));
                 }
                 config.error = true;
+            } else if allow_transparent && meta.path.is_ident("transparent") {
+                if config.transparent.is_some() {
+                    return Err(meta.error("duplicate `transparent` attribute"));
+                }
+                config.transparent = Some(if meta.input.peek(syn::token::Paren) {
+                    let content;
+                    parenthesized!(content in meta.input);
+                    let kind: Ident = content.parse()?;
+                    if kind != "foreign" {
+                        return Err(syn::Error::new_spanned(
+                            kind,
+                            "unknown transparent argument; expected `foreign`",
+                        ));
+                    }
+                    if !content.is_empty() {
+                        return Err(content.error("unexpected transparent argument"));
+                    }
+                    Transparent::Foreign
+                } else {
+                    Transparent::Diagnosis
+                });
             } else if meta.path.is_ident("description") {
                 if config.description.is_some() {
                     return Err(meta.error("duplicate `description` attribute"));
@@ -121,8 +159,12 @@ pub(crate) fn parse_diagnosis_attributes(
                 }
                 forward = Some(meta.path.span());
             } else {
-                let expected = if allow_forward {
+                let expected = if allow_forward && allow_transparent {
+                    "expected one of: `description`, `description_from`, `code`, `severity`, `help`, `url`, `forward`, `transparent`"
+                } else if allow_forward {
                     "expected one of: `description`, `description_from`, `code`, `severity`, `help`, `url`, `forward`"
+                } else if allow_type_flags && allow_transparent {
+                    "expected one of: `display`, `error`, `description`, `description_from`, `code`, `severity`, `help`, `url`, `transparent`"
                 } else if allow_type_flags {
                     "expected one of: `display`, `error`, `description`, `description_from`, `code`, `severity`, `help`, `url`"
                 } else {

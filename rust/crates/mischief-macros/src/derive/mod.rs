@@ -18,11 +18,17 @@ pub(crate) fn expand_idiagnosis(input: TokenStream2) -> TokenStream2 {
 }
 
 fn derive_idiagnosis(input: &DeriveInput) -> Result<TokenStream2> {
-    let (config, forward) = parse_diagnosis_attributes(&input.attrs, false, true)?;
+    let (config, forward) = parse_diagnosis_attributes(&input.attrs, false, true, true)?;
     if let Some(forward) = forward {
         return Err(syn::Error::new(
             forward,
             "`forward` is only supported on enum variants",
+        ));
+    }
+    if config.transparent.is_some() && matches!(&input.data, Data::Enum(_)) {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`transparent` belongs on enum variants, not the enum",
         ));
     }
     match &input.data {

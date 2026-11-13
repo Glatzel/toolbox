@@ -1,6 +1,24 @@
 #![cfg(feature = "macros")]
 
+#[cfg(feature = "std")]
+use mischief::render::*;
 use mischief::{IDiagnosis, MischiefError, Severity};
+
+#[cfg(feature = "std")]
+struct NoTheme;
+
+#[cfg(feature = "std")]
+impl ITheme for NoTheme {
+    fn default_style(&self) -> Option<&owo_colors::Style> { None }
+    fn description_style(&self) -> Option<&owo_colors::Style> { None }
+    fn severity_style(&self, _severity: Option<Severity>) -> Option<&owo_colors::Style> { None }
+    fn help_style(&self) -> &(Option<owo_colors::Style>, Option<owo_colors::Style>) {
+        &(None, None)
+    }
+    fn hyperlink_style(&self) -> &(Option<owo_colors::Style>, HyperlinkFormat) {
+        &(None, HyperlinkFormat::Plain)
+    }
+}
 
 #[derive(IDiagnosis)]
 #[diagnosis(
@@ -130,6 +148,37 @@ enum ReportableEnum {
     Foreign(#[diagnosis(source(foreign))] std::io::Error),
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "transparent default")]
+enum TransparentDiagnosis {
+    #[diagnosis(transparent)]
+    Inner(InnerError),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, transparent)]
+struct NamedTransparent {
+    inner: InnerError,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "foreign transparent")]
+enum TransparentForeign {
+    #[diagnosis(transparent(foreign))]
+    Io(std::io::Error),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "decode default", code = "E_DECODE")]
+enum DecodeError {
+    #[diagnosis(transparent(foreign))]
+    Io(#[diagnosis(from)] std::io::Error),
+    #[diagnosis(transparent)]
+    Diagnostic(#[diagnosis(from)] InnerError),
+    #[diagnosis(description = "invalid input")]
+    Invalid,
+}
+
 #[test]
 fn derives_static_description_and_metadata() {
     let source = MischiefError::builder("source").build();
@@ -243,6 +292,71 @@ fn into_report_preserves_metadata_and_sources() {
             .source()
             .map(IDiagnosis::description),
         Some("report inner")
+    );
+}
+
+#[test]
+fn transparent_variants_forward_display_and_source_without_wrapping() {
+    let diagnosis = TransparentDiagnosis::Inner(InnerError::Inner);
+    assert_eq!(diagnosis.to_string(), InnerError::Inner.to_string());
+    assert_eq!(
+        core::error::Error::source(&diagnosis).map(ToString::to_string),
+        core::error::Error::source(&InnerError::Inner).map(ToString::to_string)
+    );
+    assert_report_render_snapshots("transparent_diagnosis", &diagnosis.into_report());
+
+    let named = NamedTransparent {
+        inner: InnerError::Inner,
+    };
+    assert_eq!(named.to_string(), InnerError::Inner.to_string());
+    assert_eq!(
+        core::error::Error::source(&named).map(ToString::to_string),
+        core::error::Error::source(&InnerError::Inner).map(ToString::to_string)
+    );
+    assert_report_render_snapshots("transparent_named", &named.into_report());
+
+    let foreign = TransparentForeign::Io(std::io::Error::other("foreign transparent"));
+    assert_eq!(foreign.to_string(), "foreign transparent");
+    assert!(core::error::Error::source(&foreign).is_none());
+    assert_report_render_snapshots("transparent_foreign", &foreign.into_report());
+
+    let decode_io = DecodeError::from(std::io::Error::other("decode io"));
+    assert_eq!(decode_io.to_string(), "decode io");
+    assert!(core::error::Error::source(&decode_io).is_none());
+    let report = decode_io.into_report();
+    assert_eq!(report.error().description(), "decode io");
+    assert!(report.downcast_ref::<std::io::Error>().is_some());
+    assert_report_render_snapshots("transparent_decode", &report);
+
+    let decode_diagnosis = DecodeError::from(InnerError::Inner);
+    assert_eq!(decode_diagnosis.to_string(), "inner");
+    assert!(matches!(decode_diagnosis, DecodeError::Diagnostic(_)));
+
+    let invalid = DecodeError::Invalid;
+    assert_eq!(invalid.to_string(), "invalid input");
+    assert!(core::error::Error::source(&invalid).is_none());
+    assert_eq!(invalid.into_report().error().description(), "invalid input");
+}
+
+fn assert_report_render_snapshots(name: &str, report: &mischief::Report) {
+    insta::assert_snapshot!(
+        format!("{name}_simple"),
+        format!("{}", SimpleRenderer(report.error()))
+    );
+
+    #[cfg(feature = "std")]
+    insta::assert_snapshot!(
+        format!("{name}_verbose"),
+        format!(
+            "{}",
+            RenderBundle {
+                diagnosis: report.error(),
+                theme: NoTheme,
+                indent: MischiefIndent::default(),
+                #[cfg(feature = "textwrap")]
+                width: 80,
+            }
+        )
     );
 }
 

@@ -4,12 +4,14 @@ use syn::parse::Result;
 use syn::{DeriveInput, Fields, Member};
 
 use super::attrs::{
-    Description, DiagnosisAttributes, SourceKind, option_literal, parse_field_roles,
+    Description, DiagnosisAttributes, FieldRoles, SourceKind, Transparent, option_literal,
+    parse_field_roles,
 };
 use super::shared::{
     DiagnosisMethods, diagnosis_source_builder, error_source_expression,
-    foreign_error_source_expression, foreign_source_builder, generate_display_impl,
-    generate_error_impl, generate_from_impl, generate_idiagnosis_impl, generate_into_report_impl,
+    foreign_error_source_expression, foreign_source_builder, generate_display_body_impl,
+    generate_display_impl, generate_error_impl, generate_from_impl, generate_idiagnosis_impl,
+    generate_into_report_impl,
 };
 use crate::facade_path;
 
@@ -29,6 +31,9 @@ pub(crate) fn derive_struct_idiagnosis(
     };
     let field_refs: Vec<&syn::Field> = fields.iter().collect();
     let roles = parse_field_roles(&field_refs)?;
+    if let Some(transparent) = config.transparent {
+        return derive_transparent_struct(input, config, transparent, &field_refs, roles);
+    }
     let source = roles
         .source
         .map(|source| field_refs[source.index].ident.clone().expect("named field"));
@@ -168,6 +173,136 @@ pub(crate) fn derive_struct_idiagnosis(
             }
         },
     );
+    expanded.extend(generate_into_report_impl(input, &facade, report_expression));
+    Ok(expanded)
+}
+
+fn derive_transparent_struct(
+    input: &DeriveInput,
+    config: DiagnosisAttributes,
+    transparent: Transparent,
+    fields: &[&syn::Field],
+    roles: FieldRoles,
+) -> Result<TokenStream2> {
+    if fields.len() != 1 {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`transparent` requires a struct with exactly one field",
+        ));
+    }
+    if !config.display || !config.error {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`transparent` requires the `display` and `error` flags",
+        ));
+    }
+    if let Some(source) = roles.source {
+        return Err(syn::Error::new(
+            source._span,
+            "`transparent` cannot be combined with `source`",
+        ));
+    }
+    if transparent == Transparent::Diagnosis && config.has_metadata() {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`transparent` cannot be combined with diagnostic metadata",
+        ));
+    }
+    if transparent == Transparent::Foreign && config.description.is_none() {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`transparent(foreign)` requires a description",
+        ));
+    }
+
+    let facade = facade_path();
+    let field = fields[0];
+    let field_name = field.ident.as_ref().expect("named field");
+    let methods = match transparent {
+        Transparent::Diagnosis => DiagnosisMethods {
+            description: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.description()
+                }
+            },
+            source: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.source()
+                }
+            },
+            code: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.code()
+                }
+            },
+            severity: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.severity()
+                }
+            },
+            help: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.help()
+                }
+            },
+            url: quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.url()
+                }
+            },
+        },
+        Transparent::Foreign => DiagnosisMethods {
+            description: match config.description.as_ref() {
+                Some(Description::Static(description)) => quote! { #description },
+                Some(Description::Field(field)) => {
+                    quote! { ::core::convert::AsRef::<str>::as_ref(&self.#field) }
+                }
+                None => unreachable!("foreign transparency requires a description"),
+            },
+            source: quote! { None },
+            code: option_literal(config.code.clone()),
+            severity: config
+                .severity
+                .clone()
+                .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) }),
+            help: option_literal(config.help.clone()),
+            url: option_literal(config.url.clone()),
+        },
+    };
+
+    let mut expanded = generate_idiagnosis_impl(input, &facade, methods);
+    expanded.extend(generate_display_body_impl(
+        input,
+        quote! { ::core::fmt::Display::fmt(&self.#field_name, f) },
+    ));
+    expanded.extend(generate_error_impl(
+        input,
+        quote! { ::core::error::Error::source(&self.#field_name) },
+    ));
+
+    if let Some(from) = roles.from {
+        expanded.extend(generate_from_impl(
+            input,
+            &field.ty,
+            quote! { Self { #field_name: value } },
+        ));
+        let _ = from;
+    }
+
+    let report_expression = match transparent {
+        Transparent::Diagnosis => quote! {
+            #facade::Report::new(copy_diagnosis(&self.#field_name))
+        },
+        Transparent::Foreign => quote! {
+            #facade::Report::new(#facade::MischiefError::from_error(self.#field_name))
+        },
+    };
     expanded.extend(generate_into_report_impl(input, &facade, report_expression));
     Ok(expanded)
 }

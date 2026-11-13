@@ -57,12 +57,16 @@ pub(crate) fn generate_display_impl(
     input: &DeriveInput,
     description: TokenStream2,
 ) -> TokenStream2 {
+    generate_display_body_impl(input, quote! { f.write_str(#description) })
+}
+
+pub(crate) fn generate_display_body_impl(input: &DeriveInput, body: TokenStream2) -> TokenStream2 {
     let name = &input.ident;
     let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
     quote! {
         impl #impl_generics ::core::fmt::Display for #name #type_generics #where_clause {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                f.write_str(#description)
+                #body
             }
         }
     }

@@ -1,36 +1,24 @@
 use std::collections::HashMap;
-use std::fmt;
 
 use mischief::IDiagnosis;
 
 pub type ResourceKey = &'static str;
 
 #[derive(Debug, PartialEq, Eq, IDiagnosis)]
-#[diagnosis(error)]
+#[diagnosis(error, display)]
 pub enum ResourceError {
     // Resource errors
-    #[diagnosis(description = "resource already registered")]
+    #[diagnosis(description = "resource already registered: {0}")]
     AlreadyRegistered(ResourceKey),
 
-    #[diagnosis(description = "resource not found")]
+    #[diagnosis(description = "resource not found: {0}")]
     NotFound(ResourceKey),
 
-    #[diagnosis(description = "insufficient resource capacity")]
+    #[diagnosis(description = "insufficient capacity for: {0}")]
     InsufficientCapacity(ResourceKey),
 
-    #[diagnosis(description = "resource free would underflow")]
+    #[diagnosis(description = "free would underflow resource: {0}")]
     Underflow(ResourceKey),
-}
-
-impl fmt::Display for ResourceError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::AlreadyRegistered(key) => write!(f, "resource already registered: {key}"),
-            Self::NotFound(key) => write!(f, "resource not found: {key}"),
-            Self::InsufficientCapacity(key) => write!(f, "insufficient capacity for: {key}"),
-            Self::Underflow(key) => write!(f, "free would underflow resource: {key}"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

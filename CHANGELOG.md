@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(mischief)** Add `Display` for `MischiefError`, `ensure!`, real
   `source = ...` macro support, and the `IDiagnosis` derive for structs and
   enums.
+- **(mischief)** Add opt-in `display`, `error`, `from`,
+  `source(foreign)`, `into_report()`, and transparent diagnosis generation.
 - **(mischief)** Add characterization, expansion, trybuild, renamed-dependency,
   and renderer snapshots.
 

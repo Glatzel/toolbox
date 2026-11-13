@@ -77,6 +77,31 @@ enum InputError {
 assert_eq!(InputError::Invalid("name".into()).description(), "name");
 ```
 
+Add `display` and `error` to generate `Display` and `Error`. Use `from` on a
+single field to generate its conversion:
+
+```rust
+use mischief::IDiagnosis;
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "I/O error")]
+enum FileError {
+    #[diagnosis(transparent(foreign))]
+    Io(#[diagnosis(from)] std::io::Error),
+    #[diagnosis(description = "missing file")]
+    Missing,
+}
+
+let error = FileError::from(std::io::Error::other("read failed"));
+assert_eq!(error.to_string(), "read failed");
+let report = error.into_report();
+assert_eq!(report.error().description(), "read failed");
+```
+
+`transparent` forwards to an inner type implementing both `IDiagnosis` and
+`Error`. `transparent(foreign)` forwards `Display` and `Error::source()` to a
+foreign error. Both forms omit the wrapper node from `into_report()`.
+
 More runnable examples are in the crate’s `examples/` directory:
 
 ```text
@@ -85,6 +110,7 @@ cargo run -p mischief --example enum_forward
 cargo run -p mischief --example library_boundary
 cargo run -p mischief --example application_boundary
 cargo run -p mischief --example thiserror_upstream
+cargo run -p mischief --example enum_transparent
 ```
 
 ## Features

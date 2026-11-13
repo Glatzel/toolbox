@@ -82,6 +82,33 @@
 //! assert_eq!(InputError::Invalid("name".into()).description(), "name");
 //! ```
 //!
+//! Add `display` and `error` to generate rendering and the standard error
+//! trait. `from` generates an independent conversion for one field.
+//!
+//! ```
+//! use mischief::IDiagnosis;
+//!
+//! #[derive(Debug, IDiagnosis)]
+//! #[diagnosis(display, error, description = "I/O error")]
+//! enum FileError {
+//!     #[diagnosis(transparent(foreign))]
+//!     Io(#[diagnosis(from)] std::io::Error),
+//!     #[diagnosis(description = "missing file")]
+//!     Missing,
+//! }
+//!
+//! let error = FileError::from(std::io::Error::other("read failed"));
+//! assert_eq!(error.to_string(), "read failed");
+//! let report = error.into_report();
+//! assert_eq!(report.error().description(), "read failed");
+//! assert!(report.downcast_ref::<std::io::Error>().is_some());
+//! ```
+//!
+//! Use `transparent` for an inner type implementing both [`IDiagnosis`] and
+//! [`core::error::Error`]. Use `transparent(foreign)` for a foreign error. Both
+//! forms forward `Display` and `Error::source()` and omit the wrapper node from
+//! [`Report`].
+//!
 //! # Foreign Errors
 //!
 //! Foreign errors retain their concrete root type for downcasting while their

@@ -14,7 +14,7 @@ pub use error::{
 };
 
 mod protocol;
-pub use protocol::{IDiagnosis, Severity};
+pub use protocol::{DescriptionDisplay, IDiagnosis, Severity};
 
 mod render;
 pub use render::render_diagnosis;

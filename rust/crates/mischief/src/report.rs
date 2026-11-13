@@ -88,6 +88,10 @@ impl IIntoDiagnosis for Report {
 impl IDiagnosis for Report {
     fn description(&self) -> &str { self.inner.error.description() }
 
+    fn fmt_description(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.inner.error.fmt_description(f)
+    }
+
     fn source(&self) -> Option<&dyn IDiagnosis> { self.inner.error.source() }
 
     fn code(&self) -> Option<&str> { self.inner.error.code() }

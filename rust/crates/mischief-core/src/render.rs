@@ -1,4 +1,4 @@
-use crate::IDiagnosis;
+use crate::{DescriptionDisplay, IDiagnosis};
 
 /// Produces an iterator over the diagnosis chain.
 ///
@@ -21,7 +21,7 @@ fn chain(diagnosis: &impl crate::IDiagnosis) -> impl Iterator<Item = &dyn crate:
 /// are treated as causes and displayed under a `"Caused by:"` section.
 ///
 /// Each diagnosis in the causal chain is displayed on its own line
-/// using the description returned by [`IDiagnosis::description`].
+/// using [`IDiagnosis::fmt_description`].
 ///
 /// This renderer provides a minimal, dependency-free textual
 /// representation of diagnosis chains and can serve as a fallback
@@ -33,7 +33,7 @@ where
     let mut chain = chain(diagnosis);
 
     if let Some(first) = chain.next() {
-        write!(f, "Error: {}", first.description())?;
+        write!(f, "Error: {}", DescriptionDisplay(first))?;
         writeln!(f)?;
     }
 
@@ -46,9 +46,54 @@ where
             first = false;
         }
 
-        write!(f, "    {}", diagnosis.description())?;
+        write!(f, "    {}", DescriptionDisplay(diagnosis))?;
         writeln!(f)?;
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+    use crate::Severity;
+
+    #[derive(Debug)]
+    struct FormattedDiagnosis;
+
+    impl IDiagnosis for FormattedDiagnosis {
+        fn description(&self) -> &str { "borrowed description" }
+
+        fn fmt_description(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            f.write_str("formatted description")
+        }
+
+        fn source(&self) -> Option<&dyn IDiagnosis> { None }
+
+        fn code(&self) -> Option<&str> { None }
+
+        fn severity(&self) -> Option<Severity> { None }
+
+        fn help(&self) -> Option<&str> { None }
+
+        fn url(&self) -> Option<&str> { None }
+    }
+
+    struct Renderer(FormattedDiagnosis);
+
+    impl core::fmt::Display for Renderer {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            render_diagnosis(&self.0, f)
+        }
+    }
+
+    #[test]
+    fn simple_renderer_uses_fmt_description() {
+        assert_eq!(
+            Renderer(FormattedDiagnosis).to_string(),
+            "Error: formatted description\n"
+        );
+    }
 }

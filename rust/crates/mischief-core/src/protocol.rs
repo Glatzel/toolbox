@@ -23,6 +23,16 @@ pub trait IDiagnosis {
     /// the diagnosis.
     fn description(&self) -> &str;
 
+    /// Formats the human-readable description of this diagnosis.
+    ///
+    /// The default implementation writes [`IDiagnosis::description`].
+    /// Implementations may override this method when the rendered description
+    /// contains field values that cannot be represented by the borrowed
+    /// description alone.
+    fn fmt_description(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.description())
+    }
+
     /// Returns the underlying cause of this diagnosis, if any.
     ///
     /// This allows diagnosiss to form a causal chain where each
@@ -72,6 +82,17 @@ pub trait IDiagnosis {
     // fn labels<'a>(&'a self) -> Option<&'a str>;
 }
 
+/// Adapts a diagnosis to [`Display`] using its formatted description.
+///
+/// This adapter renders [`IDiagnosis::fmt_description`] without allocating.
+pub struct DescriptionDisplay<'a>(pub &'a dyn IDiagnosis);
+
+impl Display for DescriptionDisplay<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.0.fmt_description(f)
+    }
+}
+
 /// Represents the severity level associated with a diagnosis.
 ///
 /// Severity indicates how serious a diagnosis message is and
@@ -108,5 +129,43 @@ impl Display for Severity {
             Self::Warning => write!(f, "Warning"),
             Self::Error => write!(f, "Error"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+
+    #[derive(Debug)]
+    struct FormattedDiagnosis;
+
+    impl IDiagnosis for FormattedDiagnosis {
+        fn description(&self) -> &str { "borrowed description" }
+
+        fn fmt_description(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            f.write_str("formatted description")
+        }
+
+        fn source(&self) -> Option<&dyn IDiagnosis> { None }
+
+        fn code(&self) -> Option<&str> { None }
+
+        fn severity(&self) -> Option<Severity> { None }
+
+        fn help(&self) -> Option<&str> { None }
+
+        fn url(&self) -> Option<&str> { None }
+    }
+
+    #[test]
+    fn description_display_uses_fmt_description() {
+        let diagnosis = FormattedDiagnosis;
+
+        assert_eq!(
+            DescriptionDisplay(&diagnosis).to_string(),
+            "formatted description"
+        );
     }
 }

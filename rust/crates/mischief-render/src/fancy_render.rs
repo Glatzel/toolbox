@@ -6,7 +6,7 @@ use alloc::string::{String, ToString};
 use arbor::protocol::{IIndent, Layer, Line};
 use arbor::renders::OwnedRender;
 use arbor::trees::OwnedTree;
-use mischief_core::{IDiagnosis, Severity};
+use mischief_core::{DescriptionDisplay, IDiagnosis, Severity};
 use owo_colors::{OwoColorize, Style};
 
 /// Indentation configuration used when rendering diagnostic trees.
@@ -288,12 +288,8 @@ impl<D: IDiagnosis, I: IIndent, T: ITheme> RenderBundle<'_, D, I, T> {
             buffer.write_str(": ").unwrap();
         }
 
-        Self::apply_style(
-            &mut buffer,
-            diagnosis.description(),
-            theme.description_style(),
-        )
-        .unwrap();
+        let description = format!("{}", DescriptionDisplay(diagnosis));
+        Self::apply_style(&mut buffer, &description, theme.description_style()).unwrap();
 
         if let Some(s) = diagnosis.help() {
             writeln!(buffer).unwrap();
@@ -386,6 +382,46 @@ where
         },
     };
     writeln!(f, "{bundle}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Debug)]
+    struct FormattedDiagnosis;
+
+    impl IDiagnosis for FormattedDiagnosis {
+        fn description(&self) -> &str { "borrowed description" }
+
+        fn fmt_description(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("formatted description")
+        }
+
+        fn source(&self) -> Option<&dyn IDiagnosis> { None }
+
+        fn code(&self) -> Option<&str> { None }
+
+        fn severity(&self) -> Option<Severity> { None }
+
+        fn help(&self) -> Option<&str> { None }
+
+        fn url(&self) -> Option<&str> { None }
+    }
+
+    struct Renderer(FormattedDiagnosis);
+
+    impl fmt::Display for Renderer {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { render_diagnosis(&self.0, f) }
+    }
+
+    #[test]
+    fn verbose_renderer_uses_fmt_description() {
+        let rendered = Renderer(FormattedDiagnosis).to_string();
+
+        assert!(rendered.contains("formatted description"));
+        assert!(!rendered.contains("borrowed description"));
+    }
 }
 
 #[cfg(all(feature = "backtrace", debug_assertions))]

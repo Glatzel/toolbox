@@ -168,8 +168,8 @@
 extern crate self as mischief;
 
 pub use mischief_core::{
-    IAsDiagnosis, IDiagnosis, IErrorSource, IForeignErrorSource, IIntoDiagnosis, MischiefError,
-    MischiefErrorBuilder, Severity,
+    DescriptionDisplay, IAsDiagnosis, IDiagnosis, IErrorSource, IForeignErrorSource,
+    IIntoDiagnosis, MischiefError, MischiefErrorBuilder, Severity,
 };
 pub use mischief_macros::{bail, ensure};
 

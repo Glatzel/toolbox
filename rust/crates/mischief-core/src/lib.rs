@@ -8,7 +8,7 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 mod error;
 #[cfg(feature = "alloc")]
-pub use error::{MischiefError, MischiefErrorBuilder};
+pub use error::{IIntoDiagnosis, MischiefError, MischiefErrorBuilder};
 
 mod protocol;
 pub use protocol::{IDiagnosis, Severity};

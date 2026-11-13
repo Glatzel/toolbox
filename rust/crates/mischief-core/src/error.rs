@@ -38,6 +38,25 @@ pub struct MischiefErrorBuilder {
     url: Option<Cow<'static, str>>,
 }
 
+/// Conversion into a diagnosis suitable for a diagnostic source.
+///
+/// Implementations exist for [`MischiefError`] and owned foreign errors.
+pub trait IIntoDiagnosis {
+    /// Converts this value into a mischief diagnosis.
+    fn into_diagnosis(self) -> MischiefError;
+}
+
+impl IIntoDiagnosis for MischiefError {
+    fn into_diagnosis(self) -> MischiefError { self }
+}
+
+impl<E> IIntoDiagnosis for E
+where
+    E: Error + Send + Sync + 'static,
+{
+    fn into_diagnosis(self) -> MischiefError { MischiefError::from_error(self) }
+}
+
 impl MischiefError {
     /// Creates a new `MischiefError` using the original constructor API.
     ///

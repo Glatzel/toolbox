@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use mischief_core::MischiefError;
+use mischief_core::{IIntoDiagnosis, MischiefError};
 #[cfg(all(feature = "backtrace", debug_assertions))]
 use mischief_render::Backtrace;
 
@@ -79,6 +79,10 @@ impl Report {
         crate::render_backtrace(&self.inner.backtrace, f)?;
         Ok(())
     }
+}
+
+impl IIntoDiagnosis for Report {
+    fn into_diagnosis(self) -> MischiefError { self.inner.error }
 }
 
 /// Formats the report using the configured diagnosis renderer.

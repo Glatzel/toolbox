@@ -132,13 +132,16 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
-pub use mischief_core::{IDiagnosis, MischiefError, MischiefErrorBuilder, Severity};
+extern crate self as mischief;
+
+pub use mischief_core::{
+    IDiagnosis, IIntoDiagnosis, MischiefError, MischiefErrorBuilder, Severity,
+};
+pub use mischief_macros::{bail, ensure};
 
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
-#[cfg(feature = "macros")]
-mod macros;
 pub(crate) mod report;
 #[cfg(feature = "macros")]
-pub use macros::mischief;
+pub use mischief_macros::mischief;
 pub mod render;
 pub use render::*;

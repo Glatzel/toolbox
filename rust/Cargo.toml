@@ -36,6 +36,7 @@ owo-colors = "4.4.0"
 parking_lot = "0.13.0"
 phastft = { version = "0.4.1", default-features = false }
 proc-macro2 = "1.0.107"
+proc-macro-crate = "3.5.0"
 quote = "1.0.47"
 rayon = "1.12.0"
 rstest = "0.28.0"
@@ -52,6 +53,7 @@ tokio-util = "0.7.20"
 tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"
+trybuild = "1.0.122"
 uuid = "1.29.2"
 
 [profile.dev.package]

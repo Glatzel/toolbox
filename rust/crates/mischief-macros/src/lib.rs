@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro_crate::{FoundCrate, crate_name};
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
@@ -9,10 +10,11 @@ use syn::{Expr, Ident, LitStr, Token};
 ///
 /// Supports:
 /// - Positional format arguments for the error description.
-/// - Optional named fields: `code`, `severity`, `help`, `url`.
+/// - Optional named fields: `source`, `code`, `severity`, `help`, `url`.
 struct MischiefErrorInput {
     description_lit: LitStr,
     description_args: Punctuated<Expr, Token![,]>,
+    source: Option<Expr>,
     code: Option<Expr>,
     severity: Option<Expr>,
     help: Option<Expr>,
@@ -26,6 +28,7 @@ impl Parse for MischiefErrorInput {
         let description_lit = input.parse()?;
         let mut description_args = Punctuated::new();
 
+        let mut source = None;
         let mut code = None;
         let mut severity = None;
         let mut help = None;
@@ -46,6 +49,7 @@ impl Parse for MischiefErrorInput {
                 let value: Expr = input.parse()?;
 
                 match key.to_string().as_str() {
+                    "source" if source.is_none() => source = Some(value),
                     "code" if code.is_none() => code = Some(value),
                     "severity" if severity.is_none() => severity = Some(value),
                     "help" if help.is_none() => help = Some(value),
@@ -78,6 +82,7 @@ impl Parse for MischiefErrorInput {
         Ok(Self {
             description_lit,
             description_args,
+            source,
             code,
             severity,
             help,
@@ -91,59 +96,133 @@ impl Parse for MischiefErrorInput {
 /// # Syntax
 ///
 /// ```text
-/// mischief!("format string", positional_args..., code = ..., severity = ..., help = ..., url = ...)
+/// mischief!("format string", positional_args..., source = ..., code = ..., severity = ..., help = ..., url = ...)
 /// ```
 #[proc_macro]
 pub fn mischief(input: TokenStream) -> TokenStream { expand_mischief(input.into()).into() }
 
+/// Early-return diagnostic macro.
+///
+/// Accepts the same diagnostic fields as [`mischief!`] and returns
+/// `Err(Report)` from the current function.
+#[proc_macro]
+pub fn bail(input: TokenStream) -> TokenStream { expand_bail(input.into()).into() }
+
+/// Conditional early-return diagnostic macro.
+///
+/// The first argument is a boolean condition. If it is false, the remaining
+/// arguments are expanded as a diagnostic and returned as `Err(Report)`.
+#[proc_macro]
+pub fn ensure(input: TokenStream) -> TokenStream { expand_ensure(input.into()).into() }
+
 fn expand_mischief(input: TokenStream2) -> TokenStream2 {
+    match syn::parse2::<MischiefErrorInput>(input) {
+        Ok(input) => expand_error(&input, &facade_path()),
+        Err(error) => error.to_compile_error(),
+    }
+}
+
+fn expand_bail(input: TokenStream2) -> TokenStream2 {
     let parsed_input = match syn::parse2::<MischiefErrorInput>(input) {
         Ok(input) => input,
-        Err(e) => return e.to_compile_error(),
+        Err(error) => return error.to_compile_error(),
     };
+    let error = expand_error(&parsed_input, &facade_path());
+    quote! {
+        return ::core::result::Result::Err(#error);
+    }
+}
 
-    let description_lit = parsed_input.description_lit;
-    let description_args = parsed_input.description_args;
+struct EnsureInput {
+    condition: Expr,
+    error: MischiefErrorInput,
+}
 
-    let code = parsed_input
+impl Parse for EnsureInput {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
+        let condition = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let error = input.parse()?;
+        Ok(Self { condition, error })
+    }
+}
+
+fn expand_ensure(input: TokenStream2) -> TokenStream2 {
+    let parsed_input = match syn::parse2::<EnsureInput>(input) {
+        Ok(input) => input,
+        Err(error) => return error.to_compile_error(),
+    };
+    let condition = parsed_input.condition;
+    let error = expand_error(&parsed_input.error, &facade_path());
+    quote! {
+        if !(#condition) {
+            return ::core::result::Result::Err(#error);
+        }
+    }
+}
+
+fn expand_error(input: &MischiefErrorInput, facade: &TokenStream2) -> TokenStream2 {
+    let description_lit = &input.description_lit;
+    let description_args = &input.description_args;
+
+    let code = input
         .code
-        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
-    let severity = parsed_input
+        .as_ref()
+        .map_or_else(|| quote! {}, |value| quote! { .code(#value) });
+    let severity = input
         .severity
-        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
-    let help = parsed_input
+        .as_ref()
+        .map_or_else(|| quote! {}, |value| quote! { .severity(#value) });
+    let help = input
         .help
-        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
-    let url = parsed_input
+        .as_ref()
+        .map_or_else(|| quote! {}, |value| quote! { .help(#value) });
+    let url = input
         .url
-        .map_or_else(|| quote! { None }, |e| quote! { Some(#e.into()) });
+        .as_ref()
+        .map_or_else(|| quote! {}, |value| quote! { .url(#value) });
+    let source = input.source.as_ref().map_or_else(
+        || quote! {},
+        |value| {
+            quote! {
+                .source({
+                    use #facade::IIntoDiagnosis as _;
+                    (#value).into_diagnosis()
+                })
+            }
+        },
+    );
 
-    let expanded = quote! {
+    quote! {
         {
-            extern crate mischief;
-            use mischief::{MischiefError, Report};
-
             extern crate alloc;
-            use alloc::string::String;
-            use core::fmt::Write;
+            use core::fmt::Write as _;
 
-            let mut description = String::new();
+            let mut description = alloc::string::String::new();
             write!(description, #description_lit, #description_args).unwrap();
 
-            Report::new(
-                MischiefError::new(
-                    description,
-                    None,
-                    #code,
-                    #severity,
-                    #help,
-                    #url,
-                )
+            #facade::Report::new(
+                #facade::MischiefError::builder(description)
+                    #code
+                    #severity
+                    #help
+                    #url
+                    #source
+                    .build()
             )
         }
-    };
+    }
+}
 
-    expanded
+fn facade_path() -> TokenStream2 {
+    match crate_name("mischief") {
+        Ok(FoundCrate::Itself) => quote!(::mischief),
+        Ok(FoundCrate::Name(name)) => {
+            let name = Ident::new(&name, Span::call_site());
+            quote!(::#name)
+        }
+        Err(_) => quote!(::mischief),
+    }
 }
 
 #[cfg(test)]
@@ -151,7 +230,7 @@ mod tests {
     use insta::assert_snapshot;
     use proc_macro2::TokenStream;
 
-    use super::expand_mischief;
+    use super::{expand_bail, expand_ensure, expand_mischief};
 
     #[test]
     fn mischief_expansion() {
@@ -162,10 +241,29 @@ mod tests {
             severity = Severity::Warning,
             help = "Try again.",
             url = "https://example.com/errors/E404",
+            source = source_error,
         "#
         .parse()
         .expect("macro input should parse");
 
         assert_snapshot!(expand_mischief(input).to_string());
+    }
+
+    #[test]
+    fn bail_expansion() {
+        let input: TokenStream = r#""failed {}", context, code = "E500""#
+            .parse()
+            .expect("macro input should parse");
+
+        assert_snapshot!(expand_bail(input).to_string());
+    }
+
+    #[test]
+    fn ensure_expansion() {
+        let input: TokenStream = r#"ready, "failed {}", context, help = "retry""#
+            .parse()
+            .expect("ensure input should parse");
+
+        assert_snapshot!(expand_ensure(input).to_string());
     }
 }

@@ -1,0 +1,5 @@
+error: positional arguments cannot follow named arguments
+ --> tests/ui/fail/positional_after_named.rs:4:55
+  |
+4 |     let _ = mischief!("positional", code = "E_ORDER", "late");
+  |                                                       ^^^^^^

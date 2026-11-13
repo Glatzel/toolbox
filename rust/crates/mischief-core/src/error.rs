@@ -8,19 +8,13 @@ use crate::IDiagnosis;
 
 /// Concrete diagnosis error type used by the crate.
 ///
-/// `MischiefError` stores a description and optional diagnostic metadata.
-/// Its private source chain can contain further mischief diagnostics or
-/// foreign errors while preserving their descriptions and foreign root
-/// values for downcasting.
+/// `MischiefError` owns a private root node containing either a mischief
+/// diagnosis or an owned foreign error. Its source chain can contain further
+/// mischief diagnostics or foreign errors while preserving their descriptions
+/// and foreign values for downcasting.
 #[derive(Debug)]
 pub struct MischiefError {
-    description: Cow<'static, str>,
-    source: Option<Box<ErrorNode>>,
-    code: Option<Cow<'static, str>>,
-    severity: Option<crate::Severity>,
-    help: Option<Cow<'static, str>>,
-    url: Option<Cow<'static, str>>,
-    foreign: Option<Box<dyn Error + Send + Sync>>,
+    root: ErrorNode,
 }
 
 /// Builder for constructing a [`MischiefError`] with independent metadata
@@ -124,13 +118,14 @@ impl MischiefError {
         D: Display,
     {
         Self {
-            description: Cow::Owned(description.to_string()),
-            source: source.map(|source| Box::new(ErrorNode::Mischief(*source))),
-            code: code.map(|value| Cow::Owned(value.to_string())),
-            severity,
-            help: help.map(|value| Cow::Owned(value.to_string())),
-            url: url.map(|value| Cow::Owned(value.to_string())),
-            foreign: None,
+            root: ErrorNode::Diagnosis(DiagnosisNode {
+                description: Cow::Owned(description.to_string()),
+                source: source.map(|source| Box::new(source.root)),
+                code: code.map(|value| Cow::Owned(value.to_string())),
+                severity,
+                help: help.map(|value| Cow::Owned(value.to_string())),
+                url: url.map(|value| Cow::Owned(value.to_string())),
+            }),
         }
     }
 
@@ -148,7 +143,7 @@ impl MischiefError {
 
     /// Replaces this diagnosis's source with another diagnosis.
     pub fn with_source(mut self, source: Self) -> Self {
-        self.source = Some(Box::new(ErrorNode::Mischief(source)));
+        self.root.set_source(Some(Box::new(source.root)));
         self
     }
 
@@ -158,19 +153,8 @@ impl MischiefError {
     where
         E: Error + Send + Sync + 'static,
     {
-        let source = error
-            .source()
-            .map(|source| Box::new(ErrorNode::from_borrowed_error(source)));
-        let description = Cow::Owned(error.to_string());
-
         Self {
-            description,
-            source,
-            code: None,
-            severity: None,
-            help: None,
-            url: None,
-            foreign: Some(Box::new(error)),
+            root: ErrorNode::from_owned_error(error),
         }
     }
 
@@ -180,13 +164,7 @@ impl MischiefError {
     where
         E: Error + 'static,
     {
-        if let Some(error) = self.foreign.as_deref() {
-            if let Some(error) = error.downcast_ref::<E>() {
-                return Some(error);
-            }
-        }
-
-        self.source.as_deref()?.downcast_ref::<E>()
+        self.root.downcast_ref::<E>()
     }
 }
 
@@ -226,7 +204,7 @@ impl MischiefErrorBuilder {
 
     /// Sets a mischief diagnostic as the source.
     pub fn source(mut self, source: MischiefError) -> Self {
-        self.source = Some(Box::new(ErrorNode::Mischief(source)));
+        self.source = Some(Box::new(source.root));
         self
     }
 
@@ -242,49 +220,56 @@ impl MischiefErrorBuilder {
     /// Finishes constructing the diagnosis.
     pub fn build(self) -> MischiefError {
         MischiefError {
-            description: self.description,
-            source: self.source,
-            code: self.code,
-            severity: self.severity,
-            help: self.help,
-            url: self.url,
-            foreign: None,
+            root: ErrorNode::Diagnosis(DiagnosisNode {
+                description: self.description,
+                source: self.source,
+                code: self.code,
+                severity: self.severity,
+                help: self.help,
+                url: self.url,
+            }),
         }
     }
 }
 
 impl Display for MischiefError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(&self.description)
+        self.root.fmt_description(f)
     }
 }
 
 impl IDiagnosis for MischiefError {
-    fn description(&self) -> &str { &self.description }
+    fn description(&self) -> &str { self.root.description() }
 
-    fn source(&self) -> Option<&dyn IDiagnosis> {
-        self.source
-            .as_deref()
-            .map(|source| source as &dyn IDiagnosis)
-    }
+    fn source(&self) -> Option<&dyn IDiagnosis> { IDiagnosis::source(&self.root) }
 
-    fn code(&self) -> Option<&str> { self.code.as_deref() }
+    fn code(&self) -> Option<&str> { self.root.code() }
 
-    fn severity(&self) -> Option<crate::Severity> { self.severity }
+    fn severity(&self) -> Option<crate::Severity> { self.root.severity() }
 
-    fn help(&self) -> Option<&str> { self.help.as_deref() }
+    fn help(&self) -> Option<&str> { self.root.help() }
 
-    fn url(&self) -> Option<&str> { self.url.as_deref() }
+    fn url(&self) -> Option<&str> { self.root.url() }
 }
 
 #[derive(Debug)]
-pub(crate) enum ErrorNode {
-    Mischief(MischiefError),
+enum ErrorNode {
+    Diagnosis(DiagnosisNode),
     Foreign(ForeignErrorNode),
 }
 
 #[derive(Debug)]
-pub(crate) struct ForeignErrorNode {
+struct DiagnosisNode {
+    description: Cow<'static, str>,
+    source: Option<Box<ErrorNode>>,
+    code: Option<Cow<'static, str>>,
+    severity: Option<crate::Severity>,
+    help: Option<Cow<'static, str>>,
+    url: Option<Cow<'static, str>>,
+}
+
+#[derive(Debug)]
+struct ForeignErrorNode {
     error: Option<Box<dyn Error + Send + Sync>>,
     description: Cow<'static, str>,
     source: Option<Box<ErrorNode>>,
@@ -319,17 +304,24 @@ impl ErrorNode {
 
     fn source(&self) -> Option<&ErrorNode> {
         match self {
-            Self::Mischief(error) => error.source.as_deref(),
+            Self::Diagnosis(error) => error.source.as_deref(),
             Self::Foreign(error) => error.source.as_deref(),
         }
     }
 
-    pub(crate) fn downcast_ref<E>(&self) -> Option<&E>
+    fn set_source(&mut self, source: Option<Box<ErrorNode>>) {
+        match self {
+            Self::Diagnosis(error) => error.source = source,
+            Self::Foreign(error) => error.source = source,
+        }
+    }
+
+    fn downcast_ref<E>(&self) -> Option<&E>
     where
         E: Error + 'static,
     {
         match self {
-            Self::Mischief(error) => error.downcast_ref::<E>(),
+            Self::Diagnosis(error) => error.source.as_deref()?.downcast_ref::<E>(),
             Self::Foreign(error) => {
                 if let Some(source) = error.error.as_deref() {
                     if let Some(source) = source.downcast_ref::<E>() {
@@ -345,7 +337,7 @@ impl ErrorNode {
 impl IDiagnosis for ErrorNode {
     fn description(&self) -> &str {
         match self {
-            Self::Mischief(error) => error.description(),
+            Self::Diagnosis(error) => &error.description,
             Self::Foreign(error) => &error.description,
         }
     }
@@ -356,28 +348,28 @@ impl IDiagnosis for ErrorNode {
 
     fn code(&self) -> Option<&str> {
         match self {
-            Self::Mischief(error) => error.code(),
+            Self::Diagnosis(error) => error.code.as_deref(),
             Self::Foreign(_) => None,
         }
     }
 
     fn severity(&self) -> Option<crate::Severity> {
         match self {
-            Self::Mischief(error) => error.severity(),
+            Self::Diagnosis(error) => error.severity,
             Self::Foreign(_) => None,
         }
     }
 
     fn help(&self) -> Option<&str> {
         match self {
-            Self::Mischief(error) => error.help(),
+            Self::Diagnosis(error) => error.help.as_deref(),
             Self::Foreign(_) => None,
         }
     }
 
     fn url(&self) -> Option<&str> {
         match self {
-            Self::Mischief(error) => error.url(),
+            Self::Diagnosis(error) => error.url.as_deref(),
             Self::Foreign(_) => None,
         }
     }
@@ -391,7 +383,7 @@ mod tests {
     use core::error::Error;
     use core::fmt;
 
-    use super::MischiefError;
+    use super::{ErrorNode, MischiefError};
     use crate::{IDiagnosis, Severity};
 
     #[test]
@@ -403,6 +395,9 @@ mod tests {
             .url("https://example.com/errors/E_BORROWED")
             .build();
 
+        let ErrorNode::Diagnosis(error) = &error.root else {
+            panic!("builder should create a diagnosis root");
+        };
         assert!(matches!(
             error.description,
             alloc::borrow::Cow::Borrowed("description")
@@ -429,6 +424,9 @@ mod tests {
         let description: String = "dynamic description".to_string();
         let error = MischiefError::builder(description).build();
 
+        let ErrorNode::Diagnosis(error) = &error.root else {
+            panic!("builder should create a diagnosis root");
+        };
         assert!(matches!(error.description, alloc::borrow::Cow::Owned(_)));
     }
 
@@ -439,6 +437,9 @@ mod tests {
             .build();
 
         assert_eq!(error.description(), "formatted value");
+        let ErrorNode::Diagnosis(error) = &error.root else {
+            panic!("builder should create a diagnosis root");
+        };
         assert!(matches!(error.description, alloc::borrow::Cow::Owned(_)));
     }
 

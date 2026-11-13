@@ -15,7 +15,7 @@ use mischief::IDiagnosis;
 use crate::text::{IRule, Verb};
 /// Error returned when a rule does not match the input.
 #[derive(Debug, Clone, PartialEq, Eq, IDiagnosis)]
-#[diagnosis(error, display, description = "reason")]
+#[diagnosis(error, display, description = "{reason}")]
 pub struct RuleError {
     /// Human-readable reason the rule failed.
     pub reason: Cow<'static, str>,
@@ -81,7 +81,7 @@ mod tests {
         let rule = RuleError {
             reason: Cow::Borrowed("expected a digit"),
         };
-        assert_eq!(rule.to_string(), "Rule Error: expected a digit");
+        assert_eq!(rule.to_string(), "expected a digit");
 
         let filter = FilterError(String::from("missing character"));
         assert_eq!(filter.to_string(), "Filter Error: missing character");

@@ -269,9 +269,10 @@ fn facade_path() -> TokenStream2 {
 /// Use `transparent` on a single-field struct or variant to delegate
 /// `IDiagnosis`, `Display`, and `Error::source()` to an inner diagnosis and
 /// error. Use `transparent(foreign)` for an inner foreign error. Transparent
-/// forms require the `display` and `error` flags; foreign transparency also
-/// requires a static enum-level description. Transparent wrappers do not add a
-/// report node.
+/// forms require the `display` and `error` flags. For `transparent(foreign)`,
+/// `fmt_description` forwards to the inner error's `Display`; `description`
+/// returns the enum-level default when present or the variant name otherwise.
+/// Transparent wrappers do not add a report node.
 ///
 /// Arbitrary expressions or extra arguments in descriptions,
 /// `#[backtrace]`, custom `fmt` expressions, error mapping between external
@@ -724,6 +725,21 @@ mod tests {
     fn idiagnosis_transparent_foreign_expansion() {
         let input: TokenStream = r#"
             #[diagnosis(display, error, description = "foreign default", code = "E_FOREIGN")]
+            enum Transparent {
+                #[diagnosis(transparent(foreign))]
+                Io(IoError),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_transparent_foreign_fallback_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error)]
             enum Transparent {
                 #[diagnosis(transparent(foreign))]
                 Io(IoError),

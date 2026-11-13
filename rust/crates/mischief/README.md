@@ -127,7 +127,10 @@ assert_eq!(report.error().description(), "read failed");
 
 `transparent` forwards to an inner type implementing both `IDiagnosis` and
 `Error`. `transparent(foreign)` forwards `Display` and `Error::source()` to a
-foreign error. Both forms omit the wrapper node from `into_report()`.
+foreign error. Both forms omit the wrapper node from `into_report()`. A
+foreign-transparent variant without an enum-level `description` uses its
+variant name for `description()`, while `fmt_description()` forwards to the
+inner error's `Display`.
 
 More runnable examples are in the crate’s `examples/` directory:
 

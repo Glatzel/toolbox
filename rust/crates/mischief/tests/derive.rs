@@ -169,6 +169,13 @@ enum TransparentForeign {
 }
 
 #[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
+enum TransparentForeignWithoutDescription {
+    #[diagnosis(transparent(foreign))]
+    Io(std::io::Error),
+}
+
+#[derive(Debug, IDiagnosis)]
 #[diagnosis(display, error, description = "decode default", code = "E_DECODE")]
 enum DecodeError {
     #[diagnosis(transparent(foreign))]
@@ -379,6 +386,19 @@ fn transparent_variants_forward_display_and_source_without_wrapping() {
     assert_eq!(foreign.to_string(), "foreign transparent");
     assert!(core::error::Error::source(&foreign).is_none());
     assert_report_render_snapshots("transparent_foreign", &foreign.into_report());
+
+    let fallback =
+        TransparentForeignWithoutDescription::Io(std::io::Error::other("foreign fallback"));
+    assert_eq!(fallback.description(), "Io");
+    assert_eq!(fallback.to_string(), "foreign fallback");
+    assert_eq!(
+        format!("{}", mischief::DescriptionDisplay(&fallback)),
+        "foreign fallback"
+    );
+    assert!(core::error::Error::source(&fallback).is_none());
+    let report = fallback.into_report();
+    assert_eq!(report.error().description(), "foreign fallback");
+    assert_report_render_snapshots("transparent_foreign_fallback", &report);
 
     let decode_io = DecodeError::from(std::io::Error::other("decode io"));
     assert_eq!(decode_io.to_string(), "decode io");

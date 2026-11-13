@@ -130,7 +130,9 @@
 //! Use `transparent` for an inner type implementing both [`IDiagnosis`] and
 //! [`core::error::Error`]. Use `transparent(foreign)` for a foreign error. Both
 //! forms forward `Display` and `Error::source()` and omit the wrapper node from
-//! [`Report`].
+//! [`Report`]. A foreign-transparent variant without an enum-level
+//! `description` uses its variant name for [`IDiagnosis::description`], while
+//! formatted descriptions still forward to the inner error's `Display`.
 //!
 //! # Foreign Errors
 //!

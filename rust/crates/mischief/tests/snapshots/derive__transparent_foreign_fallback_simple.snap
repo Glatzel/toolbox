@@ -1,0 +1,5 @@
+---
+source: crates/mischief/tests/derive.rs
+expression: "format!(\"{}\", SimpleRenderer(report.error()))"
+---
+Error: foreign fallback

@@ -1,5 +1,0 @@
-error: `transparent(foreign)` requires an enum-level static description
- --> tests/ui/fail/derive_transparent_foreign_missing_description.rs:7:5
-  |
-7 |     Io(std::io::Error),
-  |     ^^

@@ -170,20 +170,15 @@ pub(crate) fn derive_enum_idiagnosis(
                     },
                 },
                 Transparent::Foreign => {
-                    let description = default_description.as_ref().ok_or_else(|| {
-                        syn::Error::new_spanned(
-                            &variant.ident,
-                            "`transparent(foreign)` requires an enum-level static description",
-                        )
-                    })?;
+                    let description = default_description.as_ref().map_or_else(
+                        || LitStr::new(&variant.ident.to_string(), variant.ident.span()),
+                        |description| description.raw().clone(),
+                    );
                     DiagnosisMethods {
-                        description: {
-                            let description = description.raw();
-                            quote! { #description }
-                        },
-                        fmt_description: description
-                            .needs_formatting()
-                            .then(|| write_description_expression(description, &bindings)),
+                        description: quote! { #description },
+                        fmt_description: Some(quote! {
+                            ::core::fmt::Display::fmt(#binding, f)
+                        }),
                         source: quote! { None },
                         code: option_literal(defaults.code.clone()),
                         severity: defaults

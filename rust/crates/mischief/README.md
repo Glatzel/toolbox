@@ -266,11 +266,24 @@ cargo run -p mischief --example enum_transparent
 | --- | --- |
 | `std` | Enables the verbose tree renderer. |
 | `fancy` | Enables color, hyperlinks, Unicode trees, and text wrapping; implies `std`. |
-| `macros` | Re-exports `mischief!` and `IDiagnosis`; `bail!` and `ensure!` remain available. |
+| `macros` | Re-exports `mischief!`; `IDiagnosis`, `bail!`, and `ensure!` remain available. |
 | `backtrace` | Adds debug-build backtraces; implies `std`. |
 | `textwrap-*` | Selects text-wrapping backend behavior. |
 
 Without `std`, `Report` prints descriptions only. The facade requires `alloc`;
-the lower-level `mischief-core` crate exposes `alloc` as an optional feature.
+`mischief-api` provides the library-facing `alloc`-compatible diagnostic API,
+and the lower-level `mischief-core` crate exposes `alloc` as an optional
+feature.
+
+## Crate Layers
+
+- `mischief-api` contains the library-facing traits, diagnostic types, and
+  `IDiagnosis` derive.
+- `mischief-core` contains the diagnostic model and simple renderer.
+- `mischief-render` contains the verbose tree renderer and optional styling.
+- `mischief-macros` contains `mischief!`, `bail!`, `ensure!`, and the
+  `IDiagnosis` derive.
+- `mischief` re-exports the API and adds reporting and feature-selected
+  rendering.
 
 The minimum supported Rust version is 1.85.

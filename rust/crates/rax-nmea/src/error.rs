@@ -4,7 +4,7 @@ use alloc::borrow::Cow;
 use core::convert::Infallible;
 use core::num::{ParseFloatError, ParseIntError};
 
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 
 /// Errors produced while parsing or validating an NMEA sentence.
 #[derive(Debug, IDiagnosis)]

@@ -52,7 +52,8 @@ pub(crate) fn derive_enum_idiagnosis(
     }
 
     let default_description = parse_enum_default_description(&defaults)?;
-    let facade = facade_path();
+    let resolved_facade = facade_path();
+    let facade = &resolved_facade.path;
     let mut arms = Vec::with_capacity(data.variants.len());
     let mut from_impls = Vec::new();
     let mut from_types = HashMap::new();
@@ -392,10 +393,10 @@ pub(crate) fn derive_enum_idiagnosis(
                 let binding = &bindings[source.index].binding;
                 match source.kind {
                     SourceKind::Diagnosis => {
-                        error_source_expression(&facade, &field.ty, quote! { #binding })
+                        error_source_expression(facade, &field.ty, quote! { #binding })
                     }
                     SourceKind::Foreign => {
-                        foreign_error_source_expression(&facade, &field.ty, quote! { #binding })
+                        foreign_error_source_expression(facade, &field.ty, quote! { #binding })
                     }
                 }
             },
@@ -529,7 +530,7 @@ pub(crate) fn derive_enum_idiagnosis(
 
     let mut expanded = generate_idiagnosis_impl(
         input,
-        &facade,
+        facade,
         DiagnosisMethods {
             description: quote! {
                 match self {
@@ -611,15 +612,17 @@ pub(crate) fn derive_enum_idiagnosis(
             quote! { #pattern => #expression }
         })
         .collect();
-    expanded.extend(generate_into_report_impl(
-        input,
-        &facade,
-        quote! {
-            match self {
-                #(#report_arms),*
-            }
-        },
-    ));
+    if resolved_facade.supports_report {
+        expanded.extend(generate_into_report_impl(
+            input,
+            facade,
+            quote! {
+                match self {
+                    #(#report_arms),*
+                }
+            },
+        ));
+    }
     for from_impl in from_impls {
         expanded.extend(from_impl);
     }

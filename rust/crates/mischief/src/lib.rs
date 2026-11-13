@@ -1,9 +1,10 @@
 //! Structured diagnostics with optional metadata, layered source chains,
 //! macros, and terminal rendering.
 //!
-//! The crate facade re-exports the core diagnostic model, procedural macros,
-//! and feature-selected renderer under one API. The minimum supported Rust
-//! version is 1.85.
+//! The crate facade re-exports the library-facing diagnostic model from
+//! `mischief-api`, adds reporting and feature-selected rendering, and keeps
+//! existing public paths available. The minimum supported Rust version is
+//! 1.85.
 //!
 //! # Quick Start
 //!
@@ -173,7 +174,7 @@
 //! | --- | --- |
 //! | `std` | Enables the verbose tree renderer and backtrace support foundations. |
 //! | `fancy` | Enables color, hyperlinks, Unicode trees, and text wrapping; implies `std`. |
-//! | `macros` | Re-exports `mischief!` and the `IDiagnosis` derive. `bail!` and `ensure!` are always available. |
+//! | `macros` | Re-exports `mischief!`. The `IDiagnosis` derive, `bail!`, and `ensure!` are always available. |
 //! | `backtrace` | Adds debug-build backtraces to verbose reports; implies `std`. |
 //! | `textwrap-*` | Selects text-wrapping backend behavior. |
 //!
@@ -183,6 +184,8 @@
 //!
 //! # Crate Layers
 //!
+//! - `mischief-api` contains the library-facing traits, diagnostic types, and
+//!   `IDiagnosis` derive.
 //! - `mischief-core` contains the diagnostic trait, metadata types, source
 //!   nodes, error conversion, and simple renderer.
 //! - `mischief-render` contains the verbose tree renderer and optional styling.
@@ -199,15 +202,12 @@
 )]
 extern crate self as mischief;
 
-pub use mischief_core::{
-    DescriptionDisplay, IAsDiagnosis, IDiagnosis, IErrorSource, IForeignErrorSource,
-    IIntoDiagnosis, MischiefError, MischiefErrorBuilder, Severity,
-};
+pub use mischief_api::*;
 pub use mischief_macros::{bail, ensure};
 
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
 pub(crate) mod report;
 #[cfg(feature = "macros")]
-pub use mischief_macros::{IDiagnosis, mischief};
+pub use mischief_macros::mischief;
 pub mod render;
 pub use render::*;

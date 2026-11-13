@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::string::ToString;
 
-use mischief_core::{IDiagnosis, IIntoDiagnosis, MischiefError};
+use mischief_api::{IDiagnosis, IIntoDiagnosis, MischiefError};
 #[cfg(all(feature = "backtrace", debug_assertions))]
 use mischief_render::Backtrace;
 

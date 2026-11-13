@@ -80,7 +80,8 @@ pub(crate) fn derive_struct_idiagnosis(
             .then(|| write_description_expression(template, &field_refs))
     });
 
-    let facade = facade_path();
+    let resolved_facade = facade_path();
+    let facade = &resolved_facade.path;
     let code = code_field.map_or_else(
         || option_literal(config.code),
         |field| {
@@ -114,8 +115,8 @@ pub(crate) fn derive_struct_idiagnosis(
             let value = field_access(&field_refs, source.index);
             let value = quote! { &#value };
             match source.kind {
-                SourceKind::Diagnosis => error_source_expression(&facade, &field.ty, value),
-                SourceKind::Foreign => foreign_error_source_expression(&facade, &field.ty, value),
+                SourceKind::Diagnosis => error_source_expression(facade, &field.ty, value),
+                SourceKind::Foreign => foreign_error_source_expression(facade, &field.ty, value),
             }
         },
     );
@@ -139,7 +140,7 @@ pub(crate) fn derive_struct_idiagnosis(
 
     let mut expanded = generate_idiagnosis_impl(
         input,
-        &facade,
+        facade,
         DiagnosisMethods {
             description: quote! { #description },
             fmt_description,
@@ -220,7 +221,9 @@ pub(crate) fn derive_struct_idiagnosis(
             #facade::Report::new(builder.build())
         }}
     };
-    expanded.extend(generate_into_report_impl(input, &facade, report_expression));
+    if resolved_facade.supports_report {
+        expanded.extend(generate_into_report_impl(input, facade, report_expression));
+    }
     Ok(expanded)
 }
 
@@ -359,7 +362,8 @@ fn derive_transparent_struct(
     } else {
         None
     };
-    let facade = facade_path();
+    let resolved_facade = facade_path();
+    let facade = &resolved_facade.path;
     let field = fields[0];
     let inner = field_access(fields, 0);
     let methods = match transparent {
@@ -429,7 +433,7 @@ fn derive_transparent_struct(
         }
     };
 
-    let mut expanded = generate_idiagnosis_impl(input, &facade, methods);
+    let mut expanded = generate_idiagnosis_impl(input, facade, methods);
     expanded.extend(generate_display_body_impl(
         input,
         quote! { ::core::fmt::Display::fmt(&#inner, f) },
@@ -456,6 +460,8 @@ fn derive_transparent_struct(
             #facade::Report::new(#facade::MischiefError::from_error(#inner))
         },
     };
-    expanded.extend(generate_into_report_impl(input, &facade, report_expression));
+    if resolved_facade.supports_report {
+        expanded.extend(generate_into_report_impl(input, facade, report_expression));
+    }
     Ok(expanded)
 }

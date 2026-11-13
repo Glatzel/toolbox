@@ -12,6 +12,7 @@ arbor = { path = "./crates/arbor/", default-features = false }
 clerk = { path = "./crates/clerk/", default-features = false }
 generic-num = { path = "./crates/generic-num/" }
 mischief = { path = "./crates/mischief/" }
+mischief-api = { path = "./crates/mischief-api/", default-features = false }
 mischief-core = { path = "./crates/mischief-core/", default-features = false }
 mischief-macros = { path = "./crates/mischief-macros/" }
 mischief-render = {
@@ -53,6 +54,7 @@ textwrap = { version = "0.16.4", default-features = false }
 thiserror = { version = "2.0.21", default-features = false }
 tokio = { version = "1.54.1", default-features = false }
 tokio-util = "0.7.20"
+toml_edit = { version = "0.25.19", default-features = false, features = ["parse"] }
 tracing = "0.1.44"
 tracing-core = "0.1.36"
 tracing-subscriber = "0.3.23"

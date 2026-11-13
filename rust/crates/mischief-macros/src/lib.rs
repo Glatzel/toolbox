@@ -5,6 +5,7 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
 use syn::{Expr, Ident, LitStr, Token};
+use toml_edit::{DocumentMut, Item, TableLike};
 
 mod derive;
 
@@ -119,17 +120,21 @@ pub fn ensure(input: TokenStream) -> TokenStream { expand_ensure(input.into()).i
 
 fn expand_mischief(input: TokenStream2) -> TokenStream2 {
     match syn::parse2::<MischiefErrorInput>(input) {
-        Ok(input) => expand_error(&input, &facade_path()),
+        Ok(input) => {
+            let facade = facade_path();
+            expand_error(&input, &facade.path)
+        }
         Err(error) => error.to_compile_error(),
     }
 }
 
 fn expand_bail(input: TokenStream2) -> TokenStream2 {
+    let facade = facade_path();
     let parsed_input = match syn::parse2::<MischiefErrorInput>(input) {
         Ok(input) => input,
         Err(error) => return error.to_compile_error(),
     };
-    let error = expand_error(&parsed_input, &facade_path());
+    let error = expand_error(&parsed_input, &facade.path);
     quote! {
         return ::core::result::Result::Err(#error)
     }
@@ -150,12 +155,13 @@ impl Parse for EnsureInput {
 }
 
 fn expand_ensure(input: TokenStream2) -> TokenStream2 {
+    let facade = facade_path();
     let parsed_input = match syn::parse2::<EnsureInput>(input) {
         Ok(input) => input,
         Err(error) => return error.to_compile_error(),
     };
     let condition = parsed_input.condition;
-    let error = expand_error(&parsed_input.error, &facade_path());
+    let error = expand_error(&parsed_input.error, &facade.path);
     quote! {
         if !(#condition) {
             return ::core::result::Result::Err(#error);
@@ -216,15 +222,126 @@ fn expand_error(input: &MischiefErrorInput, facade: &TokenStream2) -> TokenStrea
     }
 }
 
-fn facade_path() -> TokenStream2 {
-    match crate_name("mischief") {
-        Ok(FoundCrate::Itself) => quote!(::mischief),
+struct FacadePath {
+    path: TokenStream2,
+    supports_report: bool,
+}
+
+fn facade_path() -> FacadePath {
+    // Integration tests can use dev-dependencies, while library builds only
+    // have normal dependencies. Prefer the facade in the former case.
+    if std::env::var("CARGO_PKG_NAME").as_deref() == Ok("mischief") {
+        return match crate_name("mischief") {
+            Ok(FoundCrate::Itself) => FacadePath {
+                path: quote!(::mischief),
+                supports_report: true,
+            },
+            Ok(FoundCrate::Name(name)) => {
+                let name = Ident::new(&name, Span::call_site());
+                FacadePath {
+                    path: quote!(::#name),
+                    supports_report: true,
+                }
+            }
+            Err(_) => FacadePath {
+                path: quote!(::mischief),
+                supports_report: true,
+            },
+        };
+    }
+
+    let full_facade = match crate_name("mischief") {
+        Ok(FoundCrate::Itself) => {
+            return FacadePath {
+                path: quote!(::mischief),
+                supports_report: true,
+            };
+        }
+        Ok(FoundCrate::Name(name)) => Some(Ident::new(&name, Span::call_site())),
+        Err(_) => None,
+    };
+
+    // `proc-macro-crate` also reports dev-dependencies. A normal facade
+    // dependency must win so generated report methods keep working.
+    let integration_test = std::env::var_os("CARGO_TARGET_TMPDIR").is_some();
+    if integration_test || has_normal_dependency("mischief") {
+        if let Some(name) = &full_facade {
+            let name = name.clone();
+            return FacadePath {
+                path: quote!(::#name),
+                supports_report: true,
+            };
+        }
+    }
+
+    match crate_name("mischief-api") {
+        Ok(FoundCrate::Itself) => FacadePath {
+            path: quote!(::mischief_api),
+            supports_report: false,
+        },
         Ok(FoundCrate::Name(name)) => {
             let name = Ident::new(&name, Span::call_site());
-            quote!(::#name)
+            FacadePath {
+                path: quote!(::#name),
+                supports_report: false,
+            }
         }
-        Err(_) => quote!(::mischief),
+        Err(_) => match full_facade {
+            Some(name) => FacadePath {
+                path: quote!(::#name),
+                supports_report: true,
+            },
+            None => FacadePath {
+                path: quote!(::mischief),
+                supports_report: true,
+            },
+        },
     }
+}
+
+fn has_normal_dependency(package_name: &str) -> bool {
+    let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") else {
+        return false;
+    };
+    let Ok(manifest) =
+        std::fs::read_to_string(std::path::Path::new(&manifest_dir).join("Cargo.toml"))
+    else {
+        return false;
+    };
+    let Ok(manifest) = manifest.parse::<DocumentMut>() else {
+        return false;
+    };
+
+    let direct = manifest
+        .get("dependencies")
+        .and_then(Item::as_table_like)
+        .is_some_and(|dependencies| table_has_package(dependencies, package_name));
+    if direct {
+        return true;
+    }
+
+    manifest
+        .get("target")
+        .and_then(Item::as_table_like)
+        .is_some_and(|targets| {
+            targets.iter().any(|(_, target)| {
+                target
+                    .as_table_like()
+                    .and_then(|target| target.get("dependencies"))
+                    .and_then(Item::as_table_like)
+                    .is_some_and(|dependencies| table_has_package(dependencies, package_name))
+            })
+        })
+}
+
+fn table_has_package(table: &dyn TableLike, package_name: &str) -> bool {
+    table.iter().any(|(dependency_name, dependency)| {
+        dependency
+            .get("package")
+            .and_then(Item::as_str)
+            .unwrap_or(dependency_name)
+            == package_name
+    })
 }
 
 /// Derives the `IDiagnosis` trait for named-field structs, tuple structs, and
@@ -266,10 +383,12 @@ fn facade_path() -> TokenStream2 {
 /// `From<FieldType>`. `from` is independent of source tracking. Two `from`
 /// fields with the same type in one enum are rejected.
 ///
-/// Every derived type also receives an inherent `into_report(self) -> Report`.
-/// Diagnostic sources are copied into the report, while owned foreign sources
-/// are retained as downcastable roots. The blanket `From<Error> for Report`
-/// conversion is unchanged.
+/// When the caller depends on the `mischief` facade, every derived type also
+/// receives an inherent `into_report(self) -> Report`. Diagnostic sources are
+/// copied into the report, while owned foreign sources are retained as
+/// downcastable roots. Callers that depend only on `mischief-api` omit this
+/// method because the API deliberately has no reporter. The blanket
+/// `From<Error> for Report` conversion is unchanged.
 ///
 /// Use `transparent` on a single-field struct or variant to delegate
 /// `IDiagnosis`, `Display`, and `Error::source()` to an inner diagnosis and

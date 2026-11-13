@@ -9,7 +9,7 @@ use std::num::ParseIntError;
 pub use key::{Key, KeyMode, KeyQuality, KeyScale};
 pub use melakarta::Melakarta;
 pub use midi::Midi;
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 pub use note::Note;
 use rax::error::VerbError;
 pub use shared::{Accidental, Pitch};

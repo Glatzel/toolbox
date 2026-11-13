@@ -9,7 +9,7 @@ extern crate alloc;
 use alloc::borrow::Cow;
 use core::fmt::Debug;
 
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 
 use crate::text::{IRule, Verb};
 /// Error returned when a rule does not match the input.

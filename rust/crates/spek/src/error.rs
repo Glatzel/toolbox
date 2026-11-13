@@ -1,4 +1,4 @@
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 
 #[derive(Debug, IDiagnosis)]
 #[diagnosis(error, display)]

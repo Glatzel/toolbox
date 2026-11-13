@@ -1,7 +1,7 @@
 use alloc::ffi::NulError;
 use core::str::Utf8Error;
 
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 
 /// Error returned by Envoy pointer and string conversions.
 #[derive(Debug, IDiagnosis)]

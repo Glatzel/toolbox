@@ -268,6 +268,7 @@ dependencies = [
  "defmt",
  "jiff",
  "mischief",
+ "mischief-api",
  "owo-colors",
  "tracing",
  "tracing-core",
@@ -484,6 +485,7 @@ name = "envoy"
 version = "2026.11.0"
 dependencies = [
  "mischief",
+ "mischief-api",
 ]
 
 [[package]]
@@ -862,6 +864,7 @@ dependencies = [
  "insta",
  "jiff",
  "mischief",
+ "mischief-api",
  "tempfile",
  "tokio",
  "tokio-util",
@@ -965,6 +968,7 @@ name = "mischief"
 version = "2026.11.0"
 dependencies = [
  "insta",
+ "mischief-api",
  "mischief-core",
  "mischief-macros",
  "mischief-render",
@@ -972,6 +976,14 @@ dependencies = [
  "tempfile",
  "thiserror",
  "trybuild",
+]
+
+[[package]]
+name = "mischief-api"
+version = "2026.11.0"
+dependencies = [
+ "mischief-core",
+ "mischief-macros",
 ]
 
 [[package]]
@@ -987,6 +999,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+ "toml_edit",
 ]
 
 [[package]]
@@ -1247,7 +1260,7 @@ version = "2026.11.0"
 dependencies = [
  "codspeed-criterion-compat",
  "insta",
- "mischief",
+ "mischief-api",
  "rstest",
  "strum",
 ]
@@ -1261,6 +1274,7 @@ dependencies = [
  "insta",
  "jiff",
  "mischief",
+ "mischief-api",
  "rax",
  "rstest",
  "serde",
@@ -1543,6 +1557,7 @@ dependencies = [
  "generic-num",
  "insta",
  "mischief",
+ "mischief-api",
  "num-traits",
  "num_enum",
  "parking_lot",

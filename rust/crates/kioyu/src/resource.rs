@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use mischief::IDiagnosis;
+use mischief_api::IDiagnosis;
 
 pub type ResourceKey = &'static str;
 

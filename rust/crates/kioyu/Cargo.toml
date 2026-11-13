@@ -7,7 +7,7 @@ edition.workspace = true
 async-trait = { workspace = true }
 clerk = { workspace = true, features = ["tracing"] }
 jiff = { workspace = true }
-mischief = { workspace = true, default-features = false, features = ["macros"] }
+mischief-api.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
 tokio-util.workspace = true
 uuid = { workspace = true, features = ["v4"] }
@@ -15,6 +15,7 @@ uuid = { workspace = true, features = ["v4"] }
 [dev-dependencies]
 arbor.workspace = true
 insta = { workspace = true, features = ["filters"] }
+mischief.workspace = true
 tempfile.workspace = true
 tokio = {
   workspace = true,

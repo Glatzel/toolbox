@@ -1,0 +1,5 @@
+error: malformed description template: unmatched `}`
+ --> tests/ui/fail/derive_description_template_unmatched_close.rs:5:31
+  |
+5 |     #[diagnosis(description = "value }")]
+  |                               ^^^^^^^^^

@@ -58,8 +58,9 @@ let error = InputError { source: None };
 assert_eq!(error.code(), Some("E_INPUT"));
 ```
 
-Use `#[diagnosis(description = field)]` to delegate the description to an
-`AsRef<str>` field. Mark one field with `#[diagnosis(source)]`.
+Use `#[diagnosis(description_from = field)]` or
+`#[diagnosis(description = field)]` as shorthand for a `{field}` description
+template. Mark one field with `#[diagnosis(source)]`.
 
 Enums use the same attributes, with enum-level metadata inherited by variants:
 
@@ -74,8 +75,34 @@ enum InputError {
     Invalid(String),
 }
 
-assert_eq!(InputError::Invalid("name".into()).description(), "name");
+assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
 ```
+
+Description strings can interpolate tuple fields by position and named fields
+by name, using Rust format specifications:
+
+```rust
+use mischief::{DescriptionDisplay, IDiagnosis};
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display)]
+enum PitchError {
+    #[diagnosis(description = "Unknown pitch: {0}")]
+    Unknown(char),
+}
+
+let error = PitchError::Unknown('H');
+assert_eq!(error.description(), "Unknown pitch: {0}");
+assert_eq!(error.to_string(), "Unknown pitch: H");
+assert_eq!(
+    format!("{}", DescriptionDisplay(&error)),
+    "Unknown pitch: H"
+);
+```
+
+`description()` returns the unformatted template when it contains
+placeholders. Renderers and `DescriptionDisplay` use
+`IDiagnosis::fmt_description()` for the formatted text.
 
 Add `display` and `error` to generate `Display` and `Error`. Use `from` on a
 single field to generate its conversion:

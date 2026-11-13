@@ -1,0 +1,5 @@
+error: description template tuple index `1` is out of range
+ --> tests/ui/fail/derive_description_template_index_out_of_range.rs:5:31
+  |
+5 |     #[diagnosis(description = "{1}")]
+  |                               ^^^^^

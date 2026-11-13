@@ -1,4 +1,5 @@
 mod attrs;
+mod description_template;
 mod enum_codegen;
 mod shared;
 mod struct_codegen;

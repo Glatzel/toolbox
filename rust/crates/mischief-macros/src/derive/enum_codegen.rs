@@ -4,11 +4,14 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{ToTokens, format_ident, quote};
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{DeriveInput, Field, Fields, Ident, Index, Member};
+use syn::{DeriveInput, Field, Fields, Ident, LitStr, Member};
 
 use super::attrs::{
     Description, DiagnosisAttributes, SourceKind, Transparent, option_literal,
     parse_diagnosis_attributes, parse_field_roles,
+};
+use super::description_template::{
+    DescriptionTemplate, parse_default_description_template, parse_description_template,
 };
 use super::shared::{
     DiagnosisMethods, diagnosis_source_builder, error_source_expression,
@@ -17,15 +20,14 @@ use super::shared::{
 };
 use crate::facade_path;
 
-#[derive(Clone)]
 struct FieldBinding {
-    member: Member,
     binding: Ident,
 }
 
 struct EnumArm {
     pattern: TokenStream2,
     description: TokenStream2,
+    fmt_description: Option<TokenStream2>,
     display: Option<TokenStream2>,
     source: TokenStream2,
     error_source: TokenStream2,
@@ -48,6 +50,7 @@ pub(crate) fn derive_enum_idiagnosis(
         ));
     }
 
+    let default_description = parse_enum_default_description(&defaults)?;
     let facade = facade_path();
     let mut arms = Vec::with_capacity(data.variants.len());
     let mut from_impls = Vec::new();
@@ -59,10 +62,6 @@ pub(crate) fn derive_enum_idiagnosis(
             .iter()
             .enumerate()
             .map(|(index, field)| FieldBinding {
-                member: field
-                    .ident
-                    .clone()
-                    .map_or_else(|| Member::Unnamed(Index::from(index)), Member::Named),
                 binding: format_ident!("__field_{index}", span = field.span()),
             })
             .collect();
@@ -133,6 +132,12 @@ pub(crate) fn derive_enum_idiagnosis(
                             #binding.description()
                         }
                     },
+                    fmt_description: Some(quote! {
+                        {
+                            use #facade::IDiagnosis as _;
+                            #binding.fmt_description(f)
+                        }
+                    }),
                     source: quote! {
                         {
                             use #facade::IDiagnosis as _;
@@ -165,17 +170,20 @@ pub(crate) fn derive_enum_idiagnosis(
                     },
                 },
                 Transparent::Foreign => {
-                    let description = match defaults.description.as_ref() {
-                        Some(Description::Static(description)) => description,
-                        Some(Description::Field(_)) | None => {
-                            return Err(syn::Error::new_spanned(
-                                &variant.ident,
-                                "`transparent(foreign)` requires an enum-level static description",
-                            ));
-                        }
-                    };
+                    let description = default_description.as_ref().ok_or_else(|| {
+                        syn::Error::new_spanned(
+                            &variant.ident,
+                            "`transparent(foreign)` requires an enum-level static description",
+                        )
+                    })?;
                     DiagnosisMethods {
-                        description: quote! { #description },
+                        description: {
+                            let description = description.raw();
+                            quote! { #description }
+                        },
+                        fmt_description: description
+                            .needs_formatting()
+                            .then(|| write_description_expression(description, &bindings)),
                         source: quote! { None },
                         code: option_literal(defaults.code.clone()),
                         severity: defaults
@@ -190,6 +198,7 @@ pub(crate) fn derive_enum_idiagnosis(
             arms.push(EnumArm {
                 pattern,
                 description: methods.description,
+                fmt_description: methods.fmt_description,
                 display: Some(quote! {
                     ::core::fmt::Display::fmt(#binding, f)
                 }),
@@ -235,6 +244,12 @@ pub(crate) fn derive_enum_idiagnosis(
                         #binding.description()
                     }
                 },
+                fmt_description: Some(quote! {
+                    {
+                        use #facade::IDiagnosis as _;
+                        #binding.fmt_description(f)
+                    }
+                }),
                 display: None,
                 source: quote! {
                     {
@@ -274,13 +289,21 @@ pub(crate) fn derive_enum_idiagnosis(
             continue;
         }
 
-        let description = enum_description(&config, &defaults, &bindings, variant)?;
+        let template =
+            variant_description_template(&config, default_description.as_ref(), &fields, variant)?;
+        let description = template.raw();
         let display = if defaults.display {
-            let description = enum_static_description(&config, &defaults, variant)?;
-            Some(quote! { f.write_str(#description) })
+            if template.needs_formatting() {
+                Some(write_description_expression(&template, &bindings))
+            } else {
+                Some(quote! { f.write_str(#description) })
+            }
         } else {
             None
         };
+        let fmt_description = template
+            .needs_formatting()
+            .then(|| write_description_expression(&template, &bindings));
         let source = roles.source.map_or_else(
             || quote! { None },
             |source| {
@@ -320,13 +343,37 @@ pub(crate) fn derive_enum_idiagnosis(
             .or(defaults.severity.as_ref())
             .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) });
 
-        arms.push(EnumArm {
-            pattern,
-            description,
-            display,
-            source,
-            error_source,
-            report: roles.source.map_or_else(
+        let report = if template.needs_formatting() {
+            let formatted = format_description_expression(&template, &bindings);
+            let builder = quote! {
+                let builder = builder.description(#formatted);
+            };
+            roles.source.map_or_else(
+                || {
+                    quote! {{
+                        #builder
+                        #facade::Report::new(builder.build())
+                    }}
+                },
+                |source| {
+                    let field = fields[source.index];
+                    let binding = &bindings[source.index].binding;
+                    let builder_expression = match source.kind {
+                        SourceKind::Diagnosis => {
+                            diagnosis_source_builder(&field.ty, quote! { #binding })
+                        }
+                        SourceKind::Foreign => {
+                            foreign_source_builder(&field.ty, quote! { #binding })
+                        }
+                    };
+                    quote! {{
+                        #builder
+                        #facade::Report::new((#builder_expression).build())
+                    }}
+                },
+            )
+        } else {
+            roles.source.map_or_else(
                 || quote! { #facade::Report::new(builder.build()) },
                 |source| {
                     let field = fields[source.index];
@@ -343,7 +390,17 @@ pub(crate) fn derive_enum_idiagnosis(
                         #facade::Report::new((#builder_expression).build())
                     }
                 },
-            ),
+            )
+        };
+
+        arms.push(EnumArm {
+            pattern,
+            description: quote! { #description },
+            display,
+            source,
+            fmt_description,
+            error_source,
+            report,
             code,
             severity,
             help,
@@ -365,6 +422,20 @@ pub(crate) fn derive_enum_idiagnosis(
     }
 
     let description_arms = method_arms(&arms, |arm| &arm.description);
+    let has_fmt_description = arms.iter().any(|arm| arm.fmt_description.is_some());
+    let fmt_description_arms: Vec<_> = arms
+        .iter()
+        .map(|arm| {
+            let pattern = &arm.pattern;
+            let expression = if let Some(expression) = &arm.fmt_description {
+                quote! { #expression }
+            } else {
+                let description = &arm.description;
+                quote! { f.write_str(#description) }
+            };
+            quote! { #pattern => #expression }
+        })
+        .collect();
     let source_arms = method_arms(&arms, |arm| &arm.source);
     let error_source_arms: Vec<_> = arms
         .iter()
@@ -387,6 +458,15 @@ pub(crate) fn derive_enum_idiagnosis(
                 match self {
                     #(#description_arms),*
                 }
+            },
+            fmt_description: if has_fmt_description {
+                Some(quote! {
+                    match self {
+                        #(#fmt_description_arms),*
+                    }
+                })
+            } else {
+                None
             },
             source: quote! {
                 match self {
@@ -495,60 +575,77 @@ fn enum_variant_pattern(
     }
 }
 
-fn enum_description(
-    config: &DiagnosisAttributes,
+fn parse_enum_default_description(
     defaults: &DiagnosisAttributes,
-    bindings: &[FieldBinding],
+) -> Result<Option<DescriptionTemplate>> {
+    match defaults.description.as_ref() {
+        Some(Description::Static(description)) => {
+            parse_default_description_template(description).map(Some)
+        }
+        Some(Description::Field(field)) => Err(syn::Error::new_spanned(
+            field,
+            "enum-level default description cannot contain placeholders",
+        )),
+        None => Ok(None),
+    }
+}
+
+fn variant_description_template(
+    config: &DiagnosisAttributes,
+    default: Option<&DescriptionTemplate>,
+    fields: &[&Field],
     variant: &syn::Variant,
-) -> Result<TokenStream2> {
-    let description = config
-        .description
-        .as_ref()
-        .or(defaults.description.as_ref())
-        .ok_or_else(|| {
+) -> Result<DescriptionTemplate> {
+    match config.description.as_ref() {
+        Some(Description::Static(description)) => parse_description_template(description, fields),
+        Some(Description::Field(field)) => description_template_from_field(field, fields),
+        None => default.cloned().ok_or_else(|| {
             syn::Error::new_spanned(
                 &variant.ident,
                 "missing `description`, `description_from`, or `forward` on enum variant",
             )
-        })?;
-
-    match description {
-        Description::Static(description) => Ok(quote! { #description }),
-        Description::Field(member) => {
-            let binding = binding_for_member(bindings, member).ok_or_else(|| {
-                syn::Error::new_spanned(member, "delegated description field does not exist")
-            })?;
-            Ok(quote! { ::core::convert::AsRef::<str>::as_ref(#binding) })
-        }
-    }
-}
-
-fn enum_static_description(
-    config: &DiagnosisAttributes,
-    defaults: &DiagnosisAttributes,
-    variant: &syn::Variant,
-) -> Result<TokenStream2> {
-    match config
-        .description
-        .as_ref()
-        .or(defaults.description.as_ref())
-    {
-        Some(Description::Static(description)) => Ok(quote! { #description }),
-        Some(Description::Field(_)) | None => Err(syn::Error::new_spanned(
-            &variant.ident,
-            "`display` requires a static description for every variant",
-        )),
-    }
-}
-
-fn binding_for_member<'a>(bindings: &'a [FieldBinding], member: &Member) -> Option<&'a Ident> {
-    match member {
-        Member::Named(member) => bindings.iter().find_map(|binding| match &binding.member {
-            Member::Named(candidate) if candidate == member => Some(&binding.binding),
-            _ => None,
         }),
-        Member::Unnamed(member) => bindings
-            .get(member.index as usize)
-            .map(|binding| &binding.binding),
+    }
+}
+
+fn description_template_from_field(
+    field: &Member,
+    fields: &[&Field],
+) -> Result<DescriptionTemplate> {
+    let placeholder = match field {
+        Member::Named(name) => format!("{{{}}}", name),
+        Member::Unnamed(index) => format!("{{{}}}", index.index),
+    };
+    let template = LitStr::new(&placeholder, field.span());
+    parse_description_template(&template, fields)
+}
+
+fn write_description_expression(
+    template: &DescriptionTemplate,
+    bindings: &[FieldBinding],
+) -> TokenStream2 {
+    let literal = template.formatted();
+    let arguments: Vec<_> = template
+        .fields()
+        .iter()
+        .map(|&index| &bindings[index].binding)
+        .collect();
+    quote! {
+        ::core::write!(f, #literal #(, #arguments)*)
+    }
+}
+
+fn format_description_expression(
+    template: &DescriptionTemplate,
+    bindings: &[FieldBinding],
+) -> TokenStream2 {
+    let literal = template.formatted();
+    let arguments: Vec<_> = template
+        .fields()
+        .iter()
+        .map(|&index| &bindings[index].binding)
+        .collect();
+    quote! {
+        alloc::format!(#literal #(, #arguments)*)
     }
 }

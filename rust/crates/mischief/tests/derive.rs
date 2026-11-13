@@ -179,6 +179,62 @@ enum DecodeError {
     Invalid,
 }
 
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "verb error")]
+struct GoldenVerbError {
+    _marker: (),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "integer parse error")]
+struct GoldenParseIntError {
+    _marker: (),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error, description = "enum parse error")]
+struct GoldenStrumError {
+    _marker: (),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
+enum GoldenNotationError {
+    #[diagnosis(transparent)]
+    Verb(#[diagnosis(from)] GoldenVerbError),
+    #[diagnosis(transparent)]
+    ParseInt(#[diagnosis(from)] GoldenParseIntError),
+    #[diagnosis(transparent)]
+    Strum(#[diagnosis(from)] GoldenStrumError),
+    #[diagnosis(description = "Unknown pitch: {0}")]
+    UnknownPitch(char),
+    #[diagnosis(description = "Unknown accidental: {0}")]
+    UnknownAccidental(char),
+    #[diagnosis(description = "Invalid octave first char: {0}")]
+    InvalidOctave(String),
+    #[diagnosis(description = "Invalid note: {0}")]
+    InvalidNote(String),
+    #[diagnosis(description = "Invalid key: {0}")]
+    InvalidKey(String),
+    #[diagnosis(description = "Invalid key kind: {0}")]
+    InvalidKeyKind(String),
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(description = "structured {{value}} {value:?}")]
+struct StructuredOnlyTemplate {
+    value: u8,
+}
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
+enum MixedTemplateError {
+    #[diagnosis(transparent)]
+    Transparent(OuterError),
+    #[diagnosis(description = "number {0:?}")]
+    Number(u8),
+}
+
 #[test]
 fn derives_static_description_and_metadata() {
     let source = MischiefError::builder("source").build();
@@ -204,7 +260,11 @@ fn derives_delegated_description_and_source() {
         source: MischiefError::builder("source").build(),
     };
 
-    assert_eq!(diagnosis.description(), "delegated description");
+    assert_eq!(diagnosis.description(), "{message}");
+    assert_eq!(
+        format!("{}", mischief::DescriptionDisplay(&diagnosis)),
+        "delegated description"
+    );
     assert_eq!(diagnosis.code(), None);
     assert_eq!(diagnosis.severity(), None);
     assert_eq!(diagnosis.help(), None);
@@ -374,7 +434,7 @@ fn derives_enum_variants_and_renders_with_simple_renderer() {
         String::from("tuple description"),
         MischiefError::builder("tuple source").build(),
     );
-    assert_eq!(diagnosis.description(), "tuple description");
+    assert_eq!(diagnosis.description(), "{0}");
     assert_eq!(
         diagnosis.source().map(IDiagnosis::description),
         Some("tuple source")
@@ -398,6 +458,141 @@ fn derives_enum_variants_and_renders_with_simple_renderer() {
     );
     assert_eq!(forwarded.description(), "forwarded");
     assert_eq!(forwarded.code(), Some("E_FORWARDED"));
+}
+
+#[test]
+fn structured_description_does_not_require_display_flag() {
+    let diagnosis = StructuredOnlyTemplate { value: 7 };
+
+    assert_eq!(diagnosis.description(), "structured {{value}} {value:?}");
+    assert_eq!(
+        format!("{}", mischief::DescriptionDisplay(&diagnosis)),
+        "structured {value} 7"
+    );
+    assert_eq!(
+        diagnosis.into_report().error().description(),
+        "structured {value} 7"
+    );
+}
+
+#[test]
+fn transparent_template_mix_preserves_forwarding() {
+    let transparent = MixedTemplateError::Transparent(OuterError {
+        source: Some(InnerError::Inner),
+    });
+    assert_eq!(transparent.to_string(), "outer");
+    assert_eq!(
+        core::error::Error::source(&transparent).map(ToString::to_string),
+        Some(String::from("inner"))
+    );
+    assert_eq!(
+        format!("{}", mischief::DescriptionDisplay(&transparent)),
+        "outer"
+    );
+
+    let number = MixedTemplateError::Number(42);
+    assert_eq!(number.description(), "number {0:?}");
+    assert_eq!(number.to_string(), "number 42");
+    assert_eq!(number.into_report().error().description(), "number 42");
+}
+
+#[test]
+fn notation_templates_match_the_previous_public_behavior() {
+    let cases = [
+        (
+            GoldenNotationError::Verb(GoldenVerbError { _marker: () }),
+            "verb error",
+            "verb error",
+        ),
+        (
+            GoldenNotationError::ParseInt(GoldenParseIntError { _marker: () }),
+            "integer parse error",
+            "integer parse error",
+        ),
+        (
+            GoldenNotationError::Strum(GoldenStrumError { _marker: () }),
+            "enum parse error",
+            "enum parse error",
+        ),
+        (
+            GoldenNotationError::UnknownPitch('H'),
+            "Unknown pitch: {0}",
+            "Unknown pitch: H",
+        ),
+        (
+            GoldenNotationError::UnknownAccidental('X'),
+            "Unknown accidental: {0}",
+            "Unknown accidental: X",
+        ),
+        (
+            GoldenNotationError::InvalidOctave(String::from("9")),
+            "Invalid octave first char: {0}",
+            "Invalid octave first char: 9",
+        ),
+        (
+            GoldenNotationError::InvalidNote(String::from("H#9")),
+            "Invalid note: {0}",
+            "Invalid note: H#9",
+        ),
+        (
+            GoldenNotationError::InvalidKey(String::from("not a key")),
+            "Invalid key: {0}",
+            "Invalid key: not a key",
+        ),
+        (
+            GoldenNotationError::InvalidKeyKind(String::from("mode")),
+            "Invalid key kind: {0}",
+            "Invalid key kind: mode",
+        ),
+    ];
+
+    for (error, raw_description, display) in cases {
+        assert_eq!(error.description(), raw_description);
+        assert_eq!(error.to_string(), display);
+        assert_eq!(format!("{}", mischief::DescriptionDisplay(&error)), display);
+        assert!(core::error::Error::source(&error).is_none());
+        assert_eq!(error.into_report().error().description(), display);
+    }
+}
+
+#[test]
+fn notation_template_reports_match_formatted_text() {
+    assert_report_render_snapshots(
+        "notation_template_verb",
+        &GoldenNotationError::Verb(GoldenVerbError { _marker: () }).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_parse_int",
+        &GoldenNotationError::ParseInt(GoldenParseIntError { _marker: () }).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_strum",
+        &GoldenNotationError::Strum(GoldenStrumError { _marker: () }).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_unknown_pitch",
+        &GoldenNotationError::UnknownPitch('H').into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_unknown_accidental",
+        &GoldenNotationError::UnknownAccidental('X').into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_invalid_octave",
+        &GoldenNotationError::InvalidOctave(String::from("9")).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_invalid_note",
+        &GoldenNotationError::InvalidNote(String::from("H#9")).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_invalid_key",
+        &GoldenNotationError::InvalidKey(String::from("not a key")).into_report(),
+    );
+    assert_report_render_snapshots(
+        "notation_template_invalid_key_kind",
+        &GoldenNotationError::InvalidKeyKind(String::from("mode")).into_report(),
+    );
 }
 
 struct SimpleRenderer<'a, D>(&'a D);

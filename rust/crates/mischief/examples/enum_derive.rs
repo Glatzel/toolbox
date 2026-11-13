@@ -1,4 +1,4 @@
-use mischief::{IDiagnosis, MischiefError, Severity};
+use mischief::{DescriptionDisplay, IDiagnosis, MischiefError, Severity};
 
 mod support;
 
@@ -44,7 +44,8 @@ fn main() {
         path: String::from("config.toml"),
         source: MischiefError::builder("permission denied").build(),
     };
-    assert_eq!(load.description(), "config.toml");
+    assert_eq!(load.description(), "{path}");
+    assert_eq!(format!("{}", DescriptionDisplay(&load)), "config.toml");
     assert_eq!(load.code(), Some("E_COMMAND"));
     assert_eq!(
         load.source().map(IDiagnosis::description),
@@ -52,7 +53,11 @@ fn main() {
     );
 
     let parse = CommandError::Parse(String::from("unexpected token"));
-    assert_eq!(parse.description(), "unexpected token");
+    assert_eq!(parse.description(), "{0}");
+    assert_eq!(
+        format!("{}", DescriptionDisplay(&parse)),
+        "unexpected token"
+    );
 
     support::print_diagnosis("invalid configuration", &invalid);
     support::print_diagnosis("failed load", &load);

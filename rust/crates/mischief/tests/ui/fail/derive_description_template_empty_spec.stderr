@@ -1,0 +1,5 @@
+error: description template format spec cannot be empty
+ --> tests/ui/fail/derive_description_template_empty_spec.rs:5:31
+  |
+5 |     #[diagnosis(description = "{0:}")]
+  |                               ^^^^^^

@@ -79,7 +79,30 @@
 //! }
 //!
 //! assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
-//! assert_eq!(InputError::Invalid("name".into()).description(), "name");
+//! assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
+//! ```
+//!
+//! Description strings can interpolate fields with thiserror-style syntax.
+//! `description()` returns the raw template, while renderers use
+//! [`IDiagnosis::fmt_description`] for the formatted text.
+//!
+//! ```
+//! use mischief::{DescriptionDisplay, IDiagnosis};
+//!
+//! #[derive(Debug, IDiagnosis)]
+//! #[diagnosis(display)]
+//! enum PitchError {
+//!     #[diagnosis(description = "Unknown pitch: {0}")]
+//!     Unknown(char),
+//! }
+//!
+//! let error = PitchError::Unknown('H');
+//! assert_eq!(error.description(), "Unknown pitch: {0}");
+//! assert_eq!(error.to_string(), "Unknown pitch: H");
+//! assert_eq!(
+//!     format!("{}", DescriptionDisplay(&error)),
+//!     "Unknown pitch: H"
+//! );
 //! ```
 //!
 //! Add `display` and `error` to generate rendering and the standard error

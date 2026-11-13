@@ -239,10 +239,23 @@ fn facade_path() -> TokenStream2 {
 /// attributes override those defaults. Use `#[diagnosis(forward)]` on a
 /// single-field variant to delegate all methods to that field.
 ///
-/// Add `display` to generate `core::fmt::Display` from static descriptions. Add
-/// `error` to generate `core::error::Error`; its `source()` delegates to the
-/// field marked `#[diagnosis(source)]`. The type must implement `Debug` and
-/// `Display`, either through the `display` flag or manually.
+/// Static descriptions may contain thiserror-style placeholders. Tuple fields
+/// use `{0}` and `{1}`; named fields use `{name}`. Format specifications such
+/// as `{0:?}`, `{name:>8}`, and `{name:#x}` are supported, and `{{` / `}}`
+/// escape literal braces. Only field references are accepted; arbitrary
+/// expressions and additional format arguments are not supported.
+///
+/// `IDiagnosis::description` returns the unformatted template literal for
+/// diagnostics with placeholders. Renderers and the `DescriptionDisplay`
+/// adapter call `IDiagnosis::fmt_description` to produce the formatted text.
+/// `description_from = field` is equivalent to a `{field}` description
+/// template. Enum-level default descriptions cannot contain placeholders.
+///
+/// Add `display` to generate `core::fmt::Display` from the same description
+/// template. Add `error` to generate `core::error::Error`; its `source()`
+/// delegates to the field marked `#[diagnosis(source)]`. The type must
+/// implement `Debug` and `Display`, either through the `display` flag or
+/// manually.
 ///
 /// Mark one field per variant with `#[diagnosis(from)]` to generate
 /// `From<FieldType>`. `from` is independent of source tracking. Two `from`
@@ -260,9 +273,10 @@ fn facade_path() -> TokenStream2 {
 /// requires a static enum-level description. Transparent wrappers do not add a
 /// report node.
 ///
-/// Formatted descriptions with field interpolation, `#[backtrace]`, custom
-/// `fmt` expressions, error mapping between external enums, and changes to the
-/// blanket `From<Error> for Report` conversion are not supported.
+/// Arbitrary expressions or extra arguments in descriptions,
+/// `#[backtrace]`, custom `fmt` expressions, error mapping between external
+/// enums, and changes to the blanket `From<Error> for Report` conversion are
+/// not supported.
 ///
 /// # Examples
 ///
@@ -279,7 +293,22 @@ fn facade_path() -> TokenStream2 {
 /// }
 ///
 /// assert_eq!(InputError::Missing.code(), Some("E_INPUT"));
-/// assert_eq!(InputError::Invalid("name".into()).description(), "name");
+/// assert_eq!(InputError::Invalid("name".into()).description(), "{0}");
+/// ```
+///
+/// Descriptions can format fields for both diagnostics and `Display`:
+///
+/// ```ignore
+/// #[derive(Debug, IDiagnosis)]
+/// #[diagnosis(display)]
+/// enum PitchError {
+///     #[diagnosis(description = "Unknown pitch: {0}")]
+///     Unknown(char),
+/// }
+///
+/// let error = PitchError::Unknown('H');
+/// assert_eq!(error.description(), "Unknown pitch: {0}");
+/// assert_eq!(error.to_string(), "Unknown pitch: H");
 /// ```
 ///
 /// Transparent foreign errors forward their display and source chain:
@@ -508,6 +537,96 @@ mod tests {
                 Default,
                 #[diagnosis(description = "variant")]
                 Variant(#[diagnosis(source)] Inner),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_template_tuple_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display)]
+            enum Template {
+                #[diagnosis(description = "pair {0}: {1:?}")]
+                Pair(&'static str, u8),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_template_named_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display)]
+            enum Template {
+                #[diagnosis(description = "record {name:>8}: {count:#x}")]
+                Record { name: &'static str, count: u32 },
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_template_debug_expansion() {
+        let input: TokenStream = r#"
+            enum Template {
+                #[diagnosis(description = "{value:?}")]
+                Debug { value: &'static str },
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_template_escaped_brace_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display)]
+            enum Template {
+                #[diagnosis(description = "{{literal}} {0}")]
+                Literal(&'static str),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_from_template_expansion() {
+        let input: TokenStream = r#"
+            enum Template {
+                #[diagnosis(description_from = 0)]
+                Message(String),
+            }
+        "#
+        .parse()
+        .expect("derive input should parse");
+
+        assert_snapshot!(expand_idiagnosis(input).to_string());
+    }
+
+    #[test]
+    fn idiagnosis_description_template_mixed_transparent_expansion() {
+        let input: TokenStream = r#"
+            #[diagnosis(display, error)]
+            enum Template {
+                #[diagnosis(transparent)]
+                Inner(Inner),
+                #[diagnosis(description = "number {0:?}")]
+                Number(u8),
             }
         "#
         .parse()

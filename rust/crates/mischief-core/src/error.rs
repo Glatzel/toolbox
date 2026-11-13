@@ -191,6 +191,15 @@ impl MischiefError {
 }
 
 impl MischiefErrorBuilder {
+    /// Replaces the diagnosis description.
+    ///
+    /// Static text is stored without allocating. Owned text is retained by
+    /// the resulting diagnosis.
+    pub fn description(mut self, description: impl Into<Cow<'static, str>>) -> Self {
+        self.description = description.into();
+        self
+    }
+
     /// Sets the stable error code.
     pub fn code(mut self, code: impl Into<Cow<'static, str>>) -> Self {
         self.code = Some(code.into());
@@ -420,6 +429,16 @@ mod tests {
         let description: String = "dynamic description".to_string();
         let error = MischiefError::builder(description).build();
 
+        assert!(matches!(error.description, alloc::borrow::Cow::Owned(_)));
+    }
+
+    #[test]
+    fn builder_replaces_description() {
+        let error = MischiefError::builder("static")
+            .description(String::from("formatted value"))
+            .build();
+
+        assert_eq!(error.description(), "formatted value");
         assert!(matches!(error.description, alloc::borrow::Cow::Owned(_)));
     }
 

@@ -1,0 +1,9 @@
+error: invalid format string: expected `}`, found `-`
+ --> tests/ui/fail/derive_description_template_invalid_spec.rs:5:38
+  |
+5 |     #[diagnosis(description = "{0:not-a-format}")]
+  |                                -     ^ expected `}` in format string
+  |                                |
+  |                                because of this opening brace
+  |
+  = note: if you intended to print `{`, you can escape it using `{{`

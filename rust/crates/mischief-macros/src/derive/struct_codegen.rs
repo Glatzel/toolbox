@@ -1,12 +1,14 @@
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::Result;
+use syn::spanned::Spanned;
 use syn::{DeriveInput, Fields, Member};
 
 use super::attrs::{
     Description, DiagnosisAttributes, FieldRoles, SourceKind, Transparent, option_literal,
     parse_field_roles,
 };
+use super::description_template::{DescriptionTemplate, parse_description_template};
 use super::shared::{
     DiagnosisMethods, diagnosis_source_builder, error_source_expression,
     foreign_error_source_expression, foreign_source_builder, generate_display_body_impl,
@@ -38,50 +40,11 @@ pub(crate) fn derive_struct_idiagnosis(
         .source
         .map(|source| field_refs[source.index].ident.clone().expect("named field"));
 
-    let display_description = if config.display {
-        match &config.description {
-            Some(Description::Static(description)) => Some(quote! { #description }),
-            Some(Description::Field(_)) | None => {
-                return Err(syn::Error::new_spanned(
-                    &input.ident,
-                    "`display` requires a static description",
-                ));
-            }
-        }
-    } else {
-        None
-    };
-
-    let description = match config.description {
-        Some(Description::Static(description)) => quote! { #description },
-        Some(Description::Field(field)) => {
-            let field_name = match &field {
-                Member::Named(field_name) => field_name,
-                Member::Unnamed(_) => {
-                    return Err(syn::Error::new_spanned(
-                        &field,
-                        "delegated description field does not exist",
-                    ));
-                }
-            };
-            if !fields
-                .iter()
-                .any(|candidate| candidate.ident.as_ref() == Some(field_name))
-            {
-                return Err(syn::Error::new_spanned(
-                    field_name,
-                    "delegated description field does not exist",
-                ));
-            }
-            quote! { ::core::convert::AsRef::<str>::as_ref(&self.#field) }
-        }
-        None => {
-            return Err(syn::Error::new_spanned(
-                &input.ident,
-                "missing `description` in `#[diagnosis(...)]`",
-            ));
-        }
-    };
+    let description_template = struct_description_template(&config, &field_refs, input)?;
+    let description = description_template.raw();
+    let fmt_description = description_template
+        .needs_formatting()
+        .then(|| write_description_expression(&description_template, &field_refs));
 
     let facade = facade_path();
     let code = option_literal(config.code);
@@ -138,7 +101,8 @@ pub(crate) fn derive_struct_idiagnosis(
         input,
         &facade,
         DiagnosisMethods {
-            description,
+            description: quote! { #description },
+            fmt_description,
             source,
             code,
             severity,
@@ -146,8 +110,15 @@ pub(crate) fn derive_struct_idiagnosis(
             url,
         },
     );
-    if let Some(description) = display_description {
-        expanded.extend(generate_display_impl(input, description));
+    if config.display {
+        if description_template.needs_formatting() {
+            expanded.extend(generate_display_body_impl(
+                input,
+                write_description_expression(&description_template, &field_refs),
+            ));
+        } else {
+            expanded.extend(generate_display_impl(input, quote! { #description }));
+        }
     }
     if config.error {
         expanded.extend(generate_error_impl(input, error_source));
@@ -155,26 +126,126 @@ pub(crate) fn derive_struct_idiagnosis(
     if let Some(from) = from {
         expanded.extend(from);
     }
-    let report_expression = roles.source.map_or_else(
-        || quote! { #facade::Report::new(builder.build()) },
-        |source| {
-            let field = field_refs[source.index];
-            let field_name = field.ident.as_ref().expect("named field");
-            let builder_expression = match source.kind {
-                SourceKind::Diagnosis => diagnosis_source_builder(&field.ty, quote! { source }),
-                SourceKind::Foreign => foreign_source_builder(&field.ty, quote! { source }),
-            };
-            quote! {
-                match self {
-                    Self { #field_name: source, .. } => {
-                        #facade::Report::new((#builder_expression).build())
-                    }
+    let description_update = description_template
+        .needs_formatting()
+        .then(|| format_description_expression(&description_template, &field_refs));
+    let report_expression = if let Some(source) = roles.source {
+        let field = field_refs[source.index];
+        let field_name = field.ident.as_ref().expect("named field");
+        let builder_expression = match source.kind {
+            SourceKind::Diagnosis => diagnosis_source_builder(&field.ty, quote! { source }),
+            SourceKind::Foreign => foreign_source_builder(&field.ty, quote! { source }),
+        };
+        let description_update = description_update.as_ref().map_or_else(
+            || quote! {},
+            |formatted| {
+                quote! {
+                    let builder = builder.description(#formatted);
+                }
+            },
+        );
+        quote! {
+            #description_update
+            match self {
+                Self { #field_name: source, .. } => {
+                    #facade::Report::new((#builder_expression).build())
                 }
             }
-        },
-    );
+        }
+    } else {
+        let description_update = description_update.as_ref().map_or_else(
+            || quote! {},
+            |formatted| {
+                quote! {
+                    let builder = builder.description(#formatted);
+                }
+            },
+        );
+        quote! {{
+            #description_update
+            #facade::Report::new(builder.build())
+        }}
+    };
     expanded.extend(generate_into_report_impl(input, &facade, report_expression));
     Ok(expanded)
+}
+
+fn struct_description_template(
+    config: &DiagnosisAttributes,
+    fields: &[&syn::Field],
+    input: &DeriveInput,
+) -> Result<DescriptionTemplate> {
+    match config.description.as_ref() {
+        Some(Description::Static(description)) => parse_description_template(description, fields),
+        Some(Description::Field(field)) => {
+            let field_name = match field {
+                Member::Named(field_name) => field_name,
+                Member::Unnamed(_) => {
+                    return Err(syn::Error::new_spanned(
+                        field,
+                        "delegated description field does not exist",
+                    ));
+                }
+            };
+            if !fields
+                .iter()
+                .any(|candidate| candidate.ident.as_ref() == Some(field_name))
+            {
+                return Err(syn::Error::new_spanned(
+                    field_name,
+                    "delegated description field does not exist",
+                ));
+            }
+            let template = syn::LitStr::new(&format!("{{{field_name}}}"), field.span());
+            parse_description_template(&template, fields)
+        }
+        None => Err(syn::Error::new_spanned(
+            &input.ident,
+            "missing `description` in `#[diagnosis(...)]`",
+        )),
+    }
+}
+
+fn write_description_expression(
+    template: &DescriptionTemplate,
+    fields: &[&syn::Field],
+) -> TokenStream2 {
+    let literal = template.formatted();
+    let arguments: Vec<_> = template
+        .fields()
+        .iter()
+        .map(|&index| {
+            let name = fields[index]
+                .ident
+                .as_ref()
+                .expect("named struct fields have identifiers");
+            quote! { self.#name }
+        })
+        .collect();
+    quote! {
+        ::core::write!(f, #literal #(, #arguments)*)
+    }
+}
+
+fn format_description_expression(
+    template: &DescriptionTemplate,
+    fields: &[&syn::Field],
+) -> TokenStream2 {
+    let literal = template.formatted();
+    let arguments: Vec<_> = template
+        .fields()
+        .iter()
+        .map(|&index| {
+            let name = fields[index]
+                .ident
+                .as_ref()
+                .expect("named struct fields have identifiers");
+            quote! { self.#name }
+        })
+        .collect();
+    quote! {
+        alloc::format!(#literal #(, #arguments)*)
+    }
 }
 
 fn derive_transparent_struct(
@@ -215,6 +286,11 @@ fn derive_transparent_struct(
         ));
     }
 
+    let foreign_description = if transparent == Transparent::Foreign {
+        Some(struct_description_template(&config, fields, input)?)
+    } else {
+        None
+    };
     let facade = facade_path();
     let field = fields[0];
     let field_name = field.ident.as_ref().expect("named field");
@@ -226,6 +302,12 @@ fn derive_transparent_struct(
                     self.#field_name.description()
                 }
             },
+            fmt_description: Some(quote! {
+                {
+                    use #facade::IDiagnosis as _;
+                    self.#field_name.fmt_description(f)
+                }
+            }),
             source: quote! {
                 {
                     use #facade::IDiagnosis as _;
@@ -257,23 +339,26 @@ fn derive_transparent_struct(
                 }
             },
         },
-        Transparent::Foreign => DiagnosisMethods {
-            description: match config.description.as_ref() {
-                Some(Description::Static(description)) => quote! { #description },
-                Some(Description::Field(field)) => {
-                    quote! { ::core::convert::AsRef::<str>::as_ref(&self.#field) }
-                }
-                None => unreachable!("foreign transparency requires a description"),
-            },
-            source: quote! { None },
-            code: option_literal(config.code.clone()),
-            severity: config
-                .severity
-                .clone()
-                .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) }),
-            help: option_literal(config.help.clone()),
-            url: option_literal(config.url.clone()),
-        },
+        Transparent::Foreign => {
+            let description = foreign_description
+                .as_ref()
+                .expect("foreign transparency requires a description");
+            let description_literal = description.raw();
+            DiagnosisMethods {
+                description: quote! { #description_literal },
+                fmt_description: description
+                    .needs_formatting()
+                    .then(|| write_description_expression(description, fields)),
+                source: quote! { None },
+                code: option_literal(config.code.clone()),
+                severity: config
+                    .severity
+                    .clone()
+                    .map_or_else(|| quote! { None }, |severity| quote! { Some(#severity) }),
+                help: option_literal(config.help.clone()),
+                url: option_literal(config.url.clone()),
+            }
+        }
     };
 
     let mut expanded = generate_idiagnosis_impl(input, &facade, methods);

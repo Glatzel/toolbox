@@ -4,6 +4,7 @@ use syn::{DeriveInput, Type};
 
 pub(crate) struct DiagnosisMethods {
     pub(crate) description: TokenStream2,
+    pub(crate) fmt_description: Option<TokenStream2>,
     pub(crate) source: TokenStream2,
     pub(crate) code: TokenStream2,
     pub(crate) severity: TokenStream2,
@@ -19,6 +20,16 @@ pub(crate) fn generate_idiagnosis_impl(
     let name = &input.ident;
     let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
     let description = methods.description;
+    let fmt_description = methods.fmt_description.map(|body| {
+        quote! {
+            fn fmt_description(
+                &self,
+                f: &mut ::core::fmt::Formatter<'_>,
+            ) -> ::core::fmt::Result {
+                #body
+            }
+        }
+    });
     let source = methods.source;
     let code = methods.code;
     let severity = methods.severity;
@@ -29,6 +40,8 @@ pub(crate) fn generate_idiagnosis_impl(
             fn description(&self) -> &str {
                 #description
             }
+
+            #fmt_description
 
             fn source(&self) -> Option<&dyn #facade::IDiagnosis> {
                 #source
@@ -155,7 +168,7 @@ pub(crate) fn generate_into_report_impl(
                     use alloc::string::ToString as _;
 
                     let mut builder = #facade::MischiefError::builder(
-                        #facade::IDiagnosis::description(source).to_string()
+                        #facade::DescriptionDisplay(source).to_string()
                     );
                     if let Some(code) = #facade::IDiagnosis::code(source) {
                         builder = builder.code(code.to_string());

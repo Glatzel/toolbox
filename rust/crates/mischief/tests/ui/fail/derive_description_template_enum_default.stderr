@@ -1,0 +1,5 @@
+error: enum-level default description cannot contain placeholders
+ --> tests/ui/fail/derive_description_template_enum_default.rs:4:27
+  |
+4 | #[diagnosis(description = "default {0}")]
+  |                           ^^^^^^^^^^^^^

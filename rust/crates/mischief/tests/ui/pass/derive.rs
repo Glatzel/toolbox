@@ -92,6 +92,13 @@ struct Reportable {
     source: std::io::Error,
 }
 
+#[derive(IDiagnosis)]
+#[diagnosis(description = "used {used}")]
+struct UnusedTemplateField {
+    used: u8,
+    unused: u8,
+}
+
 fn main() {
     let static_diagnosis = StaticDiagnosis { source: None };
     let _ = (static_diagnosis.code(), static_diagnosis.source());
@@ -145,6 +152,12 @@ fn main() {
 
     let from_only = FromOnly::from(1);
     assert!(core::error::Error::source(&from_only).is_none());
+
+    let unused = UnusedTemplateField {
+        used: 1,
+        unused: 2,
+    };
+    let _ = mischief::DescriptionDisplay(&unused).to_string();
 
     let report = Reportable {
         source: std::io::Error::other("report"),

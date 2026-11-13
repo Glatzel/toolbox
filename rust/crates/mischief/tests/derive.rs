@@ -1,8 +1,10 @@
 #![cfg(feature = "macros")]
+#![deny(unreachable_code)]
 
 #[cfg(feature = "std")]
 use mischief::render::*;
 use mischief::{IDiagnosis, MischiefError, Severity};
+use core::convert::Infallible;
 
 #[cfg(feature = "std")]
 struct NoTheme;
@@ -94,6 +96,14 @@ struct TupleSecondSourceDiagnosis(u8, #[diagnosis(source)] InnerError);
 #[derive(Debug, IDiagnosis)]
 #[diagnosis(display, error, transparent)]
 struct TupleTransparentDiagnosis(InnerError);
+
+#[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
+#[allow(dead_code, reason = "the uninhabited variant is a compile-time regression fixture")]
+enum InfallibleDiagnosis {
+    #[diagnosis(transparent(foreign))]
+    Infallible(#[diagnosis(from)] Infallible),
+}
 
 #[derive(IDiagnosis)]
 #[diagnosis(description = "description only")]
@@ -439,6 +449,13 @@ fn derives_transparent_tuple_struct() {
         None
     );
     assert_eq!(diagnosis.into_report().error().description(), "inner");
+}
+
+#[test]
+fn derives_infallible_error_without_unreachable_code() {
+    fn assert_from<T: From<Infallible>>() {}
+
+    assert_from::<InfallibleDiagnosis>();
 }
 
 #[test]

@@ -159,6 +159,11 @@ pub(crate) fn generate_from_impl(
 ) -> TokenStream2 {
     let name = &input.ident;
     let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+    let body = if is_infallible(field_type) {
+        quote! { match value {} }
+    } else {
+        body
+    };
     quote! {
         impl #impl_generics ::core::convert::From<#field_type> for #name #type_generics #where_clause {
             fn from(value: #field_type) -> Self {
@@ -243,6 +248,9 @@ pub(crate) fn diagnosis_source_builder(field_type: &Type, value: TokenStream2) -
 }
 
 pub(crate) fn foreign_source_builder(field_type: &Type, value: TokenStream2) -> TokenStream2 {
+    if is_infallible(field_type) {
+        return quote! { match #value {} };
+    }
     if is_option(field_type) {
         quote! {
             match #value {
@@ -263,4 +271,14 @@ pub(crate) fn is_option(field_type: &Type) -> bool {
         .segments
         .last()
         .is_some_and(|segment| segment.ident == "Option")
+}
+
+pub(crate) fn is_infallible(field_type: &Type) -> bool {
+    let Type::Path(path) = field_type else {
+        return false;
+    };
+    path.path
+        .segments
+        .last()
+        .is_some_and(|segment| segment.ident == "Infallible")
 }

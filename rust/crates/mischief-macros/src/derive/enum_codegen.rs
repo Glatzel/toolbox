@@ -17,7 +17,7 @@ use super::shared::{
     DiagnosisMethods, code_field_expression, description_field_expression,
     diagnosis_source_builder, error_source_expression, foreign_error_source_expression,
     foreign_source_builder, generate_display_body_impl, generate_error_impl, generate_from_impl,
-    generate_idiagnosis_impl, generate_into_report_impl, is_option,
+    generate_idiagnosis_impl, generate_into_report_impl, is_infallible, is_option,
 };
 use crate::facade_path;
 
@@ -218,9 +218,15 @@ pub(crate) fn derive_enum_idiagnosis(
                     Transparent::Diagnosis => quote! {
                         #facade::Report::new(copy_diagnosis(&#binding))
                     },
-                    Transparent::Foreign => quote! {
-                        #facade::Report::new(#facade::MischiefError::from_error(#binding))
-                    },
+                    Transparent::Foreign => {
+                        if is_infallible(&fields[0].ty) {
+                            quote! { match #binding {} }
+                        } else {
+                            quote! {
+                                #facade::Report::new(#facade::MischiefError::from_error(#binding))
+                            }
+                        }
+                    }
                 },
                 code: methods.code,
                 severity: methods.severity,

@@ -292,8 +292,8 @@ name = "clerk"
 version = "2026.11.13"
 dependencies = [
  "jiff",
+ "mischief",
  "owo-colors",
- "thiserror",
  "tracing",
  "tracing-core",
  "tracing-subscriber",

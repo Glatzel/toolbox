@@ -1,49 +1,23 @@
-use std::error::Error;
-use std::fmt;
-
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use mischief::IDiagnosis;
 
 #[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
 pub enum ShookServerError {
-    #[diagnosis(description = "microsandbox error")]
+    #[diagnosis(transparent(foreign))]
     Microsandbox(#[diagnosis(from)] microsandbox::MicrosandboxError),
-    #[diagnosis(description = "JSON serialization error")]
+    #[diagnosis(transparent(foreign))]
     SerdeJson(#[diagnosis(from)] serde_json::Error),
-    #[diagnosis(description = "request validation failed")]
+    #[diagnosis(transparent(foreign))]
     Validator(#[diagnosis(from)] validator::ValidationErrors),
 
-    #[diagnosis(description = "missing request header")]
+    #[diagnosis(description = "Missing header: {0}")]
     MissingHeader(String),
-    #[diagnosis(description = "request signatures did not match")]
+    #[diagnosis(description = "Request signatures didn't match!")]
     RequestSignaturesMismatch,
-    #[diagnosis(description = "request parse error")]
+    #[diagnosis(description = "{0}")]
     Parse(String),
-}
-
-impl fmt::Display for ShookServerError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Microsandbox(source) => fmt::Display::fmt(source, f),
-            Self::SerdeJson(source) => fmt::Display::fmt(source, f),
-            Self::Validator(source) => fmt::Display::fmt(source, f),
-            Self::MissingHeader(header) => write!(f, "Missing header: {header}"),
-            Self::RequestSignaturesMismatch => f.write_str("Request signatures didn't match!"),
-            Self::Parse(message) => f.write_str(message),
-        }
-    }
-}
-
-impl Error for ShookServerError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Microsandbox(source) => Error::source(source),
-            Self::SerdeJson(source) => Error::source(source),
-            Self::Validator(source) => Error::source(source),
-            _ => None,
-        }
-    }
 }
 
 #[cfg(test)]

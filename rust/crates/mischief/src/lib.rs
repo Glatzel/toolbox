@@ -132,7 +132,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // #![feature(specialization)]
 // #![allow(incomplete_features)]
-pub use mischief_core::{IDiagnosis, MischiefError, Severity};
+pub use mischief_core::{IDiagnosis, MischiefError, MischiefErrorBuilder, Severity};
 
 pub use crate::report::{IntoMischief, Report, Result, WrapErr};
 #[cfg(feature = "macros")]

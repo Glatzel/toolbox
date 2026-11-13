@@ -121,6 +121,8 @@ fn report_from_error() -> mischief::Result<()> {
     match f {
         Ok(_) => unreachable!(),
         Err(report) => {
+            assert!(report.downcast_ref::<FakeError>().is_some());
+
             #[cfg(feature = "fancy")]
             {
                 let bundle = RenderBundle {

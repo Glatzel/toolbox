@@ -40,6 +40,7 @@ pub use vlw::*;
 pub use vtg::*;
 pub use zda::*;
 
+/// test sentence
 #[cfg(test)]
 #[cfg_attr(test, macro_export)]
 macro_rules! test_sentence {

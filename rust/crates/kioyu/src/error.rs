@@ -5,33 +5,14 @@ use clerk::ClerkError;
 use mischief::IDiagnosis;
 
 #[derive(Debug, IDiagnosis)]
+#[diagnosis(display, error)]
 pub enum KioyuError {
-    #[diagnosis(description = "logging setup error")]
-    Clerk(#[diagnosis(source, from)] ClerkError),
+    #[diagnosis(transparent)]
+    Clerk(#[diagnosis(from)] ClerkError),
     #[diagnosis(description = "I/O error")]
     IO(#[diagnosis(from)] std::io::Error),
     #[diagnosis(description = "Dispatcher closed.")]
     DispatcherClosed,
-}
-
-impl fmt::Display for KioyuError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Clerk(source) => fmt::Display::fmt(source, f),
-            Self::IO(source) => fmt::Display::fmt(source, f),
-            Self::DispatcherClosed => f.write_str("Dispatcher closed."),
-        }
-    }
-}
-
-impl Error for KioyuError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Clerk(source) => Error::source(source),
-            Self::IO(source) => Error::source(source),
-            Self::DispatcherClosed => None,
-        }
-    }
 }
 
 #[cfg(test)]

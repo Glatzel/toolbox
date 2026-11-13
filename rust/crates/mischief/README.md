@@ -82,6 +82,8 @@ More runnable examples are in the crate’s `examples/` directory:
 ```text
 cargo run -p mischief --example enum_derive
 cargo run -p mischief --example enum_forward
+cargo run -p mischief --example library_boundary
+cargo run -p mischief --example application_boundary
 ```
 
 ## Features

@@ -19,13 +19,7 @@ thiserror.workspace = true
 trybuild.workspace = true
 
 [features]
-default = [
-  "backtrace",
-  "fancy",
-  "macros",
-  "mischief-render/arbor-default",
-  "std"
-]
+default = ["backtrace", "fancy", "macros", "mischief-render/arbor-default", "std"]
 backtrace = ["mischief-render/backtrace", "std"]
 fancy = ["color", "hyperlink", "pretty", "textwrap"]
 macros = []
@@ -46,13 +40,5 @@ textwrap-hyphenation = [
   "std",
 ]
 textwrap-smawk = ["mischief-render/textwrap-smawk", "pretty", "std"]
-textwrap-unicode-linebreak = [
-  "mischief-render/textwrap-unicode-linebreak",
-  "pretty",
-  "std"
-]
-textwrap-unicode-width = [
-  "mischief-render/textwrap-unicode-width",
-  "pretty",
-  "std"
-]
+textwrap-unicode-linebreak = ["mischief-render/textwrap-unicode-linebreak", "pretty", "std"]
+textwrap-unicode-width = ["mischief-render/textwrap-unicode-width", "pretty", "std"]

@@ -61,7 +61,7 @@ where
 ///
 /// let f = format!(
 ///     "./temp/{}.log",
-///     jiff::Zoned::now().strftime("%Y-%m-%d-%H-%M-%S")
+///     jiff::ZonedDateTime::now().strftime("%Y-%m-%d-%H-%M-%S")
 /// );
 /// let f = PathBuf::from(f);
 ///

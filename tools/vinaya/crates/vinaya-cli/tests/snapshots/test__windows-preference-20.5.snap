@@ -1,5 +1,0 @@
----
-source: crates/vinaya-cli/tests/test.rs
-expression: "String::from_utf8_lossy(cmd.get_output().stdout.as_slice())"
----
-[HOME]\houdini20.5

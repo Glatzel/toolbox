@@ -3,6 +3,10 @@ name = "spek"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = ["parallel"]
+parallel = ["phastft/parallel", "rayon"]
+
 [[bench]]
 harness = false
 name = "stft"
@@ -24,7 +28,3 @@ float-cmp.workspace = true
 insta.workspace = true
 mischief.workspace = true
 rstest.workspace = true
-
-[features]
-default = ["parallel"]
-parallel = ["phastft/parallel", "rayon"]

@@ -3,13 +3,6 @@ name = "arbor"
 version.workspace = true
 edition.workspace = true
 
-[dependencies]
-textwrap = { workspace = true, optional = true }
-
-[dev-dependencies]
-insta.workspace = true
-rstest.workspace = true
-
 [features]
 default = [
   "textwrap",
@@ -23,3 +16,10 @@ textwrap-hyphenation = ["textwrap", "textwrap/hyphenation"]
 textwrap-smawk = ["textwrap", "textwrap/smawk"]
 textwrap-unicode-linebreak = ["textwrap", "textwrap/unicode-linebreak"]
 textwrap-unicode-width = ["textwrap", "textwrap/unicode-width"]
+
+[dependencies]
+textwrap = { workspace = true, optional = true }
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true

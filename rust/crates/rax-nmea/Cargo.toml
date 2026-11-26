@@ -3,6 +3,9 @@ name = "rax-nmea"
 version.workspace = true
 edition.workspace = true
 
+[features]
+serde = ["dep:serde", "jiff/serde"]
+
 [[bench]]
 harness = false
 name = "nmea"
@@ -28,6 +31,3 @@ criterion.workspace = true
 insta = { workspace = true, features = ["filters", "json"] }
 mischief.workspace = true
 rstest.workspace = true
-
-[features]
-serde = ["dep:serde", "jiff/serde"]

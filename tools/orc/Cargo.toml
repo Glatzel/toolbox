@@ -3,6 +3,9 @@ name = "orc"
 version = "2026.11.0"
 edition = "2024"
 
+[features]
+test-mode = []
+
 [dependencies]
 arbor = { path = "../../rust/crates/arbor", default-features = false }
 clap-style = { path = "../../rust/crates/clap-style" }
@@ -20,9 +23,6 @@ strum = { version = "0.28", features = ["derive"] }
 assert_cmd = "2.2.2"
 insta = { version = "1.49.0", features = ["filters"] }
 rstest = "0.28.0"
-
-[features]
-test-mode = []
 
 [profile.dev.package]
 insta.opt-level = 3

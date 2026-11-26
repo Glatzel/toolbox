@@ -35,7 +35,6 @@ impl ClerkFormatter {
         if !self.color {
             return level.to_string();
         }
-
         match level {
             Level::TRACE => "TRACE".purple().to_string(),
             Level::DEBUG => "DEBUG".blue().to_string(),
@@ -51,7 +50,7 @@ macro_rules! write_header {
         let _ = write!(
             $writer,
             "[{}][{}][{}]",
-            jiff::Zoned::now().strftime(TIME_FORMAT),
+            jiff::ZonedDateTime::now().strftime(TIME_FORMAT),
             $self.color_level(*$meta.level()),
             $meta.target(),
         );
@@ -60,7 +59,7 @@ macro_rules! write_header {
         let _ = write!(
             $writer,
             "[{}][{}][{}][{}:{}] ",
-            jiff::Zoned::now().strftime(TIME_FORMAT),
+            jiff::ZonedDateTime::now().strftime(TIME_FORMAT),
             $self.color_level(*$meta.level()),
             $meta.target(),
             $meta.file().unwrap_or("<file>"),

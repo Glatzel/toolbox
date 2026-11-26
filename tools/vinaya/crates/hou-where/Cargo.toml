@@ -1,0 +1,16 @@
+[package]
+name = "hou-where"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clerk.workspace = true
+dirs.workspace = true
+glob.workspace = true
+hou-variable.workspace = true
+mischief.workspace = true
+serde_json.workspace = true
+validator.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

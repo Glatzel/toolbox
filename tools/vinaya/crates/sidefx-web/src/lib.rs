@@ -1,0 +1,213 @@
+mod options;
+
+use core::str::FromStr;
+use core::time::Duration;
+use std::collections::HashMap;
+
+use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD;
+use hou_variable::HoudiniVersionShort;
+use mischief::{IntoMischief, WrapErr, mischief};
+pub use options::{
+    SidefxDownloadBuildVersion, SidefxDownloadProduct, SidefxLicenseProducts, SidefxPlatform,
+};
+use serde_json::json;
+
+pub struct SideFXWeb {
+    pub client: reqwest_middleware::ClientWithMiddleware,
+    pub token: String,
+    pub api_url: String,
+}
+
+impl SideFXWeb {
+    pub async fn new(
+        client_id: &str,
+        client_secret: &str,
+        token_url: Option<&str>,
+        api_url: Option<&str>,
+        timeout: Option<f32>,
+        retries: Option<u8>,
+    ) -> mischief::Result<Self> {
+        let token_url = token_url.unwrap_or("https://www.sidefx.com/oauth2/application_token");
+        let api_url = api_url.unwrap_or("https://www.sidefx.com/api/");
+        let timeout = timeout.unwrap_or(5.0);
+        let _retries = retries.unwrap_or(3);
+
+        //build client
+        let retry_policy =
+            reqwest_retry::policies::ExponentialBackoff::builder().build_with_max_retries(3);
+        let reqwest_client = reqwest::Client::builder()
+            .timeout(Duration::from_secs_f32(timeout))
+            .build()
+            .into_mischief()?;
+        let client = reqwest_middleware::ClientBuilder::new(reqwest_client)
+            .with(reqwest_retry::RetryTransientMiddleware::new_with_policy(
+                retry_policy,
+            ))
+            .build();
+
+        // get token
+        let mut authorization = String::from("Basic ");
+        authorization.push_str(
+            STANDARD
+                .encode(format!("{client_id}:{client_secret}"))
+                .as_str(),
+        );
+        let response = client
+            .post(token_url)
+            .header(
+                reqwest::header::HeaderName::from_str("Authorization").into_mischief()?,
+                reqwest::header::HeaderValue::from_str(authorization.as_str()).into_mischief()?,
+            )
+            .send()
+            .await
+            .into_mischief()?
+            .error_for_status()
+            .map_err(|e| {
+                mischief::mischief!(
+                    "{}. Fail to get houdini api token.",
+                    e,
+                    help = "Check your client_id and client_token."
+                )
+            })?;
+
+        let token = response
+            .json::<HashMap<String, serde_json::Value>>()
+            .await
+            .into_mischief()?
+            .get("access_token")
+            .ok_or_else(|| mischief::mischief!("No access token found."))?
+            .to_string()
+            .replace('"', "");
+
+        let sidefx_web = Self {
+            client,
+            token: format!("Bearer {token}"),
+            api_url: api_url.to_string(),
+        };
+        Ok(sidefx_web)
+    }
+
+    ///<https://www.sidefx.com/docs/api/download/index.html#download.get_daily_builds_list>
+    pub async fn download_get_daily_builds_list(
+        &self,
+        product: SidefxDownloadProduct,
+        version: Vec<HoudiniVersionShort>,
+        platform: Option<SidefxPlatform>,
+        only_production: Option<bool>,
+    ) -> mischief::Result<reqwest::Response> {
+        #[derive(Debug, serde::Serialize)]
+        struct RequestParams {
+            version: Vec<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            platform: Option<SidefxPlatform>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            only_production: Option<bool>,
+        }
+        let params = RequestParams {
+            version: version.into_iter().map(|v| v.to_string()).collect(),
+            platform,
+            only_production,
+        };
+        let data = json!(["download.get_daily_builds_list", [product.as_ref()], params]);
+        let response = self
+            .client
+            .post(self.api_url.as_str())
+            .header(
+                reqwest::header::CONTENT_TYPE,
+                reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
+            )
+            .body(format!("json={data}"))
+            .header(
+                reqwest::header::AUTHORIZATION,
+                reqwest::header::HeaderValue::from_str(&self.token)?,
+            )
+            .send()
+            .await?
+            .error_for_status()
+            .into_mischief()
+            .wrap_err_with(|| mischief::mischief!("Fail to get daily_builds_list."))?;
+        Ok(response)
+    }
+
+    ///<https://www.sidefx.com/docs/api/download/index.html#download.get_daily_build_download>
+    pub async fn download_get_daily_build_download(
+        &self,
+        product: SidefxDownloadProduct,
+        version: &HoudiniVersionShort,
+        build: SidefxDownloadBuildVersion,
+        platform: SidefxPlatform,
+    ) -> mischief::Result<reqwest::Response> {
+        let build = match build {
+            SidefxDownloadBuildVersion::Number(num) => num.to_string(),
+            SidefxDownloadBuildVersion::Production => "production".to_string(),
+        };
+        let data = json!([
+            "download.get_daily_build_download",
+            [
+                product.as_ref(),
+                version.to_string(),
+                build,
+                platform.as_ref()
+            ],
+            {}
+        ]);
+        let response = self
+            .client
+            .post(self.api_url.as_str())
+            .header(
+                reqwest::header::CONTENT_TYPE,
+                reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
+            )
+            .body(format!("json={data}"))
+            .header(
+                reqwest::header::AUTHORIZATION,
+                reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
+            )
+            .send()
+            .await
+            .into_mischief()?
+            .error_for_status()
+            .into_mischief()
+            .wrap_err_with(|| mischief!("Fail to get daily_builds_list."))?;
+        Ok(response)
+    }
+
+    /// <https://www.sidefx.com/docs/api/license/index.html#api-methods>
+    pub async fn get_non_commercial_license(
+        &self,
+        server_name: &str,
+        server_code: &str,
+        version: Option<&HoudiniVersionShort>,
+        products: SidefxLicenseProducts,
+    ) -> mischief::Result<reqwest::Response> {
+        let data = json!([
+            "license.get_non_commercial_license",
+            [
+                server_name,
+                server_code,
+                products.as_ref()
+            ],
+            {"version": version.map_or_default(std::string::ToString::to_string)}
+        ]);
+        let response = self
+            .client
+            .post(self.api_url.as_str())
+            .header(
+                reqwest::header::CONTENT_TYPE,
+                reqwest::header::HeaderValue::from_static("application/x-www-form-urlencoded"),
+            )
+            .body(format!("json={data}"))
+            .header(
+                reqwest::header::AUTHORIZATION,
+                reqwest::header::HeaderValue::from_str(&self.token).into_mischief()?,
+            )
+            .send()
+            .await
+            .into_mischief()?
+            .error_for_status()
+            .into_mischief()
+            .wrap_err(mischief!("Fail to get non_commercial_license."))?;
+        Ok(response)
+    }
+}

@@ -1,0 +1,13 @@
+[workspace]
+preview = ["pixi-build"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+
+[package]
+name = "vinaya-cli"
+version = "22.0.508"
+
+[package.build.backend]
+name = "pixi-build-rust"
+channels = ["https://prefix.dev/conda-forge"]
+

@@ -22,11 +22,7 @@ strum = { version = "0.28", features = ["derive"] }
 [dev-dependencies]
 assert_cmd = "2.2.2"
 insta = { version = "1.49.0", features = ["filters"] }
-<<<<<<< HEAD
 rstest = "0.29.0"
-=======
-rstest = "0.28.0"
->>>>>>> 6d8f72b (build: Update npm (#947))
 
 [profile.dev.package]
 insta.opt-level = 3

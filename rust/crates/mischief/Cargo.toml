@@ -5,19 +5,6 @@ edition.workspace = true
 rust-version.workspace = true
 readme = "README.md"
 
-[dependencies]
-mischief-api.workspace = true
-mischief-core = { workspace = true, features = ["alloc"] }
-mischief-macros.workspace = true
-mischief-render = { workspace = true, optional = true }
-
-[dev-dependencies]
-insta = { workspace = true, features = ["filters"] }
-owo-colors.workspace = true
-tempfile.workspace = true
-thiserror.workspace = true
-trybuild.workspace = true
-
 [features]
 default = ["backtrace", "fancy", "macros", "mischief-render/arbor-default", "std"]
 backtrace = ["mischief-render/backtrace", "std"]
@@ -42,3 +29,16 @@ textwrap-hyphenation = [
 textwrap-smawk = ["mischief-render/textwrap-smawk", "pretty", "std"]
 textwrap-unicode-linebreak = ["mischief-render/textwrap-unicode-linebreak", "pretty", "std"]
 textwrap-unicode-width = ["mischief-render/textwrap-unicode-width", "pretty", "std"]
+
+[dependencies]
+mischief-api.workspace = true
+mischief-core = { workspace = true, features = ["alloc"] }
+mischief-macros.workspace = true
+mischief-render = { workspace = true, optional = true }
+
+[dev-dependencies]
+insta = { workspace = true, features = ["filters"] }
+owo-colors.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+trybuild.workspace = true

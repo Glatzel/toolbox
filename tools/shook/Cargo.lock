@@ -1164,7 +1164,7 @@ checksum = "e0921b3876b3a1df8a1c9f912e7f94342458022c2e84288015893d83c4d62a79"
 name = "clerk"
 version = "2026.11.0"
 dependencies = [
- "jiff 0.2.46",
+ "jiff 1.0.3",
  "mischief-api",
  "owo-colors",
  "tracing",
@@ -3158,7 +3158,7 @@ version = "2026.11.0"
 dependencies = [
  "async-trait",
  "clerk",
- "jiff 0.2.46",
+ "jiff 1.0.3",
  "mischief-api",
  "tokio",
  "tokio-util",

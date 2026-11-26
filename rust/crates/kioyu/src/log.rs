@@ -107,7 +107,7 @@ where
         let file = handles.entry(job_id.0.clone()).or_insert_with(|| {
             let filename = format!(
                 "{}.{}.{}.log",
-                jiff::Zoned::now().strftime(TIME_FORMAT),
+                jiff::ZonedDateTime::now().strftime(TIME_FORMAT),
                 job_id.1, // job name
                 job_id.0, // job id
             );
@@ -172,7 +172,7 @@ where
     let run_dir = log_root
         .as_ref()
         .join("kioyu")
-        .join(jiff::Zoned::now().strftime(TIME_FORMAT).to_string());
+        .join(jiff::ZonedDateTime::now().strftime(TIME_FORMAT).to_string());
 
     let jobs_dir = run_dir.join("jobs");
     std::fs::create_dir_all(&jobs_dir)?;

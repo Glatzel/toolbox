@@ -353,7 +353,6 @@ jobs:
         if: ${{!cancelled()}}
         with:
           flags: ci-tools-ttyw
-
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:
@@ -368,7 +367,7 @@ jobs:
         envoy-miri,
         tools-orc,
         tools-shook,
-        tools-ttyw
+        tools-ttyw,
       ]
     runs-on: ubuntu-slim
     steps:

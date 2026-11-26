@@ -33,10 +33,3 @@ strum = { version = "0.28", features = ["derive"] }
 tempfile = "3.27.0"
 tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
 validator = { version = "0.21.0", features = ["derive"] }
-
-[profile.release]
-opt-level = 3
-debug = false
-strip = true
-lto = true
-codegen-units = 1
